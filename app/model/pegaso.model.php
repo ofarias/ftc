@@ -19537,7 +19537,7 @@ function ejecutarRecepcion($ida, $cantRec, $cantOr ){
 
 	function ctrlInvPatio($idpreoc, $canto, $cantr, $prod){
 
-		$this->query="SELECT if(count(id) is null, 0, 1) as contador  from FTC_CTRL_INV_PATIO WHERE preoc = '$idpreoc'";
+		$this->query="SELECT count(id) as contador  from FTC_CTRL_INV_PATIO WHERE preoc = '$idpreoc'";
 		$res=$this->EjecutaQuerySimple();
 		$row=ibase_fetch_object($res);
 
