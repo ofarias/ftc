@@ -1,0 +1,308 @@
+<br /><br />
+<div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                                 SALDO DE CUENTAS BANCARIAS
+                        </div>
+                           <div class="panel-body">
+                            <div class="table-responsive">                            
+                                <table class="table table-striped table-bordered table-hover" id="dataTables">
+                                    <thead>
+                                        <tr>
+                                            <th>Banco</th>
+                                            <th>Cuenta Bancaria</th>
+                                            <th>Cuenta Contable</th>
+                                            <th>Abonos Mes Actual</th>
+                                            <th>Abonos Mes Anterior</th>
+                                            <th>Movs. X Relac. Actual</th>
+                                            <th>Movs. X Relac. Anterior</th>
+                                        </tr>
+                                    </thead>
+                                  <tbody>
+                                        <?php
+                                        foreach ($bancos as $data):                           
+                                        ?>
+                                       <tr>
+                                            <td align="right"><?php echo $data->BANCO;?></td>
+                                            <td><?php echo $data->NUM_CUENTA;?></td>
+                                            <td><?php echo $data->CTA_CONTAB;?></td>
+                                            <td><?php echo $data->ABONOS_ACTUAL;?></td>
+                                            <td><?php echo $data->ABONOS_ANTERIOR;?></td>
+                                            <td><?php echo $data->MOV_X_REL_AC;?></td>
+                                            <td><?php echo $data->MOV_X_REL_AN;?></td>
+                                        </tr>
+                                      <?php endforeach; ?>
+                                 </tbody>
+                                 </table>
+                      </div>
+            </div>
+        </div>
+</div>
+</div>
+<div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                                 Selccione el MES y Año
+                        </div>
+                           <div class="panel-body">
+                            <div class="table-responsive"> 
+                            <table width="100%">
+                              <thead>
+                                <tr>
+                                  <th width="10%"> Seleccionar Mes: </th>
+                                  <th width="5%"> </th>
+                                  <th width="10%"> Seleccionar Año: </th>
+                                  <th width="75%"></th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                  <tr>
+                                  <form action="index.php" method = "POST">
+                                    <td align="center">
+                                      <select name = "mes">
+                                        <?php foreach ($meses as $val):?>
+                                        <option value = "<?php echo $val->NUMERO;?>"><?php echo $val->NOMBRE;?></option>
+                                        <?php endforeach?>
+                                           </select>
+                                    </td>
+                                    <td>
+                                      
+                                    </td>
+                                    <td align="center">
+                                        <select name = 'anio'>
+                                          <option value = '2016'> 2016 </option>
+                                          <option value = '2017'> 2017 </option>
+                                          <option value="2015"> 2015 </option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                    <?php foreach ($bancos as $data):?>
+                                          <input type="hidden" name="banco" value="<?php echo $data->BANCO?>">
+                                          <input type="hidden" name="cuenta" value="<?php echo $data->NUM_CUENTA?>">
+                                    <?php endforeach ?>
+                                        <button name='FiltrarEdoCta_v3' type = "submit" value="enviar"> Aplicar </button>
+                                    </td>
+                                    </form>
+                                    </tr>
+                              </tbody>
+                         </table>                             
+                      </div>
+            </div>
+        </div>
+</div>
+</div>
+
+<?php if($mes!=0)
+  { ?>
+<?php 
+if (empty($exec)){
+?>
+<div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                          Pagos Registrados en <?php echo $mesactual->NOMBRE.'
+                          durante el periodo del '.$mesactual->FECHA_INI.' al '.$mesactual->FECHA_FIN;?>.
+                        </div>
+                           <div class="panel-body">
+                            <div class="table-responsive">                            
+                              NO SE ENCONTRO INFORMAICON DEL MES DE <?php echo $mesactual->NOMBRE?>
+                            <!-- /.table-responsive -->
+                      </div>
+            </div>
+        </div>
+</div>
+<?php }
+else
+{ 
+?>
+<br /><br />
+<div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                                 Detalle de Tipo de Ingresos del mes <?php echo $mesactual->NOMBRE.'
+                          durante el periodo del '.$mesactual->FECHA_INI.' al '.$mesactual->FECHA_FIN;?>.
+                        </div>
+                           <div class="panel-body">
+                            <div class="table-responsive">                            
+                                <table class="table table-striped table-bordered table-hover" id="dataTables">
+                                  <tr>
+                                    <?php foreach ($pagosacreedores as $data):
+                                      $acreedores = $data->ACREEDORES;
+                                      endforeach;
+                                    ?>
+                                    <td width="50%">
+                                   <label> Ingresos por Ventas: $ <?php echo number_format($ventas,2); ?> </label> <br>
+                                   <label> No Ingresos por Transferencias: $ <?php echo number_format($transfer,2); ?></label> <br>
+                                   <label> No Ingresos por Devolucion de Compra: $ <?php echo number_format($devCompra,2); ?> </label> <br>
+                                   <label> No Ingresos por Devolucion de Gastos: $ <?php echo number_format($devGasto,2); ?></label> <br>
+                                   <label> No Ingresos por Prestamos: $ <?php echo number_format($pcchica,2); ?></label> <br>
+                                   <label> Ingresos TOTALES: $ <?php echo number_format($total,2)?></label>
+                                    <br/>
+                                    <br/>
+                                    <br/>
+                                    <?php foreach($pagosaplicados as $data): ?>
+                                    <label>Ingresos por Venta Aplicados: $ <?php echo number_format($data->TOTAL-$acreedores,2)?>   </label><br/>
+                                    <?php endforeach ?>
+                                    <?php foreach ($pagosacreedores as $data ): $acreedores = $data->ACREEDORES?>
+                                    <label>Ingresos por Venta en Acreedores: $ <?php echo number_format($data->ACREEDORES,2)?></label>
+                                    <?php endforeach ?>
+                                    </td>
+                                    <td width="50%">
+                                    <label> Compras: $ <?php echo number_format($totC,2); ?> </label> <br>
+                                    <label> Compras a Credito Pagadas: $ <?php echo number_format($totCr,2); ?></label> <br>
+                                    <label> Gastos : $ <?php echo number_format($totG,2); ?> </label> <br>
+                                    <label> Deudores: $ <?php echo number_format($totD,2); ?></label> <br>
+                                    <label> </label> <br>
+                                    <label> Egresos TOTALES: $ <?php echo number_format(($totC + $totG + $totD + $totCr),2) ?></label>
+                                    <br/>
+                                    <br/>
+                                    <br/>
+                                    </td>
+                                    </tr>
+                                 </table>
+                      </div>
+            </div>
+        </div>
+</div>
+</div>
+<div class="row">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                          Pagos Registrados en <?php echo $mesactual->NOMBRE.'
+                          durante el periodo del '.$mesactual->FECHA_INI.' al '.$mesactual->FECHA_FIN;?>.
+                        </div>
+                           <div class="panel-body">
+                            <div class="table-responsive">                            
+                                <table class="table table-striped table-bordered table-hover" >
+                                    <thead>
+                                        <tr>
+                                            <th>TIPO</th>
+                                            <th>FOLIO / UUID </th>
+                                            <th>FECHA REGISTRO</th>
+                                            <th>ABONO</th>
+                                            <th>CARGO</th>
+                                            <th>POR CONCILIAR/APLICAR</th>
+                                            <th>TIPO PAGO</th>
+                                            
+                                            <th>USUARIO QUE REGISTRO</th>
+                                            <th>Contabilizado?</th>
+                                            
+                                        </tr>
+                                    </thead>
+                                  <tbody>
+                                        <?php $i = 0;
+                                        foreach ($exec as $datos):
+                                              $tipo = $datos->TP;
+                                              $i++;  
+                                            if($tipo == 'DC'){
+                                              $desc = 'DEVOLUCION DE COMPRA.';
+                                              }elseif ($tipo =='DG'){
+                                              $desc = 'DEVOLUCION DE GASTO.';
+                                              }elseif ($tipo == 'oTEC'){
+                                              $desc = 'TRANSFERENCIA ENTRE CUENTAS PROPIAS.';
+                                              }elseif ($tipo == 'oPCC'){
+                                              $desc = 'PRESTAMO CAJA CHICA,';
+                                              }elseif(empty($tipo) and $datos->TIPO == 'Venta'){
+                                                $desc = 'Pago de Factura';
+                                              }elseif($tipo == 'Compra'){
+                                               $desc = 'Compra'; 
+                                              }elseif (substr($tipo,0,3)== 'GTR'){
+                                                $desc = $tipo;
+                                              }elseif ($tipo == 'Deudor') {
+                                                $desc = 'Deudor';
+                                              }
+                                              
+                                               if($datos->FA >= 1){
+                                                $desc = 'Acreedor-'.$datos->FA;
+                                               }
+                                               $color = '';
+                                               if($datos->COMPROBADO == '1'){
+                                                $color=""; 
+                                               }        
+                                          ?>
+                                       <tr class="odd gradeX" <?php echo $color;?> id="<?php echo $i;?>">
+                                            <td><?php echO $datos->TIPO;?></td>
+                                            <td><?php echo $datos->CONSECUTIVO;?></td>
+                                            <td><?php echo substr($datos->FECHAMOV,0, 10) ;?></td>
+                                            <td align="right"><?php echo '$ '.number_format($datos->ABONO,2);?></td>
+                                            <td align="right"><?php echo '$ '.number_format($datos->CARGO,2);?></td>
+                                            <td align="right"><?php echo '$ '.number_format($datos->SALDO,2);?></td>
+                                            <td>
+                                              <a href="index.php?action=pagoFacturas&idp=<?php echo $datos->IDENTIFICADOR?>" target="_blank"?> <?php echo $desc;?> </a>
+                                            </td>
+                                           
+                                            
+                                            <td><?php echo $datos->USUARIO;?></td>
+                                            <td><?php echo $datos->CONTABILIZADO?></td>
+                                              
+                                            </form>
+                                        <?php endforeach ?>
+                                        </tr>
+                                 </tbody>
+                            </table>
+                            <!-- /.table-responsive -->
+                      </div>
+            </div>
+        </div>
+</div>
+<?php 
+} 
+?>
+<?php }
+?>
+  <form action="index.php" method=post id="formulario1" target="el-iframe"> 
+    <input type="hidden" name="fecha" id="fnvaFecha" value=""> 
+    <input type="hidden" name="iden" id="fiden" value="">
+    <input type="hidden" name="valor" id="valor" value="">
+    <input type="hidden" name="regnvafecha"> 
+  </form>
+  <iframe name="el-iframe" type="hidden"></iframe>
+<!--Modified by GDELEON 3/Ago/2016-->
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="/resources/demos/style.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+<script>
+
+  $(document).ready(function() {
+    $(".date1").datepicker({dateFormat: 'dd.mm.yy'});
+  });
+
+  function colores(identificador, env, valor){
+      var renglon;
+      var nvaf = document.getElementsByClassName("date1");
+      var idate = identificador -1 ;
+      var nvafi = nvaf[idate].value;
+
+      if(valor == '1'){
+        msg =  'Se actualizo la nueva fecha: \n\n' + env + ' :  ' + nvafi + 'valor: ' + nvaf;
+        renglon = document.getElementById(identificador);
+        renglon.style.background="RED";
+        document.getElementById("fiden").value = env;
+        document.getElementById("fnvaFecha").value = nvafi;
+        document.getElementById("valor").value=valor;
+        var form = document.getElementById("formulario1");
+        form.submit();
+        alert(msg);   
+      }else{
+        msg =  'Se ha desmarcado la transaccion: \n\n' + env + ' :  ' + nvafi + 'valor' + valor ;
+        renglon = document.getElementById(identificador);
+        renglon.style.background="white";
+        document.getElementById("fiden").value = env;
+        document.getElementById("fnvaFecha").value = nvafi;
+        document.getElementById("valor").value=valor;
+        var form = document.getElementById("formulario1");
+        form.submit();
+        alert(msg); 
+      }
+      //location.replace('index.php?action=pagoFacturas&idp='+iden);
+  } 
+  
+  </script>
