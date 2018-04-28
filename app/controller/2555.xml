@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<cfdi:Comprobante xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv33.xsd http://www.sat.gob.mx/ComercioExterior11 http://www.sat.gob.mx/sitio_internet/cfd/ComercioExterior11/ComercioExterior11.xsd" Version="3.3" Serie="F" Folio="2555" Fecha="2018-03-16T13:02:45" Sello="ZBU+fZXZ/jXaksSH+1N7+A8SWCQsu4u/LADqkGL7jyAe4c8Q6QTM4Tuf7TfhNJ3rfMiu5aLY/SAKlvTl6TbXl3uLSOu001qcXEHGba6xEamBq8i/w97j15RgGdFvUKPoRiOXSabeyEogDEBYOTK/rFzxXmFLw5nh0Gy0SiQ0Vuu7htHidvaNckSNHoD7Wcws6ni4iuLwEFBpqg34l8IMD+j1sCi5syD0nLWOBUKq2jjUdZTPokuY5P9TI+dop73Ta63elkbh8VxuyY7XMnYV3zFVw1Qyr9tBBXWd7PdHZPCkgjLTnfGdOgqSRha813R92kuPThR4qa6c75PYjRXRcw==" FormaPago="99" NoCertificado="00001000000407353108" Certificado="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" CondicionesDePago="100% ANTICIPADO" SubTotal="2593.00" Moneda="USD" TipoCambio="18.702300" Total="2593.00" TipoDeComprobante="I" MetodoPago="PUE" LugarExpedicion="53040" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:cfdi="http://www.sat.gob.mx/cfd/3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cce11="http://www.sat.gob.mx/ComercioExterior11">
+	<cfdi:Emisor Rfc="TCO980608EJ2" Nombre="TECNOPRESS COMERCIALIZADORA, S. DE R.L. DE C.V." RegimenFiscal="601"/>
+	<cfdi:Receptor Rfc="XEXX010101000" Nombre="PRODENVASES S.A.S" ResidenciaFiscal="COL" NumRegIdTrib="860013809-8" UsoCFDI="P01"/>
+	<cfdi:Conceptos>
+		<cfdi:Concepto ClaveProdServ="32101643" Cantidad="1.000000" ClaveUnidad="H87" Unidad="pz" Descripcion="PAC-SCI SINGLE AXIS POSITION CA" ValorUnitario="2593.000000" Importe="2593.000000">
+			<cfdi:Impuestos>
+				<cfdi:Traslados>
+					<cfdi:Traslado Base="2593.000000" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.000000" Importe="0.000000"/>
+				</cfdi:Traslados>
+			</cfdi:Impuestos>
+			<cfdi:InformacionAduanera NumeroPedimento="18  47  3749  8015726"></cfdi:InformacionAduanera>
+		</cfdi:Concepto>
+	</cfdi:Conceptos>
+	<cfdi:Impuestos TotalImpuestosTrasladados="0.00">
+		<cfdi:Traslados>
+			<cfdi:Traslado Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.000000" Importe="0.00"/>
+		</cfdi:Traslados>
+	</cfdi:Impuestos>
+	<cfdi:Complemento>
+		<cce11:ComercioExterior Version="1.1" TipoOperacion="2" ClaveDePedimento="A1" CertificadoOrigen="0" NumCertificadoOrigen="NO FUNGE COMO CERTIFICADO DE ORIGEN" NumeroExportadorConfiable="TCO980608EJ2" Incoterm="FCA" Subdivision="0" Observaciones="NA" TipoCambioUSD="18.702300" TotalUSD="2593.00">
+			<cce11:Emisor>
+				<cce11:Domicilio Calle="Av México" NumeroExterior="38" NumeroInterior="" CodigoPostal="53040" Municipio="057" Estado="MEX" Pais="MEX" Referencia="" Localidad="09" Colonia="0048"></cce11:Domicilio>
+			</cce11:Emisor>
+			<cce11:Receptor>
+				<cce11:Domicilio Calle="Carrera 64C 96 26" NumeroExterior="96-26" NumeroInterior="" Colonia="" Localidad="" Referencia="" Municipio="[ANTIOQUIA]" Estado="[MEDELLIN]" CodigoPostal="[050001]" Pais="[COLOMBIA]"></cce11:Domicilio>
+			</cce11:Receptor>
+			<cce11:Destinatario NumRegIdTrib="860013809-8" Nombre="PRODENVASES S.A.S">
+				<cce11:Domicilio Calle="Carrera 64C 96 26" NumeroExterior="96-26" NumeroInterior="0" Colonia="0" Localidad="Antioquia C.P. 050001" Referencia="C.P. 050001" Municipio="Antioquia" Estado="Medellin, Colombia" CodigoPostal="050001" Pais="COL"></cce11:Domicilio>
+			</cce11:Destinatario>
+			<cce11:Mercancias>
+				<cce11:Mercancia NoIdentificacion="69100097" FraccionArancelaria="85389005" CantidadAduana="1.000" UnidadAduana="06" ValorUnitarioAduana="2593.00" ValorDolares="2593.00">
+					<cce11:DescripcionesEspecificas Marca="RAPID AIR" Modelo="69100097" SubModelo="" NumeroSerie="[NumeroSerie]"></cce11:DescripcionesEspecificas>
+				</cce11:Mercancia>
+			</cce11:Mercancias>
+		</cce11:ComercioExterior>
+	</cfdi:Complemento>
+</cfdi:Comprobante>

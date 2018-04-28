@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<cfdi:Comprobante xmlns:tfd="http://www.sat.gob.mx/TimbreFiscalDigital" xmlns:cfdi="http://www.sat.gob.mx/cfd/3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" NumCtaPago="No identificado" LugarExpedicion="NAUCALPAN, ESTADO DE MEXICO" tipoDeComprobante="ingreso" metodoDePago="No identificado" total="1125.04" Moneda="M.N." TipoCambio="1.00" descuento="155.14" subTotal="1125.00" condicionesDePago="Pago a 30 días" certificado="MIIEnjCCA4agAwIBAgIUMDAwMDEwMDAwMDAyMDI1MzU4MjQwDQYJKoZIhvcNAQEFBQAwggGVMTgwNgYDVQQDDC9BLkMuIGRlbCBTZXJ2aWNpbyBkZSBBZG1pbmlzdHJhY2nDs24gVHJpYnV0YXJpYTEvMC0GA1UECgwmU2VydmljaW8gZGUgQWRtaW5pc3RyYWNpw7NuIFRyaWJ1dGFyaWExODA2BgNVBAsML0FkbWluaXN0cmFjacOzbiBkZSBTZWd1cmlkYWQgZGUgbGEgSW5mb3JtYWNpw7NuMSEwHwYJKoZIhvcNAQkBFhJhc2lzbmV0QHNhdC5nb2IubXgxJjAkBgNVBAkMHUF2LiBIaWRhbGdvIDc3LCBDb2wuIEd1ZXJyZXJvMQ4wDAYDVQQRDAUwNjMwMDELMAkGA1UEBhMCTVgxGTAXBgNVBAgMEERpc3RyaXRvIEZlZGVyYWwxFDASBgNVBAcMC0N1YXVodMOpbW9jMRUwEwYDVQQtEwxTQVQ5NzA3MDFOTjMxPjA8BgkqhkiG9w0BCQIML1Jlc3BvbnNhYmxlOiBDZWNpbGlhIEd1aWxsZXJtaW5hIEdhcmPDrWEgR3VlcnJhMB4XDTEyMTIwNzAwNTc0MVoXDTE2MTIwNzAwNTc0MVowgd8xKzApBgNVBAMTIlNPTERBRFVSQVMgRVNQRUNJQUxFUyBMRU8gU0EgREUgQ1YxKzApBgNVBCkTIlNPTERBRFVSQVMgRVNQRUNJQUxFUyBMRU8gU0EgREUgQ1YxKzApBgNVBAoTIlNPTERBRFVSQVMgRVNQRUNJQUxFUyBMRU8gU0EgREUgQ1YxJTAjBgNVBC0THFNFTDAyMDMxNTFENiAvIEZFU0E3MDA4MDVUVzkxHjAcBgNVBAUTFSAvIEZFU0E3MDA4MDVIREZSVEIwNzEPMA0GA1UECxMGVU5JREFEMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDZUDYU8X3hqx3ERATWbEWUV2Ylw9u9W+Imw73R92CK6KgjsHx53k3qU7MKyG7AHMhKOhX/NA8ButGiAqhlWsGrPyNi9tsJmAPMWz36peV8+NKi1YP9a4ycVyYYPCpuvfaznf1nmb9dNITWeYVLu9wvMlYkM/BiG6qs352i7xWHhwIDAQABox0wGzAMBgNVHRMBAf8EAjAAMAsGA1UdDwQEAwIGwDANBgkqhkiG9w0BAQUFAAOCAQEAZp3CWBHt8fzm9kw5bkQ4aWIVkag/YLhQa1GabMYq4Daev9BEEmzmWZtLOWAbjopX/0szU9DV8CleJ7M9VVb9Spk23HnruNKItBvyL3LqD14IcbxryWJOqZ6A0hfWwzToJXvBDIUYnsy+RNXGUb5Ft8yalH6nxaOxZBlMI0J/SrawwHuzTFTEbIuYyy9eMgdDvaUzvjQfPVpmOYLpaJrn2tkb0tRzVRZXXnfK7r0Aq1CY0tnVfPZZI7TS14nMi2WdFneifXlO4yvnGEXdukIqUR7TqwS9Yb8sH1jixdza9txfqRrsgfVHkDBmHLD7LI7mHRp6VmlR68wSlkS3krzwnA==" noCertificado="00001000000202535824" formaDePago="Pago en una sola exhibición" sello="vU/kQAx/Ii5uO41uiBhLIzw4JAkhkObhz/nkFEz2upsGaZdmodth5eTcOnhMvVwD76hOQFah8iJinyWNbYgtLWtn61WXDAmVI8I68jizTgc3mpsVMNXuvJBdUHjv7HU61tYMR/7TUeTBed3CpIaUFvO29EsuN0I4dip7DRp7rVk=" fecha="2016-02-05T16:41:03" folio="2687" serie="TO" version="3.2" xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv32.xsd">
+    <cfdi:Emisor nombre="SOLDADURAS ESPECIALES LEO S.A. DE C.V." rfc="SEL0203151D6">
+        <cfdi:DomicilioFiscal codigoPostal="53370" pais="MEXICO" estado="ESTADO DE MEXICO" municipio="NAUCALPAN" colonia="FRACCIONAMIENTO INDUSTRIAL ALCE BLANCO" noInterior="E" noExterior="3" calle="CALLE 2" />
+        <cfdi:RegimenFiscal Regimen="REGIMEN GENERAL DE LEY PERSONAS MORALES" />
+    </cfdi:Emisor>
+    <cfdi:Receptor nombre="FERRETERA PEGASO, S.A. DE C.V." rfc="FPE980326GH9">
+        <cfdi:Domicilio codigoPostal="54080" pais="MEXICO" estado="EDO DE MEX" municipio="TLALNEPANTLA" colonia="INDUSTRIAL LAS ARMAS" noExterior="14-A" calle="GUILLERMO BARROSO" />
+    </cfdi:Receptor>
+    <cfdi:Conceptos>
+        <cfdi:Concepto importe="40.00" valorUnitario="40.00" descripcion="Broca para router, recta 2 filos, 1/4," unidad="PIEZA" cantidad="1.00" />
+        <cfdi:Concepto importe="90.00" valorUnitario="30.00" descripcion="Cutter 6 con grip" unidad="PIEZA" cantidad="3.00" />
+        <cfdi:Concepto importe="90.00" valorUnitario="30.00" descripcion="Cutter 6 con grip" unidad="PIEZA" cantidad="3.00" />
+        <cfdi:Concepto importe="210.00" valorUnitario="30.00" descripcion="Cutter 6 con grip" unidad="PIEZA" cantidad="7.00" />
+        <cfdi:Concepto importe="600.00" valorUnitario="30.00" descripcion="Cutter 6 con grip" unidad="PIEZA" cantidad="20.00" />
+        <cfdi:Concepto importe="95.00" valorUnitario="95.00" descripcion="Pistola calafateadora tipo esqueleto, re" unidad="PIEZA" cantidad="1.00" />
+    </cfdi:Conceptos>
+    <cfdi:Impuestos totalImpuestosTrasladados="155.18">
+        <cfdi:Traslados>
+            <cfdi:Traslado importe="155.18" tasa="16.00" impuesto="IVA" />
+        </cfdi:Traslados>
+    </cfdi:Impuestos>
+    <cfdi:Complemento>
+        <tfd:TimbreFiscalDigital FechaTimbrado="2016-02-05T16:45:42" UUID="32d75bd8-a151-4f0f-8a3f-389916813de8" noCertificadoSAT="00001000000300171291" selloCFD="vU/kQAx/Ii5uO41uiBhLIzw4JAkhkObhz/nkFEz2upsGaZdmodth5eTcOnhMvVwD76hOQFah8iJinyWNbYgtLWtn61WXDAmVI8I68jizTgc3mpsVMNXuvJBdUHjv7HU61tYMR/7TUeTBed3CpIaUFvO29EsuN0I4dip7DRp7rVk=" selloSAT="dlNJMQFQhlRs5LEtEiDD/9LCTFdc9Fnjx9SwwfugNIgLXd02xdnj1B64J9OuuaHdvTxpryMaAO1JUdmDLOxzQp9L3P6+xd/QHXxh7giHvD7ucPa8XtfcR2QGylbpKWa/GPcLPZdpNKoV1ogKY9Nk7ae8LKxQlKVY99dL0XqEmA4=" version="1.0" xsi:schemaLocation="http://www.sat.gob.mx/TimbreFiscalDigital http://www.sat.gob.mx/TimbreFiscalDigital/TimbreFiscalDigital.xsd" />
+    </cfdi:Complemento>
+</cfdi:Comprobante>

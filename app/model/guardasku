@@ -1,0 +1,61 @@
+<?php
+class databasexml{
+	
+	//private $dsn = "Driver={SQL Server};Server=192.168.120.2\sqlexpress;Database=SMNOK;Integrated Security=SSPI;Persist Security Info=False;";
+	
+	/*Datos SQL [CADENA de CONEXION]
+	 * */	
+	private $dsn = "Driver={SQL Server};Server=192.168.1.183\sqlexpress;Database=FPE980326GH9;Integrated Security=SSPI;Persist Security Info=False;";
+	/*$connect_string =  "Driver={SQL Anywhere 12};".
+                   "CommLinks=tcpip(Host=$db_host);".
+                   "ServerName=$db_server_name;".
+                   "DatabaseName=$db_name;";*/
+	/*Metodo para realizar consultas
+	 * INPUT query con consulta
+	 * OUTPUT result con arreglo de resultado*/		
+
+
+	public function consulta($queryt){
+		$usr = 'PHP';
+		$pwd =  'pegaso17+';
+		
+		try {
+			  ini_set('max_execution_time', 600);
+		      $conexion = odbc_connect( $this->dsn, $usr, $pwd )or die(odbc_error());		
+			  $result = odbc_exec($conexion, $queryt);									
+		}catch (exception $e) {
+		    echo "Failed to get DB handle: " . $e->getMessage() . "\n";
+		    exit;
+		}
+		  while($f = odbc_fetch_array($result)) {
+		  		$rs[]= $f;
+		  }
+		//$rs = odbc_fetch_array($result);
+		  	//var_dump($rs);
+
+		return $rs;
+	odbc_close($conexion);
+	}//Termina Método
+	
+	/*Funcion para afectar insert y update
+	 * INPUT: query
+	 * OUTPUT: filas afectadas*/
+	public function executenonquery($queryto){
+		$usr = 'PHP';
+		$pwd =  'pegaso2017+';
+		try {
+			  ini_set('max_execution_time', 600);
+			   
+		      $conexion = odbc_connect( $this->dsn, $usr, $pwd )or die(odbc_error());							
+			  $result = odbc_exec($conexion, $queryto);
+			  
+			  $rs = odbc_fetch_row($result);
+		}catch (exception $e) {
+		    echo "Failed to get DB handle: " . $e->getMessage() . "\n";
+		    exit;
+		}
+	return count($rs);
+	odbc_close($conexion);
+	}
+}
+?>
