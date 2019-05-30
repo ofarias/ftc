@@ -2,6 +2,7 @@
 require_once 'app/model/database.php';
 /*Clase para hacer uso de database*/
 class idpegaso extends database{
+	
 	function revisaDuplicado($idpreoc){
 		$this->query="SELECT * FROM PREOC01 WHERE ID = $idpreoc";
 		$rs=$this->EjecutaQuerySimple();

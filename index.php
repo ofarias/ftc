@@ -9,15 +9,15 @@ $controller = new pegaso_controller;
 $controller_cxc = new pegaso_controller_cobranza;
 $controller_v = new pegaso_controller_ventas;
 $controllerxml = new xml;
-
 if(isset($_GET['action'])){
 $action = $_GET['action'];
-
 }else{
 	$action = '';
 }
+//exit(print_r($_POST));
+//print_r($_POST);
 if (isset($_POST['usuario'])){
-	$controller->InsertaUsuarioN($_POST['usuario'], $_POST['contrasena'], $_POST['email'], $_POST['rol'], $_POST['letra']);	
+	$controller->InsertaUsuarioN($_POST['usuario'], $_POST['contrasena'], $_POST['email'], $_POST['rol'], $_POST['letra'], $_POST['nombre'], $_POST['numletras'], $_POST['paterno'],$_POST['materno']);	
 }elseif (isset($_POST['cambioSenia'])){
 	$nuevaSenia=$_POST['nuevaSenia'];
 	$actual = $_POST['actualSenia'];
@@ -45,9 +45,10 @@ if (isset($_POST['usuario'])){
 	$idu = $_POST['idu'];
 	$controller->ActualizaUnidades($numero, $marca, $modelo, $placas, $operador, $tipo, $tipo2, $coordinador, $idu);
 }elseif(isset($_POST['user']) && isset($_POST['contra'])){
-	$controller->LoginA($_POST['user'], $_POST['contra']);
+	$controller->LoginConta($_POST['user'], $_POST['contra']);
+	//$controller->LoginA($_POST['user'], $_POST['contra']);
 }elseif(isset($_POST['actualizausr'])){
-	$controller->actualiza($_POST['mail'], $_POST['usuario1'], $_POST['contrasena1'], $_POST['email1'], $_POST['rol1'], $_POST['estatus']);
+	$controller->actualiza($_POST['mail'], $_POST['usuario1'], $_POST['contrasena1'], $_POST['email1'], $_POST['rol'], $_POST['estatus']);
 }elseif($action == 'modifica'){
 	$controller->ModificaU($_GET['e']);
 } elseif(isset($_POST['ccomp'])){	
@@ -469,7 +470,8 @@ if(!empty($_POST['seleccion'])) {
 }elseif(isset($_POST['cerrarcaja'])){
 	$idcaja=$_POST['idcaja'];
 	$docf=$_POST['docf'];
-	$response = $controller->cerrarCaja($idcaja, $docf);
+	$tipo=isset($_POST['tipo'])? $_POST['tipo']:'';
+	$response = $controller->cerrarCaja($idcaja, $docf, $tipo);
 	echo json_encode($response);
 	exit();
 }elseif(isset($_POST['unidadentrega'])){
@@ -506,7 +508,8 @@ if(!empty($_POST['seleccion'])) {
 	$controller->VerProdRFC2($rfc);
 }elseif(isset($_POST['ImprimirSecuencia'])){
     $unidad = $_POST['unidad'];
-    $controller->ImprimirSecuencia($unidad);
+    $docs = substr($_POST['docs'],1);
+    $controller->ImprimirSecuencia($unidad, $docs);
 }elseif(isset($_POST['ImprimirSecuenciaEntrega'])){
     $unidad = $_POST['unidad'];
     $tipo = $_POST['tipo'];
@@ -710,7 +713,9 @@ if(!empty($_POST['seleccion'])) {
 }elseif(isset($_POST['guardaNuevoDocumentoC'])){        //14062016
     $nombre = $_POST['nombre'];
     $descripcion = $_POST['descripcion'];
-    $controller->GuardaNuevoDocC($nombre, $descripcion);
+    $tipoDoc = $_POST['tipoDoc'];
+    $tipoReq = $_POST['tipoReq'];
+    $controller->GuardaNuevoDocC($nombre, $descripcion, $tipoDoc, $tipoReq);
 }elseif(isset($_POST['editadocumentoC'])){
     $id = $_POST['id'];
     $controller->FormEditaDocumentoC($id);
@@ -718,8 +723,10 @@ if(!empty($_POST['seleccion'])) {
     $activo = (empty($_POST['activo'])) ? "N" : $_POST['activo'];
     $nombre = $_POST['nombre'];
     $descripcion = $_POST['descripcion'];
+    $tipoDoc=$_POST['tipoDoc'];
+    $tipoRec=$_POST['tipoReq'];
     $id = $_POST['id'];
-    $controller->EditaDocumentoC($activo,$nombre,$descripcion,$id);
+    $controller->EditaDocumentoC($activo,$nombre,$descripcion,$id, $tipoRec, $tipoDoc);
 }elseif(isset($_POST['AgregarDocumentoACliente'])){
     $clave = $_POST['clave_cliente'];
     $controller->formNuevoDocCliente($clave);
@@ -774,37 +781,41 @@ if(!empty($_POST['seleccion'])) {
     $controller->salvaDatosCob($cliente,$carteraCob,$carteraRev,$diasRevision,$diasPago,$dosPasos,$plazo,$addenda,$portal,$usuario,$contrasena,$observaciones,$envio,$cp,$maps,$tipo,$ln,$pc, $bancoDeposito, $bancoOrigen, $referEdo, $metodoPago);
 }elseif(isset($_POST['salvaCambiosDatoCobranza'])){     //28062016
     $cliente = $_POST['cliente'];
-    $carteraCob = $_POST['carteracobranza'];
-    $carteraRev = $_POST['carterarevision'];
+    $diasRevision = array();
+    $diasPago=array();
     for($i = 1; $i <= 7; $i++){
-        if(count($_POST[('rev'.$i)])>0){
+        if(isset($_POST[('rev'.$i)])){
             $diasRevision[] = $_POST[('rev'.$i)];
         }
     }
     for($c = 1; $c <= 7; $c++){
-        if(count($_POST[('pag'.$c)])>0){
+        if(isset($_POST[('pag'.$c)])){
             $diasPago[] = $_POST[('pag'.$c)];
         }
     }
-    $dosPasos = $_POST['dospasos'];
-    $plazo = $_POST['plazo'];
     $addenda = empty($_POST['addenda']) ? "N":"S";
-    $portal = $_POST['portal'];
-    $usuario = $_POST['add_usuario'];
-    $contrasena = $_POST['contrasena'];
-    $observaciones = $_POST['observaciones'];
-    $envio = $_POST['envio'];
-    $cp = $_POST['cp'];
-    $maps = $_POST['maps'];
-    $tipo = $_POST['tipo'];
-    $ln = $_POST['lincred'];
-    $pc = $_POST['portalcob'];
-    $bancoDeposito = $_POST['bancoDeposito'];
-    $bancoOrigen = $_POST['bancoOrigen'];
-    $referEdo = $_POST['referEdo'];
-    $metodoPago = $_POST['metodoPago'];
+    $carteraCob = isset($_POST['carteracobranza'])? $_POST['carteracobranza']:'';
+    $carteraRev = isset($_POST['carterarevision'])? $_POST['carterarevision']:'';
+    $dosPasos = isset($_POST['dospasos'])? $_POST['dospasos']:'';
+    $plazo = isset($_POST['plazo'])? $_POST['plazo']:'';
+    $portal =  isset($_POST['portal'])?$_POST['portal']:'';
+    $usuario = isset($_POST['add_usuario'])? $_POST['add_usuario']:'';
+    $contrasena = isset($_POST['contrasena'])? $_POST['contrasena']:'';
+    $observaciones = isset($_POST['observaciones'])? $_POST['observaciones']:'';
+    $envio = isset($_POST['envio'])? $_POST['envio']:'';
+    $cp =  isset($_POST['cp'])?$_POST['cp']:'';
+    $maps = isset($_POST['maps'])? $_POST['maps']:'';
+    $tipo = isset($_POST['tipo'])? $_POST['tipo']:'';
+    $ln = isset($_POST['lincred'])? $_POST['lincred']:'';
+    $pc =  isset($_POST['portalcob'])?$_POST['portalcob']:'';
+    $bancoDeposito = isset($_POST['bancoDeposito'])? $_POST['bancoDeposito']:'';
+    $bancoOrigen = isset($_POST['bancoOrigen'])? $_POST['bancoOrigen']:'';
+    $referEdo = isset($_POST['referEdo'])? $_POST['referEdo']:'';
+    $metodoPago = isset($_POST['metodoPago'])? $_POST['metodoPago']:'';
     if(empty($_POST['cob'])){
     	$cob = '';
+    }else{
+    	$cob=$_POST['cob'];
     }
     //var_dump($cob);
     //break;
@@ -881,13 +892,6 @@ if(!empty($_POST['seleccion'])) {
 	$controller->imprimirFacturasAcuse();
 }elseif(isset($_POST['imprmirFacturasRemision'])){
 	$controller->imprimirFacturasRemision();
-}elseif(isset($_POST['DetalleCliente'])){
-	if(isset($_POST['cliente'])){
-		$cliente = $_POST['cliente'];
-	}else{
-		$cliente = $_POST['cveclie'];
-	}
-    $controller->SaldosxDocumento($cliente);
 }elseif(isset($_POST['deslindearevision'])){
 	$caja = $_POST['caja'];
 	$docf = $_POST['factura'];
@@ -1115,11 +1119,15 @@ elseif(isset($_POST['cambiarStatus'])){
 	$ref=$_POST['ref1'];
 	$banco2=$_POST['banco2'];
 	$cuenta=$_POST['cuenta'];
-	$controller->ingresarPago($banco, $monto, $fecha, $ref, $banco2, $cuenta);
+	$maestro =$_POST['maestro'];
+	$tipo=$_POST['tipo'];
+	$obs=$_POST['obs'];
+	$controller->ingresarPago($banco, $monto, $fecha, $ref, $banco2, $cuenta, $maestro,$tipo, $obs);
 }elseif (isset($_POST['capturaPagosConta'])){
 	$banco = $_POST['banco'];
 	$cuenta = $_POST['numero_cuenta'];
-	$controller->capturaPagosConta($banco, $cuenta);
+	!isset($_POST['mensaje'])? $mensaje = '':$mensaje=$_POST['mensaje'];
+	$controller->capturaPagosConta($banco, $cuenta, $mensaje);
 }elseif (isset($_POST['ESTADO_DE_CUENTA'])){
 	$banco = $_POST['banco'];
 	$cuenta = $_POST['numero_cuenta'];
@@ -1149,9 +1157,10 @@ elseif(isset($_POST['cambiarStatus'])){
         	}else{
         		$nvaFechComp = '01.01.2016';
         	}
-	$controller->estado_de_cuenta_mes($mes,$banco,$cuenta, $anio, $nvaFechComp);
+   $controller->estado_de_cuenta_mes($mes,$banco,$cuenta, $anio, $nvaFechComp);
 }elseif (isset($_POST['traeFactura'])) {
 	$docf =$_POST['docf'];
+	exit();
 	$controller->traeFactura($docf);
 }elseif(isset($_POST['cambiarFactura'])){
 	$docf1 = $_POST['docf1'];
@@ -1796,7 +1805,7 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	$controller->editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3);
 }elseif (isset($_POST['bajaFTCArticualo'])){
 	$ids = $_POST['ids'];
-	$controller->bajaFTCArticualo($ids);
+	//$controller->bajaFTCArticualo($ids);
 }elseif (isset($_POST['rechazaSol'])) {
 	$ids = $_POST['ids'];
 	$motivo = $_POST['motivo'];
@@ -1873,7 +1882,15 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	$saldop=$_POST['saldop'];
 	$items =$_POST['items'];
 	$total = $_POST['total'];
-	$controller->aplicarPago2($idp, $saldop, $items, $total);
+	$retorno =$_POST['retorno'];
+	$controller->aplicarPago2($idp, $saldop, $items, $total, $retorno);
+}elseif(isset($_POST['comprobantePago'])){
+	$idp=$_POST['idp'];
+	$saldop=$_POST['saldop'];
+	$items =$_POST['items'];
+	$total = $_POST['total'];
+	$retorno =$_POST['retorno'];
+	$controller->comprobantePago($idp, $saldop, $items, $total, $retorno);
 }elseif (isset($_POST['cerrarPago'])) {
 	$idp =$_POST['idp'];
 	$controller_cxc->cerrarPago($idp);
@@ -1884,23 +1901,9 @@ elseif (isset($_POST['imprimeValidacion'])) {
 }elseif (isset($_POST['solRestriccion'])) {
 	$cveclie=$_POST['cveclie'];
 	$controller_cxc->solRestriccion($cveclie);
-}elseif (isset($_POST['solCorte'])) {
-	$cveclie=$_POST['cveclie'];
-	$controller_cxc->solCorte($cveclie);
-}elseif (isset($_POST['cortarCredito'])) {
-	$cveclie=$_POST['cveclie'];
-	$idsolc = $_POST['idsolc'];
-	$fecha =$_POST['fecha'];
-	$monto = $_POST['monto'];
-	$controller->cortarCredito($cveclie,$idsolc, $fecha, $monto);
-}elseif (isset($_POST['liberarDeCorte'])) {
-	$cveclie = $_POST['cveclie'];
-	$monto = $_POST['monto'];
-	$dias =$_POST['dias'];
-	$controller->liberarDeCorte($cveclie, $monto, $dias);
 }elseif (isset($_POST['impPOC'])) {
 	$idpoc = $_POST['idpoc'];
-	$tipo = 'i';
+	$tipo = 'd';
 	$controller->impPOC($idpoc,$tipo);
 	
 }elseif (isset($_POST['verValidaciones'])) {
@@ -1982,8 +1985,9 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	$controller->impresionRecepcion($doco);
 }elseif (isset($_POST['imprimeRecep'])){
 	$doco=$_POST['doco'];
-	$docr=$_POST['docr'];
-	$controller->imprimeRecep($doco, $docr);
+	$docr=$_POST['idr'];
+	$tipo= isset($_POST['tipo'])? $_POST['tipo']:'d';
+	$controller->imprimeRecep($doco, $docr, $tipo);
 }elseif(isset($_POST['valRecepcion'])){
 	$doco=$_POST['doco'];
 	$tipo = 'Inicial';
@@ -2048,10 +2052,12 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	$tipo = $_POST['tipo'];
 	$controller->cambiarProv($ida, $cant, $origen, $prov,$tipo);
 }elseif(isset($_POST['cambioProveedor'])){
-	$prov1 = $_POST['prov1'];
+	$prov1 = $_POST['cambioProveedor'];
 	$id = $_POST['id'];
 	$idpreoc=$_POST['idpreoc'];
-	$controller->cambioProveedor($prov1, $id, $idpreoc);
+	$response=$controller->cambioProveedor($prov1, $id, $idpreoc);
+	echo json_encode($response);
+	exit();
 }elseif(isset($_POST['test9'])){
 	$response = $controller->test9($_POST['test9']);
     echo json_encode($response);
@@ -2125,6 +2131,14 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	$obs = $_POST['obs'];
 	$opcion = $_POST['opcion'];
 	$controller->refacturarFecha($docf, $nf, $obs, $opcion);
+}elseif (isset($_POST['refacturarSAT'])) {
+	$docf = $_POST['docf'];
+	$satUso  = $_POST['satUso'];
+	$satFP = $_POST['satFP'];
+	$satMP = $_POST['satMP'];
+	$opcion = $_POST['opcion'];
+	$obs = $_POST['obs'];
+	$controller->refacturarSAT($docf, $satUso, $satFP, $satMP, $obs, $opcion);
 }elseif(isset($_POST['refacturarDireccion'])){
 	$docf = $_POST['docf'];
 	$calle=$_POST['calle'];
@@ -2147,13 +2161,19 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	 $docf = $_POST['docf'];
 	 $par = $_POST['partida'];
 	 $precio = $_POST['precio'];
+	 $ncant =$_POST['ncant'];
 	 //echo 'Documento a Afectar: '.$docf.' precio: '.$precio.' partida: '.$par;
-	 $response= $controller->guardaPartida($docf, $par, $precio);
+	 $response= $controller->guardaPartida($docf, $par, $precio, $ncant);
 	 echo json_encode($response);
 	 exit();
 }elseif (isset($_POST['solicitudPrecio'])) {
 	$docf = $_POST['docf'];
-	$response=$controller->solicitudPrecio($docf);
+	$clie = $_POST['clie']; 
+	$suso=$_POST['suso'];	
+	$smp=$_POST['smp'];
+	$sfp=$_POST['sfp'];
+	$obs=$_POST['obs'];	
+	$response=$controller->solicitudPrecio($docf, $clie, $suso, $smp, $sfp, $obs);
 	echo json_encode($response);
 	exit();
 }elseif(isset($_POST['asignar'])){
@@ -2309,14 +2329,21 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	exit();
 }elseif(isset($_POST['impPreFact'])){
 	$idc = $_POST['impPreFact'];
-	$controller->impPreFact($idc);
+	$docf = $_POST['docf'];
+	$tipo = $_POST['tipo'];
+	$cajas = $_POST['cajas'];
+	//exit($idc.$docf.$tipo.$cajas);
+	$controller->impPreFact($idc, $docf, $tipo, $cajas);
 }elseif (isset($_POST['facturar'])) {
 	$idc = $_POST['facturar'];
-	$fp = '';
-	$mp = '';
-	$uso = '';
+	$uso = $_POST['uso'];
+	$tpago = $_POST['tpago'];
+	$mpago = $_POST['mpago'];
 	$cp = '';
-	$response =$controller->facturar($idc, $fp, $mp, $uso, $cp);
+	$rel = $_POST['rel'];
+	$ocdet = isset($_POST['ocdet'])? $_POST['ocdet']:'';
+	$entdet = isset($_POST['entdet'])? $_POST['entdet']:'';
+	$response =$controller->facturar($idc, $uso, $tpago, $mpago, $cp, $rel, $ocdet, $entdet);
 	echo json_encode($response);
 	exit();
 }elseif (isset($_POST['grabaCtrCbo'])) {
@@ -2362,10 +2389,297 @@ elseif (isset($_POST['imprimeValidacion'])) {
 }elseif (isset($_POST['imprimirOCI'])) {
 	$oc = $_POST['oc'];
 	$controller->imprimirOCI($oc);
+}elseif(isset($_POST['FORM_ACTION_FACTURAS_UPLOAD'])){
+	$tipo = $_POST['tipo'];
+	$files2upload = $_POST['files2upload'];
+	$controller->facturacionCargaXML($files2upload, $tipo);
+}elseif (isset($_POST['quitarReq'])) {
+	$cl = $_POST['cl'];
+	$iddoc = $_POST['quitarReq'];
+	$response  = $controller->quitarReq($cl, $iddoc);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['recDocRev'])){
+	$idc=$_POST['recDocRev'];
+	$response=$controller->recDocRev($idc);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['buscaDocv'])) {
+	$docv=$_POST['buscaDocv'];
+	$response=$controller->buscaDocv($docv);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['editarArticulo'])){
+	$art = $_POST['editarArticulo'];
+	$tipo = $_POST['tipo'];
+	$response=$controller->editarArticulo($art, $tipo);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['actualizaCanti'])){
+	$cantn=$_POST['cantnu'];
+	$idpreoc=$_POST['idpreoc'];
+	$idprov = $_POST['idprov'];
+	$response = $controller->actualizaCanti($cantn, $idpreoc, $idprov);
+	echo json_encode($response);
+	exit();
+}elseif (isset($_POST['validaEdoCta'])){
+	$banco = $_POST['banco'];
+	$cuenta = $_POST['cuenta'];
+	$fecha = $_POST['fecha'];
+	$response=$controller->validaEdoCta($banco, $cuenta, $fecha);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['ordenaDocs'])){
+	$clie = $_POST['ordenaDocs'];
+	$iddoc = $_POST['iddoc'];
+	$orden = $_POST['orden'];
+	$response = $controller->ordenaDocs($clie, $iddoc, $orden);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['nclog'])){
+	$docf = $_POST['nclog'];
+	$tipo = $_POST['tipo'];
+	$response = $controller->nclog($docf, $tipo);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['mpago'])){
+	exit('LLega al index.php');
+}elseif(isset($_GET['term']) && isset($_GET['cvesat'])){
+		$buscar = $_GET['term'];
+		$nombres = $controller->TraeCveSat($buscar);
+		echo json_encode($nombres);
+		exit();
+}elseif(isset($_POST['gcvesat'])){
+	$prod=$_POST['gcvesat'];
+	$cvesat=$_POST['cvesat'];
+	$idp=$_POST['idpreoc'];
+	$nuni = $_POST['nuni'];
+	$tipo = $_POST['tipo'];
+	$response=$controller->gcvesat($prod, $cvesat, $idp, $nuni, $tipo);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['imprimeFact'])){
+	$factura=$_POST['factura'];
+	$destino = 'd';
+	$controller->ImprimeFacturaPegaso($factura, $destino);
+}elseif(isset($_POST['editaCarterasMaestro'])){
+	$maestro= $_POST['maestro'];
+	$revision = $_POST['revision'];
+	$cobranza = $_POST['cobranza'];
+	$controller->editaCarterasMaestro($maestro, $revision, $cobranza);
+}elseif(isset($_POST['chkstat'])){
+	$idsol=$_POST['chkstat'];
+	$response=$controller->chkstat($idsol);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['addendaMabe'])){
+	$docf=$_POST['docf'];
+	$oc=$_POST['oc'];
+	$planta=$_POST['planta'];
+	$controller->addendaMabe($docf, $oc, $planta);
+	exit();
+}elseif(isset($_POST['addendaAzteca'])){
+	$docf=$_POST['docf'];
+	$oc=$_POST['oc'];
+	$recepcion =$_POST['recepcion'];
+	$cc=$_POST['cc'];
+	$controller->addendaAzteca($docf, $oc, $recepcion, $cc);
+	exit();
+}elseif(isset($_POST['addendaLiverpool'])){
+	$docf =$_POST['docf'];
+	$oc = $_POST['oc'];
+	$entrada=$_POST['entrega'];
+	$infoAdicional=$_POST['infoAdicional'];
+	$depopersona=$_POST['depopersona'];
+	$controller->addendaLiverpool($docf, $oc, $entrada, $infoAdicional,$depopersona);
+	exit();
+}elseif(isset($_POST['addendaElektra'])){
+	$docf=$_POST['docf'];
+	$oc=$_POST['oc'];
+	$rri=$_POST['rri'];
+	$controller->addendaElektra($docf, $oc, $rri);
+	exit();
+}elseif(isset($_POST['addendaPropimex'])){
+	$docf=$_POST['docf'];
+	$oc=$_POST['oc'];
+	$entrada=$_POST['entrada'];
+	$remision=$_POST['remision'];
+	$controller->addendaPropimex($docf, $oc, $entrada,$remision);
+	exit();
+}elseif(isset($_POST['addendaAceitera'])){
+	$docf=$_POST['docf'];
+	$oc=$_POST['oc'];
+	$ent=$_POST['ent'];
+	$controller->addendaPropimex($docf, $oc, $ent);
+	exit();
+}elseif(isset($_POST['addendaLoreal'])){
+	$docf=$_POST['docf'];
+	$oc=$_POST['oc'];
+	$recepcion =$_POST['recepcion'];
+	$cc=$_POST['cc'];
+	$controller->addendaLoreal($docf, $oc, $recepcion, $cc);
+	exit();
+}elseif (isset($_POST['generaJson'])) {
+	$docf=$_POST['docf'];
+	$idc = $_POST['caja'];
+	$controller->generaJson($docf, $idc);
+	exit();
+}elseif(isset($_POST['timbraNC'])){
+	$docf=$_POST['docf'];
+	$docn=$_POST['docn'];
+	$response=$controller->timbraNC($docf, $docn);
+	echo json_encode($response);
+	exit();
+}elseif (isset($_POST['ctrlParcial'])) {
+	$idc=$_POST['idc'];
+	$response=$controller->ctrlParcial($idc);
+	echo json_encode($response);
+	exit();
+}elseif (isset($_POST['imprimeNCI'])) {
+	$factura=$_POST['factura'];
+	$tipo='d';
+	$controller->imprimeNCI($factura,$tipo);
+	exit();
+}elseif(isset($_POST['traePedido'])){
+	$docp=$_POST['docp'];
+	$controller->verPedidosSinMaterial($docp);
+	exit();
+}elseif(isset($_POST['prefactura'])){
+	$docp=strtoupper($_POST['prefactura']);
+	$respose=$controller->prefactura($docp);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['copiarProd'])){
+	$idp=$_POST['copiarProd'];
+	$response=$controller->copiarProd($idp);
+	echo json_encode($response);
+	exit();
+}elseif (isset($_POST['guardaProveedor'])) {
+	$nombre= $_POST['nombre'];
+    $rfc = $_POST['rfc'];
+    $marca = $_POST['marca'];
+    $telefono =$_POST['telefono'];
+    $calle =$_POST['calle'];
+    $ext = $_POST['ext'];
+    $int = $_POST['int'];
+    $ciudad = $_POST['ciudad'];
+    $cp = $_POST['cp'];
+    $pais = $_POST['pais'];
+    $deleg = $_POST['deleg'];
+    $mun = $_POST['mun'];
+    $correoGen = $_POST['correoGen'];
+    $contPrim = $_POST['contPrim'];
+    $controller->guardaProveedor($nombre,$rfc,$marca,$telefono,$calle,$ext,$int,$ciudad,$cp,$pais,$deleg,$mun,$correoGen,$contPrim);
+    exit();
+}elseif (isset($_POST['validaRFC'])) {
+	$rfc=$_POST['validaRFC'];
+	$tipo = $_POST['tipo'];
+	$response=$controller->validaRFC($rfc, $tipo);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['crearCliente'])){
+	$nombre=$_POST['cliente'];
+	$direccionC =$_POST['direccionC'];
+	$direccionE =$_POST['direccionE'];
+	$colonia = $_POST['colonia'];
+	$ciudad =$_POST['ciudad'];
+	$rfc = $_POST['rfc'];
+	$motivo =$_POST['motivo'];
+	$controller->crearCliente($nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo);
+	exit();
+}elseif (isset($_POST['verFactura'])) {
+	$docf = $_POST['verFactura'];
+	$controller->verFactura($docf);
+	exit();
+}elseif(isset($_POST['creaCaja'])){
+	$docf = $_POST['creaCaja'];
+	$response=$controller->creaCaja($docf);
+	echo json_encode($response);
+	exit();
+}elseif (isset($_POST['crearCajaC'])) {
+	$docf=$_POST['crearCajaC'];
+	$response=$controller->crearCajaC($docf);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['salvarDatosEnvio'])){
+	$clave=$_POST['clave'];
+	$calle=$_POST['calle'];
+	$ext=$_POST['ext'];
+	$int=$_POST['int'];
+	$col=$_POST['col'];
+	$del=$_POST['del'];
+	$ciudad=$_POST['ciudad'];
+	$edo=$_POST['edo'];
+	$pais=$_POST['pais'];
+	$cp=$_POST['cp'];
+	$obs=$_POST['obs'];
+	$controller->salvarDatosEnvio($clave,$calle,$ext,$int,$col,$del,$ciudad,$edo,$pais,$cp,$obs);
+exit();
+}elseif (isset($_POST['crearColaborador'])) {
+	$nombre =$_POST['nombre'];
+	$segundo=$_POST['segundo'];
+	$paterno=$_POST['paterno'];
+	$materno=$_POST['materno'];
+	$compania=$_POST['compania'];
+	$puesto=$_POST['puesto'];
+	$clave=$_POST['clave'];
+	$tarjeta=$_POST['tarjeta'];
+	$cveBanco=$_POST['cveBanco'];
+	$tarBanco=$_POST['tarBanco'];
+	$controller->crearColaborador($nombre, $segundo, $paterno, $materno, $compania, $puesto, $clave, $tarjeta, $cveBanco, $tarBanco);
+}elseif(isset($_POST['cambiaPOCuni'])){
+	$poc=$_POST['poc'];
+	$idu=$_POST['idu'];
+	$response=$controller->cambiaPOCuni($poc, $idu);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['valCheck'])){
+	$doco=$_POST['valCheck'];
+	$idu=$_POST['idu'];
+	$response = $controller->valCheck($doco, $idu);
+	echo json_encode($response);
+	exit();
+}elseif (isset($_POST['valUsr'])) {
+	$usr=$_POST['valUsr'];
+	$res=$controller->valUsr($usr);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['bajaM'])) {
+	$res=$controller->bajaM($_POST['bajaM'], $_POST['cvem']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['libVal'])) {
+	$res=$controller->libVal();
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['buscaDoc'])) {
+	$docf=$_POST['buscaDoc'];
+	$res=$controller->buscaDoc($docf);
+	echo json_encode($res);
+	exit();
+}elseif(isset($_POST['ctaXML'])){
+	$res=$controller->ctaXML($_POST['uuid'], $_POST['cta'], $_POST['t'], $_POST['obs'], $_POST['fecha']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['traePago'])){
+	$res=$controller->traePago($_POST['idp'], $_POST['t']);
+	echo json_encode($res);
+	exit();
 }
 else{switch ($_GET['action']){
+	//case 'inicio':
+	//	$controller->Login();
+	//	break;
 	case 'login':
 		$controller->Login();
+		break;
+	case 'salir':
+        $controller->salir();
+        header('Location: index.php?action=login');
+        break;
+	case 'loginC':
+		$_SESSION['empresa']=$_GET['empresa'];
+		$controller->LoginA($_SESSION['usuario'], $_SESSION['contra']);
 		break;
 	case 'CambiarSenia':
 		$controller->CambiarSenia();
@@ -2486,12 +2800,6 @@ else{switch ($_GET['action']){
 		$fe = $_GET['fe'];
 		$controller->modificaPreOc($provcostid,$provedor,$costo,$total,$nombreprovedor,$cantidad,$rest,$fe);
 		break;
-	case 'actualizaCanti':
-		$cantn=$_GET['cantnu'];
-		$idpreoc=$_GET['idpreoc'];
-		$idprov = $_GET['idprov'];
-		$controller->actualizaCanti($cantn, $idpreoc, $idprov);
-		break;
 	case 'ordcompCat':
 		$cat = $_GET['cat'];
 		$controller->ordcomp1($cat);
@@ -2579,16 +2887,22 @@ else{switch ($_GET['action']){
 		$unidad = $_GET['un'];
 		$controller->ModificaUnidad($unidad);
 		break;
+	case 'eliminaUn':
+		$unidad = $_GET['un'];
+		$controller->eliminaUn($unidad);
+		break;
 	case 'adminruta':
-		$controller->AdminRuta(); 
+		$tipo=$_GET['tipo'];
+		$controller->AdminRuta($tipo); 
 		break;
 	case 'adminrutaRep':
 		$controller->AdminRutaRep();
 		break;
 	case 'RutaUnidad':
 		$idr = $_GET['idr'];
-		if($idr == 23) $controller->AdmonUnidadForaneo($idr); // para mandar a llamar a las entregas foraneas, el parametro idr debe ser igual a 23 ya que esa es la unidad que tiene asignada la ruta 102, si el modulo falla es posible que sea por esa razón. 10.08.2016 ICA
-			else $controller->AdmonUnidad($idr);
+		$tipo = $_GET['tipo'];
+		if($idr == 23) $controller->AdmonUnidadForaneo($idr, $tipo); // para mandar a llamar a las entregas foraneas, el parametro idr debe ser igual a 23 ya que esa es la unidad que tiene asignada la ruta 102, si el modulo falla es posible que sea por esa razón. 10.08.2016 ICA
+			else $controller->AdmonUnidad($idr, $tipo);
 		break;
 	case 'RutaUnidadRep':
 		$idr = $_GET['idr'];
@@ -2896,10 +3210,6 @@ else{switch ($_GET['action']){
             $cliente = $_GET['cliente'];
             $controller->ContactosCliente($cliente);
             break;
-        case 'CarteraxCliente':
-            $cve_maestro = $_GET['cve_maestro'];
-            $controller->CarteraxCliente($cve_maestro);
-            break;
         case 'PedidosAnticipados':
             $controller->PedidosAnticipados();
             break;
@@ -3060,7 +3370,8 @@ else{switch ($_GET['action']){
         	$controller->verFallidas();
         	break;
         case 'form_capruracrdirecto':
-        	$controller->form_capruracrdirecto();
+        	(!isset($_GET['mensaje']))? $mensaje='':$mensaje=$_GET['mensaje'];
+        	$controller->form_capruracrdirecto($mensaje);
         	break;
         case 'verAplicaciones':
         	$controller->verAplicaciones();
@@ -3109,7 +3420,8 @@ else{switch ($_GET['action']){
        		$controller->salidaAlmacen($producto, $cantidad);
        		break;
         case 'regCargosFinancieros':
-        	$controller->regCargosFinancieros();
+        	(!isset($_GET['mensaje']))? $mensaje='':$mensaje=$_GET['mensaje'];
+        	$controller->regCargosFinancieros($mensaje);
         	break;
         case 'verCierreVal':
         	$controller->verCierreVal();
@@ -3371,10 +3683,10 @@ else{switch ($_GET['action']){
 			$idm=0;
 			$controller->verCCC($idm, $cvem);
 			break;
-		case 'verDocumentosMaestro':
-			$maestro=$_GET['maestro'];
-			$controller->verDocumentosMaestro($maestro);
-			break;
+		//case 'verDocumentosMaestro':
+		//	$maestro=$_GET['maestro'];
+		//	$controller->verDocumentosMaestro($maestro);
+		//	break;
 		case 'verDepositos':
 			$controller->verDepositos();
 			break;
@@ -3455,7 +3767,8 @@ else{switch ($_GET['action']){
 		case 'capturaPagosConta':
 			$banco = $_GET['banco'];
 			$cuenta= $_GET['cuenta'];
-			$controller->capturaPagosConta($banco, $cuenta);
+			(isset($GET_['mensaje']))?  $mensaje='':$mensaje=$_GET['mensaje'];
+			$controller->capturaPagosConta($banco, $cuenta, $mensaje);
 			break;
 		case 'verCargaPagosCXC':
 			$controller_cxc->verCargaPagosCXC();
@@ -3781,7 +4094,8 @@ else{switch ($_GET['action']){
 			$controller->verFaltantesFacturar();
 			break;
 		case 'recibirLogistica':
-			$controller->recibirLogistica();
+			$ruta=$_GET['ruta'];
+			$controller->recibirLogistica($ruta);
 			break;
 		case 'verVueltas':
 			$idcaja = $_GET['idcaja'];
@@ -3823,10 +4137,10 @@ else{switch ($_GET['action']){
 			$idc = $_GET['idc'];
 			$controller->verHC($idc);
 			break;
-		case 'seguimientoCajasRecibir':
-			$tipo=$_GET['tipo'];
-			$controller->seguimientoCajasRecibir($tipo);
-			break;
+		//case 'seguimientoCajasRecibir':
+		//	$tipo=$_GET['tipo'];
+		//	$controller->seguimientoCajasRecibir($tipo);
+		//	break;
 		case 'caratula':
 			$cl = $_GET['cl'];
 			$fecha=$_GET['fecha'];
@@ -3853,7 +4167,131 @@ else{switch ($_GET['action']){
 			$oc = $_GET['oc'];
 			$controller->verDetalleOCF($oc);
 			break;
-		default:
+		case 'facturaUploadFile':
+			$tipo = $_GET['tipo'];
+			$controller->facturacionSeleccionaCargaXML($tipo);
+			break;
+		case 'calcularImpuestos':
+			$controller->calcularImpuestos();
+			break;
+		case 'verXMLSP':
+			$controller->verXMLSP($_GET['mes'], $_GET['anio'], $_GET['ide']);
+			break;
+		case 'imprimeXML':
+			$uuid=isset($_GET['uuid'])? $_GET['uuid']:'';
+			$controller->imprimeXML($uuid);
+			break;
+		case 'verXML':
+			$uuid=$_GET['uuid'];
+			$controller->verXML($uuid, $_GET['ide']);
+			break;
+		case 'verificaPreOC':
+			
+			if(isset($_GET['inicial'])){
+				$inicial =$_GET['inicial'];
+			}else{
+				$inicial = '';
+			}
+			if(isset($_GET['final'])){
+				$final = $_GET['final'];
+			}else{
+				$final = '';
+			}
+			$controller->verificaPreOC($inicial, $final);
+			break;
+		case 'formProveedor':
+			$controller->formProveedor();
+			break;
+		case 'imprimeFact':
+			$factura=$_GET['factura'];
+			$controller->ImprimeFacturaPegaso($factura, $destino='d');
+			break;
+		case 'addenda':
+			$docf=$_GET['docf'];
+			$controller->addenda($docf);
+			break;
+		case 'prefacturasPendientes':
+			$controller->prefacturasPendientes();
+			break;
+		case 'timbraNCDescLogSub':
+			$docf=$_GET['docf'];
+			$response=$controller->timbraNCDescLogSub($docf);
+			echo json_encode($response);
+			break;
+		case 'verFTCNCpendientes':
+			$docnc= !isset($_GET['docnc'])? '':$_GET['docnc'];
+			$controller->verFTCNCpendientes($docnc);
+			break;
+		case 'generaNCold':
+			$idd=$_GET['idd'];
+			$controller->generaNCold($idd);
+			exit();
+		case 'verDetalleDevolucion':
+			$idd=$_GET['idd'];
+			$controller->verDetalleDevolucion($idd);
+			exit();
+		case 'verPedidosSinMaterial':
+			$docp="";
+			$controller->verPedidosSinMaterial($docp);
+			exit();
+		case 'verRecepcion':
+			$idr = $_GET['idr'];
+			$controller->verRecepcion($idr);
+			exit();
+		case 'verFactura':
+			$docf=$_GET['docf'];
+			$controller->verFactura($docf);
+			exit();
+		case 'catColaboradores':
+			$controller->catColaboradores();
+			exit();
+		case 'verDatosEnvio':
+			$clie = $_GET['cliente'];
+			$controller->verDatosEnvio($clie);
+			break;
+		case 'menuPP':
+			$controller->menuPP();
+			break;
+		case 'menuCM':
+			$controller->menuCM();
+			break;
+		case 'menuV':
+			$controller->menuV();
+			break;
+		case 'menuS':
+			$controller->menuS();
+			break;
+		case 'menuT':
+			$controller->menuT();
+			break;
+		case 'menuLR':
+			$controller->menuLR();
+			break;
+		case 'menuBE':
+			$controller->menuBE();
+			break;
+		case 'menuLE':
+			$controller->menuLE();
+			break;
+		case 'menuR':
+			$controller->menuR();
+			break;	
+		case 'menuB':
+			$controller->menuB();
+			break;	
+		case 'menuCO':
+			$controller->menuCO();
+			break;
+		case 'menuXML':
+			$controller->xmlMenu();
+			break;
+		case 'mXMLSP':
+			$controller->mXMLSP($_GET['tipo'], $_GET['anio']);
+			break;
+		case 'imprimeUUID':
+			$controller->imprimeUUID($_GET['uuid']);
+			break;	
+		default: 
 		header('Location: index.php?action=login');
 		break;
 	}

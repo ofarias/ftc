@@ -1,5 +1,6 @@
 <br/>
 <br/>
+<label>Usuario Registrado: <?php echo $usuario?></label>
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
@@ -63,16 +64,14 @@
                                             <input type="hidden" name="montopago" value="<?php echo $data->MONTO?>" />
                                             <input type="hidden" name="saldopago" value="<?php echo $data->SALDO?>" />
                                             <td>
-
                                             <?php if($data->SALDO >= 10 ){
                                                 ?>
-
-                                                <button name="aplicaPagoDirecto" type="submit" value="enviar" class="btn btn-warning"> Aplicar a Facturas <i class="fa fa-money"></i></button>
+                                                Sin Pagos</i></button>
                                             <?php }else{ ?>
                                             <a href="index.php?action=pagoFacturas&idp=<?php echo $data->ID?>" target="_blank"? class='btn btn-success'> VerPagos </a>
                                             <?php }?>
                                             </td>
-                                            
+                                            <?php if($tipoUsuario == 'G'){?>
                                             <td>
                                                 <select name = "tipoPago" class="form-control">
                                                     <option value='SS'>--- Seleccione un tipo ---</option>> 
@@ -83,7 +82,7 @@
                                                 </select>
                                                 <button name="procesarPago" type="submit" value="enviar" class="btn btn-warning" > --> </button>
                                             </td> 
-
+                                        <?php }?>
                                             </form>      
                                         </tr>
                                         

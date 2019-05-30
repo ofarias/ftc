@@ -4,7 +4,7 @@
 
 body {
     padding-top: 100px;
-    background-color: #CEECF5;
+    background-color: #94D0F4;
 }
 
 @media(min-width:768px) {
@@ -14,7 +14,7 @@ body {
 }
 
 .navbar-default {
-  background-color: #245269;
+  background-color:#187fdf;
   border-color: #245269;
 }
 
@@ -348,7 +348,7 @@ table.dataTable thead .sorting:after {
 }
 
 .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
-    padding: 8px;
+    padding: 7px;
     line-height: 1.42857143;
     vertical-align: top;
     border-top: 1px solid #ddd;

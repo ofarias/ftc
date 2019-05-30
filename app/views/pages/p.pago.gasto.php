@@ -41,7 +41,7 @@
                         	<form action="index.php" method="post">
                             	<td>
                                 	<select name="cuentabanco" required="required">
-                                    	<option>--Selecciona la Cuenta Banco--</option>
+                                    	<option value="">--Selecciona la Cuenta Banco--</option>
                                     	<<?php foreach ($cuentaBancarias as $ban): ?>
                                         	<option value="<?php echo $ban->BANCO; ?>"><?php echo $ban->BANCO; ?></option>
                                     	<?php endforeach; ?>
@@ -55,7 +55,7 @@
                                 	<input name="fechadocumento" type="hidden" value="<?php echo $data->FECHA_CREACION ?>"/>
 
                                 	<select name="tipopago" required="required">
-                                    	<option>--Elige tipo de pago--</option>
+                                    	<option value="">--Elige tipo de pago--</option>
                                     	<option value="tr">Transferencia</option>
                                     	<option value="cr">Crédito</option>
                                     	<option value="ef">Efectivo</option>
@@ -64,7 +64,7 @@
                                 	</select>
                             	</td>
                             	<td><?php echo "$ " . number_format($data->MONTO_PAGO, 2, '.', ','); ?></td>
-                            	<td><input name="monto" type="text" required="required" /></td>
+                            	<td><input name="monto" type="text" required="required" min="0" max="499999"/></td>
                             	<td>
                                 	<button name="formpago_gasto" type="submit" value="enviar" class="btn btn-warning">Pagar! <i class="fa fa-floppy-o"></i></button>                                       	 
                             	</td>

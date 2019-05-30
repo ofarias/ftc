@@ -21,7 +21,7 @@
                                 <select class="form-control" name="proveedor" required = "required"><br/>
                                     <option>--Selecciona un proveedor--</option>
                                     <?php foreach ($prov as $data): ?>
-                                        <option value="<?php echo $data->CLAVE; ?>"><?php echo $data->NOMBRE; ?></option>
+                                        <option value="<?php echo isset($data->CLAVE)? $data->CLAVE:'xml_'.$data->IDCLIENTE; ?>"><?php echo $data->NOMBRE; ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -63,13 +63,13 @@
                         <div class="form-group">
                             <label for="fechadoc" class="col-lg-2 control-label">Fecha documento: </label>
                             <div class="col-lg-10">
-                                <input type="date" id="f1" class="form-control" name="fechadoc" placeholder="<?php echo date('d-m-Y'); ?>"/><br>
+                                <input type="date"  class="form-control fecha" name="fechadoc" placeholder="<?php echo date('d-m-Y'); ?>"/><br>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="fechaven" class="col-lg-2 control-label">Fecha Estado de cuenta: </label>
+                            <label for="fechaven" class="col-lg-2 control-label" >Fecha Estado de cuenta: </label>
                             <div class="col-lg-10">
-                                <input type="date" id="f2" class="form-control" name="fechaEdoCta" placeholder="<?php echo date('d-m-Y');?>" required="required"/><br>
+                                <input type="date"  class="form-control fecha" name="fechaEdoCta" placeholder="<?php echo date('d-m-Y');?>" required="required" title="Solo se permite cargos a Estado de cuenta Abierto"/><br>
                             </div>
                         </div>
                         <div class="form-group">
@@ -77,6 +77,7 @@
                             <div class="col-lg-10">
                                 <input type="radio" name="tipo" value="compra" checked="checked"/>Compra<br/>
                                 <input type="radio" name="tipo" value="gasto">Gasto<br/>
+                                <input type="radio" name="tipo" value="Anticipo">Anticipo<br/>
                             </div>
                         </div>
                         <div class="form-group">
@@ -103,6 +104,7 @@
                             <button name="guardaCompra" form="formgasto" type="submit" class="btn btn-warning"> Generar <i class="fa fa-file"></i></button>
                             <a href="index.php?action=inicio" class="btn btn-warning">Cancelar <i class="fa fa-times"></i></a>
                         </div>
+                        <input type="hidden" name="mensaje" value="<?php echo $mensaje?>" id="mensaje">
                     </div>
                 </div>
             </div>
@@ -117,11 +119,11 @@
   <script>
 
   $(document).ready(function() {
-    $("#f1").datepicker({dateFormat: 'dd.mm.yy'});
-  } );
+    $(".fecha").datepicker({dateFormat: 'dd.mm.yy'});
+        var mensaje = document.getElementById('mensaje').value;
+        if(mensaje != ''){
+            alert(mensaje);    
+        }
+  });
 
-
-  $(document).ready(function() {
-    $("#f2").datepicker({dateFormat: 'dd.mm.yy'});
-  } );
   </script>

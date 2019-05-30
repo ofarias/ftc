@@ -19,8 +19,7 @@
                                 <table class="table table-striped table-bordered table-hover" width="100%" cellpadding="0" cellspacing="0">
                                     <thead>
                                         <tr>
-                                            <th><input type="checkbox" name="marcarTodo" id="marcarTodo" /></th>
-                                           
+                                            <th><!--<input type="checkbox" name="marcarTodo" id="marcarTodo" />--></th>
                                             <th>PEDIDO</th>
                                             <th>FECHA <br/>PEDIDO</th>
                                             <th>FECHA <br/> LIBERACION</th>
@@ -36,7 +35,6 @@
                                                     <br/> <font color="red">Responsable</font>
                                                 <?php }?></th>
                                             <th>TOTAL</th> 
-
                                             <th>MODIFICAR ESTADO</th>
                                         </tr>
                                     </thead>   
@@ -70,8 +68,22 @@
                                         <?php
                                         $con=1;
                                         foreach ($exec as $data):
-                                            $TOTAL = ($data->CANTI * $data->COSTO_ART);
-                                            $DESCUENTO = ($data->DESC1A + $data->DESC2A + $data->DESC3A) * $data->CANTI;
+                                            if($data->CANTI <= 0){
+                                                $canti=$data->REST;
+                                                $color = "style='background-color:#ffffb3'";
+                                            }else{
+                                                $canti = $data->CANTI;
+                                            }
+                                            $TOTAL = ($canti * $data->COSTO_ART);
+                                            $dt =($data->DESC1A + $data->DESC2A + $data->DESC3A);
+                                            $desc1 = ($data->COSTO_ART * ($data->DESC1A));
+
+                                            $desc2 = (($data->COSTO_ART - $desc1) * ($data->DESC2A));
+                                            $desc3 = (($data->COSTO_ART - $desc1 - $desc2) * ($data->DESC3A));
+                                            $dt = $desc1 + $desc2 + $desc3;  
+
+                                            $DESCUENTO = $dt * $canti;
+                                            
                                             $color="";         
                                             $res = '';
                                             $ca=0;
@@ -82,7 +94,6 @@
                                                     $ca = $ca+1;
                                                 }
                                             }
-
                                             if ($ca == 1){
                                                 $color = "style='background-color:#d6eaf8'";
                                             }elseif($ca == 2 ){
@@ -92,12 +103,17 @@
                                             }elseif($ca >= 4){
                                                 $color = "style= 'background-color: #af7ac5'";
                                             }
+                                          
+                                            if($data->COSTO_T <= 0){
+                                                $color = "style='background-color:#d9b3ff'";
+                                            }
+
                                         ?>
                                         <tr class="odd gradeX" <?php echo $color;?> title="<?php echo $res?>">
                                             <td><div id="seleccionHabilitados">
-                                                <input type='checkbox' value="<?php echo $idprov .'|'.$data->ID .'|'.$data->PROD .'|'.$data->COSTO_ART .'|'.$data->CANTI .'|'.$data->REST.'|'.$data->COTIZA.'|'.$DESCUENTO;?>" name="seleccion[]" class="Selct" monto="<?php echo ($TOTAL * 1.16)?>" desc1="<?php echo $DESCUENTO?>"
+                                                <input type='checkbox' value="<?php echo $idprov .'|'.$data->ID .'|'.$data->PROD .'|'.($data->COSTO_ART-$dt).'|'.$canti .'|'.$data->REST.'|'.$data->COTIZA.'|'.$DESCUENTO;?>" name="seleccion[]" class="Selct" monto="<?php echo ($TOTAL * 1.16)?>" desc1="<?php echo $DESCUENTO?>"
                                                     <?php echo $data->COSTO_ART <= 0? 'onclick="sinCosto(this.id)"':''?> 
-                                                    id="id_<?php echo $data->ID?>" cant ="<?php echo $data->CANTI?>" rest="<?php echo $data->REST?>" preoc="<?php echo $data->ID?>"
+                                                    id="id_<?php echo $data->ID?>" cant ="<?php echo $canti?>" rest="<?php echo $data->REST?>" preoc="<?php echo $data->ID?>"
                                                 /></div>
                                             </td>
                                              <td><?php echo $data->COTIZA;?><br/><?php echo "id: ".$data->ID?><input type="hidden" name="CVE_DOC" value="<?php echo $data->COTIZA;?>"/></td>
@@ -106,10 +122,10 @@
                                             <td onClick="test1()" ><?php echo $data->PROD;?> </td>
                                             <td><?php echo $data->NOMPROD;?> <br/> <font color = "#1c2833" size ="2">
                                                 Precio Lista: <?php echo '$ '.number_format($data->COSTO_ART,2)?>
-                                                Desc1: <?PHP echo '$ '.number_format($data->DESC1A,2)?>
-                                                Desc2: <?PHP echo '$ '.number_format($data->DESC2A,2)?>
-                                                Desc3:<?PHP echo '$ '.number_format($data->DESC3A,2)?>  </font size ="2"> <br/> <font color="blue">
-                                                subTotal <?php echo '$ '.number_format($data->COSTO_ART,2)?> 
+                                                Desc1: <?PHP echo '$ '.number_format($desc1,2)?>
+                                                Desc2: <?PHP echo '$ '.number_format($desc2,2)?>
+                                                Desc3:<?PHP echo '$ '.number_format($desc3,2)?>  </font size ="2"> <br/> <font color="blue">
+                                                subTotal <?php echo '$ '.number_format($data->COSTO_ART-$dt,2)?> 
                                                 IVA <?php echo '$ '.number_format($data->IMPUESTO,2)?> 
                                                 Total <?php echo '$ '.number_format($data->COSTO_T,2)?></font></td>
                                             <td><?php echo $data->UM;?></td>
@@ -117,9 +133,9 @@
                                             <td><?php echo $data ->REST;?>  <input type="hidden" name="rest" id="rest_<?php echo $data->ID;?>" value="<?php echo $data->REST;?>"/></td>
                                             <input type="hidden" name="idpreoc" id="preoc_<?php echo $data->ID?>" value='<?php echo $data->ID?>'>
                                             <td>
-                                            <input type="text" step="any" min="0.1" value="<?php echo $data->CANTI;?>" name="cantidad"  id="cantidad_<?php echo $data->ID;?>" size="5" onchange="validaCant(this.value, rest_<?php echo $data->ID;?>.value, preoc_<?php echo $data->ID?>.value, prove_<?php echo $data->ID;?>.value )" />
+                                            <input type="text" step="any" min="0.1" value="<?php echo $canti;?>" name="cantidad"  id="cantidad_<?php echo $data->ID;?>" size="5" onchange="validaCant(this.value, rest_<?php echo $data->ID;?>.value, preoc_<?php echo $data->ID?>.value, prove_<?php echo $data->ID;?>.value )" />
                                             </td>
-                                            <td><input type="text" value="<?php echo $data->COSTO_ART;?>" name="costoupdate" disabled="disabled" id="costoupdate_<?php echo $data->ID;?>" size="5" />
+                                            <td><input type="text" value="<?php echo number_format($data->COSTO_ART-$dt,2);?>" name="costoupdate" disabled="disabled" id="costoupdate_<?php echo $data->ID;?>" size="5" />
                                             <input type="hidden" value="<?php echo $data->COSTO_ART?>" name="COSTMAX" id="maximo_<?php echo $data->ID;?>"  />
                                             </td>
                                             <input type="hidden" name="prove" id="prove_<?php echo $data->ID;?>" value="<?php echo $data->PROVE;?>" />   
@@ -133,7 +149,7 @@
                                                 <?php if($user == 'Gerencia de Compras' or $gerencia == 'G'){ ?>
                                                     <input type="button" name="cambiarProv" value="Cambiar Proveedor" onclick="aviso()">
                                                 <?php }else{ ?>
-                                                    <input type="button" name="cambiarProv" value="Cambiar Proveedor" onclick="cambiaProv(<?php echo $data->ID?>, '<?php echo htmlentities($data->NOMPROD)?>', <?php echo $data->CANTI?>)" >
+                                                    <input type="button" name="cambiarProv" value="Cambiar Proveedor" onclick="cambiaProv(<?php echo $data->ID?>, '<?php echo htmlentities($data->NOMPROD)?>', <?php echo $canti?>)" >
                                                 <?php }?>
                                             </td>
 
@@ -161,7 +177,7 @@
      <input type="hidden" name="ida" value="" id="idpreoc">
      <input type="hidden" name="cant" value="" id="cant">
      <input type="hidden" name="origen" value="suministros">
-     <input type="hidden" name="prov" value="">
+     <input type="hidden" name="prov" value="<?php echo $idprov?>">
      <input type="hidden" name="tipo" value="">
      <input type="hidden" name="cambiarProv" value="">
 </form>
@@ -226,6 +242,7 @@ $("#GOC").click(function() {
                     document.frmOrdCom.submit();            
                  }else{
                     OpenWarning("Existen " + valida + ', partidas con valores en cantidades no validos, favor de revisar la informaicon' );
+                    location.reload(true);
                  }
         
 //OpenWarning("Estamos trabajando en esta seccion");
@@ -291,15 +308,15 @@ function validaCant(a,b,c,d, can){
         }else{
 
              $.ajax({
-                type: 'GET',
-                url: 'index.php',
-                data: 'action=actualizaCanti&cantnu='+a+'&idpreoc='+c+'&idprov='+d,   
+                url:'index.php',
+                type: 'POST',
+                dataType:'json',
+                data: {actualizaCanti:1,cantnu:a,idpreoc:c,idprov:d},//action=actualizaCanti&cantnu='+a+'&idpreoc='+c+'&idprov='+d,   
                 success: function(data){
-                        if(data=="ok"){
-                                            OpenSuccess("Se cambio la cantidad, por seguridad la cantidad restante  se pasara a la gerencia de compra hasta realizar la Orden de compra actual....",d);
-                                      }else{
-                                            OpenWarning("No se pudo actualizar, intente mas tarde");
-                                      } 
+                            //alert(data);
+                                          OpenSuccess("Se cambio la cantidad, por seguridad la cantidad restante  se pasara a la gerencia de compra hasta realizar la Orden de compra actual....");
+                                          location.reload(true);
+                                        //    OpenWarning("No se pudo actualizar, intente mas tarde");
                                    }
             });
         }    
@@ -336,7 +353,7 @@ function OpenSuccess(mensaje,d) {
                         "OK": {
                             className: "btn btn-success",
                             callback: function () {
-                                 window.location="index.php?action=verCanasta&idprov=" + d;
+                                 //window.location="index.php?action=verCanasta&idprov=" + d;
                             }
                         }
                     }

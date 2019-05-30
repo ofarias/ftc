@@ -13,7 +13,7 @@
                     </div>
                     <div class="panel-body">
                         <p>Logistica / Bodega / CxC </p>
-                        <center><a href="index.php?action=seguimientoCajas" class="btn btn-default"><img src="app/views/images/Clipboard-Paste-icon.png"></a></center>
+                        <center><a href="index.php?action=seguimientoCajas" class="btn btn-default">Ver Folios</a></center>
                     </div>
                 </div>
             </div>
@@ -23,8 +23,8 @@
                         <h4><i class="fa fa-list-alt"></i> Unidades</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Alta de Unidades</p>
-                        <center><a href="index.php?action=funidades" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mymovingreviews/3d-movers/64/truck-green-icon.png"></a></center>
+                        <p>Unidades</p>
+                        <center><a href="index.php?action=funidades" class="btn btn-default">Ver Unidades</a></center>
                     </div>
                 </div>
             </div>
@@ -33,11 +33,12 @@
             <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Asignacion Unidad</h4>
+                        <h4><i class="fa fa-list-alt"></i> Paso 1 Asignacion Unidad</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Asignacion de Unidad</p>
-                        <center><a href="index.php?action=arutaReparto" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
+                        <p><font color="blue"> Paso 1 Asignar</font></p>
+                        <center><a href="index.php?action=arutaReparto" class="btn btn-info" <?php echo ($aruta>0 )? '':'disabled'?>> <?php echo '<font color="red">'.$aruta.'</font> Documentos' ?></a>
+                        </center>
                     </div>
                 </div>
             </div>
@@ -57,22 +58,22 @@
             <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Asignacion de Secuencia</h4>
+                        <h4><i class="fa fa-list-alt"></i> Paso 2  Asignacion de Secuencia</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Asignar secuencia a Unidades</p>
-                        <center><a href="index.php?action=submenusecRec" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                        <p><font color="blue"> Paso 2 Secuencia</font></p>
+                        <center><a href="index.php?action=submenusecRec" class="btn btn-default"  <?php echo ($secuencia>0 )? '':'disabled'?>><?php echo $secuencia?> Rutas</a></center>
                     </div>
                 </div>
             </div>
                         <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i>Administrar Rutas</h4>
+                        <h4><i class="fa fa-list-alt"></i> Paso 3 Administrar Rutas</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Administrar Rutas</p>
-                        <center><a href="index.php?action=adminrutaRep" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                        <p><font color="blue"> Paso 3 Administrar</font></p>
+                        <center><a href="index.php?action=adminrutaRep" class="btn btn-default" <?php echo ($administrar>0 )? '':'disabled'?>><?php echo $administrar?> Rutas</a></center>
                     </div>
                 </div>
             </div>
@@ -156,19 +157,7 @@
                     </div>
                 </div>
             
-        -->
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Imprimir Comprobantes</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p><br></p>
-                        <center><a href="index.php?action=imprecep" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
-                    </div>
-                </div>
-            </div>
-           
+        
             <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">
@@ -180,6 +169,7 @@
                     </div>
                 </div>
             </div>
+            -->
               <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">
@@ -187,7 +177,7 @@
                     </div>
                     <div class="panel-body">
                         <p><br></p>
-                        <center><a href="index.php?action=BuscarCajasxPedido" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
+                        <center><a href="index.php?action=BuscarCajasxPedido" class="btn btn-default">Busca Cajas</a></center>
                     </div>
                 </div>
             </div>

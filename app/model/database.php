@@ -6,17 +6,12 @@
 		private static $pwd = "masterkey";
 		private $cnx;
 		protected $query;
-		//private $host = "C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE6.00\\Empresa01\\Datos\\SAE50EMPRE01.FDB";/*Editar según la ubicación de la base de datos*/
-		//private $host = "C:\\xampp\\htdocs\\pegasoftc\\bd\\SAE50EMPRE01.FDB";/*Editar según la ubicación de la base de datos*/
-		//private $host = "C:\\Program Files (x86)\\Common Files\\Aspel\\Sistemas Aspel\\SAE7.00\\Empresa01\\Datos\\SAE70EMPRE01.FDB";
-		private $host = "C:\\Users\\gense\\Desktop\\SAE70EMPRE01.FDB";
-		//SAE60EMPRE01_Partimar.FDB
-
-		//private $host = "C:\\xampp\\htdocs\\PegasoFTC\\app\\db\\SAE50EMPRE01.FDB";
+		private $host = "C:\\ftcData\\PCF.FDB";
 		
 		#Abre la conexión a la base de datos
 		private function AbreCnx(){
-			$this->cnx = ibase_connect($this->host, self::$usr, self::$pwd);
+			$host = 'ofa.dyndns.org:'.$_SESSION['bd'];
+			$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
 		}		
 		#Cierra la conexion a la base de datos
 		private function CierraCnx(){
@@ -117,7 +112,7 @@
 			$rs = ibase_query($this->cnx, $this->query);
 			while($row = ibase_fetch_object($rs)){
 				$row->CVE_ART = htmlentities(stripcslashes($row->CVE_ART));
-				$row->DESCR = htmlentities(stripcslashes($row->DESCR));
+				$row->DESCR = htmlentities(stripcslashes(utf8_decode($row->DESCR)));
 				//$row_set[] = $row->CLAVE;
 				$row_set[] = $row->CVE_ART." : ".$row->DESCR;
 			}
@@ -125,7 +120,19 @@
 			unset($this->query);	
 			$this->CierraCnx();
 		}
-				
+		
+		protected function QueryDevuelveAutocompleteC(){
+			$this->AbreCnx();
+			$rs = ibase_query($this->cnx, $this->query);
+			while($row = ibase_fetch_object($rs)){
+				$row->CVE_PROD_SERV = htmlentities(stripcslashes($row->CVE_PROD_SERV));
+				$row->DESCRIPCION = htmlentities(stripcslashes(utf8_decode($row->DESCRIPCION)));
+				$row_set[] = $row->CVE_PROD_SERV." : ".$row->DESCRIPCION;
+			}
+			return $row_set;
+			unset($this->query);	
+			$this->CierraCnx();
+		}		
 	
 		#Regresa arreglo de datos asociativo, para mejor manejo de la informacion
 		#Comprueba si es un recurso el cual se compone de 

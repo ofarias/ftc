@@ -17,7 +17,7 @@
                                 <input type="text" class="form-control" name="something" placeholder="<?php echo $dat->IDCLIENTE.' -- '.$dat->NOMBRE?>" readonly="true"/><br>
                             </div>
                     </div>
-                    
+                    <!--
                     <div class="form-group">
                         <label for="carteracobranza" class="col-lg-2 control-label">Cartera Revisión: </label>
                             <div class="col-lg-8">
@@ -41,7 +41,7 @@
                                 </select>
                             </div>
                     </div>
-               
+               -->
                     <div class="form-group col-lg-12 text-center">
                     <label class="col-lg-2 control-label">Días Revisión: </label>
                         <div class="checkbox-inline">
@@ -275,9 +275,9 @@
                         <label for="tipo" class="col-lg-2 control-label">Pertenece a: </label>
                             <div class="col-lg-8">
                                 <select name="tipo" class="form-control">
-                                    <option value="<?php echo $dat->CLAVE_M?>"><?php echo $dat->NOMBRE_MAESTRO?></option>
+                                    <option value="<?php echo $dat->CLAVE_M?>"><?php echo $dat->NOMBRE_MAESTRO.$dat->CLAVE_M?></option>
                                     <?php foreach($datosMaestro as $data): ?>
-                                    <option value="<?php echo $data->CLAVE?>"><?php echo $data->NOMBRE?></option>
+                                    <option value="<?php echo $data->CLAVE?>"><?php echo $data->NOMBRE.$data->CLAVE?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>

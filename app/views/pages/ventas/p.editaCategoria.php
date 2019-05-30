@@ -11,7 +11,7 @@
 
 
 		<form action="index.php" method="post">
-			<?php foreach($mxc as $data):
+			<?php foreach($categoria as $data):
 			
 			?>
 			<input type="hidden" name="idmxc" value="<?php echo $data->ID?>">

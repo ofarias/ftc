@@ -228,7 +228,7 @@ if (isset($_POST['usuario'])){
 		if(empty($_POST['impuesto'])){
 			$impuesto= 0;
 		}else {
-			$impuesto=number_format($_POST['impuesto'],2);
+			$impuesto=number_format($_POST['impuesto'],2,".","");
 		}
 		$clave = $_POST['clave'];
 		//echo 'desc-.'.$desc1.'<p>';
@@ -426,6 +426,76 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	$response= $controller_v->recalcular($idpreoc, $tipo);
 	echo json_encode($response);
 	exit();
+}elseif (isset($_POST['cancelar'])) {
+	$docf=$_POST['docf'];
+	$uuid=$_POST['cancelar'];
+	$res=$controller_v->cancelar($docf, $uuid);
+	echo json_encode($res);
+	exit();
+}elseif(isset($_POST['traePendientes'])){
+	$prod = $_POST['traePendientes'];
+	$response=$controller_v->traePendientes($prod);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['buscaCaja'])){
+	$docf = $_POST['buscaCaja'];
+	$controller_v->buscaCaja($docf);
+}elseif(isset($_POST['actPartida'])){
+	$docf = $_POST['actPartida'];
+	$cantidad=$_POST['ncantidad'];
+	$precio=$_POST['nprecio'];
+	$descuento=$_POST['ndescuento'];
+	$partida=$_POST['par'];
+	$uso = $_POST['uso'];
+	$mp= $_POST['mp'];
+	$fp= $_POST['fp'];
+	$clie= $_POST['clie'];
+	$response=$controller_v->actPartida($docf, $cantidad, $precio, $descuento, $partida, $uso, $mp, $fp, $clie);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['realizaCEP'])){
+	$folios = $_POST['fol'];
+	$controller_v->realizaCEP($folios);
+	exit();
+}elseif (isset($_POST['realizaNCBonificacion'])) {
+	$docf=$_POST['docf'];
+	$monto=$_POST['monto'];
+	$concepto=$_POST['concepto'];
+	$obs=$_POST['obs'];
+	$caja=$_POST['caja'];
+	$controller_v->realizaNCBonificacion($docf, $monto, $concepto, $obs, $caja);
+}elseif (isset($_POST['copiaFP'])) {
+	$docf=$_POST['copiaFP'];
+	$response=$controller_v->copiaFP($docf);
+	echo json_encode($response);
+	exit();
+}elseif(isset($_POST['conteoCopias'])){
+	$docf=$_POST['conteoCopias'];
+	$res=$controller_v->conteoCopias($docf);
+	echo json_encode($res);
+	exit();
+}elseif(isset($_POST['cajaNC'])){
+	$idc = $_POST['cajaNC'];
+	$res=$controller_v->cajaNC($idc);
+	echo json_encode($res);
+	exit();
+}elseif(isset($_POST['verNCC'])){
+	$serie=$_POST['serie'];
+	$controller_v->verNCC($serie);
+	exit();
+}elseif(isset($_POST['aplicaNC'])){
+	$docn=$_POST['aplicaNC'];
+	$res=$controller_v->aplicaNC($docn);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['anexoDescr'])) {
+	$tipo=$_POST['anexoDescr'];
+	$idc=$_POST['idc'];
+	$par=$_POST['par'];
+	$descr=$_POST['descr'];
+	$res=$controller_v->anexoDescr($tipo, $idc, $par, $descr);
+	echo json_encode($res);
+	exit();
 }
 else{switch ($_GET['action']){
 		case 'login':
@@ -566,10 +636,21 @@ else{switch ($_GET['action']){
 				$docf=$_GET['docf'];
 				$controller_v->detalleFaltante($docf);
 				break;
+			case 'verPagos':
+				$controller_v->verPagos();
+				break;
+			case 'verPartidas':
+				$idc=$_GET['caja'];
+				$controller_v->verPartidas($idc);
+				break;
+			case 'repVentas':
+				$controller_v->repVentas($GET_['tipo']=false,$_GET['clie']=false, $_GET['inicio']=false, $_GET['fin']=false);
+				break;
 	default:
 		header('Location: index.v.php?action=login');
 		break;
 	}
+
 
 }
 ?>

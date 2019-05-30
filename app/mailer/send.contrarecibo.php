@@ -57,10 +57,10 @@ require_once('./app/PHPMailer/class.smtp.php');
         $mail->Host = 'tls://smtp.gmail.com';
         $mail->Port = 587;
         $mail->SMTPAuth = true;
-        $mail->Username   = "cxpferreterapegaso@gmail.com";  // Nombre del usuario SMTP
+        $mail->Username   = "info@ftcenlinea.com";  // Nombre del usuario SMTP
          $mail->Password   = "genseg89+";
          $mail->AddAddress($correo, $contacto);      //Direccion a la que se envia
-         $mail->SetFrom('cxpferreterapegaso@gmail.com' , "Pegaso. Cuentas por pagar"); // Esccribe datos de contacto
+         $mail->SetFrom('info@ftcenlinea.com' , "Pegaso. Cuentas por pagar"); // Esccribe datos de contacto
          $mail->Subject = $asunto;
          $mail->AltBody = 'Para ver correctamente este mensaje, por favor usa un manejador de correo con compatibilidad HTML !'; // optional - MsgHTML will create an alternate automatically
          $mail->MsgHTML($mensaje);

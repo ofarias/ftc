@@ -91,7 +91,7 @@
                                                 <?php }else{?>
                                                 <form action="index.php" method="post">
                                                 <input type="hidden" name="doco" value="<?php echo $data->CVE_DOC?>">
-                                                <input type="hidden" name="docr" value="<?php echo $data->ID_RECEPCION?>">
+                                                <input type="hidden" name="idr" value="<?php echo $data->ID_RECEPCION?>">
                                                 <button class="btn btn-success" value="enviar" type="submit" name="imprimeRecep" <?php echo (!empty($data->ID_RECEPCION))? "":"disabled='disabled'" ?> > <?php echo ($data->IMPRESION > 0)? 'Re-Imprimir':'Impresion' ?></button>
                                                 </form>
                                                 <?php }?>

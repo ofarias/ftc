@@ -48,6 +48,10 @@
                     }else{
                         $imagen = 'proceso.png';
                     }
+                    if($tipo == 2){
+                        $imagen = '';
+                    }
+
                    ?>
                   <div class="col-md-3">
                 <div class="panel panel-default">
@@ -55,13 +59,13 @@
                         <h4><i class="fa fa-list-alt"></i> Caja  <?php echo $key['cotizacion'].' Dias: ( '.$key['dias'].' ) '?></h4>
                     </div>
                     <div class="panel-body<?php echo $key['cotizacion']?>">
-                        <p><font size="4pxs"><b><?php echo $key['cliente']?></b></font></p>
+                        <p><font size="4pxs"><b><?php echo str_pad(substr($key['cliente'],0,45),50,'.')?></b></font></p>
                         <p><font size="3pxs"><b>Liberacion:<?php echo $key['fechalib']?></b></font></p>
                         <p> Prod. del Pedido: <?php echo $key['original'].' en '.$key['partidas'].' partidas.'?> </p>
                         <p> Productos Recibidos: <?php echo $key['recepcion']?> </p>
                         <p> Productos Empacados: <?php echo $key['empacado']?></p>
                         <p><font color="blue"><a href="index.v.php?action=detalleFaltante&docf=<?php echo $key['cotizacion']?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;" > Productos Faltantes: <?php echo $key['original']-$key['recepcion']?></a></p>
-                        <p><a href="/PedidosVentas/<?php echo substr($key['archivo'],30, 176)?>" download="/PedidosVentas/<?php echo substr($key['archivo'],30, 176)?>"><?php echo substr($key['archivo'],30, 176)?></a></font>
+                        <p><font color="blue"><a href="/PedidosVentas/<?php echo substr($key['archivo'],30, 176)?>" download="/PedidosVentas/<?php echo substr($key['archivo'],30, 176)?>"><?php echo substr($key['archivo'],30, 176)?></a></font></font>
                         </p>
                         <center><img src="app/views/images/<?php echo $imagen?>"></center>
                         

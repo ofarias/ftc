@@ -51,6 +51,7 @@
     </div>
 </div>
 
+<?php if(count($exec) > 0){?>
 </div>
 <div class="row">
     <div class="col-lg-12">
@@ -82,11 +83,10 @@
                             $skus = $data->SINSKUS;   
                             $test = '';
                             $control = 0;
-                            if( ($data->RFC == 'SUB910603SB3' or $data->RFC == 'DLI830517184') and $data->ADDENDA==''){
+                            if(($data->RFC == 'SUB910603SB' or $data->RFC == 'DLI83051718') and $data->ADDENDA==''){
                                 $test="<font color='red'>El Cliente Requiere Addenda y no  esta configurada, favor de reportar a CxC.</font>";
                                 $control = 1;
                             }
-
                             ?>
                             <tr class="odd gradeX">                                            
                                 <td>
@@ -109,32 +109,32 @@
                                 <?php if(strtoupper($data->ESTATUS)=='PENDIENTE' or $data->ESTATUS == 'LIBERADO'){ ?>
                                 <td>
                                 <?php if($data->ESTATUS == 'PENDIENTE'){?>
-                                <a class="glyphicon glyphicon-copy" href="index.v.php?action=cambiaCliente&folio=<?php echo $data->FOLIO;?>" style="color:#245269;">&nbsp;</a>
+                                <a class="glyphicon glyphicon-copy" href="index.v.php?action=cambiaCliente&folio=<?php echo $data->FOLIO;?>" style="color:#245269;">&nbsp;<br/><font color ="blue">Cambia Cliente</font></a>
                                 <?php }?>
                                 </td>
                                 <td>
-                                <a class="glyphicon glyphicon-eject" href="index.v.php?action=cancelarCotizacion&folio=<?php echo $data->FOLIO;?>" style="color:#245269;">&nbsp;</a>
+                                <a class="glyphicon glyphicon-eject" href="index.v.php?action=cancelarCotizacion&folio=<?php echo $data->FOLIO;?>" style="color:#245269;">&nbsp;<br/><font color ="red">Cancelar</font></a> 
                                 </td>
                                 
                                 <input type="hidden" id="saldo" name="saldo" value="<?php echo $saldo?>">
                                 <td>
                                     <?php if($data->URGENTE =='No'){?>
-                                    <a class="glyphicon glyphicon-magnet" style="color:#245269;" href="index.v.php?action=marcarUrgente&folio=<?php echo $data->FOLIO?>"></a>
+                                    <a class="glyphicon glyphicon-magnet" style="color:#245269;" href="index.v.php?action=marcarUrgente&folio=<?php echo $data->FOLIO?>"> <br/><labe>Urgente</labe></a>
                                     <?php }?>
-                                    <labe>Urgente</labe>
+                                  
                                     <?php if($data->SALDO_VENCIDO >= 1 AND $data->ESTATUS == 'PENDIENTE'){?>
                                     /
                                     <a class="glyphicon glyphicon-usd" style="color:#245269;" href="index.v.php?action=solLiberacion&folio=<?php echo $data->FOLIO?>&cliente=<?php echo $data->CLIENTE?>"></a>
                                     <?php } ?>
                                 </td>
                                 <td>
-                                <a class="glyphicon glyphicon-print" style="color:#245269;" href="index.php?action=verPedido&folio=<?php echo $data->FOLIO;?>"></a>
+                                <a class="glyphicon glyphicon-print" style="color:#245269;" href="index.php?action=verPedido&folio=<?php echo $data->FOLIO;?>"><br/>Impresion</a>
 
                                 <a onClick="test1(<?php echo $data->FOLIO?>,<?php echo $skus?>, <?php echo $control?>)" id="cotiza_<?php echo $data->FOLIO?>" 
                                 class="glyphicon glyphicon-briefcase" style="color:#245269;" 
                                 <?php echo (($data->SALDO_VENCIDO >0 and $data->ESTATUS =='PENDIENTE') OR $skus > 0 or $control == 1) ? '':"href='index.v.php?action=avanzaCotizacion&folio=$data->FOLIO'" ?>  
 
-                                <?php echo ($data->SALDO_VENCIDO >0 and $data->ESTATUS =='PENDIENTE')? 'onclick="restriccion()"':''?> >&nbsp;  </a>
+                                <?php echo ($data->SALDO_VENCIDO >0 and $data->ESTATUS =='PENDIENTE')? 'onclick="restriccion()"':''?> >&nbsp;<br/>Crear Pedido  </a>
                                 </td>
 
                                 <!--  href="index.v.php?action=avanzaCotizacion&folio=<?php echo $data->FOLIO;?>  <?php echo ($data->SALDO_VENCIDO = 0 )? 'onclick="restriccion()"':''?>" -->
@@ -148,16 +148,18 @@
                         </tbody>
                     </table>
                 </div>
-                <form action="index.v.php" method="POST" id="FORM_ACTION">
-                    <input type="hidden" name="generaNuevaCotizacion" value="true" />
-                </form>
+               
             </div>
         </div>
     </div>
 </div>
+<?php }?>
+ <form action="index.v.php" method="POST" id="FORM_ACTION">
+                    <input type="hidden" name="generaNuevaCotizacion" value="true" />
+                </form>
 <div class="row">
     <div class="col-sm-2">
-        <input type="button" name="nuevaCotizacion" id="nuevaCotizacion" class="button" value="Nueva Cotizacion" />
+        <input type="button" name="nuevaCotizacion" id="nuevaCotizacion" class="btn-success " value="Nueva Cotizacion" />
     </div>
 </div>
 

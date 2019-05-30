@@ -1,10 +1,10 @@
 <?php
 
 class databasemysql {
-    private $DBServer = "pegaso17.dyndns.org:3306";
-    private $DBUser = "pegaso";
-    private $DBPaswd = "genseg01+";
-    private $DBName = "pegaso";
+    private $DBServer = "ofa.dyndns.org:3306";
+    private $DBUser="ftc";
+    private $DBPaswd="elPaso01+";
+    private $DBName="pegaso";
     private $cnx;
     protected $query;
     private function AbreCnx() {

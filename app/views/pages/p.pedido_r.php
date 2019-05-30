@@ -30,8 +30,12 @@
                                             <th>Producto</th>
                                             <th>Descripcion</th>
                                             <th>Cantidad Pedido</th>
-                                            <th>Cant Ordenada</th>
-                                            <th>Cant Recibida</th>
+                                            <th>Cant <br/>Ordenada</th>
+                                            <th>Cant <br/>Recibida</th>
+                                            <th>Cant <br/>Empacado</th>
+                                            <th>Cant <br/>Remisionado</th>
+                                            <th>Cant <br/>Facturado</th>
+                                            <th>Cant <br/>Devuelto</th>
                                             <th>Fecha Rechazo</th>
                                             <th>Motivo Rechazo</th>
                                             <th>Remision</th>
@@ -86,11 +90,15 @@
                                             <td><?php echo $data->CANT_ORIG;?></td>
                                             <td><?php echo $data->ORDENADO;?></td>
                                             <td><?php echo $data->RECEPCION;?></td>
+                                            <td><?php echo $data->EMPACADO;?></td>
+                                            <td><?php echo $data->REMISIONADO;?></td>
+                                            <td><?php echo $data->FACTURADO;?></td>
+                                            <td><?php echo $data->DEVUELTO;?></td>
                                             <td><?php echo $fecha;?></td>
                                             <td><?php echo $data->MOTIVO_RECHAZO;?></td>
                                             <td><?php echo $data->REMISION;?></td>
                                             <td><?php echo $data->FECHA_REM;?></td>
-                                            <td><?php echo $data->FACTURAS;?></td>
+                                            <td><?php echo $data->FACTS."<br/>".$data->FACTURAS;?></td>
                                             <td><?php echo $data->FECHA_FAC;?></td>        
                                         </tr>
                                         <?php endforeach; ?>

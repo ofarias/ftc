@@ -13,14 +13,17 @@
         <input type="file" name="fileToUpload" id="fileToUpload" required="required">
         <input type="submit" value="Subir Respuesta BBVA" name="submit">
 </form>
+<br/>
+<br/>
+    <a href="index.php?action=formProveedor"  target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;" class="btn btn-success">Alta de proveedor</a>
+<br/>
+<br/>
 
-<br/>
-<br/>
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                                Revision de Facturacion.
+                                Catalogo de Proveedores.
                         </div>
                         <!-- /.panel-heading -->
                            <div class="panel-body">

@@ -180,3 +180,13 @@
 <button name="utilerias" type="submit" value="enviar"> Analizar ID</button>
 </form>
 </div>
+
+<div>
+<form action="index.php" method="post">
+<label> Timbrar Doc </label>
+<input type="hidden" name="opcion" value="21">
+<label>Colocar el numero de Factura </label><input type="text" name="docf" placeholder="Factura" >
+<button name="utilerias" type="submit" value="enviar"> Facturar</button>
+</form>
+	
+</div>

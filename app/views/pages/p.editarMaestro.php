@@ -11,25 +11,39 @@
                 <?php foreach ($datosMaestro as $key):
                     $cvem = $key->CLAVE;
                  ?>
-            <form action="index.php" method="post" id="form1">
-                    <input name = "idm" type="hidden" value ="<?php echo $key->ID ?>">
+                   <input name = "idm" type="hidden" value ="<?php echo $key->ID ?>">
                     <div class="form-group">
                         <label for="cliente" class="col-lg-2 control-label">Nombre Maestro: </label>
                             <div class="col-lg-8">
+                                <form action="index.php" method="post">
                                 <input type="text" class="form-control" name="cliente" value="<?php echo $key->NOMBRE;?>" readonly="true"/><br>
+                                <input type="hidden" name="maestro" value="<?php echo $key->ID?>">
+                                <p>Cartera Revision:</p>
+                                <select class="form-control" name="revision" required="required">
+                                    <option value="<?php echo !empty($key->CARTERA_REVISION)? $key->CARTERA_REVISION:''?>"> <?php echo !empty($key->CARTERA_REVISION)? $key->CARTERA_REVISION:'Seleccione una Cartera' ?> </option>
+                                    <option value="R1">R1</option>
+                                    <option value="R2">R2</option>
+                                    <option value="R3">R3</option>
+                                </select>
+                                <br/>
+                                <p>Cartera Cobranza:</p>
+                                <select class="form-control" name="cobranza" required="required">
+                                    <option value="<?php echo !empty($key->CARTERA)? $key->CARTERA:''?>"> <?php echo !empty($key->CARTERA)? $key->CARTERA:'Seleccione una Cartera' ?> </option>
+                                    <option value="C1">C1</option>
+                                    <option value="C2">C2</option>
+                                    <option value="C3">C3</option>
+                                </select>
+                                <br/>
+                                <button class="btn btn-success form-control" value="submit" type="submit" name="editaCarterasMaestro" >Guardar</button>
+                                </form>
                             </div>
                     </div>
-                 
-            </form>
         <?php endforeach ?>
             </div>
 
-                <!-- Submit Button  -->
                 <div class="panel-footer">
                     <div class="form-group">
                         <div class="col-lg-offset-2 col-lg-10">
-                            <!--<button name="agregarCCC" type="submit" class="btn btn-success" form="form1">Agregar CCC <i class="fa fa-floppy-o"></i></button><br/>-->
-                            <!-- <a class="btn btn-warning" href="index.php?action=">Cancelar <i class="fa fa-times"></i></a> -->
                             <input type="button" name="altaCCC" onclick="altaccc()" class="btn btn-success" value="Alta CC">
                             <label>Crear los Centros de Compras del Maestro.</label>
                         </div>
@@ -154,15 +168,12 @@
             <div class="panel panel-default">
                 <div class="panel panel-heading">
                     <h3>Clientes sin Centro de Compra Asociado</h3>
-
                 </div>
-
                 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                            Clientes <br/>   
-                           
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
@@ -231,8 +242,6 @@
             </div>
         </div>
 </div>
-
-
             </div>
         </div>
     </div>
@@ -240,13 +249,10 @@
 
 
  <script type="text/javascript">
-    
     function altaccc(){
         document.getElementById('altaCCC').style.display = 'block';}
-
     function ocultar(){
         document.getElementById('altaCCC').style.display='none';}
-
     function verFormCliente(cc, nomb){
         alert("Se selcciono el CC: " + nomb);
         var x=document.getElementsByClassName('a');
@@ -258,9 +264,7 @@
             y[i].value=cc;
         }
         //document.getElementsByClassName('b').value=cc;
-
-        document.getElementById('formCliente').style.display='block';}
-    
+        document.getElementById('formCliente').style.display='block';
     function ocultarFormCliente(){
         document.getElementById('formCliente').style.display='none';}
 

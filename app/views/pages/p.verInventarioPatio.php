@@ -33,10 +33,11 @@
                                     }else{
                                         $color = '';
                                     }
+                                    $OCS = str_replace(',', '<br/>', $data->OC);
                                     $i++;
                             ?>
                                     <tr class="odd gradeX"  id="tr_<?php echo $i?>" <?php echo $color?>>
-                                        <td><a href="index.php?action=verMovInventario&producto=<?php echo $data->PROD?>" target="_blank"><?php echo $data->PROD.'<br/>'.$data->ID?></a></td>
+                                        <td><a href="index.php?action=verMovInventario&producto=<?php echo $data->PROD?>" target="blank"><?php echo $data->PROD.'<br/>'.$data->ID?></a> <br/> <?php echo  ($OCS); ?></td>
                                         <input type="hidden" name="idpreo" id="idpreoc_<?php echo $i?>" value="<?php echo $data->ID?>" >
                                         <input type="hidden" name="canto" id="canto_<?php echo $i?>" value="<?php echo $data->RECEPCION?>">
                                         <input type="hidden" name="prod" id="prod_<?php echo $i?>" value="<?php echo $data->PROD?>">

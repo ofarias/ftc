@@ -1,8 +1,6 @@
-
 <?php
-
 session_start();
-session_cache_limiter('private_no_expire');
+//session_cache_limiter('private_no_expire');
 require_once('app/controller/pegaso.controller.php');
 $controller = new pegaso_controller;
 
@@ -19,7 +17,7 @@ if ($_FILES["fileToUpload"]["size"] > 50000000) {
     $uploadOk = 0;
 
 }else{
-        if (file_exists($target_file) or strtoupper($imageFileType) != ("PDF")) {
+        if(file_exists($target_file)    ){
             echo "El Archivo que intenta cargar, ya existen en el Sistema, se intenta subir un duplicado <p>";
             echo "o el archivo no es valido; solo se pueden subir arvhivos PDF. <p>";
             $uploadOk = 0;

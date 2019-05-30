@@ -2,6 +2,7 @@
 require_once('app/model/pegaso.model.php');
 require_once('app/model/pegaso.model.coi.php');
 require_once('app/model/pegaso.model.ventas.php');
+require_once('app/model/model.ftc.php');
 require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
 require_once('app/controller/pegaso.controller.ventas.php');
@@ -10,6 +11,9 @@ require_once('app/model/verificaID.php');
 require_once('app/model/db.contabilidad.php');
 require_once 'app/model/pegasoqr.php';
 require_once('app/model/pegaso.model.recoleccion.php');
+require_once('app/model/pegaso.model.cxc.php');
+require_once('app/model/facturacion.php');
+require_once('app/controller/pegaso.controller.cobranza.php');
 
 class pegaso_controller{
 	var $contexto_local = "http://SERVIDOR:8081/pegasoFTC/app/";
@@ -27,28 +31,61 @@ class pegaso_controller{
 		echo json_encode($arr);
 		exit;
 	}
-	
+
+	function salir(){
+		$data= new pegaso;
+		$salir=$data->salir();
+		return;
+	}
+
+	function LoginConta($user, $pass){
+		$data= new ftc;
+		$usuario = $data->loginMysql($user, $pass);
+		$_SESSION['usuario']=$user;
+		$_SESSION['contra']=$pass;
+		if(!empty($usuario)){
+			foreach ($usuario as $key) {
+				$u = $key['usuario'];
+			}
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.adminConta.php');
+			ob_start();
+			$table=ob_get_clean();
+			include 'app/views/modules/m.adminConta.php';
+			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
 	function LoginA($user, $pass){
-		////session_cache_limiter('private_no_expire');
+		$conta = new ftc; 
+		$bd = $conta->traeBD();
 		$data = new pegaso;
 			$rs = $data->AccesoLogin($user, $pass);
+			
 				if(isset($rs) > 0){					
 					$r = $data->CompruebaRol($user, $pass);
 					switch ($r->USER_ROL){
-						case 'administrador':
-						$this->MenuAdmin();
-						break;
 						case 'administracion':
 						$this->MenuAd();
 						break;
-						case 'usuario':
-						$this->MenuUsuario();
+						case 'ContaXML':
+		        		$this->MenuXML();
+		        		break;
+		        		case 'costos':
+						$this->MenuCostos();
+						break;
+						case 'cobranza':
+						$this->MenuCobranza();
 						break;
 						case 'ventas':
 						$this->MenuVentas();
 						break;
-						case 'compras':
-						$this->MenuCompras();
+						case 'suministros':
+						$this->MenuSuministros();
 						break;
 						case 'tesoreria':
 						$this->MenuTesoreria();
@@ -56,54 +93,16 @@ class pegaso_controller{
 						case 'logistica':
 						$this->MenuLogistica();
 						break;
-						case 'recibo':
-						$this->MenuRecibo();
-						break;
 						case 'bodega':
 						$this->MenuBodega();
 						break;
-						case 'glogistica':
-						$this->MenuGLogistica();
+						case 'empaque':
+						$this->MenuEmpaque();
 						break;
-						case 'cxcr':             //14062016
-                        $this->MenuCxCRevision();
-                        break;
-                        case 'cxcc':
-                        $this->MenuCxCCobranza();
-                        break;
-                        case 'contabilidad':
-                        $this->MenuContabilidad();
-                        break;
-                        case 'auditoria':
-                        $this->MenuAuditoria();
-                        break;
-                        case 'gcxc':
-                        $this->MenuGcxc();
-                        break;
-                        case 'ventasp':
-                        $this->MenuVentasP();
-                        break;
-                        case 'reparto':
-                        $this->MenuReparto();
-                        break;
-                        case 'reciboRecoleccion':
-                		$this->MenureciboRecoleccion();
-                		break;
-                		case 'suministros':
-                		$this->MenuSuministros();
-                		break;
-                		case 'bodega2':
-		                $this->MenuBodega2();
-		                break;
-		                case 'cxcexterna':
-		                $this->cxcexterna();
-		                break;
-		                case 'tesoreriaAux':
-				        $this->MenuTesoreriaAux();
-				        break;
-				        case 'gerenteLogistica':
-				        $this->gsuministros();
-				        break;
+						case 'revision':
+						$this->MenuRevision();
+						break;
+
 						default:
 						$e = "Error en acceso 1, favor de revisar usuario y/o contraseña";
 						header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -117,24 +116,27 @@ class pegaso_controller{
 	}
 
 	function Inicio(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$o = $_SESSION['user'];
 			switch($o->USER_ROL){
-				case 'administrador':
-				$this->MenuAdmin();
-				break;
 				case 'administracion':
 				$this->MenuAd();
 				break;
-				case 'usuario':
-				$this->MenuUsuario();
+				case 'ContaXML':
+		       	$this->MenuXML();
+		       	break;
+		       	case 'costos':
+				$this->MenuCostos();
+				break;
+				case 'cobranza':
+				$this->MenuCobranza();
 				break;
 				case 'ventas':
 				$this->MenuVentas();
 				break;
-				case 'compras':
-				$this->MenuCompras();
+				case 'suministros':
+				$this->MenuSuministros();
 				break;
 				case 'tesoreria':
 				$this->MenuTesoreria();
@@ -142,53 +144,14 @@ class pegaso_controller{
 				case 'logistica':
 				$this->MenuLogistica();
 				break;
-				case 'recibo':
-				$this->MenuRecibo();
-				break;
 				case 'bodega':
 				$this->MenuBodega();
 				break;
-				case 'glogistica':
-				$this->MenuGLogistica();
+				case 'empaque':
+				$this->MenuEmpaque();
 				break;
-                case 'cxcr':             //14062016
-                $this->MenuCxCRevision();
-                break;
-                case 'cxcc':
-                $this->MenuCxCCobranza();
-                break;
-                case 'contabilidad':
-                $this->MenuContabilidad();
-                break;
-                case 'auditoria':
-                $this->MenuAuditoria();
-                break;
-                case 'gcxc':
-                $this->MenuGcxc();
-                break;
-                case 'ventasp':
-                $this->MenuVentasP();
-                break;
-                case 'reparto':
-                $this->MenuReparto();
-                break;
-                case 'reciboRecoleccion':
-                $this->MenureciboRecoleccion();
-                break;
-                case 'suministros':
-                $this->MenuSuministros();
-                break;
-                case 'bodega2':
-                $this->MenuBodega2();
-                break;
-                case 'cxcexterna':
-		        $this->cxcexterna();
-		        break;
-		        case 'tesoreriaAux':
-		        $this->MenuTesoreriaAux();
-		        break;
-		        case 'gerenteLogistica':
-				$this->gsuministros();
+				case 'revision':
+				$this->MenuRevision();
 				break;
 				default:
 				$e = "Error en acceso 1, favor de revisar usuario y/o contraseña";
@@ -197,15 +160,189 @@ class pegaso_controller{
 				}
 		}
 	}
-	
-	
 
-	function CambiarSenia(){
-		//session_cache_limiter('private_no_expire');
+/// Nuevos Menus
+
+	function MenuCostos(){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'costos'){
+			$pagina = $this->load_template('Menu Admin');			
+			ob_start();
+            $table =ob_get_clean();
+            $usuario=$_SESSION['user']->NOMBRE; 
+            include 'app/views/modules/m.mcostos.php';   
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
+	function MenuCobranza(){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'cobranza'){
+			$pagina = $this->load_template('Menu Admin');
+            ob_start();
+            $table =ob_get_clean();
+            $usuario=$_SESSION['user']->NOMBRE;    
+            include 'app/views/modules/m.mcobranza.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+	function MenuVentas(){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'ventas'){
+			$pagina = $this->load_template('Menu Admin');
+            ob_start();
+            $table =ob_get_clean();
+            $usuario=$_SESSION['user']->NOMBRE;    
+            include 'app/views/modules/m.mventas.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+	function MenuSuministros(){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'suministros'){
+			$pagina = $this->load_template('Menu Admin');
+            ob_start();
+            $table =ob_get_clean();
+            $usuario=$_SESSION['user']->NOMBRE;    
+            include 'app/views/modules/m.msuministros.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+	function MenuTesoreria(){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'tesoreria'){
+			$pagina = $this->load_template('Menu Admin');
+            ob_start();
+            $table =ob_get_clean();
+            $usuario=$_SESSION['user']->NOMBRE;    
+            include 'app/views/modules/m.mtesoreria.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+	function MenuLogistica(){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'logistica'){
+			$pagina = $this->load_template('Menu Admin');
+            ob_start();
+            $table =ob_get_clean();
+            $usuario=$_SESSION['user']->NOMBRE;    
+            include 'app/views/modules/m.mlogistica.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+	function MenuBodega(){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'bodega'){
+			$pagina = $this->load_template('Menu Admin');
+            ob_start();
+            $table =ob_get_clean();
+            $usuario=$_SESSION['user']->NOMBRE;    
+            include 'app/views/modules/m.mbodega.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+	function MenuEmpaque(){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'empaque'){
+			$pagina = $this->load_template('Menu Admin');
+            ob_start();
+            $table =ob_get_clean();
+            $usuario=$_SESSION['user']->NOMBRE;    
+            include 'app/views/modules/m.mempaque.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
+	function MenuRevision(){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'revision'){
+			$pagina = $this->load_template('Menu Admin');
+            ob_start();
+     		$data=new pegaso;
+			$data2=new pegasoCobranza;
+			$table =ob_get_clean();
+            $Solicitudes =$data->verSolBodega(); 
+			$vales = $data->verValesBodega();
+			$oci = $data->verOCI();
+			$logistica = $data->unidadeslog();
+			$documentos = 0;
+			$cajas = $data->invPatio();
+			//$documentos = $data->cajasSinProcesar();
+			$mermas = $data->verMermas();
+			$devprov= $data->verDevProv();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+			$documentos =0;
+			$bloqueos = 0;
+			$Solicitudes =$data->verSolBodega(); 
+			$vales = $data->verValesBodega();
+			$oci = $data->verOCI();
+			$logistica = $data->unidadeslog();
+			$documentos = 0;
+			$cajas = $data->invPatio();
+			//$documentos = $data->cajasSinProcesar();
+			$mermas = $data->verMermas();
+			$devprov= $data->verDevProv();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+			//$documentos = $data->cajasSinProcesar();
+			//$ra = $data->actualizaRCDetalle(); /// Actualiza la ruta detalle.
+			//$validacion= $data->calculaBloqueo();  /// Calcula Bloqueo por no cierre de ruta.
+			//$bloqueos = $data->traeBloqueos();  /// Trae la cantidad de bloqueos activos.
+			if ($bloqueos > 0){
+			///	exit('Bloqueo de Ruta cuenta por Cobrar');
+			}
+			### 4 segundos
+			$cajas=$data->totalCajas(); /// Inventario Fisico empaque
+			### 4 segundos
+			$docs = $data->resumenCxC();
+			###  4 seg
+			$cobranza=$data2->docsVencidosCartera(); // No tarda
+			$prefacturas=$data->prefacturasPendientes();
+			/// Manejo de Bloqueos
+			//$ra = $data->actualizaRCDetalle(); /// Actualizacion de Ruta Cobranza Tarda y no se esta usando. desactivado el 19 de Febrero del 2019 OFA 
+			//$validacion= $data->calculaBloqueo();
+			
+			$vencidos = array();    
+            include 'app/views/modules/m.mrevision.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
+/// Finaliza Menus 
+
+	function CambiarSenia(){	
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			$pagina = $this->load_template('Menu Admin');			
-			$html = $this->load_page('app/views/pages/p.cambiarSenia.php');
+			$html = $this->load_page('app/views/pages/Usuarios/p.cambiarSenia.php');
 			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
 			ob_start();
 			$this-> view_page($pagina);
@@ -216,13 +353,16 @@ class pegaso_controller{
 	}
 
 	function cambioSenia($nuevaSenia, $actual, $usuario){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user'])){
 			$data=new pegaso;
+			$data2= new ftc;
 			$pagina = $this->load_template('Menu Admin');			
-			$html = $this->load_page('app/views/pages/p.cambiarSenia.php');
+			$html = $this->load_page('app/views/pages/Usuarios/p.cambiarSenia.php');
 			ob_start();
 			$cambio=$data->cambioSenia($nuevaSenia, $actual, $usuario);
+			if($cambio['status']=='ok'){
+				$cambio=$data2->cambioSenia($nuevaSenia, $usuario);
+			}
 			$this->CerrarVentana();
 		}else{
 			$e = "Favor de Revisar sus datos";
@@ -230,22 +370,7 @@ class pegaso_controller{
 		}	
 	}
 
-	/*nuevos menus*/
-	function MenuVentas(){
-		//session_cache_limiter('private_no_expire');
-		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'ventas'){
-			$pagina = $this->load_template('Menu Admin');			
-			$html = $this->load_page('app/views/modules/m.mventas.php');
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
-			$this-> view_page($pagina);
-		}else{
-			$e = "Favor de Revisar sus datos";
-			header('Location: index.php?action=login&e='.urlencode($e)); exit;
-		}
-	}
-
 	function cxcexterna(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'cxcexterna'){
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/modules/m.cxcexterna.php');
@@ -259,7 +384,6 @@ class pegaso_controller{
 
 
 	function MenureciboRecoleccion(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'reciboRecoleccion'){
 			$data = new pegaso;
 			$pagina = $this->load_template('Menu Admin');			
@@ -282,7 +406,6 @@ class pegaso_controller{
 	}
 
 	function MenuReparto(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'reparto'){
 			$data = new pegaso;
 			$pagina = $this->load_template('Menu Admin');			
@@ -292,6 +415,11 @@ class pegaso_controller{
 			$table = ob_get_clean();
 			$documentos = 0;
 			//$documentos = $data->cajasSinProcesar();
+			$aruta=count($data->ARutaEntrega());
+			$tipo = 1;
+			$secuencia = count($data->CreaSubMenuEntrega($tipo));
+			$tipo = 2;
+			$administrar = count($data->CreaSubMenuEntrega($tipo));
 			if($documentos == 0 ){
 			include 'app/views/modules/m.mlogisticaReparto.php';
 			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
@@ -307,20 +435,25 @@ class pegaso_controller{
 	}
 
 
-    function MenuCxCCobranza(){     //14062016
-		//session_cache_limiter('private_no_expire');
+    function MenuCxCCobranza(){     //14062016	
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL=='cxcc'){
+			$tipoUsuario=$_SESSION['user']->LETRA;
 			$data=new pegaso;
+			$data2=new pegasoCobranza;
 			$usuario = $_SESSION['user']->NOMBRE;
 			ob_start();
 			$table = ob_get_clean();
 			$pagina = $this->load_template('Menu Admin');
 			$documentos =0;
 			//$documentos = $data->cajasSinProcesar();
+			$cajas=$data->totalCajas();
+			$docs = $data->resumenCxC();
+			$cobranza=$data2->docsVencidosCartera();
+			$prefacturas=$data->prefacturasPendientes();
+			//print_r($docs);
 			if($documentos == 0 ){	
-				//$act_dia = $data->actStatusVencimiento();
-				$html = $this->load_page('app/views/modules/m.mcxccobranza.php');
-				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
+				include 'app/views/modules/m.mcxccobranza.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
 			}else{
 				include 'app/views/modules/m.mbloqueologisticaReparto.php';
 				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);	
@@ -335,7 +468,6 @@ class pegaso_controller{
 
 
 	function MenuBodega2(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'bodega2'){
 			$data= new pegaso;
 			$pagina = $this->load_template('Menu Admin');
@@ -364,48 +496,15 @@ class pegaso_controller{
 		}
 	}
 
-	function MenuBodega(){
-		//session_cache_limiter('private_no_expire');
-		if(isset($_SESSION['user'])){
-			$data= new pegaso;
-			$pagina = $this->load_template('Menu Admin');
-			$html = $this->load_page('app/views/modules/m.mbodega.php');
-			$cajasAbiertas= 0;
-			$paquetesSinFact = 0;
-			//$cajasAbiertas = $data->cajasAbiertas();
-			//$paquetesSinFact = $data->paquetesSinFact();
-			if($cajasAbiertas == 0 and $paquetesSinFact == 0){
-				ob_start();
-				$login= $_SESSION['user']->USER_LOGIN;
-				include 'app/views/modules/m.mbodega.php';
-				$table = ob_get_clean();
-				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-				$this->view_page($pagina);	
-			}else{
-				ob_start();
-				$login= $_SESSION['user']->USER_LOGIN;
-				include 'app/views/modules/m.mbodegaFaltante.php';
-				$table = ob_get_clean();
-				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-				$this->view_page($pagina);
-			}
-			
-		}else{
-			$e = "Favor de Revisar sus datos";
-			header('Location: index.php?action=login&e='.urlencode($e)); exit;
-		}
-	}
-
-
-
 	function MenuVentasP(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'ventasp'){
 			$data= new pegaso;
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/modules/m.mventasp.php');
 			ob_start();
 			$rechazos = $data->verRechazo();
+			$letra = $_SESSION['user']->LETRA;
 				$table= ob_get_clean();
 				include 'app/views/modules/m.mventasp.php';
 				//$pagina = $this->replace_content();			
@@ -419,7 +518,6 @@ class pegaso_controller{
 	}
 
 	function MenuGcxc(){ 
-    	//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL=='gcxc'){
 			$data=new pegaso;
 			ob_start();
@@ -435,7 +533,7 @@ class pegaso_controller{
     }
 
 	function MenuAuditoria(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'auditoria'){
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/modules/m.mauditoria.php');
@@ -446,9 +544,335 @@ class pegaso_controller{
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}
 	}
-	
-	function VerPago(){
-        //session_cache_limiter('private_no_expire');
+
+	function xmlMenu(){
+		if(isset($_SESSION['user']) && ($_SESSION['user']->USER_ROL == 'xml' || $_SESSION['user']->USER_ROL == 'ContaXML'|| $_SESSION['user']->USER_ROL == 'administracion')){
+			$data = new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mxml.php');
+			$usuario = $_SESSION['user']->NOMBRE;
+			$periodos=$data->traePeriodosXML();
+			ob_start();
+			$table = ob_get_clean();
+			include 'app/views/modules/m.mxml.php';
+			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this->view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function mXMLSP($tipo, $anio){
+		if(isset($_SESSION['user']) && ($_SESSION['user']->USER_ROL == 'xml' || $_SESSION['user']->USER_ROL == 'ContaXML'||$_SESSION['user']->USER_ROL == 'administracion' )){
+			$data = new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mxmlSP.php');
+			$usuario = $_SESSION['user']->NOMBRE;
+			$anual =$data->xmlAnual($tipo, $anio);
+			$subMenuXMLSP=$data->mXMLSP($tipo, $anio);
+			if($tipo == 'E'){
+				$ide="Emitidos";
+			}elseif ($tipo == 'R') {
+				$ide="Recibidos";
+			}
+			ob_start();
+				$table = ob_get_clean();
+				include 'app/views/modules/m.mxmlSP.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function MenuFacturacion(){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'facturacion'){
+			$data = new pegaso;
+			$data2=new pegasoCobranza;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mfacturacion.php');
+			$usuario = $_SESSION['user']->NOMBRE;
+			$cajas=$data->totalCajas();
+			$docs = $data->resumenCxC();
+			//$cobranza=$data2->docsVencidosCartera();
+			$prefacturas=$data->prefacturasPendientes();
+			ob_start();
+				$table = ob_get_clean();
+				include 'app/views/modules/m.mfacturacion.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function MenuPP(){
+		if(isset($_SESSION['user']) ){
+			$data= new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mPP.php');
+			ob_start();
+			$rechazos = $data->verRechazo();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+				$table= ob_get_clean();
+				include 'app/views/modules/m.mPP.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function MenuCM(){
+		if(isset($_SESSION['user']) ){
+			$data= new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mCM.php');
+			ob_start();
+			$rechazos = $data->verRechazo();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+				$table= ob_get_clean();
+				include 'app/views/modules/m.mCM.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function MenuV(){
+		if(isset($_SESSION['user']) ){
+			$data= new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mV.php');
+			ob_start();
+			$rechazos = $data->verRechazo();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+				$table= ob_get_clean();
+				include 'app/views/modules/m.mV.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function MenuS(){
+		if(isset($_SESSION['user']) ){
+			$data= new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mS.php');
+			ob_start();
+			$rechazos = $data->verRechazo();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+			$Solicitudes =$data->verSolBodega(); 
+			$info=$data->ocAyer();
+			$infohoy = $data->ocHoy();
+			$fallidas = $data->verRechazados();
+				$table= ob_get_clean();
+				include 'app/views/modules/m.mS.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function MenuT(){
+		if(isset($_SESSION['user']) ){
+			$data= new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mT.php');
+			ob_start();
+			$rechazos = $data->verRechazo();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+				$table= ob_get_clean();
+				include 'app/views/modules/m.mT.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function MenuLR(){
+		if(isset($_SESSION['user']) ){
+			$data= new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mLR.php');
+			ob_start();
+			$rechazos = $data->verRechazo();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+				$table= ob_get_clean();
+				include 'app/views/modules/m.mLR.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function MenuBE(){
+		if(isset($_SESSION['user']) ){
+			$data= new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mBE.php');
+			ob_start();
+			$rechazos = $data->verRechazo();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+				$table= ob_get_clean();
+				include 'app/views/modules/m.mBE.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function MenuLE(){
+		if(isset($_SESSION['user']) ){
+			$data= new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mLE.php');
+			ob_start();
+			$aruta=count($data->ARutaEntrega());
+			$tipo = 1;
+			$secuencia = count($data->CreaSubMenuEntrega($tipo));
+			$tipo = 2;
+			$administrar = count($data->CreaSubMenuEntrega($tipo));
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+				$table= ob_get_clean();
+				include 'app/views/modules/m.mLE.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function MenuR(){
+		if(isset($_SESSION['user']) ){
+			$tipoUsuario=$_SESSION['user']->LETRA;
+			$data=new pegaso;
+			$data2=new pegasoCobranza;
+			$usuario = $_SESSION['user']->NOMBRE;
+			ob_start();
+			$table = ob_get_clean();
+			$pagina = $this->load_template('Menu Admin');
+			$documentos =0;
+			$bloqueos = 0;
+			$Solicitudes =$data->verSolBodega(); 
+			$vales = $data->verValesBodega();
+			$oci = $data->verOCI();
+			$logistica = $data->unidadeslog();
+			$documentos = 0;
+			$cajas = $data->invPatio();
+			//$documentos = $data->cajasSinProcesar();
+			$mermas = $data->verMermas();
+			$devprov= $data->verDevProv();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+			//$documentos = $data->cajasSinProcesar();
+			//$ra = $data->actualizaRCDetalle(); /// Actualiza la ruta detalle.
+			//$validacion= $data->calculaBloqueo();  /// Calcula Bloqueo por no cierre de ruta.
+			//$bloqueos = $data->traeBloqueos();  /// Trae la cantidad de bloqueos activos.
+			if ($bloqueos > 0){
+			///	exit('Bloqueo de Ruta cuenta por Cobrar');
+			}
+
+			### 4 segundos
+			$cajas=$data->totalCajas(); /// Inventario Fisico empaque
+			### 4 segundos
+			$docs = $data->resumenCxC();
+			###  4 seg
+			$cobranza=$data2->docsVencidosCartera(); // No tarda
+			$prefacturas=$data->prefacturasPendientes();
+			/// Manejo de Bloqueos
+			//$ra = $data->actualizaRCDetalle(); /// Actualizacion de Ruta Cobranza Tarda y no se esta usando. desactivado el 19 de Febrero del 2019 OFA 
+			//$validacion= $data->calculaBloqueo();
+			
+			$vencidos = array();
+			if(strrpos($tipoUsuario, "C") !== false){
+				$vencidos=$data2->docVencidos($tipoUsuario);
+				$rutas=$data2->rutasCobranza($tipoUsuario);
+			}
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+			$table= ob_get_clean();
+			include 'app/views/modules/m.mR.php';
+			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function MenuB(){
+		if(isset($_SESSION['user']) ){
+			$data= new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mB.php');
+			ob_start();
+			$Solicitudes =$data->verSolBodega(); 
+			$vales = $data->verValesBodega();
+			$oci = $data->verOCI();
+			$logistica = $data->unidadeslog();
+			$documentos = 0;
+			$cajas = $data->invPatio();
+			//$documentos = $data->cajasSinProcesar();
+			$mermas = $data->verMermas();
+			$devprov= $data->verDevProv();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+				$table= ob_get_clean();
+				include 'app/views/modules/m.mB.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}	
+
+	function MenuCO(){
+		if(isset($_SESSION['user'])){
+			$data= new pegaso;
+			$pagina = $this->load_template('Menu Admin');			
+			$html = $this->load_page('app/views/modules/m.mCO.php');
+			ob_start();
+			$usuario=$_SESSION['user']->NOMBRE;
+			$letra = $_SESSION['user']->LETRA;
+				$table= ob_get_clean();
+				include 'app/views/modules/m.mCO.php';
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			$this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}	
+
+	function VerPago(){        
         if(isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -469,107 +893,8 @@ class pegaso_controller{
         }
     }
 
-
-    function MenuCompras(){
-		//session_cache_limiter('private_no_expire');
-		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'compras'){
-			$data= new pegaso;
-			$pagina = $this->load_template('Menu Admin');
-			$html = $this->load_page('app/views/modules/m.mcompras.php');
-			ob_start();
-			$user = $_SESSION['user']->USER_LOGIN;
-			$aux =  $_SESSION['user']->AUX_COMP;
-			$usuario = $_SESSION['user']->NOMBRE;
-			$solicitudes=$data->solicitudesCosto();
-			//echo $user;		
-			include 'app/views/modules/m.mcompras.php';
-			$table = ob_get_clean();
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-			$this-> view_page($pagina);
-		}else{
-			$e = "Favor de Revisar sus datos";
-			header('Location: index.php?action=login&e='.urlencode($e)); exit;
-		}
-	}
-
-	function MenuSuministros(){
-		//session_cache_limiter('private_no_expire');
-		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'suministros'){
-			$data= new pegaso;
-			$pagina = $this->load_template('Menu Admin');
-			$html = $this->load_page('app/views/modules/m.msuministros.php');
-			$Solicitudes =$data->verSolBodega(); 
-			$info=$data->ocAyer();
-			$infohoy = $data->ocHoy();
-			$fallidas = $data->verRechazados();
-			ob_start();
-			include 'app/views/modules/m.msuministros.php';
-			$table = ob_get_clean();
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-			$this-> view_page($pagina);
-		}else{
-			$e = "Favor de Revisar sus datos";
-			header('Location: index.php?action=login&e='.urlencode($e)); exit;
-		}
-	}
-
-
-	function MenuLogistica(){
-		//session_cache_limiter('private_no_expire');
-		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'logistica'){
-			$data= new pegaso;
-			$pagina = $this->load_template('Menu Admin');
-			$html = $this->load_page('app/views/modules/m.mlogistica.php');
-			$Solicitudes =$data->verSolBodega(); 
-			$info=$data->ocAyer();
-			$infohoy = $data->ocHoy();
-			ob_start();
-			include 'app/views/modules/m.mlogistica.php';
-			$table=ob_get_clean();
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-			//$html = $this->load_page('app/views/modules/m.mlogisticaA.php');
-			//$html = $this->load_page('app/views/modules/m.mlogistica.php');	
-			$this-> view_page($pagina);
-		}else{
-			$e = "Favor de Revisar sus datos";
-			header('Location: index.php?action=login&e='.urlencode($e)); exit;
-			
-		}
-	}
-	
-	function MenuTesoreria(){
-		//session_cache_limiter('private_no_expire');
-		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'tesoreria'){
-			$usuario = $_SESSION['user']->NOMBRE;
-			$pagina = $this->load_template('Menu Admin');			
-			$html = $this->load_page('app/views/modules/m.mtes.php');
-			$table  = ob_get_clean();
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
-			$this-> view_page($pagina);
-		}else{
-			$e = "Favor de Revisar sus datos";
-			header('Location: index.php?action=login&e='.urlencode($e)); exit;
-		}
-	}
-
-	function MenuTesoreriaAux(){
-		//session_cache_limiter('private_no_expire');
-		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'tesoreriaAux'){
-			$usuario = $_SESSION['user']->NOMBRE;
-			$pagina = $this->load_template('Menu Admin');			
-			$html = $this->load_page('app/views/modules/m.mtesAux.php');
-			$table  = ob_get_clean();
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
-			$this-> view_page($pagina);
-		}else{
-			$e = "Favor de Revisar sus datos";
-			header('Location: index.php?action=login&e='.urlencode($e)); exit;
-		}
-	}
-
-
 	function DetallePedido($doc){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 			$pagina=$this->load_template('Pagos');				
@@ -593,7 +918,7 @@ class pegaso_controller{
 
 
 	function DetalleDocumento($doc){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 
 			if(substr($doc, 0,1) == 'O'){
@@ -644,8 +969,7 @@ class pegaso_controller{
 					$regoper = $data->RegistroOperadores($docu,$unidad);
 					$entrega = $data->ARutaEntrega();
 					$unidad = $data->TraeUnidades();
-
-					if(count($exec1) > 0 or count($entrega) > 0)
+					if(isset($exec1) or isset($entrega))
 						include 'app/views/pages/p.redirectform.php';
 						else
 							$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
@@ -656,24 +980,22 @@ class pegaso_controller{
 	}
 	
 	function ARuta(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user'])){
-			$data = new pegaso;
-				
+		$data = new pegaso;		
 		$pagina=$this->load_template('Pagos');				
 		$html = $this->load_page('app/views/pages/p.aruta.php');
 		ob_start(); 
-				$exec = $data->ARuta();
-				$entrega = $data->ARutaEntrega();
-				$unidad = $data->TraeUnidades();
-				if(count($exec) > 0 or count($entrega) > 0) {
-					include 'app/views/pages/p.aruta.php';
-					$table = ob_get_clean(); 
-						$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
-							}else{
-								$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-							}		
-							$this->view_page($pagina);	
+		$exec = $data->ARuta();
+		$entrega = $data->ARutaEntrega();
+		$unidad = $data->TraeUnidades();
+		include 'app/views/pages/p.aruta.php';
+		$table = ob_get_clean(); 	
+		if(count($exec) > 0 or count($entrega) > 0) {
+			$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
+		}else{
+			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table.'<div class="alert-info"><center><h2>No existen ordenes de compra pendientes de recolectar.</h2><center></div>', $pagina);
+		}		
+		$this->view_page($pagina);	
 		}else{
 			$e = "Favor de Iniciar Sesión";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -681,23 +1003,21 @@ class pegaso_controller{
 	}
 
 	function ARutaReparto(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
-		$pagina=$this->load_template('Pagos');				
-		$html = $this->load_page('app/views/pages/p.arutaReparto.php');
-		ob_start(); 
-				//$exec = $data->ARuta();
+			$pagina=$this->load_template('Pagos');				
+			$html = $this->load_page('app/views/pages/Reparto/p.arutaReparto.php');
+			ob_start(); 
 				$entrega = $data->ARutaEntrega();
 				$unidad = $data->TraeUnidades();
 				if(count($entrega) > 0) {
-					include 'app/views/pages/p.arutaReparto.php';
+					include 'app/views/pages/Reparto/p.arutaReparto.php';
 					$table = ob_get_clean(); 
-						$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
-							}else{
-								$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-							}		
-							$this->view_page($pagina);	
+					$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
+				}else{
+					$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+				}		
+				$this->view_page($pagina);	
 		}else{
 			$e = "Favor de Iniciar Sesión";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -706,7 +1026,6 @@ class pegaso_controller{
 
 
 	function ARutaEdoMex(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 				
@@ -730,8 +1049,8 @@ class pegaso_controller{
 			exit;
 		}
 	}
+
 	function altaunidades(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user'])){
 		$pagina = $this->load_templateL('Alta Unidad');
 			$html = $this->load_page('app/views/pages/p.altaunidad.php');
@@ -743,11 +1062,9 @@ class pegaso_controller{
 		}
 	}
 
-	function altaunidadesdata($numero, $marca, $modelo, $placas, $operador){
-		//session_cache_limiter('private_no_expire');
+	function altaunidadesdata($numero, $marca, $modelo, $placas, $operador){	
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
-				
 		$pagina=$this->load_template('Alta Unidades');				
 		$html = $this->load_page('app/views/pages/p.altaunidad_r.php');
 		ob_start(); 
@@ -769,7 +1086,7 @@ class pegaso_controller{
 	
 	
 	function PagoW(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 				
@@ -794,7 +1111,7 @@ class pegaso_controller{
 	}
 
 	function Pedido(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/pages/p.pedido.php');
@@ -806,11 +1123,9 @@ class pegaso_controller{
 		}
 	}
 	
-	function MuestraPedidos($ped){
-		//session_cache_limiter('private_no_expire');
+	function MuestraPedidos($ped){		
 		if(isset($_SESSION['user'])){
-			$data = new pegaso;
-				
+			$data = new pegaso;		
 		$pagina=$this->load_template('Pedidos');				
 			$html = $this->load_page('app/views/pages/p.pedido_r.php');
 			ob_start(); 
@@ -832,8 +1147,9 @@ class pegaso_controller{
 	
 
 	function MenuContabilidad(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'contabilidad'){
+			$usuario=$_SESSION['user']->LETRA;
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/modules/m.mcontabilidad.php');
 			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
@@ -849,7 +1165,7 @@ class pegaso_controller{
 
 
 	function MenuGLogistica(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'glogistica'){
 		$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/modules/m.mgerencialogistica.php');
@@ -863,7 +1179,6 @@ class pegaso_controller{
 	}	
 
 	function MenuRecibo(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'recibo'){
 		$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/modules/m.mrecibo.php');
@@ -876,23 +1191,8 @@ class pegaso_controller{
 		}
 	}
 
-	function MenuEmpaque(){
-		//session_cache_limiter('private_no_expire');
-		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'empaque'){
-		$pagina = $this->load_template('Menu Admin');
-			$html = $this->load_page('app/views/modules/m.mempaque.php');
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
-			$this-> view_page($pagina);
-		}else{
-			$e = "Favor de Revisar sus datos";
-			header('Location: index.php?action=login&e='.urlencode($e)); exit;
-			
-		}
-	}
-	
 	/*Carga menu de administrador*/
 	function MenuAdmin(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'administrador'){
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/modules/m.madmin.php');
@@ -903,22 +1203,40 @@ class pegaso_controller{
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}
 	}
-	
-	function MenuAd(){
-		//session_cache_limiter('private_no_expire');
+
+	function MenuXML(){
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Menu Admin');
-			$html = $this->load_page('app/views/modules/m.mad.php');
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
-			$this-> view_page($pagina);
-		}else{
-			$e = "Favor de Revisar sus datos";
-			header('Location: index.php?action=login&e='.urlencode($e)); exit;
-		}
+            ob_start();
+            $table =ob_get_clean();
+            $usuario=$_SESSION['user']->NOMBRE;    
+            include 'app/views/modules/m.mcontaxml.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this-> view_page($pagina);
+        }else{
+            $e = "Favor de Revisar sus datos";
+            header('Location: index.php?action=login&e='.urlencode($e)); exit;
+        }
 	}
 	
+	function MenuAd(){    
+        if(isset($_SESSION['user'])){
+            $pagina = $this->load_template('Menu Admin');
+            //$html = $this->load_page('app/views/modules/m.mad.php');
+            ob_start();
+            $table =ob_get_clean();
+            $usuario=$_SESSION['user']->NOMBRE;    
+            include 'app/views/modules/m.mad.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this-> view_page($pagina);
+        }else{
+            $e = "Favor de Revisar sus datos";
+            header('Location: index.php?action=login&e='.urlencode($e)); exit;
+        }
+    }
+	
 	function MenuUsuario(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/modules/m.muser.php');
@@ -932,7 +1250,7 @@ class pegaso_controller{
 
 
     function MenuCxCRevision(){     //14062016
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL== 'cxcr'){
 			$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/modules/m.mcxcrevision.php');
@@ -951,7 +1269,7 @@ class pegaso_controller{
 
 
 	function Pxr(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;	
 			$pagina=$this->load_template('PXR');				
@@ -971,21 +1289,12 @@ class pegaso_controller{
 				header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}
 	}
-		//	$asigna = $data->ListaPartidasNoRecibidas();
-		//	if(count($asigna) > 0){
-		//		$table = ob_get_clean(); 
-		//		$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);					
-		//		$this->view_page($pagina);
-	//		}
-//		}else{
-	//		$e = "Favor de Iniciar Sesión";
-	//		header('Location: index.php?action=login&e='.urlencode($e)); exit;
-	//	}
+	
 	//ORDEN DE COMPRA
 
 
 	function AsignaAFactf($factura, $componente){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 				
@@ -1025,7 +1334,7 @@ class pegaso_controller{
 	/*Carga modulo Asigna Flujo*/
 	/*Carga modulo Crea Flujo*/
 	function AFlujo(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 				
@@ -1061,7 +1370,7 @@ class pegaso_controller{
 	
 	/*Carga modulo Crea Flujo*/
 	function CFlujo(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 				
@@ -1093,7 +1402,7 @@ class pegaso_controller{
 	}
 	
 	function AUsuarios(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Asigna Flujo');
 			$html = $this->load_page('app/views/pages/p.ausuarios.php');
@@ -1106,7 +1415,7 @@ class pegaso_controller{
 	}
 	/*muestra la vista del formulario componente*/
 	function CComp(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 				
@@ -1138,8 +1447,7 @@ class pegaso_controller{
 	
 	
 	
-	function SFact(){
-		//session_cache_limiter('private_no_expire');
+	function SFact(){		
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Asigna Flujo');
 			$html = $this->load_page('app/views/pages/p.sfact.php');
@@ -1152,39 +1460,21 @@ class pegaso_controller{
 	}
 	
 	function AUsers(){
-		/*//session_cache_limiter('private_no_expire');
-		if(isset($_SESSION['user'])){
-			$pagina = $this->load_template('Asigna Flujo');
-			$html = $this->load_page('app/views/pages/p.ausers.php');
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
-			$this-> view_page($pagina);
-		}else{
-			$e = "Favor de Revisar sus datos";
-			header('Location: index.php?action=login&e='.urlencode($e)); exit;
-		}*/
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
-			$pagina=$this->load_template('Compra Venta');				
-		//$html = $this->load_page('app/views/modules/m.reporte_result.php');
-		$html = $this->load_page('app/views/pages/p.ausers.php');
-		/*OB_START a partir de aqui guardara un buffer con la informacion que haya entre este y ob_get_clean(),  
-		 * es necesario incluir la vista donde haremos uso de los datos como aqui el arreglo $exec*/
-		ob_start(); 
-		//generamos consulta
-		$exec = $data->ConsultaUsur();
-		if($exec != ''){
-			include 'app/views/pages/p.ausers.php';
-			/* hasta aqui podemos utilizar los datos almacenados en buffer desde la vista, por ejemplo el arreglo $exec 
-			 * sin tener que aparecer el arreglo en la vista, ya que lo llama desde memoria (Y), de nuevo, es necesario incluir la vista
-			 * desde la cual haremos uso de los datos y luego mandarlo en el replace content como la nueva vista*/
-			$table = ob_get_clean(); 
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
-		}else{
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay usuarios registrados</h2>', $pagina);
-		}		
-		$this->view_page($pagina);
-		
+			$pagina=$this->load_template('Compra Venta');	
+			$html = $this->load_page('app/views/pages/Usuarios/p.ausers.php');
+			ob_start(); 
+			$roles=$data->traeRoles();	
+			$exec = $data->ConsultaUsur();
+			if($exec != ''){
+				include 'app/views/pages/Usuarios/p.ausers.php';
+				$table = ob_get_clean(); 
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
+			}else{
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay usuarios registrados</h2>', $pagina);
+			}		
+			$this->view_page($pagina);
 		}else{
 			$e = "Favor de Iniciar Sesión";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -1220,7 +1510,6 @@ class pegaso_controller{
 
 	/*inserta los nuevos componentes*/
 	function InsertaCcomp($nombre, $duracion, $tipo){
-		//session_cache_limiter('private_no_expire');
 		$data = new pegaso;	
 		if(isset($_SESSION['user'])){	
 			$comprueba = $data->CompruebaComp($nombre);
@@ -1273,43 +1562,36 @@ class pegaso_controller{
 
 		}
 	
-	function InsertaUsuarioN($usuario, $contra, $email, $rol, $letra){
-		//session_cache_limiter('private_no_expire');
+	function valUsr($usr){
 		$data = new pegaso;
+		$data_ftc = new ftc;
+		$val=array("status"=>'no');
+		$valmysql=$data_ftc->valUsr($usr);
+		if(count($valmysql) < 1){
+			$val = $data->valUsr($usr);
+		}	
+		return($val);
+		
+	}
+
+	function InsertaUsuarioN($usuario, $contra, $email, $rol, $letra, $nomcom, $letras, $paterno, $materno){
+		$data = new pegaso;
+		$data_ftc = new ftc;
 		$html = '';
 		$pagina = '';
-		/*obtenemos el rol
-		for ($i=0;$i<count($rol);$i++)    
-			{     
-			$roll = $rol[$i];    
-			} 		
-			$pagina=$this->load_template('Reporte');
-			*/				
-		//$html = $this->load_page('app/views/modules/m.reporte_result.php');
-		$html = $this->load_page('app/views/pages/p.ausers.php');
-		/*obtenemos numero de ultimo registro*/
-		//$rs = $data->ObtieneReg();
-		//$id = (int) $rs->COUNT + 1; /*Forzamos a convertir la variable en entero*/		
-		$nuser = $data->NuevoUser($usuario, $contra, $email, $rol, $letra);
-		//print_r($nuser);
-		//var_dump($nuser);
-		if($nuser != 0){
+		$html = $this->load_page('app/views/pages/Usuarios/p.ausers.php');
+		$roles=$data->traeRoles();
+		$mysql = $data_ftc->intUser($usuario, $contra, $email, $rol, $letra, $nomcom, $letras, $paterno, $materno);
+		$nuser = $data->NuevoUser($usuario, $contra, $email, $rol, $letra, $nomcom, $letras,$paterno, $materno);
 		ob_start(); 		 		
-			$exec = $data->ConsultaUsur();
-			include 'app/views/pages/p.ausers_r.php';
-			/* hasta aqui podemos utilizar los datos almacenados en buffer desde la vista, por ejemplo el arreglo $exec 
-			 * sin tener que aparecer el arreglo en la vista, ya que lo llama desde memoria (Y), de nuevo, es necesario incluir la vista
-			 * desde la cual haremos uso de los datos y luego mandarlo en el replace content como la nueva vista*/
-			$table = ob_get_clean(); 
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
-		}else{
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>Algo salió mal</h2>', $pagina);
-		}		
-		$this->view_page($pagina);
+		$redireccionar="ausers";
+		$pagina=$this->load_template('Pedidos');
+        $html = $this->load_page('app/views/pages/p.redirectform.php');
+        include 'app/views/pages/p.redirectform.php';
+        $this->view_page($pagina);
 	}
 	
 	function CCompVent(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Compra Venta');				
@@ -1341,7 +1623,7 @@ class pegaso_controller{
 /*#########################################CAmbios de OFA#########################################*/
 		//Pantallas para Costos
 		function Ccp(){
-			//session_cache_limiter('private_no_expire');
+			
 			if(isset($_SESSION['user'])){
 				$pagina = $this->load_template('Costos');			
 				$html = $this->load_page('app/views/pages/p.ccp.php');
@@ -1356,7 +1638,7 @@ class pegaso_controller{
 		//Pantalla para seguimiento de los productos.
 		
 		function Pantalla1($cat){
-			//session_cache_limiter('private_no_expire');
+			
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Compra Venta');				
@@ -1379,7 +1661,7 @@ class pegaso_controller{
 		}
 		
 		function Lista_Pedidos(){
-			//session_cache_limiter('private_no_expire');
+			
 				if(isset($_SESSION['user'])){
 					$data = new pegaso;
 					$pagina = $this->load_template('Compra Venta');
@@ -1401,7 +1683,7 @@ class pegaso_controller{
 		}
 
 		function Lista_Pedidos_Todos(){
-			//session_cache_limiter('private_no_expire');
+			
 				if(isset($_SESSION['user'])){
 					$data = new pegaso;
 					$pagina = $this->load_template('Compra Venta');
@@ -1426,7 +1708,7 @@ class pegaso_controller{
 		/// Pantalla para poder visualizar lo pendiente por facturar.
 		
 	function Pantalla2(){       //2306-
-                    //session_cache_limiter('private_no_expire');
+                    
                     if(isset($_SESSION['user'])){
                     $data = new pegaso;
                     $pagina=$this->load_template('Compra Venta');				
@@ -1453,7 +1735,7 @@ class pegaso_controller{
 		
 	//ORDEN DE COMPRA
 		function OrdComp(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Compra Venta');				
@@ -1485,7 +1767,7 @@ class pegaso_controller{
 
 	//ORDEN DE COMPRA
 		function OrdComp1($cat){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Compra Venta');				
@@ -1523,7 +1805,7 @@ class pegaso_controller{
 		//	echo $PROVEEDOR.$CVE_DOC.$TOTAL.$TIME.$HOY;
 		//echo 'Valor de las partidas enviadas';
 		//var_dump($PARTIDAS);
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Compra Venta');				
@@ -1633,22 +1915,10 @@ class pegaso_controller{
 	function actualizaCanti($cantn, $idpreoc, $idprov){
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
-			$pagina=$this->load_template('Compra Venta');				
-			$html = $this->load_page('app/views/pages/p.verCanasta.php');
-		ob_start(); 
-		//break;
-		$exec = $data->actualizaCanti($cantn, $idpreoc);
-		
-		if($exec != 0){
-			header('Location: app/views/pages/p.ordcompMod.php');
-		}else{
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay usuarios registrados</h2>', $pagina);
-			}		
-		//$this->view_page($pagina);
-		//$this->verCanasta($idprov);
-		}else{
-			$e = "Favor de Iniciar Sesión";
-			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+			ob_start(); 
+			$response = $data->actualizaCanti($cantn, $idpreoc);
+			return $response;
+	
 		}
 	}
 
@@ -1685,19 +1955,19 @@ class pegaso_controller{
 
 
 	function EUsuarios(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Consulta Usuario');				
 		//$html = $this->load_page('app/views/modules/m.reporte_result.php');
-		$html = $this->load_page('app/views/pages/p.ausers.php');
+		$html = $this->load_page('app/views/pages/Usuarios/p.ausers.php');
 		/*OB_START a partir de aqui guardara un buffer con la informacion que haya entre este y ob_get_clean(),  
 		 * es necesario incluir la vista donde haremos uso de los datos como aqui el arreglo $exec*/
 		ob_start(); 
 		//generamos consulta
 		$exec = $data->ConsultaUsur();
 		if($exec != ''){
-			include 'app/views/pages/p.ausers.php';
+			include 'app/views/pages/Usuarios/p.ausers.php';
 			/* hasta aqui podemos utilizar los datos almacenados en buffer desde la vista, por ejemplo el arreglo $exec 
 			 * sin tener que aparecer el arreglo en la vista, ya que lo llama desde memoria (Y), de nuevo, es necesario incluir la vista
 			 * desde la cual haremos uso de los datos y luego mandarlo en el replace content como la nueva vista*/
@@ -1718,34 +1988,33 @@ class pegaso_controller{
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Modifica Usuario');				
-		//$html = $this->load_page('app/views/modules/m.reporte_result.php');
-		$html = $this->load_page('app/views/pages/p.modificaunidad.php');
-		/*OB_START a partir de aqui guardara un buffer con la informacion que haya entre este y ob_get_clean(),  
-		 * es necesario incluir la vista donde haremos uso de los datos como aqui el arreglo $exec*/
-		ob_start(); 
-		//generamos consulta
-		$munidad = $data->ConsultaUnidad($unidad);
+			$html = $this->load_page('app/views/pages/p.modificaunidad.php');
+			ob_start(); 
+			$munidad = $data->ConsultaUnidad($unidad);
 		if($munidad != ''){
 			include 'app/views/pages/p.modificaUnidad.php';
-			/* hasta aqui podemos utilizar los datos almacenados en buffer desde la vista, por ejemplo el arreglo $exec 
-			 * sin tener que aparecer el arreglo en la vista, ya que lo llama desde memoria (Y), de nuevo, es necesario incluir la vista
-			 * desde la cual haremos uso de los datos y luego mandarlo en el replace content como la nueva vista*/
 			$table = ob_get_clean(); 
 			$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
 		}else{
 			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay usuarios registrados</h2>', $pagina);
 		}		
 		$this->view_page($pagina);
-		
 		}else{
 			$e = "Favor de Iniciar Sesión";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}
 	}
 
+	function eliminaUn($unidad){
+		if($_SESSION['user']){
+			$data= new pegaso;
+			$elimina = $data->eliminaUn($unidad);
+			$this->FUnidades();
+		}
+	}
+
 	function ActualizaUnidades($numero, $marca, $modelo, $placas, $operador, $tipo, $tipo2, $coordinador, $idu){
-		//session_cache_limiter('private_no_expire');
-    	if (isset($_SESSION['user'])){
+		if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
 			$redireccionar = 'funidades';
@@ -1754,15 +2023,6 @@ class pegaso_controller{
     			$response = true;
     			$insertaU = $data->ActualizaNUnidad($numero, $marca, $modelo, $placas, $operador, $tipo, $tipo2, $coordinador, $idu);
     			include 'app/views/pages/p.redirectform.php';
-				/*
-    			if (count($unidades)){
-    				include 'app/views/pages/p.formunidades.php';
-    				$table = ob_get_clean();
-    					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-    			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-    			}
-    			$this->view_page($pagina); */
     	}else{
     		$e = "Favor de iniciar Sesión";
     		header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -1773,18 +2033,12 @@ class pegaso_controller{
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Modifica Usuario');				
-		//$html = $this->load_page('app/views/modules/m.reporte_result.php');
-		$html = $this->load_page('app/views/pages/p.modifica.php');
-		/*OB_START a partir de aqui guardara un buffer con la informacion que haya entre este y ob_get_clean(),  
-		 * es necesario incluir la vista donde haremos uso de los datos como aqui el arreglo $exec*/
+		$html = $this->load_page('app/views/pages/Usuarios/p.modifica.php');
 		ob_start(); 
-		//generamos consulta
 		$exec = $data->ConsultaUsurEmail($mail);
+		$roles = $data->traeRoles();
 		if($exec != ''){
-			include 'app/views/pages/p.modifica.php';
-			/* hasta aqui podemos utilizar los datos almacenados en buffer desde la vista, por ejemplo el arreglo $exec 
-			 * sin tener que aparecer el arreglo en la vista, ya que lo llama desde memoria (Y), de nuevo, es necesario incluir la vista
-			 * desde la cual haremos uso de los datos y luego mandarlo en el replace content como la nueva vista*/
+			include 'app/views/pages/Usuarios/p.modifica.php';
 			$table = ob_get_clean(); 
 			$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
 		}else{
@@ -1802,41 +2056,21 @@ class pegaso_controller{
 	function Actualiza($mail, $usuario, $contrasena, $email, $rol, $estatus){
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
-			$pagina=$this->load_template('Compra Venta');				
-		//$html = $this->load_page('app/views/modules/m.reporte_result.php');
-		$html = $this->load_page('app/views/pages/p.ausers.php');
-		for ($i=0;$i<count($rol);$i++)    
-			{     
-			$roll = $rol[$i];    
-			} 	
-		for ($i=0;$i<count($rol);$i++)    
-		{     
-		$est = $estatus[$i];    
-		} 
-		/*OB_START a partir de aqui guardara un buffer con la informacion que haya entre este y ob_get_clean(),  
-		 * es necesario incluir la vista donde haremos uso de los datos como aqui el arreglo $exec*/
-		ob_start(); 
-		//generamos consulta
-		$exec = $data->ActualizaUsr($mail, $usuario, $contrasena, $email, $roll, $est);
-		//print_r($exec);
-		//var_dump($exec);
-		if($exec != ''){
-			include 'app/views/pages/p.ausers_r.php';
-			/* hasta aqui podemos utilizar los datos almacenados en buffer desde la vista, por ejemplo el arreglo $exec 
-			 * sin tener que aparecer el arreglo en la vista, ya que lo llama desde memoria (Y), de nuevo, es necesario incluir la vista
-			 * desde la cual haremos uso de los datos y luego mandarlo en el replace content como la nueva vista*/
-			$table = ob_get_clean(); 
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
-		}else{
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay usuarios registrados</h2>', $pagina);
-		}		
-		$this->view_page($pagina);
-		
+			$data2 = new ftc;
+			ob_start(); 
+			$exec = $data->ActualizaUsr($mail, $usuario, $contrasena, $email, $rol, $estatus);
+			if($exec['status'] == 'ok'){
+				$cambio=$data2->cambioSenia($contrasena = $exec['contra'], $usuario);
+			}
+			$pagina=$this->load_template('Pedidos');
+			$html=$this->load_page('app/views/pages/p.redirectform.php');
+			$redireccionar='ausers';
+			include 'app/views/pages/p.redirectform.php';
+            $this->view_page($pagina);
 		}else{
 			$e = "Favor de Iniciar Sesión";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}
-	
 	}
 	/*Metodo para asignar componentes*/
 	function AsignaComp($componentes, $nombre, $desc){
@@ -1910,7 +2144,7 @@ class pegaso_controller{
 	}
 
 	function RegPago(){
-        //session_cache_limiter('private_no_expire');
+        
         if(isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -1955,7 +2189,7 @@ class pegaso_controller{
 
 
 	function Ordenes(){
-        //session_cache_limiter('private_no_expire');
+        
         if(isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -1977,7 +2211,7 @@ class pegaso_controller{
     }
 
 	function detalleOrdenCompra($doco){
-		//session_cache_limiter('private_no_expire');
+		
         if(isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -2000,7 +2234,7 @@ class pegaso_controller{
     }
 
     function idpor($idd){
-		//session_cache_limiter('private_no_expire');
+		
         if(isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -2024,7 +2258,7 @@ class pegaso_controller{
     }
 
     function verpago1(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -2046,22 +2280,21 @@ class pegaso_controller{
     }
 
 	function Multipagos(){
-    	//session_cache_limiter('private_no_expire');
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.multipagos.php');
+    		$html=$this->load_page('app/views/pages/Tesoreria/p.multipagos.php');
     		ob_start();
     			$efectivos=$data->verEfectivos();
     			$cheques=$data->verCheques();
     			$trans=$data->verTrans();
     			$creditos=$data->verCreditos();
     			if (count($efectivos) > 0 or count ($cheques) > 0 or count ($trans) > 0 or count ($creditos) > 0){
-    				include 'app/views/pages/p.multipagos.php';
+    				include 'app/views/pages/Tesoreria/p.multipagos.php';
     				$table = ob_get_clean();
     					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
     			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+    				$pagina = $this->replace_content('/\CONTENIDO\#/ms','<div class="alert-danger"><center><h2>No se encontraron datos para Mostrar</h2><center></div>', $pagina);
     			}
     			$this->view_page($pagina);
     	}else{
@@ -2071,7 +2304,7 @@ class pegaso_controller{
     }
 
 	function PXL(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -2093,7 +2326,7 @@ class pegaso_controller{
     }
 
     function RechazarPedido($docp, $motivo){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -2120,7 +2353,7 @@ class pegaso_controller{
 
 
     	function LiberaPedido($pedido){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -2142,7 +2375,7 @@ class pegaso_controller{
     	}
     }
     function Pagos_OLD(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 				
@@ -2167,7 +2400,7 @@ class pegaso_controller{
 	
 
     function PagoCorrectoOLD($docuOLD, $tipopOLD, $montoOLD, $nomprovOLD, $cveclpvOLD){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 		$data = new pegaso;
 				
@@ -2194,7 +2427,7 @@ class pegaso_controller{
 
 
 	function OCIMP(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -2222,9 +2455,9 @@ class pegaso_controller{
     	$data = new pegaso;
     	$cabecera = $data->OCL($oc);
         $detalle = $data->detalleOC_Imp($oc);
-		$pdf = new FPDF('P', 'mm', 'Letter');
+        $pdf = new FPDF('P', 'mm', 'Letter');
 			$pdf->AddPage();
-			$pdf->Image('app/views/images/headerpdf.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 10 );
 			$pdf->Ln(70);
 			foreach($cabecera as $t){
@@ -2346,7 +2579,7 @@ class pegaso_controller{
 			$pdf->SetTextColor(198,23,23);
 			$pdf->SetXY(180,5);
 			$pdf->CELL(60,5,$datostrans->TRANS);
-			$pdf->Image('app/views/images/headerpdf.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 12);
 			$pdf->SetTextColor(14,3,3);
 			$pdf->Ln(70);
@@ -2384,7 +2617,7 @@ class pegaso_controller{
 			//$pdf->Output('Transferencia '.$datostrans->DOCUMENTO .'.pdf', 'i'); 
 			/*Falta crear consulta que traiga el número de folio generado*/
 			$pdf->AddPage();
-			$pdf->Image('app/views/images/headerOCpdf.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 12);
 			$pdf->Ln(70);
 			}
@@ -2479,7 +2712,7 @@ class pegaso_controller{
 			$pdf->SetTextColor(198,23,23);
 			$pdf->SetXY(180,5);
 			$pdf->CELL(60,5,$datostrans->EFECTIVO);
-			$pdf->Image('app/views/images/headerpdf_efe.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 12);
 			$pdf->SetTextColor(14,3,3);
 			$pdf->Ln(70);
@@ -2513,7 +2746,7 @@ class pegaso_controller{
 			//$pdf->Output('Transferencia '.$datostrans->DOCUMENTO .'.pdf', 'i'); 
 			/*Falta crear consulta que traiga el número de folio generado*/
 			$pdf->AddPage();
-			$pdf->Image('app/views/images/headerpdf_efe.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 12);
 			$pdf->Ln(70);
 			foreach($cabecera as $t){
@@ -2602,7 +2835,7 @@ class pegaso_controller{
 			$pdf->SetTextColor(198,23,23);
 			$pdf->SetXY(180,5);
 			$pdf->CELL(60,5,$datostrans->CHEQUE);
-			$pdf->Image('app/views/images/headerpdf_ch.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 12);
 			$pdf->SetTextColor(14,3,3);
 			$pdf->Ln(70);
@@ -2636,7 +2869,7 @@ class pegaso_controller{
 			//$pdf->Output('Transferencia '.$datostrans->DOCUMENTO .'.pdf', 'i'); 
 			/*Falta crear consulta que traiga el número de folio generado*/
 			$pdf->AddPage();
-			$pdf->Image('app/views/images/headerpdf_ch.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 12);
 			$pdf->Ln(70);
 			foreach($cabecera as $t){
@@ -2725,7 +2958,7 @@ class pegaso_controller{
 			$pdf->SetTextColor(198,23,23);
 			$pdf->SetXY(180,5);
 			$pdf->CELL(60,5,$datostrans->CREDITO); 
-			$pdf->Image('app/views/images/headerpdf_cr.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 11);
 			$pdf->SetTextColor(14,3,3);
 			$pdf->Ln(70);
@@ -2761,7 +2994,7 @@ class pegaso_controller{
 
 			/*Falta crear consulta que traiga el número de folio generado*/	
 			$pdf->AddPage();
-			$pdf->Image('app/views/images/headerpdf_cr.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 12);
 			$pdf->Ln(70);
 			foreach($cabecera as $t){
@@ -2835,7 +3068,7 @@ class pegaso_controller{
 	}
 
 	function verUniRutas($unidad){
-		//session_cache_limiter('private_no_expire');
+		
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -2857,7 +3090,7 @@ class pegaso_controller{
 	}
 
 	function verUniRuta(){
-		//session_cache_limiter('private_no_expire');
+		
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -2880,7 +3113,7 @@ class pegaso_controller{
 
 
 	function verUniRutasEdoMex(){
-		//session_cache_limiter('private_no_expire');
+		
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -2902,21 +3135,19 @@ class pegaso_controller{
 	}
 
 	function FUnidades(){
-		//session_cache_limiter('private_no_expire');
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
     		$html=$this->load_page('app/views/pages/p.formunidades.php');
     		ob_start();
-    			$unidades=$data->verUnidades();
-
-    			if (count($unidades)){
-    				include 'app/views/pages/p.formunidades.php';
-    				$table = ob_get_clean();
-    					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-    			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-    			}
+    		$unidades=$data->verUnidades();
+    		include 'app/views/pages/p.formunidades.php';
+    		$table = ob_get_clean();
+    		if (count($unidades)){
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    		}else{
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No extien unidades por el momento, puede usted crear nuevas unidades.</h2><center></div>', $pagina);
+    		}
     			$this->view_page($pagina);
     	}else{
     		$e = "Favor de iniciar Sesión";
@@ -2925,7 +3156,7 @@ class pegaso_controller{
 	}
 	
 	function AltaUnidadesF($numero, $marca, $modelo, $placas, $operador, $tipo, $tipo2, $coordinador){
-		//session_cache_limiter('private_no_expire');
+		
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -2949,7 +3180,7 @@ class pegaso_controller{
 	}
 
 	function verUnidad($unidad){
-		//session_cache_limiter('private_no_expire');
+		
     	if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -2971,7 +3202,7 @@ class pegaso_controller{
 	}
 
 	function asignaSec($docu, $secu, $unidad, $fechai, $fechaf){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -2994,7 +3225,6 @@ class pegaso_controller{
 	}
 
 	function RutaUnidad($id){
-		//session_cache_limiter('private_no_expire');
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3015,23 +3245,21 @@ class pegaso_controller{
     	}
 	}
 
-	function AdminRuta(){
-		//session_cache_limiter('private_no_expire');
+	function AdminRuta($tipo){
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
     		$html=$this->load_page('app/views/modules/m.msublogistica.php');
     		ob_start();
-    			$tipo = 'admon';
-    			$unidad=$data->CreaSubMenu($tipo);
-    			if (count($unidad)){
-    				include 'app/views/modules/m.msublogistica.php';
-    				$table = ob_get_clean();
-    					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-    			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-    			}
-    			$this->view_page($pagina);
+    		$unidad=$data->CreaSubMenu($tipo);
+    		include 'app/views/modules/m.msublogistica.php';
+    		$table = ob_get_clean();	
+    		if (count($unidad)){
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    		}else{
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No existen documentos en la Administracion de Rutas</h2><center></div>', $pagina);
+    		}
+    		$this->view_page($pagina);
     	}else{
     		$e = "Favor de iniciar Sesión";
     		header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -3039,7 +3267,6 @@ class pegaso_controller{
 	}
 
 	function AdminRutaRep(){
-		//session_cache_limiter('private_no_expire');
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3063,7 +3290,6 @@ class pegaso_controller{
 // AdmnRutan nuevo final
 
 	function SubMenuSecuencias(){
-		//session_cache_limiter('private_no_expire');
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3071,12 +3297,12 @@ class pegaso_controller{
     		ob_start();
     			$tipo ='secuencia';
     			$unidad=$data->CreaSubMenu($tipo);
+    			include 'app/views/modules/m.msublogsec.php';
+    			$table = ob_get_clean();	
     			if (count($unidad)){
-    				include 'app/views/modules/m.msublogsec.php';
-    				$table = ob_get_clean();
     					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
     			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+    				$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No Existen documentos de la Pre-Ruta</h2><center></div>', $pagina);
     			}
     			$this->view_page($pagina);
     	}else{
@@ -3086,7 +3312,6 @@ class pegaso_controller{
 	}
 
 	function SubMenuSecuenciasRec(){
-		//session_cache_limiter('private_no_expire');
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3108,15 +3333,13 @@ class pegaso_controller{
     	}		
 	}
 
-
-	function AdmonUnidad($idr){
-		//session_cache_limiter('private_no_expire');
+	function AdmonUnidad($idr, $tipo){
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
     		$html=$this->load_page('app/views/pages/p.admonruta.php');
     		ob_start();
-    			$unidad=$data->AdmonRutasxUnidad($idr);
+    			$unidad=$data->AdmonRutasxUnidad($idr, $tipo);
     			//$entrega=$data->AdmonRutasxUnidadEntrega($idr);
     			if (count($unidad)> 0 or count($entrega)> 0){
     				$_SESSION['unidad_idr'] = $idr;
@@ -3133,10 +3356,8 @@ class pegaso_controller{
     	}
 	}
 
-
-
 	function AdmonUnidadRep($idr){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3156,7 +3377,7 @@ class pegaso_controller{
 	}
 
 	function AdmonUnidadForaneo($idr){		// Controller especial para las entregas foraneas solo se activa cuando la idr = 23 ya que ese id esta asignado a la ruta 102, si algún usuario irresponsable asigna la ruta 102 a otra unidad sin aviso podria provocar que este controller falle 10.08.2016 ICA
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3181,7 +3402,7 @@ class pegaso_controller{
 
 	
 	function DefRuta($doc, $secuencia, $uni, $tipo, $idu){
-		//session_cache_limiter('private_no_expire');
+		
                 if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3191,7 +3412,7 @@ class pegaso_controller{
 				//$entrega=$data->AdmonRutasxUnidadEntrega2($uni);
 				$unidad=$data->AdmonRutasxUnidad2($doc, $secuencia, $uni, $tipo);
 				$RO=$data->DefineResultadoFinRO($doc,$tipo);
-				if (count($unidad) or count($entrega) > 0 ){
+				if (count($unidad) > 0 ){
     				include 'app/views/pages/p.admonruta.php';
     				$table = ob_get_clean();
     					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
@@ -3207,7 +3428,7 @@ class pegaso_controller{
 
 
 	function DefRutaRep($doc, $secuencia, $uni, $tipo, $idu){
-		//session_cache_limiter('private_no_expire');
+		
                 if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3232,7 +3453,7 @@ class pegaso_controller{
 	}
 
     function DefRutaForaneo($doc,$idu,$guia,$fletera,$cpdestino,$destino,$fechaestimada){	//Define la ruta de la caja para envió foreaneo
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "RutaUnidad&idr={$idu}";
@@ -3250,7 +3471,7 @@ class pegaso_controller{
     }
 
     function GuardarGuiaForaneo($ped,$target_file_cc,$idr){ // guarda en la BD la ruta del comprobante guia foraneo ICA
-            //session_cache_limiter('private_no_expire');
+            
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "RutaUnidad&idr={$idr}";
@@ -3266,19 +3487,18 @@ class pegaso_controller{
     }
 
 	function SecuenciaUnidad($prove, $secuencia, $uni, $fecha, $idu, $doco){
-        //session_cache_limiter('private_no_expire');
             if (isset($_SESSION['user'])){
 	            $data = new pegaso;
 	            $pagina=$this->load_template('Pedidos');
 	            $html=$this->load_page('app/views/pages/p.secunidad.php');
 	            ob_start();
-	            $secuenciaDetalle = $data->AsignaSecDetalle($idu);
-	            $cvedoc = $data->ObiteneDataSecRO($prove, $uni);
-	            $datasec = $data->SecRo($doco, $secuencia);
-	            $AS=$data->SecUni($prove, $secuencia, $uni, $fecha, $doco);
-	            $secuencia=$data->AsignaSec2($prove, $secuencia, $uni, $fecha, $idu); /// Muestra las OC
+	            $secuenciaDetalle = $data->AsignaSecDetalle($idu, $docs = false); /// obtiene la lista de los documentos de la unidad.
+	            $cvedoc = $data->ObiteneDataSecRO($prove, $uni); ///  obtiene la lisat de los documentos de COMPO01
+	            $datasec = $data->SecRo($doco, $secuencia); /// Actualiza la tabla del registro de los operadores.
+	            $AS=$data->SecUni($prove, $secuencia, $uni, $fecha, $doco);/// Actualiza las partidad de las tablas de cabecera y partidas.
+	            $secuencia=$data->AsignaSec2($prove, $secuencia, $uni, $fecha, $idu); /// Muestra las OC 
 	            $unidad = $idu; 
-	            $this->AsignaSecuencia($unidad);
+	            $this->AsignaSecuencia($unidad); /// envia a la pantalla de Asignacion de secuencias. 
         }else{
             $e = "Favor de iniciar Sesión";
             header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -3286,7 +3506,7 @@ class pegaso_controller{
     }	
 
 	function SubMenuFallidos(){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3308,7 +3528,7 @@ class pegaso_controller{
 	}
 
 	function verFallidos($idf){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3330,7 +3550,7 @@ class pegaso_controller{
 	}
 
 	function FinalizaRuta($idf, $secuencia, $uni, $motivo, $doc){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3353,7 +3573,7 @@ class pegaso_controller{
 	}
 
 	function FinalizaReEnRuta($idf, $motivo, $doc){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3377,7 +3597,7 @@ class pegaso_controller{
 
 
 	function ocFallidas(){
-		//session_cache_limiter('private_no_expire');
+		
 		if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3396,7 +3616,7 @@ class pegaso_controller{
 	}
 
 	function VerRutaDia(){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3418,7 +3638,7 @@ class pegaso_controller{
 	}
 
 	/*function SubMenuRutaDia(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'logistica'){
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/modules/m.msubrutadia.php');
@@ -3431,7 +3651,7 @@ class pegaso_controller{
 	}*/
 	
 	function SubMenuRutaDia(){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3453,7 +3673,7 @@ class pegaso_controller{
 	}
 
 	function RutaXUnidad($idr){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3484,7 +3704,7 @@ class pegaso_controller{
             $pdf = new FPDF('P','mm','Letter');
      
             $pdf->AddPage();
-            $pdf->Image('app/views/images/headerOCpdf.jpg',10,15,205,55);
+            $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
             $pdf->SetFont('Arial', 'B', 12);
             $pdf->Ln(60);
             $pdf->Cell(30,10,"Fecha: ");
@@ -3540,7 +3760,7 @@ class pegaso_controller{
         }
 
 	function defineHoraInicio($documento){
-		//session_cache_limiter('private_no_expire');
+		
 		if (isset($_SESSION['user'])){
     		$data = new pegaso;    		
 			$unidad=$data->asignaHoraInicio($documento);
@@ -3557,7 +3777,7 @@ class pegaso_controller{
     	}
 	}
 function defineHoraFin($documento){
-		//session_cache_limiter('private_no_expire');
+		
 		if (isset($_SESSION['user'])){
     		$data = new pegaso;    		
 			$unidad=$data->asignaHoraFin($documento);
@@ -3575,7 +3795,7 @@ function defineHoraFin($documento){
 	}
 	
 	function SubMenuTotales(){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3597,7 +3817,7 @@ function defineHoraFin($documento){
 	}
 												
 	function verTotales($idf){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3619,7 +3839,7 @@ function defineHoraFin($documento){
 	}
 /*
 	function SubMenuPnoenrutar(){									//Israel---------------
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'logistica'){
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/modules/m.msubnoenrutar.php');
@@ -3632,7 +3852,7 @@ function defineHoraFin($documento){
 	}*/
 	
 	function SubMenuPnoenrutar(){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3654,7 +3874,7 @@ function defineHoraFin($documento){
 	}
 	
 	function verPnoEnrutar($idf){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3676,7 +3896,7 @@ function defineHoraFin($documento){
 	}
 
  	function SubMenuReEnrutar(){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3699,7 +3919,7 @@ function defineHoraFin($documento){
  
 	
 	function verReEnrutar($idf){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3721,7 +3941,7 @@ function defineHoraFin($documento){
 	}
 	
 	function CorrigeRuta(){								//22-03-2016 ICA
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3746,7 +3966,7 @@ function defineHoraFin($documento){
     //// ver recepciones OFA.
 
     function verRecepciones(){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -3777,7 +3997,7 @@ function imprimeRecepcion($doc){
 			//$pdf->Output('Transferencia '.$datostrans->DOCUMENTO .'.pdf', 'i'); 
 			/*Falta crear consulta que traiga el número de folio generado*/	
 			$pdf->AddPage();
-			$pdf->Image('app/views/images/headerpdf_cr.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 12);
 			$pdf->Ln(70);
 			foreach($cabecera as $t){
@@ -3838,7 +4058,7 @@ function imprimeRecepcion($doc){
 	}
 
 	function CorregirRuta($doc, $tipo, $uni, $tipoA){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3861,7 +4081,7 @@ function imprimeRecepcion($doc){
 	}
 
 	function ComprasMaestro(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina = $this->load_template('Compra Venta');
@@ -3886,7 +4106,7 @@ function imprimeRecepcion($doc){
 		}
 
 	function ValidaRecepcion($docr, $doco){		//28-03-2016 OFA
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3905,7 +4125,7 @@ function imprimeRecepcion($doc){
 	}
 
 	function validaRecepcionConFolio($docr, $doco, $fval){
-			//session_cache_limiter('private_no_expire');
+			
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3931,7 +4151,7 @@ function imprimeRecepcion($doc){
 
 	/// Cambio OFA OK recpecion modificacion 08 de Abril 2016
 	function ValRecepOK($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpreoc,$idordencompra,$par, $fechadoco, $descripcion,$cveart, $fval, $desc1, $desc2, $desc3){	//28-03-2016 OFA
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -3962,7 +4182,7 @@ function imprimeRecepcion($doc){
 
 
 	function NoSuministrable($id){
-		 //session_cache_limiter('private_no_expire');
+		 
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;
 		$pagina=$this->load_template('Compra Venta');				
@@ -3988,7 +4208,7 @@ function imprimeRecepcion($doc){
 	}
 	
 	function VerNoSuministrableCompras(){
-		//session_cache_limiter('private_no_expire');
+		
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;
 		$pagina=$this->load_template('Compra Venta');				
@@ -4012,7 +4232,7 @@ function imprimeRecepcion($doc){
 	}
 	
 	function MotivoNS($id,$motivo){
-		//session_cache_limiter('private_no_expire');
+		
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;
 		$pagina=$this->load_template('Compra Venta');				
@@ -4038,7 +4258,7 @@ function imprimeRecepcion($doc){
 	}
 	
 	function VerNoSuministrableVentas(){
-		//session_cache_limiter('private_no_expire');
+		
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;
 		$pagina=$this->load_template('Compra Venta');				
@@ -4061,7 +4281,7 @@ function imprimeRecepcion($doc){
 	}
 	
 	function NoSuministrableV($id,$status){
-		 //session_cache_limiter('private_no_expire');
+		 
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;
 		$pagina=$this->load_template('Compra Venta');				
@@ -4086,7 +4306,7 @@ function imprimeRecepcion($doc){
 	}
 
 	function CambiaRecepCost($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpreoc){ //28-03-2016 OFA
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -4113,7 +4333,7 @@ function imprimeRecepcion($doc){
 
 
  function ImprimeRecepV(){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Pagos');
@@ -4142,7 +4362,7 @@ function ImpSaldoRec($doc){
 
 		$pdf = new FPDF('P', 'mm', 'Letter');
 			$pdf->AddPage();
-			$pdf->Image('app/views/images/headerpdf.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 12);
 			$pdf->Ln(70);
 			foreach($cabecera as $t){
@@ -4203,7 +4423,7 @@ function ImpSaldoRec($doc){
     }
 
 function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpreoc){		//28-03-2016 OFA
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -4231,7 +4451,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}		
 
 	function CapturaProductos(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/pages/p.capturaproductos.php');
@@ -4248,7 +4468,6 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 		$exec = $data->TraeProveedores($prov);
 		return $exec;
 	}
-	
 
 	function TraeClientes2($clie){
 		$data = new pegaso;
@@ -4263,9 +4482,14 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 		return $exec;
 	}
 
+	function TraeCveSat($cve){
+		$data = new pegaso;
+		$exec = $data->TraeCveSat($cve);
+		return $exec;
+	}
 
     function VerCat10($alm) {
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Pagos');
@@ -4289,7 +4513,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
     }
 
 	function editProd($id){
-		 //session_cache_limiter('private_no_expire');
+		 
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -4313,7 +4537,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 // CAJAS
 	function VerCajas($docf){								//muestra el formulario para crear cajas y la tabla de cajas asignadas a la factura
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Menu Admin');				
@@ -4334,7 +4558,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function CrearNuevaCaja($facturanuevacaja){			//Generar una nueva caja para la factura en el parametro.
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$validacion = $data->ValidaCajasAbiertas($_SESSION['factura']);
@@ -4351,7 +4575,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 /// Asignar el Material a las facturas, primer pantalla para seleccionar la Factura.
 
 	function AsignaMaterial(){
-		 //session_cache_limiter('private_no_expire');
+		 
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -4375,23 +4599,24 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 
 	function PreparaMaterial($docf, $idcaja){
-		 //session_cache_limiter('private_no_expire');
+		 
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
 		$html = $this->load_page('app/views/pages/p.preparamaterial.php');
 		ob_start(); 
 			$facturas=$data->FacturasSinMat($docf, $idcaja); /// Modificacion Implementacion Ventas.
+
 			$parfacturaspar=$data->ParFactMaterialPar($docf, $idcaja); ///  los que ya se embalaron.
 			$parfacturas=$data->ParFactMaterial($docf, $idcaja);
 			$asignados = $data->paquetes($docf, $idcaja);
-			if(count($facturas)>0 or count($parfacturaspar)>0){
+			//if(count($facturas)>0 or count($parfacturaspar)>0){
 				include 'app/views/pages/p.preparamaterial.php';
 				$table = ob_get_clean(); 
 					$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
-						}else{
-						$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-						}		
+			//			}else{
+			//			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+			//			}		
 						$this->view_page($pagina);	
 		}else{
 			$e = "Favor de Iniciar Sesión";
@@ -4401,7 +4626,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 
 	function AsignaEmpaque($idpreoc, $empaque, $idcaja, $tipopaq, $docf){        //23062016
-		 //session_cache_limiter('private_no_expire');
+		 
 		 if(isset($_SESSION['user'])){
                     $data = new pegaso;				
                     $pagina=$this->load_template('Alta Unidades');				
@@ -4425,7 +4650,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 
 	function actualizarProducto($id,$clave,$descripcion,$marca1,$categoria,$desc1,$desc2,$desc3,$desc4,$desc5,$iva,$costo_total,$clave_prov,$codigo_prov1,$costo_prov1,$prov2,$codigo_prov2,$costo_prov2,$unidadcompra,$factorcompra,$unidadventa,$factorventa,$activo){
-				 //session_cache_limiter('private_no_expire');
+				 
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;
 				
@@ -4450,7 +4675,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function AltaProductos($clave,$descripcion,$marca1,$categoria,$desc1,$desc2,$desc3,$desc4,$desc5,$iva,$costo_total,$clave_prov,$codigo_prov1,$costo_prov1,$prov2,$codigo_prov2,$costo_prov2,$unidadcompra,$factorcompra,$unidadventa,$factorventa){
-		 //session_cache_limiter('private_no_expire');
+		 
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;
 				
@@ -4474,7 +4699,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function ModificaPreOrden($id){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;	
 		$pagina=$this->load_template('Pedidos');				
@@ -4504,7 +4729,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function AlteraPedidoCotizacion($idPreorden,$claveproducto,$nombreproducto,$costo,$precio,$marca,$claveproveedor,$nombreproveedor,$cotizacion,$partida,$motivo){
-		//session_cache_limiter('private_no_expire');
+		
 		 if(isset($_SESSION['user'])){
 		$data = new pegaso;
 		$redireccionar = "VerNoSuministrableVentas";
@@ -4520,7 +4745,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function CancelaPreorden($id,$cotizacion,$partida,$motivo){
-		//session_cache_limiter('private_no_expire');
+		
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;
 		$pagina=$this->load_template('Compra Venta');				
@@ -4548,7 +4773,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 
 	function Embalar(){
-		//session_cache_limiter('private_no_expire');
+		
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -4570,7 +4795,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function embalaje($docf, $caja){
-		//session_cache_limiter('private_no_expire');
+		
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -4602,7 +4827,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
             //$hoy = date("d-m-Y");
             $pdf = new FPDF('P','mm','Letter');
             $pdf->AddPage();
-            $pdf->Image('app/views/images/headerOCpdf.jpg',10,15,205,55);
+            $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
             $pdf->SetFont('Arial', 'B', 12);
             $pdf->Ln(60);
             
@@ -4649,7 +4874,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
         }
 
 	function asignaembalaje($docf,$paquete1, $paquete2, $tipo, $peso, $alto, $largo, $ancho, $pesovol, $idc, $idemp){      //23062016
-		//session_cache_limiter('private_no_expire');
+		
 		 if(isset($_SESSION['user'])){
 		$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -4673,7 +4898,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function VerRegistroOperadores($buscar){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Menu Admin');				
@@ -4697,7 +4922,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function VerRutasDelDia(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Menu Admin');				
@@ -4721,7 +4946,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 	//Cancelar recepciones
 	function VerRecepcionesAC(){						//ver recepciones a cancelar
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -4745,7 +4970,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
     }
 
     	function FormCR($orden, $recepcion){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -4769,7 +4994,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function CancelarRecepcion($orden, $recepcion){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -4798,7 +5023,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function VerOrdenesSR(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Menu Admin');				
@@ -4819,10 +5044,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 		} 
 	}
 
-	
-
 	function Cajas(){
-		//session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Menu Admin');				
@@ -4831,39 +5053,36 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 				$exec = $data->Cajas();
 				if(count($exec) > 0){
 					include 'app/views/pages/p.vercajas.php';
-					$table = ob_get_clean(); 
+						$table = ob_get_clean(); 
 						$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
-							}else{
-								$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-							}		
-							$this->view_page($pagina);	
+					}else{
+						$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+					}		
+					$this->view_page($pagina);	
 		}else{
 			$e = "Favor de Iniciar Sesión";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		} 
 	}
 
-
-	////cerrarCaja   UnidadEntrega($idcaja, $docf, $idcaja, $estado, $unidad)
-
-	function cerrarCaja($idcaja, $docf){
+	function cerrarCaja($idcaja, $docf, $tipo){
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$pagina=$this->load_template('Menu Admin');				
 			$html = $this->load_page('app/views/pages/p.vercajas.php');
 			ob_start(); 
-				$response=$data->CerrarCaja($idcaja, $docf);
+				$response=$data->CerrarCaja($idcaja, $docf, $tipo);
 				return $response; 
 		}		
 	}
 
 
 	function UnidadEntrega($idcaja, $docf,  $estado, $unidad){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 			$pagina=$this->load_template('Pagos');				
-			$html = $this->load_page('app/views/pages/p.arutaReparto.php');
+			$html = $this->load_page('app/views/pages/Reparto/p.arutaReparto.php');
 			ob_start(); 
 			//generamos consultas
 					$exec = $data->RutaEntregaSecuencia($idcaja, $docf, $estado, $unidad);
@@ -4872,7 +5091,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 					//$exec = $data->ARuta();  //// estas son las rutas de recoleccion.
 					$unidad = $data->TraeUnidades();
 					if(count($exec) > 0 or count($entrega) > 0 ){
-						include 'app/views/pages/p.arutaReparto.php';
+						include 'app/views/pages/Reparto/p.arutaReparto.php';
 						$table = ob_get_clean(); 
 							$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
 				}else{
@@ -4887,21 +5106,21 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 
 	function SecUnidadEntrega($idu, $clie, $unidad, $secuencia, $docf, $idcaja){
-		//session_cache_limiter('private_no_expire');
+		
                 if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.secunidadRec.php');
+    		$html=$this->load_page('app/views/pages/Reparto/p.secunidadRec.php');
     		ob_start();
     			$AS=$data->AsignaSecuenciaEntrega($idu, $clie, $unidad, $secuencia, $docf, $idcaja); //// Actualiza la secuencia de las Facturas.
     			$secuenciaentrega=$data->AsignaSecEntrega($idu); /// muestra las Facturas 
     			$secuencia=$data->AsignaSec($idu); ///Muesta las Ordenes de compra.
+    			include 'app/views/pages/Reparto/p.secunidadRec.php';
+    			$table = ob_get_clean();
     			if (count($secuencia) > 0 or count($secuenciaentrega) > 0){
-    				include 'app/views/pages/p.secunidadRec.php';
-    				$table = ob_get_clean();
-    					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    				$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
     			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+    				$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No hay mas documentos por recolectar.</h2><center></div>', $pagina);
     			}
     			$this->view_page($pagina);
                 }else{
@@ -4919,7 +5138,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function buscaOC2($doco, $liberadas, $recepcionadas, $validadas){
-			//session_cache_limiter('private_no_expire');
+			
                 if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -4947,7 +5166,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 
 	function historiaIDPREOC($id){
-			//session_cache_limiter('private_no_expire');
+			
                 if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -4983,7 +5202,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 //################# Ordenes de compra a avanzar #################
 	function VerOrdenesAA(){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -5006,7 +5225,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function FormAvanzarOrden($idorden){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -5031,7 +5250,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function AvanzarOC($idorden, $idpreoc, $partida){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;
 			$foliofp = $data->ObtienFolioFalsoPar();
@@ -5055,7 +5274,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 	/// Ver Productos por RFC   VerProdRFC2
 	function VerProdRFC(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/pages/p.verprodrfc.php');
@@ -5068,7 +5287,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function VerProdRFC2($rfc){
-		//session_cache_limiter('private_no_expire');
+		
        if (isset($_SESSION['user'])) {
            $data = new pegaso;
            $pagina = $this->load_template('Compra Venta');
@@ -5090,32 +5309,41 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
            exit;
        }
     }
+
+    function valCheck($doco, $idu){
+    	if($_SESSION['user']){
+    		$data=new pegaso;
+    		$response=$data->valCheck($doco, $idu);
+    		return $response;
+    	}
+    }
     
-    function ImprimirSecuencia($unidad){
+    function ImprimirSecuencia($unidad, $docs){
         $data = new Pegaso;
-        $secuencia = $data->AsignaSec($unidad);
-        $datauni = $data->DatosUnidad($unidad);
-        $secuenciaDetalle = $data->AsignaSecDetalle($unidad);
+        $secuencia = $data->AsignaSec($unidad, $docs); /// No se para que sirve solo trae los proveedores de las Ordendes de compra.
+        $datauni = $data->DatosUnidad($unidad);  /// Obtiene los datos de la unidad.
+        $secuenciaDetalle = $data->AsignaSecDetalle($unidad, $docs); /// Obtiene los documentos que se van a enviar.
+        //$avanzaSec=$data->avanzaSec($secuenciaDetalle); /// Debe de cambiar el status de los docuemtos, y quitamos el boton de asignar.
+        $AS=$data->SecUni($prove=false, $sec=1, $uni=$unidad, $fecha=date("d-m-Y"), $docs);
         $hoy = date("d-m-Y");
-        $pdf = new FPDF('P','mm','Letter');
-     
+        $pdf = new FPDF('P','mm','Letter'); 
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerOCpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Ln(60);
-        $pdf->Cell(30,10,"Fecha: ");
-    $pdf->Cell(60,10,$hoy);
-    $pdf->Ln(8);
-    $pdf->Cell(30,10,"Unidad: ");
-    $pdf->Cell(60,10,$datauni[0][0]. "  Placas: ". $datauni[0][3]);
-    $pdf->Ln(8);
-    $pdf->Cell(30,10,"Operador: ");
-    $pdf->Cell(60,10,$datauni[0][4]);
-    $pdf->Ln(8);
-    $pdf->Cell(30,10,"Coordinador: ");
-    $pdf->Cell(60,10,$datauni[0][5]);
-        $pdf->Ln(12);
-       
+        $pdf->SetFont('Courier', 'B', 20);
+        $pdf->SetTextColor(255,0,0);
+        $pdf->SetXY(110, 10);
+  		$pdf->Write(10,'Ruta Secuencia');
+  		$pdf->SetXY(110, 17);
+  		$pdf->Write(10,utf8_decode($datauni[0][4]));
+  		$pdf->Ln(10);
+  		$pdf->SetXY(110, 22);
+        $pdf->Write(10,utf8_decode(date("d-m-Y")));
+  		$pdf->Ln(13);
+        $pdf->SetTextColor(0,0,0);
+    	$pdf->Cell(30,10,"Unidad: ");
+    	$pdf->Cell(60,10,$datauni[0][0]. "  Placas: ". $datauni[0][3]);
+    	$pdf->Ln(12);
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->Cell(90,6,"Proveedor",1);
         $pdf->Cell(20,6,"Estado",1);
@@ -5126,7 +5354,6 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
         $pdf->Cell(15,6,"Unidad",1);
         $pdf->Cell(10,6,"Sec",1);
         $pdf->Ln();
-        
         $pdf->SetFont('Arial', 'I', 8);
         foreach($secuencia as $row){
             $estado = ($row->ESTADOPROV = "ESTADO DE MEXICO") ? "Edo. Mex": $row->ESTADOPROV;
@@ -5147,8 +5374,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
             }
             $pdf->Ln();
         }
-        
-        $pdf->Output('Secuencia unidad '.$datauni[0][0].'.pdf','i');
+        $pdf->Output('Secuencia unidad '.$datauni[0][0].'.pdf','d');
     }
     
      function ImprimirSecuenciaEnt($unidad, $tipo){
@@ -5157,7 +5383,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
         $actualiza = $data->actRutaAdmon($secuenciaentrega, $tipo);
         $pdf = new FPDF('P','mm','Letter');
 	    $pdf->AddPage();
-	    $pdf->Image('app/views/images/headerVacio.jpg',10,15,205,55);
+	    $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 	    $pdf->SetFont('Courier', 'B', 25);
 	    $pdf->SetTextColor(255,0,0);
 	    $pdf->SetXY(110, 28);
@@ -5213,6 +5439,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	        $pdf->Ln(12);	
         }
 		$pdf->SetFont('Arial', 'B', 7);
+        $pdf->Cell(5,6,"Ln",1);
         $pdf->Cell(65,6,"Cliente",1);
         $pdf->Cell(12,6,"Estado",1);
         $pdf->Cell(10,6,"CP",1);
@@ -5230,11 +5457,13 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
         }
         $pdf->Ln();
         $pdf->SetFont('Arial', 'I', 7);
-        //$row->FECHAELAB
+        $i = 0;
         foreach($secuenciaentrega as $row){
+        	$i++;
         	//echo 'ESTADO LOGISTICA: '.$row->STATUS_LOG.' Y EL ESTATUS RECEPCION: '.$row->STATUS_RECEPCION;
-        	if(($row->STATUS_LOG == 'admon' and $row->STATUS_RECEPCION == 1) OR ($row->STATUS_LOG != 'admon' and $row->STATUS_RECEPCION == 2 or $row->STATUS_RECEPCION == 1)  ) {
+        	if(($row->STATUS_LOG == 'admon' and $row->STATUS_RECEPCION == 1) OR ($row->STATUS_LOG != 'admon' and $row->STATUS_RECEPCION == 2 or $row->STATUS_RECEPCION == 1)  ){
         		$estado = ($row->ESTADO = "ESTADO DE MEXICO") ? "Edo. Mex": $row->ESTADOPROV;
+	            $pdf->Cell(5,6,$i,'L,R,T');
 	            $pdf->Cell(65,6,substr($row->NOMBRE,0,40),'L,R,T');
 	            $pdf->Cell(12,6,$estado,'L,R,T');
 	            $pdf->Cell(10,6,$row->CODIGO,'L,R,T');
@@ -5245,6 +5474,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	            $pdf->Cell(17,6,'$ '.number_format($row->IMPORTE,2),'L,R,T');
 	            $pdf->Cell(20,6,$row->STATUS_LOG,'L,R,T');
 	            $pdf->Ln();
+	            $pdf->Cell(5,6,'','L,R,B');
 	            $pdf->Cell(65,6,substr($row->NOMBRE, 41, 100),'L,R,B');
 		        $pdf->Cell(12,6,'','L,R,B');
 		        $pdf->Cell(10,6,'','L,R,B');
@@ -5264,6 +5494,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
         		
         	}elseif($row->STATUS_RECEPCION == 3 OR $row->STATUS_RECEPCION == 4){
         		$estado = ($row->ESTADO = "ESTADO DE MEXICO") ? "Edo. Mex": $row->ESTADOPROV;
+        		$pdf->Cell(5,6,$i,'L,R,T');
 	            $pdf->Cell(65,6,substr($row->NOMBRE,0,40),'L,R,T');
 	            $pdf->Cell(12,6,$estado,'L,R,T');
 	            $pdf->Cell(10,6,$row->CODIGO,'L,R,T');
@@ -5274,6 +5505,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	            $pdf->Cell(17,6,'$ '.number_format($row->IMPORTE,2),'L,R,T');
 	            $pdf->Cell(20,6,$row->STATUS_LOG,'L,R,T');
 	            $pdf->Ln();
+	            $pdf->Cell(5,6,'','L,R,B');
 	            $pdf->Cell(65,6,substr($row->NOMBRE, 41, 100),'L,R,B');
 		        $pdf->Cell(12,6,'','L,R,B');
 		        $pdf->Cell(10,6,'','L,R,B');
@@ -5300,7 +5532,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
     }
     ///RecibeDocs
     function RecibeDocs($doc, $docf, $docr){
-        //session_cache_limiter('private_no_expire');
+        
        if (isset($_SESSION['user'])) {
            $data = new pegaso;
            $pagina = $this->load_template('Compra Venta');
@@ -5326,7 +5558,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
     }
 
     function RecibeDocsReparto($doc, $docf, $docr){
-        //session_cache_limiter('private_no_expire');
+        
        if (isset($_SESSION['user'])) {
            $data = new pegaso;
            $pagina = $this->load_template('Compra Venta');
@@ -5352,7 +5584,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
     }
 
     function CierreRuta(){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -5375,7 +5607,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
     function CierreRutaRep(){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -5398,7 +5630,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 	}
 
 	function CierraRutaUnidad($idr){
-		//session_cache_limiter('private_no_expire');
+		
        if (isset($_SESSION['user'])) {
            $data = new pegaso;
            $pagina = $this->load_template('Compra Venta');
@@ -5427,7 +5659,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 
 	function CierraRutaUnidadRep($idr){
-		//session_cache_limiter('private_no_expire');
+		
        if (isset($_SESSION['user'])) {
            $data = new pegaso;
            $pagina = $this->load_template('Compra Venta');
@@ -5455,7 +5687,7 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 
 	 function CerrarRutaRep($doc, $idr, $tipo, $idc){
-    	//session_cache_limiter('private_no_expire');
+    	
             if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -5479,13 +5711,15 @@ function ValRecepNo($docr, $doco, $cantn, $coston, $cantorig, $costoorig, $idpre
 
 
 function AsignaSecuencia($unidad){
-        //session_cache_limiter('private_no_expire');
+        
             if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
             $html=$this->load_page('app/views/pages/p.secunidad.php');
             ob_start();
-                $secuenciaDetalle = $data->AsignaSecDetalle($unidad);
+                $secuenciaDetalle = $data->AsignaSecDetalle($unidad, $docs = false);
+                $unidades=$data->TraeUnidades();
+                
                 //$secuenciaentrega=$data->AsignaSecEntrega($unidad);
                 //$secuencia=$data->AsignaSec($unidad);
                 if (count($secuenciaDetalle) > 0){
@@ -5502,24 +5736,30 @@ function AsignaSecuencia($unidad){
         }
     }
 
+    function cambiaPOCuni($poc, $idu){
+    	if($_SESSION['user']){
+    		$data=new pegaso;
+    		$response =$data->cambiaPOCuni($poc, $idu);
+    		return $response;
+    	}
+    }
 
   	function AsignaSecuenciaRec($unidad, $tipo){
-        //session_cache_limiter('private_no_expire');
-            if (isset($_SESSION['user'])){
+        if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
-            $html=$this->load_page('app/views/pages/p.secunidadRec.php');
+            $html=$this->load_page('app/views/pages/Reparto/p.secunidadRec.php');
             ob_start();
             	$unidades = $data->TraeUnidades();
-                $secuenciaDetalle = $data->AsignaSecDetalle($unidad);
+                $secuenciaDetalle = $data->AsignaSecDetalle($unidad, $docs= false);
                 $secuenciaentrega=$data->AsignaSecEntrega($unidad, $tipo);
-                $secuencia=$data->AsignaSec($unidad);
-                if (count($secuencia) or (count($secuenciaentrega) > 0)){
-                    include 'app/views/pages/p.secunidadRec.php';
-                    $table = ob_get_clean();
-                        $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+                //$secuencia=$data->AsignaSec($unidad);
+                include 'app/views/pages/Reparto/p.secunidadRec.php';
+                $table = ob_get_clean();    
+                if (count($secuenciaentrega) > 0){
+                    $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
                 }else{
-                    $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+                    $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>Ya no hay mas documentos por enviar.</h2><center></div>', $pagina);
                 }
                 $this->view_page($pagina);
         }else{
@@ -5537,7 +5777,6 @@ function AsignaSecuencia($unidad){
    }
 
   function RecogeDocs($doc, $idr,$docs){
-    	//session_cache_limiter('private_no_expire');
             if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -5546,12 +5785,12 @@ function AsignaSecuencia($unidad){
                 $regresadocs = $data->RegresaDocs($doc, $idr, $docs);
                 $rutaunidadrec = $data->RutaUnidadRec($idr);
            		$rutaunidadent = $data->RutaUnidadEnt($idr);
+                include 'app/views/pages/p.cierreruta_r.php';
+                $table = ob_get_clean();    
                 if (count($rutaunidadrec) or (count($rutaunidadent) > 0)){
-                    include 'app/views/pages/p.cierreruta_r.php';
-                    $table = ob_get_clean();
-                        $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+                    $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
                 }else{
-                    $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+                    $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No hay mas documentos por recoger.</h2><center></div>', $pagina);
                 }
                 $this->view_page($pagina);
         }else{
@@ -5562,7 +5801,7 @@ function AsignaSecuencia($unidad){
 
     
     function CerrarRuta($doc, $idr, $tipo, $idc){
-    	//session_cache_limiter('private_no_expire');
+    	
             if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -5593,7 +5832,7 @@ function AsignaSecuencia($unidad){
 
 
     function cierrerutagen(){
-    	//session_cache_limiter('private_no_expire');
+    	
             if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -5616,7 +5855,7 @@ function AsignaSecuencia($unidad){
     }
 
     function CerrarRecoleccion(){
-    	//session_cache_limiter('private_no_expire');
+    	
             if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -5647,7 +5886,7 @@ function AsignaSecuencia($unidad){
 
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
       
         $pdf->SetFont('Arial', 'B', 7);
@@ -5695,7 +5934,7 @@ function AsignaSecuencia($unidad){
     }
 
     function RVentasVsCobrado($fechaini, $fechafin, $vend){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -5721,7 +5960,7 @@ function AsignaSecuencia($unidad){
         $parRecep=$data->PartidasNoRecep("0",$orden);
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerValacionRecepcion.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
       
         $pdf->SetFont('Arial', 'B', 7);
@@ -5816,7 +6055,7 @@ function AsignaSecuencia($unidad){
     }
     
      function VerCatalogoGastos(){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -5840,7 +6079,7 @@ function AsignaSecuencia($unidad){
 
     
     function GuardarNuevaCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $retieneiva, $retieneisr, $retieneflete){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -5858,7 +6097,7 @@ function AsignaSecuencia($unidad){
     
     /*editado por GDELEON 3/Ago/2016*/
     function EditCuentaGasto($id){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -5881,7 +6120,7 @@ function AsignaSecuencia($unidad){
     }
 
         function NuevaCtaGasto(){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         	$data=new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -5903,7 +6142,7 @@ function AsignaSecuencia($unidad){
     }
     
     function GuardarCambiosCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $id, $retieneiva, $retieneisr, $retieneflete, $activo, $cveprov){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -5919,7 +6158,7 @@ function AsignaSecuencia($unidad){
     }
     
     function DelCuentaGasto($id){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -5940,7 +6179,7 @@ function AsignaSecuencia($unidad){
 
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerCC.jpg',8,15,200,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
       
         $pdf->SetFont('Arial', 'B', 7);
@@ -5979,8 +6218,7 @@ function AsignaSecuencia($unidad){
         $pdf->Output('Catalogo de cuentas.pdf','i');
     }
     
-    function reEnrutar($doco, $id_preoc, $pxr){
-		//session_cache_limiter('private_no_expire');
+    function reEnrutar($doco, $id_preoc, $pxr){		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;	
 			ob_start();
@@ -5996,7 +6234,7 @@ function AsignaSecuencia($unidad){
 
 
 function liberaPendientes($doco, $id_preoc, $pxr, $par){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;	
 			$pagina=$this->load_template('PXR');				
@@ -6014,8 +6252,8 @@ function liberaPendientes($doco, $id_preoc, $pxr, $par){
 	}
 
 
-function liberaPendientes2($doco, $id_preoc, $pxr, $par){
-		//session_cache_limiter('private_no_expire');
+	function liberaPendientes2($doco, $id_preoc, $pxr, $par){
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;	
 			ob_start();
@@ -6024,8 +6262,8 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
 			
 	}
 
-        function FormCapturaGasto(){
-            //session_cache_limiter('private_no_expire');
+    function FormCapturaGasto(){
+            
             if(isset($_SESSION['user'])){
             $data = new pegaso;	
             $pagina=$this->load_template('PXR');				
@@ -6050,8 +6288,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
 
 
         
-        function GuardarNuevoGasto($concepto,$proveedor,$referencia,$autorizacion,$presupuesto,$tipopago,$monto,$movpar,$numpar,$usuario,$fechadoc,$fechaven,$clasificacion){
-            //session_cache_limiter('private_no_expire');
+    function GuardarNuevoGasto($concepto,$proveedor,$referencia,$autorizacion,$presupuesto,$tipopago,$monto,$movpar,$numpar,$usuario,$fechadoc,$fechaven,$clasificacion){
             if(isset($_SESSION['user'])){
             $data = new pegaso;	
             $pagina=$this->load_template('pedidos');				
@@ -6060,22 +6297,19 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
             $exec = $data->traeImpuestoGasto($concepto);
             $gasto = $data->guardarNuevoGasto($concepto,$proveedor,$referencia,$autorizacion,$presupuesto,$tipopago,$monto,$movpar,$numpar,$usuario,$fechadoc,$fechaven,$exec,$clasificacion);
             if($gasto != ''){
-            	//include 'app/views/pages/p.formnuevogasto.php';
                 header('Location: index.php?action=form_capturagastos');
-		//$table = ob_get_clean();
-		//$pagina = $this->replace_content('/\#CONTENIDO\#/ms' , $table, $pagina);
             }else{
-		$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay resultados</h2>', $pagina);
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay resultados</h2>', $pagina);
             }
             $this ->view_page($pagina);
             }else{
             $e = "Favor de iniciar sesión";
             header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}
-        }
+    }
         
         function Clasificacion_gastos(){
-            //session_cache_limiter('private_no_expire');
+            
             if(isset($_SESSION['user'])){
             $data = new pegaso;	
             $pagina=$this->load_template('pedidos');				
@@ -6097,7 +6331,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
         }
         
         function NuevaClaGasto(){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $pagina=$this->load_template('Pedidos');
             $html=$this->load_page('app/views/pages/p.formnuevaclasificaciongasto.php');
@@ -6113,7 +6347,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
         }
         
         function EditClaGasto($id){
-            //session_cache_limiter('private_no_expire');
+            
             if(isset($_SESSION['user'])){
                 $data = new pegaso;	
                 $pagina=$this->load_template('pedidos');				
@@ -6135,7 +6369,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
         }
         
         function GuardaCambiosClasG($id,$clasif,$descripcion,$activo){
-            //session_cache_limiter('private_no_expire');
+            
             if(isset($_SESSION['user'])){
                 $data = new pegaso;	
                 $pagina=$this->load_template('pedidos');				
@@ -6155,7 +6389,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
         }
         
         function GuardaNuevaClaGasto($clasif,$descripcion){
-            //session_cache_limiter('private_no_expire');
+            
             if(isset($_SESSION['user'])){
                 $data = new pegaso;	
                 $pagina=$this->load_template('pedidos');				
@@ -6176,7 +6410,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
 
 
       function verEntregas(){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6199,7 +6433,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
 
 
     function insContra($cr, $idc, $docf){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6233,15 +6467,15 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
 
 
     function recibirMercancia(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
-        $html=$this->load_page('app/views/pages/p.vernoentregas.php');
+        $html=$this->load_page('app/views/pages/Bodega/p.vernoentregas.php');
         ob_start();
         $entregas=$data->verNoEntregas(); 
         if (count($entregas)){
-            include 'app/views/pages/p.vernoentregas.php';
+            include 'app/views/pages/Bodega/p.vernoentregas.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
         }else{
@@ -6256,7 +6490,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function recmercancia($id, $docf){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6278,7 +6512,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function procesarDev($idp , $cantDev, $tipo, $origen){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $response=$data->procesarDev($idp, $cantDev, $tipo, $origen); 
@@ -6287,15 +6521,14 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
   }
 
   function verRecepSinProcesar(){
-  		//session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
-        $html=$this->load_page('app/views/pages/p.verRecepSinProcesar.php');
+        $html=$this->load_page('app/views/pages/Bodega/p.verRecepSinProcesar.php');
         ob_start();
         $devoluciones=$data->verRecepSinProcesar(); 
         if (count($devoluciones) >= 1){
-            include 'app/views/pages/p.verRecepSinProcesar.php';
+            include 'app/views/pages/Bodega/p.verRecepSinProcesar.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
         }else{
@@ -6310,7 +6543,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
 
 
     function recibirCaja($id, $docf, $idc){     //21062016
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6327,7 +6560,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function recibirCajaNC($id, $docf, $idc, $idpreoc, $cantr, $motivo){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6346,16 +6579,15 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
       function recmercancianc($id,$docf){
-    	//session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
-        $html=$this->load_page('app/views/pages/p.recmercancianc.php');
+        $html=$this->load_page('app/views/pages/Bodega/p.recmercancianc.php');
         ob_start();
         $embalaje=$data->verembalaje($id, $docf); 
         $devuelto=$data->devueltoNC($id, $docf);
         if (count($embalaje) or count($devuelto)){
-            include 'app/views/pages/p.recmercancianc.php';
+            include 'app/views/pages/Bodega/p.recmercancianc.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
         }else{
@@ -6369,7 +6601,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function verFacturas(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6392,7 +6624,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function recDocFact($docf, $docp, $idcaja, $tipo){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6415,7 +6647,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
         function recDocFactNC($docf, $docp, $idcaja, $tipo){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6439,7 +6671,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
 
 
     function avanzaCobranza($docf, $docp, $idcaja, $tipo, $nstatus){          //21
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6474,7 +6706,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
      
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
       
         $pdf->SetFont('Arial', 'B', 10);
@@ -6533,7 +6765,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
       
         $pdf->SetFont('Arial', 'B', 7);
@@ -6622,7 +6854,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
 
     /*modificado por GDELEON 3/Ago/2016*/
     function DelClaGasto($id){
-            //session_cache_limiter('private_no_expire');
+            
             if(isset($_SESSION['user'])){
                 $data = new pegaso;	
                 $pagina=$this->load_template('pedidos');				
@@ -6640,17 +6872,16 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
 		}
     }
 
-       //14062016
+    //14062016
     function CatalogoDocumentos(){
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
-        $html=$this->load_page('app/views/pages/p.catalgo_documentos.php'); 
+        $html=$this->load_page('app/views/pages/Clientes/p.catalgo_documentos.php'); 
         ob_start();
         $exec=$data->traeDocumentosxCliente(); 
         if (count($exec)){
-            include 'app/views/pages/p.catalgo_documentos.php';
+            include 'app/views/pages/Clientes/p.catalgo_documentos.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
         }else{
@@ -6664,10 +6895,9 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
     
     function NuevoDocumentoC(){
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
             $pagina=$this->load_template('Pedidos');
-            $html=$this->load_page('app/views/pages/p.form_nuevodocc.php');
+            $html=$this->load_page('app/views/pages/Clientes/p.form_nuevodocc.php');
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
             $this->view_page($pagina);
             }else{
@@ -6676,12 +6906,12 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
             }
     }
     
-    function GuardaNuevoDocC($nombre, $descripcion){
-        //session_cache_limiter('private_no_expire');
+    function GuardaNuevoDocC($nombre, $descripcion, $tipoDoc, $tipoReq){
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
-            $exec = $data->guardaNuevoDocC($nombre, $descripcion);
+            $exec = $data->guardaNuevoDocC($nombre, $descripcion, $tipoDoc, $tipoReq);
             header('Location: index.php?action=catalogo_documentos');
             $this->view_page($pagina);
         }else{
@@ -6691,7 +6921,6 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
     
     function FormEditaDocumentoC($id){
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6712,12 +6941,11 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
             }
     }
     
-    function EditaDocumentoC($activo,$nombre,$descripcion,$id){
-        //session_cache_limiter('private_no_expire');
+    function EditaDocumentoC($activo,$nombre,$descripcion,$id, $tipoReq, $tipoDoc){
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
-            $exec = $data->guardaCambiosDocC($activo,$nombre,$descripcion,$id);
+            $exec = $data->guardaCambiosDocC($activo, $nombre, $descripcion, $id, $tipoReq, $tipoDoc);
             header('Location: index.php?action=catalogo_documentos');
             $this->view_page($pagina);
         }else{
@@ -6727,15 +6955,15 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
     
     function CatDocumentosXCliente(){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
-            $html=$this->load_page('app/views/pages/p.catalogo_documentosxcliente.php'); 
+            $html=$this->load_page('app/views/pages/Clientes/p.catalogo_documentosxcliente.php'); 
             ob_start();
             $exec=$data->traeClientesParaDocs(); 
             if (count($exec)){
-                include 'app/views/pages/p.catalogo_documentosxcliente.php';
+                include 'app/views/pages/Clientes/p.catalogo_documentosxcliente.php';
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
             }else{
@@ -6749,20 +6977,20 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
     
     function VerDocumentosCliente($clave){
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
-            $html=$this->load_page('app/views/pages/p.documentosdelcliente.php'); 
+            $html=$this->load_page('app/views/pages/Clientes/p.documentosdelcliente.php'); 
             ob_start();
-            $_SESSION['ClaveCliente'] = $clave;
+            $_SESSION['ClaveCliente']=$clave;
+            $cliente = $data->TraeCliente($clave);
             $exec=$data->traeDocumentosCliente($clave); 
+            include 'app/views/pages/Clientes/p.documentosdelcliente.php';
+            $table = ob_get_clean();
             if (count($exec)){
-                include 'app/views/pages/p.documentosdelcliente.php';
-                $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
             }else{
-                $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
+                $pagina = $this->replace_content('/\CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
                     }
                 $this->view_page($pagina);
         }else{
@@ -6770,18 +6998,34 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
             header('Location: index.php?action=login&e='.urlencode($e)); exit;
         }
     }
+
+    function ordenaDocs($clie, $iddoc, $orden){
+    	if(isset($_SESSION['user'])){
+    		$data = new pegaso;
+    		$response = $data->ordenaDocs($clie, $iddoc, $orden);
+    		return $response;
+    	}
+    }
     
+    function quitarReq($cl, $iddoc){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$response = $data->quitarReq($cl, $iddoc);
+    		return $response;
+    	}
+    }
+
     function formNuevoDocCliente($clave){
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             //var_dump($clave);
             $pagina=$this->load_template('Pedidos');
-            $html=$this->load_page('app/views/pages/p.form_nuevodoccliente.php'); 
+            $html=$this->load_page('app/views/pages/Clientes/p.form_nuevodoccliente.php'); 
             ob_start();
+            $clie = $data->TraeCliente($clave);            
             $exec=$data->traeDocumentosxCliente(); 
             if (count($exec)){
-                include 'app/views/pages/p.form_nuevodoccliente.php';
+                include 'app/views/pages/Clientes/p.form_nuevodoccliente.php';
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
             }else{
@@ -6795,12 +7039,13 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
     
     function asignaNuevoDocCliente($cliente,$requerido,$copias,$documento){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "documentos_cliente";
             $pagina=$this->load_template('Pedidos');
             $html=$this->load_page('app/views/pages/p.redirectform.php');//
+            $cli = $data->TraeCliente($cliente);
             $exec = $data->NuevoDocCliente($cliente,$requerido,$copias,$documento);
             if($exec){
                 $mensaje = '<div class="alert-info"><center><h2>Requisito asignado correctamente</h2><center></div>';
@@ -6819,7 +7064,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function recibosMercanciaImp(){         //21062016
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6843,7 +7088,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     //21062016 final
 
         function guardaContraRecibo($contrarecibo,$idcaja){     //22062016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "mercanciaRecibidaImp";
@@ -6860,7 +7105,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function ReenviarCaja($factura,$caja){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "pantalla2";
@@ -6876,25 +7121,24 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
         }
     }
 
-    function formDataCobranzaC($idCliente){     //24062016
-    	//session_cache_limiter('private_no_expire');
+    function formDataCobranzaC($idCliente){     //24062016	
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
-            $html=$this->load_page('app/views/pages/p.form_nuevosdatoscobranza.php');
+            $html=$this->load_page('app/views/pages/Clientes/p.form_nuevosdatoscobranza.php');
             ob_start();
             $banco = $data->CuentasBancos();
             $exec=$data->datosCobranzaC($idCliente);
             $datosMaestro=$data->traeMaestros();
             $cli = $idCliente;
             if (count($exec)){
-                include 'app/views/pages/p.form_editadatoscobranza.php';   
+                include 'app/views/pages/Clientes/p.form_editadatoscobranza.php';   
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
                 
             }else{
 
-                include 'app/views/pages/p.form_nuevosdatoscobranza.php';
+                include 'app/views/pages/Clientes/p.form_nuevosdatoscobranza.php';
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
             }
@@ -6907,15 +7151,12 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function CerrarVentana(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
             $data = new pegaso;
-            ///$redireccionar = "pantalla2";
             $pagina=$this->load_template('Pedidos');
             $html = $this->load_page('app/views/pages/p.cerrarventana.php');
-            $exec = $data->reenviaCaja($factura,$caja);
             include 'app/views/pages/p.cerrarventana.php';
-            //header('Location: index.php?action=mercanciaRecibidaImp');
             $this->view_page($pagina);
         }else{
                 $e = "Favor de iniciar Sesión";
@@ -6923,19 +7164,16 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
         }
     }
 
-
-    
     function salvaCambiosDatosCob($cliente,$carteraCob,$carteraRev,$diasRevision,$diasPago,$dosPasos,$plazo,$addenda,$portal,$usuario,$contrasena,$observaciones,$envio,$cp,$maps,$tipo,$ln,$pc, $bancoDeposito, $bancoOrigen, $referEdo, $metodoPago){
-    	//session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "documentos_cliente";
             $pagina=$this->load_template('Pedidos');
-            $html = $this->load_page('app/views/pages/p.cerrarventana.php');
+            $html = $this->load_page('app/views/pages/p.redirectform.php');
             $exec = $data->salvarCambiosCobranza($cliente,$carteraCob,$carteraRev,$diasRevision,$diasPago,$dosPasos,$plazo,$addenda,$portal,$usuario,$contrasena,$observaciones,$envio,$cp,$maps,$tipo,$ln,$pc, $bancoDeposito, $bancoOrigen, $referEdo, $metodoPago);
-            //var_dump($exec);
-            include 'app/views/pages/p.cerrarventana.php';
-            $this->view_page($pagina);
+           	$redireccionar='documentos_cliente';
+            include 'app/views/pages/p.redirectform.php';
+            //$this->view_page($pagina);
         }else{
                 $e = "Favor de iniciar Sesión";
                 header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -6943,7 +7181,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
     
     function salvaDatosCob($cliente,$carteraCob,$carteraRev,$diasRevision,$diasPago,$dosPasos,$plazo,$addenda,$portal,$usuario,$contrasena,$observaciones,$envio,$cp,$maps,$tipo,$ln,$pc, $bancoDeposito, $bancoOrigen, $referEdo, $metodoPago){ //28062016
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "documentos_cliente";
@@ -6960,7 +7198,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function cierreReparto(){       //27062016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -6993,7 +7231,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
       
         $pdf->SetFont('Arial', 'B', 7);
@@ -7043,7 +7281,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
         $actcierre=$data->actCierreUni($idu);
         $pdf=new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         //$pdf->SetFont('Arial','B',12);
    		//$pdf->Ln(65);
         foreach ($cabecera as $cab){
@@ -7103,7 +7341,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function SMCarteraRevision(){     //2806
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7126,7 +7364,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
     
     function VarCartera($cr){           //04072016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7157,7 +7395,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
         $pdf->SetFont('Arial', 'B', 7);
         
@@ -7199,7 +7437,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
     
     function salvarContraRecibo($caja,$cr,$contraRecibo,$factura,$remision){     //02082016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "verCR&cr={$cr}"; // aquí ocupo la variable cr para redireccionar a la vista despues de ejecutar la consulta de actualización
@@ -7222,7 +7460,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
         $pdf->SetFont('Arial', 'B', 7);
         
@@ -7264,7 +7502,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function SMCarteraRev10(){      //30062016  
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7286,7 +7524,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
     
     function VarCartera10($cr){     //3006
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7310,7 +7548,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function catCierreCarteraR($cr){   //07072016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7334,7 +7572,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
 
     function SMCierreCartera(){     //07072016
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7356,7 +7594,7 @@ function liberaPendientes2($doco, $id_preoc, $pxr, $par){
     }
     
        function salvarMotivoSinCR($motivo,$factura,$remision,$cr){     //06072016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "catCierreCr";
@@ -7384,7 +7622,7 @@ function emitirCierreCR($cr){       //08072016
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
         $pdf->SetFont('Arial', 'B', 7);
         $pdf->Cell(70,6,"Cartera Revision {$cr}");
@@ -7487,7 +7725,7 @@ function emitirCierreCR($cr){       //08072016
 
 
     function catCobranza($cc){     //07072016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7510,7 +7748,7 @@ function emitirCierreCR($cr){       //08072016
     }
 
     function genCierreCobranza($cc){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7547,7 +7785,7 @@ function emitirCierreCR($cr){       //08072016
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
         $pdf->SetFont('Arial', 'B', 6);
         $pdf->Cell(70,6,"Cartera Cobranza {$cc}");
@@ -7615,7 +7853,7 @@ function emitirCierreCR($cr){       //08072016
 
     
     function catCorteCredito(){     //06072016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7637,7 +7875,7 @@ function emitirCierreCR($cr){       //08072016
     }
     
     function SMCarteraCobranza(){     //07072016
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7659,7 +7897,7 @@ function emitirCierreCR($cr){       //08072016
     }
 
     function acuse_revision(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7682,7 +7920,7 @@ function emitirCierreCR($cr){       //08072016
     }
 
     function info_foraneo($caja, $doccaja, $guia, $fletera){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7706,7 +7944,7 @@ function emitirCierreCR($cr){       //08072016
     }
 
     function FacturarRemision(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7728,7 +7966,7 @@ function emitirCierreCR($cr){       //08072016
     }
 
     function asociarFactura($caja,$docp, $factura){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $redireccionar = "FacturarRemision";
@@ -7745,7 +7983,7 @@ function emitirCierreCR($cr){       //08072016
     }
 
     function NCFactura(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7767,7 +8005,7 @@ function emitirCierreCR($cr){       //08072016
     }
 
     function DesNC($idc){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7793,7 +8031,7 @@ function emitirCierreCR($cr){       //08072016
 
 
     function asociarNC($caja, $docp, $nc){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $redireccionar = "NCFactura";
@@ -7811,7 +8049,7 @@ function emitirCierreCR($cr){       //08072016
     }
 
     function VerFacturasDeslinde(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7833,7 +8071,7 @@ function emitirCierreCR($cr){       //08072016
     }
 
     function avanzaDeslinde($caja,$pedido,$motivo){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "VerFacturasDeslinde";
@@ -7850,7 +8088,7 @@ function emitirCierreCR($cr){       //08072016
     }
 
     function VerFacturasAcuse(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -7872,7 +8110,7 @@ function emitirCierreCR($cr){       //08072016
     }
 
     function guardaAcuse($caja,$pedido,$guia,$fletera){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "VerFacturasAcuse";
@@ -7895,7 +8133,7 @@ function imprimirFacturasNC(){
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
         $pdf->SetFont('Arial', 'B', 7);
 
@@ -7949,7 +8187,7 @@ function imprimirFacturasDeslinde(){
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
         $pdf->SetFont('Arial', 'B', 7);
 
@@ -8003,7 +8241,7 @@ function imprimirFacturasAcuse(){
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
         $pdf->SetFont('Arial', 'B', 7);
 
@@ -8063,7 +8301,7 @@ function imprimirFacturasAcuse(){
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
         $pdf->SetFont('Arial', 'B', 7);
 
@@ -8112,7 +8350,7 @@ function imprimirFacturasAcuse(){
     }
 
     function verCarteraCobranza(){      //19072016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $cartera = $_SESSION['user']->CC;
         $data = new pegaso;
@@ -8143,7 +8381,7 @@ function imprimirFacturasAcuse(){
     }
     
     function SaldosxDocumento($cliente){    //19072016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8174,7 +8412,7 @@ function imprimirFacturasAcuse(){
     }
 
     function SaldosxDocumentoH($cliente){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8203,7 +8441,7 @@ function imprimirFacturasAcuse(){
     }
 
     function ContactosCliente($cliente){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8224,33 +8462,10 @@ function imprimirFacturasAcuse(){
             } 
     }
     
-    function CarteraxCliente($cve_maestro){
-        //session_cache_limiter('private_no_expire');
-        if (isset($_SESSION['user'])){
-        $data = new pegaso;
-        $pagina=$this->load_template('Pedidos');
-        $html=$this->load_page('app/views/pages/p.saldosxcliente.php');
-        ob_start();
-        //$rfcc = $rfc;
-        //$saldosCliente = $data->traeSaldosCliente($rfc);
-        $saldoIndividual=$data->saldoIndividual($cve_maestro);
-        $saldoIMaestro=$data->saldoIndMaestro($cve_maestro);
-        if (count($saldoIndividual)){
-            include 'app/views/pages/p.saldosxcliente.php';
-            $table = ob_get_clean();
-            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-        }else{
-            $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
-                }
-            $this->view_page($pagina);
-            }else{
-                $e = "Favor de iniciar Sesión";
-                header('Location: index.php?action=login&e='.urlencode($e)); exit;
-            } 
-    }
+
     
     function GuardarComprobantesCaja($caja,$ruta,$origen){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8274,9 +8489,8 @@ function imprimirFacturasAcuse(){
     }
 
     function PedidosAnticipados(){
-		 //session_cache_limiter('private_no_expire');
-		 if(isset($_SESSION['user'])){
-			$data = new pegaso;				
+		if(isset($_SESSION['user'])){
+		$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
 		$html = $this->load_page('app/views/pages/p.pedidosAnticipados.php');
 		ob_start(); 
@@ -8296,7 +8510,7 @@ function imprimirFacturasAcuse(){
 	} 
 
     function AnticipadosUrgencias(){
-		 //session_cache_limiter('private_no_expire');
+		 
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -8319,7 +8533,7 @@ function imprimirFacturasAcuse(){
 
 
 	function SubMenuCxCC(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){		
 		$pagina=$this->load_template('Menu Admin');				
 		$html = $this->load_page('app/views/modules/m.subfacturacion.php'); 
@@ -8332,7 +8546,7 @@ function imprimirFacturasAcuse(){
 	}
 
 	function FacturacionDia(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 		$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -8357,7 +8571,7 @@ function imprimirFacturasAcuse(){
 	}
 
 	function FacturacionAyer(){
-	//session_cache_limiter('private_no_expire');
+	
 	if(isset($_SESSION['user'])){
 		$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -8379,7 +8593,7 @@ function imprimirFacturasAcuse(){
 	}
 
 	function utilidadFacturas($fechaini,$fechafin,$rango,$utilidad,$letras,$status){    //01082016
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 			$pagina=$this->load_template('Alta Unidades');				
@@ -8402,7 +8616,7 @@ function imprimirFacturasAcuse(){
 	}
 
 	function utilidadXFactura($fact){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 			$pagina=$this->load_template('Alta Unidades');				
@@ -8426,7 +8640,7 @@ function imprimirFacturasAcuse(){
 	}
 
 	function deslindecr(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 			$pagina=$this->load_template('Alta Unidades');				
@@ -8448,7 +8662,7 @@ function imprimirFacturasAcuse(){
 	}
 
 	function deslindearevision($caja, $docf, $docr, $sol, $cr){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 			$pagina=$this->load_template('Alta Unidades');				
@@ -8471,7 +8685,7 @@ function imprimirFacturasAcuse(){
 	}
 
     function GuardarXMLF($doc,$archivo,$origen){        //03082016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8495,7 +8709,7 @@ function imprimirFacturasAcuse(){
     }
     
     function GuardarXMLD($doc,$archivo,$origen){        //03082016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8519,7 +8733,7 @@ function imprimirFacturasAcuse(){
     }
 
         function revConDosPasos($cr){   //05082016     
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8545,7 +8759,7 @@ function imprimirFacturasAcuse(){
     }
 
     function revSinDosPasos($cr){       //05082016 
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8569,7 +8783,7 @@ function imprimirFacturasAcuse(){
     }
     
     function DeslindeConDosPasos($caja,$cr){        //05082016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "RevConDosP&cr={$cr}";
@@ -8586,7 +8800,7 @@ function imprimirFacturasAcuse(){
     }
     
     function DeslindeSinDosPasos($caja,$cr, $numcr){        //05082016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "RevSinDosP&cr={$cr}";
@@ -8603,7 +8817,7 @@ function imprimirFacturasAcuse(){
     }
     
     function DeslindeRevConDosP($cr){       //05082016
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8626,7 +8840,7 @@ function imprimirFacturasAcuse(){
     }
     
     function DeslindeRevSinDosP($cr){       //05082016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8649,7 +8863,7 @@ function imprimirFacturasAcuse(){
     }
     
     function salvaMotivoDeslindeDP($caja,$motivo,$cr){      //05082016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "DesRevConDosP&cr={$cr}";
@@ -8666,7 +8880,7 @@ function imprimirFacturasAcuse(){
     }
     
     function salvaMotivoDeslindeNoDP($caja,$motivo,$cr){    //05082016
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "DesRevSinDosP&cr={$cr}";
@@ -8683,7 +8897,7 @@ function imprimirFacturasAcuse(){
     }
     
     function avanzarCajaCobranza($caja,$revdp, $numcr){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             if($revdp == 'S')
@@ -8703,7 +8917,7 @@ function imprimirFacturasAcuse(){
     }
 
     function CajaCobranza($caja, $revdp, $numcr, $cr){
-    	 //session_cache_limiter('private_no_expire');
+    	 
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $redireccionar = "RevSinDosP&cr={$cr}";
@@ -8729,7 +8943,7 @@ function imprimirFacturasAcuse(){
 	}
         
     function SMRevisionDosPasos(){     //05082016
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8751,7 +8965,7 @@ function imprimirFacturasAcuse(){
     }
     
     function SMSinRevisionDosPasos(){     //05082016
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8773,7 +8987,7 @@ function imprimirFacturasAcuse(){
     }
     
     function SMDesRevisionDosPasos(){     //05082016
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8795,7 +9009,7 @@ function imprimirFacturasAcuse(){
     }
 
     function SMDesSinRevisionDosPasos(){     //05082016
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8817,7 +9031,7 @@ function imprimirFacturasAcuse(){
     }
 
      function deslindeaduana(){     //05082016
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8839,7 +9053,7 @@ function imprimirFacturasAcuse(){
     }
 
     function DesaAdu($caja, $solucion){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8863,7 +9077,7 @@ function imprimirFacturasAcuse(){
     }
 
     function BuscarCajasxPedido(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/pages/p.BusquedaCajas.php');
@@ -8876,7 +9090,7 @@ function imprimirFacturasAcuse(){
 	}
 
     function MuestraCaja($docp){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina=$this->load_template('Pedidos');
@@ -8897,7 +9111,7 @@ function imprimirFacturasAcuse(){
             	}
     }
 	function RecibirDocsRevision(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina=$this->load_template('Pedidos');
@@ -8921,7 +9135,7 @@ function imprimirFacturasAcuse(){
     }
 
     function recDocCob($idc, $docf){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina=$this->load_template('Pedidos');
@@ -8935,7 +9149,7 @@ function imprimirFacturasAcuse(){
     }
 
         function desDocCob($idc){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina=$this->load_template('Pedidos');
@@ -8959,7 +9173,7 @@ function imprimirFacturasAcuse(){
     }
 
      function SMCCobranza(){  
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -8982,7 +9196,7 @@ function imprimirFacturasAcuse(){
 
 
       function VerCobranza($cc){       //05082016 
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -9032,9 +9246,11 @@ function imprimirFacturasAcuse(){
    	 	$data = new pegaso;
    	 	$actcaja = $data->cajabodeganc($idc, $docf); #Actualiza la caja para que deje de aparecer en la lista.
         $actpaquete = $data->paquetedevolucion($idc, $docf); #Actualiza el paquete con lo devuelto e impreso, crea folio de Devolucion de paquetes.
+        if($actpaquete['status']== 'no'){
+        	exit('Enviar correo informando que no se actualizo');
+        }
         return $actpaquete;
    	 }
-
 
      function ImprimirDevolucion($idc, $docf){
     	ob_start();
@@ -9044,7 +9260,7 @@ function imprimirFacturasAcuse(){
         $actpaquete = $data->cabeceraDevolucion($idc, $docf);
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
         $pdf->SetFont('Arial', 'B', 8);
         foreach($devueltos as $data){
@@ -9121,7 +9337,7 @@ function imprimirFacturasAcuse(){
    
 
     function verCajasLogistica(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -9142,7 +9358,7 @@ function imprimirFacturasAcuse(){
             }
         }
         function cambiarStatus($idcaja, $docp, $secuencia, $unidad, $idu, $ntipo){
-        	//session_cache_limiter('private_no_expire');
+        	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -9167,7 +9383,7 @@ function imprimirFacturasAcuse(){
 
 
     function verLoteEnviar(){          //21
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -9190,7 +9406,7 @@ function imprimirFacturasAcuse(){
     }
 
     function entaduana($idc, $docf, $docp){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -9214,7 +9430,7 @@ function imprimirFacturasAcuse(){
     }
 
     function recbodega($idc, $docf, $docp){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -9238,7 +9454,7 @@ function imprimirFacturasAcuse(){
     }
 
     function reclogistica($idc, $docf, $docp){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -9276,7 +9492,7 @@ function imprimirFacturasAcuse(){
 
        	$pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
       
         $pdf->SetFont('Arial', 'B', 10);
@@ -9343,15 +9559,14 @@ function imprimirFacturasAcuse(){
     }
 
     function VerInventarioEmpaque(){
-    	//session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
-        $html=$this->load_page('app/views/pages/p.InventarioPatio.php');
+        $html=$this->load_page('app/views/pages/bodega/p.InventarioPatio.php');
         ob_start();
         $invempaque=$data->VerInventarioEmpaque();
         if (count($invempaque)){
-            include 'app/views/pages/p.InventarioPatio.php';
+            include 'app/views/pages/bodega/p.InventarioPatio.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
         }else{
@@ -9365,7 +9580,7 @@ function imprimirFacturasAcuse(){
     }
 
     function verPedidosPendientes(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -9387,7 +9602,7 @@ function imprimirFacturasAcuse(){
     }
 
     	function docfact($docfact, $idc){       //2306-
-                    //session_cache_limiter('private_no_expire');
+                    
                     if(isset($_SESSION['user'])){
                     $data = new pegaso;
                     $pagina=$this->load_template('Compra Venta');				
@@ -9412,7 +9627,7 @@ function imprimirFacturasAcuse(){
 	}
 
      function CancelarFactura(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/pages/p.CancelarFactura.php');
@@ -9425,7 +9640,7 @@ function imprimirFacturasAcuse(){
 	}	
 
 	 function CancelaFactura($docp){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina=$this->load_template('Pedidos');
@@ -9447,7 +9662,7 @@ function imprimirFacturasAcuse(){
     }
 
     function CancelarF($docf, $idc){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina=$this->load_template('Pedidos');
@@ -9470,7 +9685,7 @@ function imprimirFacturasAcuse(){
     }
 
     function UtilidadBaja(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina=$this->load_template('Pedidos');
@@ -9493,7 +9708,7 @@ function imprimirFacturasAcuse(){
     }
 
  	function solAutoUB($docc,$par){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina=$this->load_template('Pedidos');
@@ -9517,7 +9732,7 @@ function imprimirFacturasAcuse(){
     }
 
     function verSolicitudesUB(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina=$this->load_template('Pedidos');
@@ -9539,7 +9754,7 @@ function imprimirFacturasAcuse(){
     }
 
     function AutorizarUB($docc, $par){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina=$this->load_template('Pedidos');
@@ -9563,7 +9778,7 @@ function imprimirFacturasAcuse(){
 
 
     function RechazoUB($docc, $par){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina=$this->load_template('Pedidos');
@@ -9587,21 +9802,19 @@ function imprimirFacturasAcuse(){
 
 
     function Pagos() {
-    	//session_cache_limiter('private_no_expire');
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');
-        	$html = $this->load_page('app/views/pages/p.pagos.listado.php');
+        	$html = $this->load_page('app/views/pages/Tesoreria/p.pagos.listado.php');
         	ob_start();
-        	//generamos consultas
-        	// $cuentab = $data->CuentasBancos();	// cafaray 03/sep/2016
         	$exec = $data->Pagos();
+           	$table = ob_get_clean();
         	if (count($exec) > 0) {
-            	include 'app/views/pages/p.pagos.listado.php';
-            	$table = ob_get_clean();
+            	include 'app/views/pages/Tesoreria/p.pagos.listado.php';
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-        	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+        	}else{	
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table . '<div class="alert-danger"><center><h2>No existen datos para mostrar. </h2><center></div>', $pagina);
+            	include 'app/views/pages/Tesoreria/p.pagos.listado.php';
         	}
         	$this->view_page($pagina);
     	} else {
@@ -9611,8 +9824,7 @@ function imprimirFacturasAcuse(){
     	}
 	}
 
-	function pagoGastos() {
-    	//session_cache_limiter('private_no_expire');
+	function pagoGastos() {	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');
@@ -9635,7 +9847,7 @@ function imprimirFacturasAcuse(){
 	}
     
 	function pagoGasto($identificador) {
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');
@@ -9658,23 +9870,21 @@ function imprimirFacturasAcuse(){
     	}
 	}
    	 
-	function realizaPago($documento, $claveProveedor){
-    	//session_cache_limiter('private_no_expire');
+	function realizaPago($documento, $claveProveedor){	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');
-        	$html = $this->load_page('app/views/pages/p.pagos.php');
+        	$html = $this->load_page('app/views/pages/Tesoreria/p.pagos.php');
         	ob_start();
-        	$detallesaldo = 0;
-        	@$detallesaldo = $data->verHistorialSaldo($claveProveedor);
+        	$detallesaldo = $data->verHistorialSaldo($claveProveedor);
         	$cuentab = $data->CuentasBancos();
         	$exec = $data->detallePago($documento);
+            include 'app/views/pages/Tesoreria/p.pagos.php';
+            $table = ob_get_clean();
         	if (count($exec) > 0) {
-            	include 'app/views/pages/p.pagos.php';
-            	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table . '<div class="alert-info"><center><h2>No hay mas ordenes de compra pendientes de pago.</h2><center></div>', $pagina);
         	}
         	$this->view_page($pagina);
     	} else {
@@ -9686,22 +9896,21 @@ function imprimirFacturasAcuse(){
 
 
 	function PagoCorrecto($cuentabanco, $documento, $tipopago, $monto, $proveedor, $claveProveedor, $fechadocumento) {
-    	//session_cache_limiter('private_no_expire');
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');
-        	$html = $this->load_page('app/views/pages/p.pagos.listado.php');
+        	$html = $this->load_page('app/views/pages/Tesoreria/p.pagos.listado.php');
         	ob_start();
         	$error = "Datos guardados correctamente";
        		$guarda = $data->GuardaPagoCorrecto($cuentabanco, $documento, $tipopago, $monto, $proveedor, $claveProveedor, $fechadocumento);
         	$exec = $data->Pagos();
-        	if (count($guarda) > 0) {
-                	include 'app/views/pages/p.pagos.listado.php';
-            	$table = ob_get_clean();
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+        	include 'app/views/pages/Tesoreria/p.pagos.listado.php';
+            $table = ob_get_clean();	
+        	if (isset($guarda)) {
+                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             	$pagina.="<script>alert('$error');</script>";
         	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table . '<div class="alert-danger"><center><h2>No existen mas pagos pendientes.</h2><center></div>', $pagina);
         	}
         	$this->view_page($pagina);
     	} else {
@@ -9712,7 +9921,7 @@ function imprimirFacturasAcuse(){
 	}
     
 	function PagoGastoCorrecto($cuentabanco, $documento, $tipopago, $monto, $proveedor, $claveProveedor, $fechadocumento) {
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
 
@@ -9747,7 +9956,7 @@ function imprimirFacturasAcuse(){
 	}
 
 function verXautorizar(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pedidos');
@@ -9770,7 +9979,7 @@ function verXautorizar(){
 	}
     
 	function xAutorizar($tipo, $identificador){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pedidos');
@@ -9793,7 +10002,7 @@ function verXautorizar(){
 	}
 
 	function xAutorizarDictamen($tipo, $identificador, $dictamen, $comentarios){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pedidos');
@@ -9820,7 +10029,7 @@ function verXautorizar(){
 	}
 
 	function Cheques(){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
@@ -9890,7 +10099,7 @@ function verXautorizar(){
 	}
 
 	function listadoPagosXImprimir() {
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
 
@@ -9921,7 +10130,7 @@ function verXautorizar(){
 		
 		$pdf = new FPDF('P', 'mm', 'Letter');
 			$pdf->AddPage();
-			$pdf->Image('app/views/images/headerpdf_PagoGasto.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 12);
 			$pdf->SetTextColor(14,3,3);
 			$pdf->Ln(60);
@@ -9959,7 +10168,7 @@ function verXautorizar(){
 
 
 	function cancelarPedidos(){
-	   	//session_cache_limiter('private_no_expire');
+	   	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -9983,7 +10192,7 @@ function verXautorizar(){
 	}
 
 	function cancelaPedido($pedido, $motivo){
-		//session_cache_limiter('private_no_expire');
+		
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10008,7 +10217,7 @@ function verXautorizar(){
 
 
 	function listaClientes(){
-		//session_cache_limiter('private_no_expire');
+		
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10021,7 +10230,7 @@ function verXautorizar(){
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los pagos para imprimir</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION PARA MOSTRAR</h2><center></div>', $pagina);
         	}
         	$this->view_page($pagina);
     	} else {
@@ -10033,7 +10242,7 @@ function verXautorizar(){
 	}
 
 	function cargaPago($cliente){
-		//session_cache_limiter('private_no_expire');
+		
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10060,7 +10269,7 @@ function verXautorizar(){
 	}
 
     function listadoCuentasBancarias(){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Pagos');
@@ -10083,7 +10292,7 @@ function verXautorizar(){
     }
     
     function estadoCuentaRegistro($identificador, $banco, $cuenta, $dia){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Pagos');
@@ -10117,7 +10326,7 @@ function verXautorizar(){
     }
     
     function estadoCuentaDetalle($identificador){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Pagos');
@@ -10140,7 +10349,7 @@ function verXautorizar(){
     }
 
     function verXrecibir(){
-           //session_cache_limiter('private_no_expire');
+           
            if (isset($_SESSION['user'])) {
                    $data = new pegaso;
                    $pagina = $this->load_template('Pedidos');
@@ -10175,7 +10384,7 @@ function verXautorizar(){
        }
        
        function verXconciliar(){
-           //session_cache_limiter('private_no_expire');
+           
            if (isset($_SESSION['user'])) {
                    $data = new pegaso;
                    $pagina = $this->load_template('Pedidos');
@@ -10198,7 +10407,7 @@ function verXautorizar(){
        }
        
        function pagoAConciliar($tipo, $identificador){
-           //session_cache_limiter('private_no_expire');
+           
            if (isset($_SESSION['user'])) {
                    $data = new pegaso;
                    $pagina = $this->load_template('Pedidos');
@@ -10234,7 +10443,7 @@ function verXautorizar(){
 
 
     function guardaPago($cliente, $monto, $fechaA, $fechaR, $banco){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10260,7 +10469,7 @@ function verXautorizar(){
     }
 
     function aplicarPago($cliente){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10284,23 +10493,22 @@ function verXautorizar(){
     }
 
 
-    function capturaPagosConta($banco, $cuenta){
-    	//session_cache_limiter('private_no_expire');
+    function capturaPagosConta($banco, $cuenta, $mensaje){
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
-        	$html = $this->load_page('app/views/pages/p.formIngresaPagoCont.php');
+        	$html = $this->load_page('app/views/pages/Clientes/p.formIngresaPagoCont.php');
         	ob_start();
         	if(empty($fecha)){
-        		$fecha=date('m-d-Y');	
+        		$fecha=date('d.m.Y');	
         	}
         	$fecha=$fecha;
-
+        	$maestros = $data->traeMaestros();
         	$bancos=$data->CuentasBancarias($banco, $cuenta );
         	$pagosA=$data->traePagosActual($banco, $cuenta);
         	$pagosAn=$data->traePagosAnterior($banco, $cuenta);
         	if (count($bancos)){
-            	include 'app/views/pages/p.formIngresaPagoCont.php';
+            	include 'app/views/pages/Clientes/p.formIngresaPagoCont.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
@@ -10314,16 +10522,14 @@ function verXautorizar(){
     	}			
     }
 
-    function ingresarPago($banco, $monto, $fecha, $ref, $banco2, $cuenta){
-    	//session_cache_limiter('private_no_expire');
+    function ingresarPago($banco, $monto, $fecha, $ref, $banco2, $cuenta, $maestro, $tipo, $obs){
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
         	ob_start();
         	$fecha=$fecha;
-        	$ingresa=$data->ingresarPago($banco2, $monto, $fecha, $ref);
-
-        	$redireccionar = "capturaPagosConta&banco={$banco}&cuenta={$cuenta}";
+        	$ingresa=$data->ingresarPago($banco2, $monto, $fecha, $ref, $maestro, $tipo, $obs);
+        	$redireccionar = "capturaPagosConta&banco={$banco}&cuenta={$cuenta}&mensaje={$ingresa}";
         	$pagina=$this->load_template('Pedidos');
         	$html = $this->load_page('app/views/pages/p.redirectform.php');
             include 'app/views/pages/p.redirectform.php';
@@ -10335,9 +10541,8 @@ function verXautorizar(){
     	}			
     }
 
-
     function listaCuentas(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10360,7 +10565,7 @@ function verXautorizar(){
     }
 
     function listaCuentas_docs(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10372,7 +10577,7 @@ function verXautorizar(){
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los pagos para imprimir</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION PARA MOSTRAR</h2><center></div>', $pagina);
         	}
         	$this->view_page($pagina);
     	} else {
@@ -10384,7 +10589,6 @@ function verXautorizar(){
 
 
     function selectBanco(){
-    	//session_cache_limiter('private_no_expire');
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10396,7 +10600,7 @@ function verXautorizar(){
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los pagos para imprimir</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION PARA MOSTRAR</h2><center></div>', $pagina);
         	}
         	$this->view_page($pagina);
     	} else {
@@ -10408,22 +10612,22 @@ function verXautorizar(){
     }
 
       function estado_de_cuenta($banco, $cuenta){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
-        	$html = $this->load_page('app/views/pages/p.EstadoDeCuenta.php');
+        	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta.php');
         	ob_start();
         	$mes = 0;
         	$meses=$data->traeMeses();
         	$bancos=$data->CuentasBancarias($banco, $cuenta);
         	$exec=$data->estado_de_cuenta($banco, $cuenta);
         	if (count($exec)){
-            	include 'app/views/pages/p.EstadoDeCuenta.php';
+            	include 'app/views/pages/Contabilidad/p.EstadoDeCuenta.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los pagos para imprimir</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION PARA MOSTRAR</h2><center></div>', $pagina);
         	}
         	$this->view_page($pagina);
     	} else {
@@ -10436,22 +10640,22 @@ function verXautorizar(){
 
 
       function estado_de_cuenta_docs($banco, $cuenta){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
-        	$html = $this->load_page('app/views/pages/p.EstadoDeCuenta_v3.php');
+        	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta_v3.php');
         	ob_start();
         	$mes = 0;
         	$meses=$data->traeMeses();
         	$bancos=$data->CuentasBancarias($banco, $cuenta);
         	$exec=$data->estado_de_cuenta($banco, $cuenta);
         	if (count($exec)){
-            	include 'app/views/pages/p.EstadoDeCuenta_v3.php';
+            	include 'app/views/pages/Contabilidad/p.EstadoDeCuenta_v3.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los pagos para imprimir</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION PARA MOSTRAR</h2><center></div>', $pagina);
         	}
         	$this->view_page($pagina);
     	} else {
@@ -10464,15 +10668,14 @@ function verXautorizar(){
 
 
  	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $nvaFechComp){
-    	//session_cache_limiter('private_no_expire');
-    	if (isset($_SESSION['user'])) {
+    	if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
-        	$html = $this->load_page('app/views/pages/p.EstadoDeCuenta_v2.php');
+        	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta_v2.php');
         	ob_start();
         	$meses=$data->traeMeses();
         	$bancos=$data->CuentasBancarias($banco, $cuenta);
-        	$mesactual=$data->traeMes($mes);
+        	$mesactual=$data->traeMes($mes, $anio);
         	$exec=$data->estado_de_cuenta_mes($mes, $banco, $cuenta, $anio);
         	$saldos = $data->saldosBancos($mes, $banco , $cuenta, $anio);
         	$total=$data->totalMensual($mes, $banco, $cuenta, $anio);
@@ -10490,13 +10693,14 @@ function verXautorizar(){
         	$totG=$data->totalGasto($mes, $banco, $anio, $cuenta);	//ok
         	$totD=$data->totalDeudores ($mes,$banco, $anio, $cuenta);  //ok 
         	$totCr=$data->totalCredito($mes,$banco, $anio, $cuenta);	//ok
-
+        	$cierre = $data->cierreBanco($banco, $cuenta, $mes, $anio);
+        	$inicial = $data->sinicial($banco, $cuenta, $mes, $anio);
         	if (count($bancos)){
-            	include 'app/views/pages/p.EstadoDeCuenta_v2.php';
+            	include 'app/views/pages/Contabilidad/p.EstadoDeCuenta_v2.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los pagos para imprimir</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION PARA MOSTRAR</h2><center></div>', $pagina);
         	}
         	$this->view_page($pagina);
     	} else {
@@ -10507,32 +10711,41 @@ function verXautorizar(){
     }
 
     function cerrarEdoCtaMes($mes, $anio, $abonos,$cargos, $inicial, $final, $cuenta, $banco){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
     		$pagina = $this->load_template('Pagos');
     		ob_start();
     		$cierre=$data->cerrarEdoCtaMes($mes, $anio, $abonos,$cargos, $inicial, $final, $cuenta, $banco);
-    		$redireccionar = 'edoCta';
+    		if($cierre == 'ok'){
+    			$redireccionar = 'edoCta';
+	    		$pagina=$this->load_template('Pedidos');
+	            $html = $this->load_page('app/views/pages/p.redirectform.php');
+	            include 'app/views/pages/p.redirectform.php';
+	            $this->view_page($pagina);	
+    		}else{
+    			$redireccionar = 'estado_de_cuenta_mes&mes={$mes}&banco={$banco}&cuenta={$cuenta}&anio={$anio}&nvaFechComp=""';
+	    		$pagina=$this->load_template('Pedidos');
+	    		$pagina = $this->replace_content('/\#CONTENIDO\#/ms', '<div class="alert-danger"><center><h2>Hubo un error al cerrar el estado de cuenta, "Solo se permite cerrar Estados Consecutivos", favor de revisar la informaicon</h2><center></div>', $pagina);
+	            $html = $this->load_page('app/views/pages/p.redirectform.php');
+	            include 'app/views/pages/p.redirectform.php';
+	            $this->view_page($pagina);
+    		}
     		
-    		$pagina=$this->load_template('Pedidos');
-            $html = $this->load_page('app/views/pages/p.redirectform.php');
-            include 'app/views/pages/p.redirectform.php';
-            $this->view_page($pagina);
     	}
     }
 
 
     function estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio, $nvaFechComp){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
-        	$html = $this->load_page('app/views/pages/p.EstadoDeCuenta_v3.php');
+        	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta_v3.php');
         	ob_start();
         	$meses=$data->traeMeses();
         	$bancos=$data->CuentasBancarias($banco, $cuenta);
-        	$mesactual=$data->traeMes($mes);
+        	$mesactual=$data->traeMes($mes, $anio);
         	$exec=$data->estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio);
         	$saldos = $data->saldosBancos($mes, $banco , $cuenta, $anio);
         	$total=$data->totalMensual($mes, $banco, $cuenta, $anio);
@@ -10547,13 +10760,15 @@ function verXautorizar(){
         	$totG=$data->totalGasto($mes, $banco, $anio, $cuenta);
         	$totD=$data->totalDeudores ($mes,$banco, $anio, $cuenta);
         	$totCr=$data->totalCredito($mes,$banco, $anio, $cuenta);
-
+        	$cierre = $data->cierreBanco($banco, $cuenta, $mes, $anio);
+        	$inicial = $data->sinicial($banco, $cuenta, $mes, $anio);
+        	
         	if (count($bancos)){
-            	include 'app/views/pages/p.EstadoDeCuenta_v3.php';
+            	include 'app/views/pages/Contabilidad/p.EstadoDeCuenta_v3.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los pagos para imprimir</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION PARA MOSTRAR</h2><center></div>', $pagina);
         	}
         	$this->view_page($pagina);
     	} else {
@@ -10566,7 +10781,7 @@ function verXautorizar(){
 
 
     function buscaFactura(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10584,7 +10799,6 @@ function verXautorizar(){
     }
 
     function traeFactura($docf){
-    	//session_cache_limiter('private_no_expire');
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10607,7 +10821,7 @@ function verXautorizar(){
     }
 
     function cambiarFactura($docf1, $tipo){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10632,7 +10846,7 @@ function verXautorizar(){
     }
 
    function buscarCajaEmabalar(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/pages/p.BusquedaCajasEmbalar.php');
@@ -10645,7 +10859,7 @@ function verXautorizar(){
 	}
 
 	function porFacturarEmbalar($docp){
-		 //session_cache_limiter('private_no_expire');
+		 
 		 if(isset($_SESSION['user'])){
 			$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -10669,7 +10883,7 @@ function verXautorizar(){
 
 
 	function filtrarCompras(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 		$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -10693,7 +10907,7 @@ function verXautorizar(){
 	}
 	
 	function comprasXmes($mes){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 		$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -10717,7 +10931,7 @@ function verXautorizar(){
 	}
 
 	function regCompEdoCta($fecha, $docc, $mes, $pago, $banco, $tptes){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 		$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -10742,7 +10956,7 @@ function verXautorizar(){
 	}
 
 	function verListadoPagosCredito(){
-         //session_cache_limiter('private_no_expire');
+         
      	if (isset($_SESSION['user'])) {
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	
@@ -10765,7 +10979,7 @@ function verXautorizar(){
      }
 
     function detallePagoCreditoContrarecibo($tipo, $identificador){
-         //session_cache_limiter('private_no_expire');
+         
      	if (isset($_SESSION['user'])) {
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	
@@ -10813,7 +11027,7 @@ function verXautorizar(){
 	    foreach ($exec as $data):
      $pdf = new FPDF('P', 'mm', 'Letter');
      $pdf->AddPage();
-     $pdf->Image('app/views/images/headerContraReciboCompra.jpg', 10, 15, 205, 55);
+     $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
      $pdf->SetFont('Arial', 'I', 12);
      $pdf->SetTextColor(14, 3, 3);
      $pdf->Ln(60);
@@ -10849,7 +11063,7 @@ function verXautorizar(){
 
 
      function registrarOCAduana($identificador, $aduana, $mes, $anio){
-         //session_cache_limiter('private_no_expire');
+         
      	if (isset($_SESSION['user'])) {
              if($aduana != "--"){
                  $data = new pegaso;
@@ -10869,7 +11083,7 @@ function verXautorizar(){
      }
     }
      function verListadoOCAduana($mes,$anio){
-         //session_cache_limiter('private_no_expire');        
+                 
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	            
@@ -10895,7 +11109,7 @@ function verXautorizar(){
      }
 
       function verFallidas(){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -10920,7 +11134,7 @@ function verXautorizar(){
 
 
 function fallarOC($doco){
-        //session_cache_limiter('private_no_expire');
+        
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -10956,8 +11170,8 @@ function fallarOC($doco){
        	$pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         $pdf->SetFont('Arial', 'B', 10);
-        //$pdf->Image('app/views/images/factura3.png',10,15,205,55);
-        $pdf->Image('app/views/images/headerOrdenFallida.jpg',10,15,205,55,'JPG');
+        ////$pdf->Image('app/views/images/factura3.png',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
   
 
         $pdf->Ln(70);
@@ -11014,7 +11228,7 @@ function fallarOC($doco){
 
 
     function FacturaPago($cveclie){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11038,7 +11252,7 @@ function fallarOC($doco){
     }
 
 	 function PagoxFactura($docf, $clie, $rfc){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11063,7 +11277,7 @@ function fallarOC($doco){
     }    
 
     function aplicarPagoxFactura($docf, $idpago, $monto, $saldof, $clie, $rfc){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11095,7 +11309,7 @@ function fallarOC($doco){
     }
 
     function PagoFactura($clie){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11122,7 +11336,7 @@ function fallarOC($doco){
     }
 
     function aplicaPago($clie, $id){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11148,7 +11362,7 @@ function fallarOC($doco){
 
 
     function aplicaPagoFactura($clie, $id, $docf, $monto, $saldof, $rfc){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11179,8 +11393,7 @@ function fallarOC($doco){
 
     }
     
-      function form_capruracrdirecto(){
-    	//session_cache_limiter('private_no_expire');
+    function form_capruracrdirecto($mensaje){
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11189,11 +11402,11 @@ function fallarOC($doco){
             	$banco=$data->CuentasBancos();
             	$prov=$data->traeProv();
             	$gastos=$data->traeGasto();
+
                 include 'app/views/pages/p.form_crdirecto.php';
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-            
-            $this->view_page($pagina);
+            	$this->view_page($pagina);
         } else {
             $e = "Favor de Iniciar Sesión";
             header('Location: index.php?action=login&e=' . urlencode($e));
@@ -11203,23 +11416,25 @@ function fallarOC($doco){
     }
 
     function guardaCompra($fact, $prov, $monto, $ref, $tipopago, $fechadoc, $fechaedocta, $banco, $tipo,$idg){
-    	//session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
             $html = $this->load_page('app/views/pages/p.form_crdirecto.php');
             	$guarda=$data->guardaCompra($fact, $prov, $monto, $ref, $tipopago, $fechadoc, $fechaedocta, $banco, $tipo, $idg);
-            $this->form_capruracrdirecto();
+            	$redireccionar="form_capruracrdirecto&mensaje={$guarda}";
+            	$pagina=$this->load_template('Pedidos');
+	    		$html = $this->load_page('app/views/pages/p.redirectform.php');
+	            include 'app/views/pages/p.redirectform.php';
+	            $this->view_page($pagina);
         } else {
             $e = "Favor de Iniciar Sesión";
             header('Location: index.php?action=login&e=' . urlencode($e));
             exit;
-
         }		
     }
 
     function verAplicaciones(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11249,12 +11464,10 @@ function fallarOC($doco){
     	$pdf=new FPDF('P','mm','Letter');
     	$pdf->AddPage();
         $pdf->SetFont('Arial', 'B', 10);
-        //$pdf->Image('app/views/images/factura3.png',10,15,205,55);
-        $pdf->Image('app/views/images/headerAplicacionPago.jpg',10,15,205,55,'JPG');
+        ////$pdf->Image('app/views/images/factura3.png',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);
-
         foreach ($aplicacion as $data){
-        
         $saldof = $data->SALDO_DOC + $data->MONTO_APLICADO;
 
         $pdf->SetX(10);
@@ -11284,12 +11497,14 @@ function fallarOC($doco){
     }
 
  function verPagosActivos($monto){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
             $html = $this->load_page('app/views/pages/p.verPagosActivos.php');
             ob_start();
+            $usuario = $_SESSION['user']->NOMBRE;
+            $tipoUsuario = $_SESSION['user']->LETRA;
             $pagos=$data->verPagosActivos($monto);
             if (count($pagos) > 0) {
                 include 'app/views/pages/p.verPagosActivos.php';
@@ -11307,7 +11522,7 @@ function fallarOC($doco){
     }
 
     function buscaPagosActivos(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11326,7 +11541,7 @@ function fallarOC($doco){
 
 
     function aplicaPagoDirecto($idp, $tipo){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11351,7 +11566,7 @@ function fallarOC($doco){
     }
 
     function PagoDirecto($idp, $docf, $rfc, $monto, $saldof, $clie, $tipo, $tipo2){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11386,7 +11601,7 @@ function fallarOC($doco){
     }
 
     function IdvsComp(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11410,7 +11625,7 @@ function fallarOC($doco){
 
        
     function traeFacturaPago($idp, $monto, $docf, $tipo, $tipo2){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11435,7 +11650,7 @@ function fallarOC($doco){
     }
 
     	function buscaValidacionOC(){
-    		//session_cache_limiter('private_no_expire');
+    		
         	if (isset($_SESSION['user'])) {
             	$data = new pegaso;
             	$pagina = $this->load_template('Compra Venta');
@@ -11485,7 +11700,7 @@ function fallarOC($doco){
      
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
       
         $pdf->SetFont('Arial', 'B', 7);
@@ -11577,7 +11792,7 @@ function fallarOC($doco){
     }
 
     function verAplivsFact(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -11604,14 +11819,14 @@ function fallarOC($doco){
         $data = new Pegaso;
         $generales=$data->infoPago($idp);
         $movimientos=$data->movimientosPago($idp);
+        $usuario = $_SESSION['user']->NOMBRE;
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerAplicacionPago.jpg',10,15,205,55);
-        $pdf->Ln(70); 
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
+        $pdf->Ln(60); 
         $pdf->SetFont('Arial', 'B', 8);
         foreach ($generales as $data){
-        	
         $pdf->Write(6,'ID:'.$data->ID);
         $pdf->Ln();
         $pdf->Write(6,'Fecha Estado de Cuenta: '.$data->FECHA_RECEP);
@@ -11625,48 +11840,43 @@ function fallarOC($doco){
         $pdf->Write(6,'Usuario Registra: '.$data->USUARIO);
         $pdf->Ln();
         $pdf->Write(6,'Fecha y hora de Registro: '.$data->FECHA);
-
     	}
       	$pdf->Ln(10);
-        $pdf->SetFont('Arial', 'B', 7);
-        $pdf->Cell(20,6,"FACTURA",1);
-        $pdf->Cell(20,6,"IMPORTE",1);
-        $pdf->Cell(30,6,"SALDO DOCUMENTO",1);
-        $pdf->Cell(30,6,"MONTO APLICADO",1);
-        $pdf->Cell(30,6,"NUEVO SALDO DOC",1);
-        $pdf->Cell(30,6,"USUARIO",1);
-        $pdf->Cell(20,6,"MOVIMIENTO",1);
+        $pdf->SetFont('Arial', 'B', 6);
+        $pdf->Cell(60,6,"CLIENTE",1);
+        $pdf->Cell(15,6,"FACTURA",1);
+        $pdf->Cell(15,6,"IMPORTE",1);
+        $pdf->Cell(15,6,"SALDO DOC",1);
+        $pdf->Cell(15,6,"APLICADO",1);
+        $pdf->Cell(15,6,"SALDO DOC",1);
+        $pdf->Cell(45,6,"USUARIO",1);
+        $pdf->Cell(10,6,"MOV",1);
         $pdf->Ln();
-        $pdf->SetFont('Arial', 'I', 7);
+        $pdf->SetFont('Arial', 'I', 6);
         $sumar = 0;
-
         foreach($movimientos as $row){
-  
             $saldo = $row->SALDO_DOC + $row->MONTO_APLICADO;
             $suma = $row->MONTO_APLICADO;
             $sumar = $sumar + $suma; 
-
-            $pdf->Cell(20,6,$row->DOCUMENTO,1);
-            $pdf->Cell(20,6,'$ '.number_format($row->IMPORTE,2),1,0,'R');
-            $pdf->Cell(30,6,'$ '.number_format($saldo,2),1,0,'C');
-            $pdf->Cell(30,6,'$ '.number_format($row->MONTO_APLICADO,2),1,0,'R');
-            $pdf->Cell(30,6,'$ '.number_format($row->SALDO_DOC,2),1,0,'R');
-            $pdf->Cell(30,6,$row->USUARIO,1);
-            $pdf->Cell(20,6,$row->ID,1);
+            $pdf->Cell(60,6,substr('('.$row->CLAVE.')'.$row->NOMBRE,0,60),1);
+            $pdf->Cell(15,6,$row->DOCUMENTO,1);
+            $pdf->Cell(15,6,'$ '.number_format($row->IMPORTE,2),1,0,'R');
+            $pdf->Cell(15,6,'$ '.number_format($saldo,2),1,0,'C');
+            $pdf->Cell(15,6,'$ '.number_format($row->MONTO_APLICADO,2),1,0,'R');
+            $pdf->Cell(15,6,'$ '.number_format($row->SALDO_DOC,2),1,0,'R');
+            $pdf->Cell(45,6,substr($row->USUARIO,0,40),1);
+            $pdf->Cell(10,6,$row->ID,1);
             $pdf->Ln();
-
         }
-
         $pdf->SetFont('Arial', 'B', 7);
         $pdf->Ln();
         $pdf->Write(6,'Suma de Movimientos: $'.number_format($sumar,2));
-        
-        $pdf->Output('Secuencia entrega unidad .pdf','i');
+        $pdf->Ln(4);
+        $pdf->Write(6,'Fecha de impresion: '.date('d-m-Y H:i:s').' ---> Usiario Imprime: '.$usuario);
+        $pdf->Output('Secuencia entrega unidad .pdf','D');
     }
 
-
     function listarOCContrarecibos(){
-        //session_cache_limiter('private_no_expire');        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	            
@@ -11689,7 +11899,7 @@ function fallarOC($doco){
     }
  
  function pagarOCContrarecibos($cantidad, $folios, $monto){
-        //session_cache_limiter('private_no_expire');        
+                
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	            
@@ -11713,7 +11923,7 @@ function fallarOC($doco){
     }
     
    function pagarOCContrarecibosAplicar($folios,$cuentaBancaria, $medio, $importe){
-        //session_cache_limiter('private_no_expire');        
+                
      	if (isset($_SESSION['user'])) {            
              $dao = new pegaso;
              $misFolios = explode(",",$folios);
@@ -11736,7 +11946,7 @@ function fallarOC($doco){
 
    
     function salidaAlmacen($producto, $cantidad){
-		//session_cache_limiter('private_no_expire');        
+		        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');
@@ -11758,7 +11968,7 @@ function fallarOC($doco){
 
 
     function asignarProductoAlmacen($producto, $cotizacion, $cantidad, $cantidadAlmacen, $id){
-    	//session_cache_limiter('private_no_expire');        
+    	        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');
@@ -11776,22 +11986,19 @@ function fallarOC($doco){
     }
 
 
-    function IngresoBodega($suministros, $ingresar, $cant){
-    	//session_cache_limiter('private_no_expire');        
+    function IngresoBodega($suministros, $ingresar, $cant){        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $datav = new pegaso_ventas;
              $pagina = $this->load_template('Pagos');        	            
              ob_start();
              	if($suministros <> '0'){
-
-             		$suministros =$data->revisarNuevoIngreso($suministros);	
-
+             		$suministros =$data->revisarNuevoIngreso($suministros);
              	}
-             	 $um = $datav->traeUM();           
-                 include 'app/views/pages/p.IngresoBodega.php';
-                 $table = ob_get_clean();
-                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+             	$um = $datav->traeUM();           
+                include 'app/views/pages/p.IngresoBodega.php';
+                $table = ob_get_clean();
+                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
              $this->view_page($pagina);
      	} else {
              $e = "Favor de Iniciar Sesión";
@@ -11802,20 +12009,17 @@ function fallarOC($doco){
     }
 
     function IngresarBodega($desc, $cant, $marca, $proveedor, $costo, $unidad){
-    	//session_cache_limiter('private_no_expire');        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $datav = new pegaso_ventas;    	            
              ob_start(); 
              	$um = $datav->traeUM();
                 $ingresar= $data->IngresarBodega($desc, $cant, $marca, $proveedor, $costo, $unidad);
-                //$suministros =$data->revisarNuevoIngreso($desc);
-                //$suministros=serialize($suministros);
-                //$suministros=base64_encode($suministros);
-                //$suministros=urlencode($suministros);
+                $desc = explode(":", $desc);
+                $desc1 = trim($desc[0]);
                 if ($ingresar== True){
-                	 $desc = htmlentities($desc);
-	                 $redireccionar="IngresoBodega&suministros={$desc}&ingresar={$ingresar}&cantidad={$cant}";
+                	 $desc1 = htmlentities($desc1);
+	                 $redireccionar="IngresoBodega&suministros={$desc1}&ingresar={$ingresar}&cantidad={$cant}";
 	                 $pagina=$this->load_template('Pedidos');
 	                 $html = $this->load_page('app/views/pages/p.redirectform.php');
 	                 include 'app/views/pages/p.redirectform.php';
@@ -11831,7 +12035,7 @@ function fallarOC($doco){
     }
 
     function asignar($idp, $asignado, $idingreso){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
             ob_start(); 
@@ -11844,7 +12048,7 @@ function fallarOC($doco){
     }
 
     function verIngresoBodega(){
-    	//session_cache_limiter('private_no_expire');        
+    	        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	            
@@ -11866,8 +12070,7 @@ function fallarOC($doco){
      	}	
     }
 
-     function regCargosFinancieros(){
-    	//session_cache_limiter('private_no_expire');        
+     function regCargosFinancieros($mensaje){
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	            
@@ -11887,13 +12090,13 @@ function fallarOC($doco){
 
     
     function guardaCargoFinanciero($monto, $fecha, $banco){
-    	//session_cache_limiter('private_no_expire');        
+    	        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	            
              ob_start();
              $registro=$data->guardaCargoFinanciero($monto, $fecha, $banco);
-             $redireccionar = "regCargosFinancieros";
+             $redireccionar = "regCargosFinancieros&mensaje={$registro}";
              $pagina=$this->load_template('Pedidos');
              $html = $this->load_page('app/views/pages/p.redirectform.php');
              include 'app/views/pages/p.redirectform.php';
@@ -11927,7 +12130,7 @@ function fallarOC($doco){
         
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerCierreRevCob.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70); 
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->Write(6,'Recepcion de documentos de Revision a Cobranza');
@@ -11987,7 +12190,7 @@ function fallarOC($doco){
         $fecha=date("Y-m-d H:i:s");
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerCierreRuta.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70); 
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->Write(6,'Recepcion de documentos de Logistica a Aduana');
@@ -12115,7 +12318,7 @@ function fallarOC($doco){
 
 
     function verCierreVal(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12138,7 +12341,7 @@ function fallarOC($doco){
     }
 
     function guardaFacturaProv($docr, $factura){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             ob_start();
@@ -12163,7 +12366,7 @@ function fallarOC($doco){
         $fecha=date("Y-m-d H:i:s");
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerCierreRuta.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70); 
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->Write(6,'Cierre de Recepciones a Contabilidad');
@@ -12229,7 +12432,7 @@ function fallarOC($doco){
     }
 
     function asociaCF(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12253,7 +12456,7 @@ function fallarOC($doco){
     }
 
     function asociarCF($idcf, $rfc, $banco, $cuenta){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12277,7 +12480,7 @@ function fallarOC($doco){
     }
 
     function traePagos($idcf, $monto){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12301,7 +12504,6 @@ function fallarOC($doco){
     }
 
     function cargaCF($idcf, $idp, $monto){
-    	//session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12309,7 +12511,13 @@ function fallarOC($doco){
             ob_start();
             $aplicacion=$data->cargaCF($idcf, $idp, $monto);
             if($aplicacion == 1){
-            	$this->regCargosFinancieros();
+            	$mensaje = '';
+            	$this->ImpAsigCF($idcf);
+            	$redireccionar="regCargosFinancieros&mensaje=";
+            	$pagina=$this->load_template('Pedidos');
+             	$html = $this->load_page('app/views/pages/p.redirectform.php');
+             	include 'app/views/pages/p.redirectform.php'; 	
+             	$this->view_page($pagina); 
             }else{
             	$cf=$data->traeCF($idcf);
             	$pagos = $data->traePagos($monto);
@@ -12329,8 +12537,68 @@ function fallarOC($doco){
         }		  
     }
 
+    function ImpAsigCF($idcf){
+    	ob_start();
+		$data= new Pegaso;
+        $datos=$data->traeCF($idcf);
+        foreach ($datos as $key) {
+        	$folio= $key->ID;  
+        }
+        $usuario=$_SESSION['user']->USER_LOGIN;
+        $fecha=date("Y-m-d H:i:s");
+        $pdf = new FPDF('P','mm','Letter');
+        $pdf->AddPage();
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
+        $pdf->Ln(70);
+        $pdf->SetFont('Arial', 'B', 12);
+    	$pdf->Write(6,'Informacion del Pago');
+    	$pdf->SetFont('Arial', 'I', 10);
+    	$pdf->Ln();
+		$pdf->Write(6,'No de Pago: '. $key->ID_PAGO);
+        $pdf->Ln();
+        $pdf->Write(6,'Nombre del Maestro: '. $key->MAESTRO);
+        $pdf->Ln();
+        $pdf->Write(6,'Monto del Pago: $ '.number_format($key->MONTO_PAGO,2));
+        $pdf->Ln();
+        $pdf->Write(6,'Banco: '.$key->BANCO.' - '.$key->CUENTA.' Folio Banco: '.$key->FOLIO_X_BANCO);
+        $pdf->Ln();
+        $pdf->Write(6,'Fecha Estado de Cuenta: '.$key->FECHAEDO);
+        $pdf->Ln();
+        $pdf->Write(6,'Saldo Despues de la Asignacion: $ '.number_format($key->SALDO_PAGO,2));
+        $pdf->Ln(20);
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->Write(6,'Informacion de la Aplicacion de Cargo Fiannciero');
+        $pdf->Ln();
+        $pdf->SetFont('Arial', 'I', 10);
+        $pdf->Write(6,'Crgo Financiero: '.$key->ID);
+        $pdf->Ln();
+        $pdf->Write(6,'Fecha de Cargo Financiero: '.$key->FECHA);
+        $pdf->Ln();
+        $pdf->Write(6,'Fecha de Asignacion: '.$key->FECHA_ASIGNA);
+        $pdf->Ln();
+        $pdf->Write(6,'Usuario Alta Cargo Financiero: '.$key->USUARIO);
+        $pdf->Ln();
+        $pdf->Write(6,'Usuario Asigna Cargo Financiero: '.$key->USUARIO_ASIGNA);
+        $pdf->Ln();
+        $pdf->Write(6,'Monto Asignado: $ '.number_format($key->MONTO,2));
+        $pdf->Ln();
+    	$pdf->Ln(10);
+    	
+        $pdf->Ln(12);
+        $pdf->Write(6,'_____________________________________________                 _____________________________________________');
+        $pdf->Ln();
+        $pdf->Write(6,'Nombre y Firma de quien Recibe                                               Nombre y Firma de quien Entrega ');
+        $pdf->Ln();
+        $pdf->Write(6,'       R E C E P C I O N                                                                C O N T A B I L I D A D');
+        $pdf->SetFont('Arial', 'B', 7); 
+        $pdf->Ln();
+        ob_clean();
+        $pdf->Output('Asignacion de Cargo Financiero '.$folio.'.pdf','d');
+    }
+
+
     function verPagosConSaldo(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12355,7 +12623,7 @@ function fallarOC($doco){
     }	
 
     function enviaAcreedor($idp, $saldo, $rfc){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12380,7 +12648,7 @@ function fallarOC($doco){
     }
 
     function verAcreedores(){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12403,7 +12671,7 @@ function fallarOC($doco){
     }
 
     function contabilizarAcreedor($ida){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12424,7 +12692,7 @@ function fallarOC($doco){
     }
 
       function cancelaAplicacion($idp, $docf, $idap, $montoap, $tipo){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12449,7 +12717,7 @@ function fallarOC($doco){
 
 
     function procesarPago($idp, $tipo){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12484,7 +12752,7 @@ function fallarOC($doco){
     }
 
     function errorPago($idp, $tipo){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12510,11 +12778,11 @@ function fallarOC($doco){
     }
 
      function regEdoCta($idtrans, $monto, $tipo, $mes, $banco, $cuenta, $cargo, $anio, $nvaFechComp,$nf, $valor){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
-            $html = $this->load_page('app/views/pages/p.EstadoDeCuenta.php');
+            $html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta.php');
             ob_start();
             $aplicar=$data->regEdoCta($idtrans, $monto, $tipo, $cargo, $anio, $nvaFechComp, $nf, $valor);
 
@@ -12542,7 +12810,7 @@ function fallarOC($doco){
     }
 
     function verValidaciones($doco){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12579,7 +12847,7 @@ function fallarOC($doco){
         $partidasValidadas=$data->ValidacionPartidad($idval);
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);
         foreach ($validacion as $data){
         	$folio = $data->IDVAL;
@@ -12660,7 +12928,7 @@ function fallarOC($doco){
     }
 
 function verSolicitudes(){
-	//session_cache_limiter('private_no_expire');
+	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12684,7 +12952,7 @@ function verSolicitudes(){
 	}
 
 	function ImpSolicitud($idsol){
-    	//session_cache_limiter('private_no_expire');
+    	
     	//include 'app/mailer/send.contrarecibo.php';
     	// ok $test = 'Algo';
     	// ok @$pdf = file_get_contents('./app/tmp/uploads/comprobantes_cajas/attachment.pdf'); /// se trata de obtener el archivo.
@@ -12704,7 +12972,7 @@ function ImpSolicitud2($idsol){
         $crSol=$data->crSolicitud($idsol);
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerSPCR.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);
 
         foreach ($dSol as $data){
@@ -12767,7 +13035,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verPagoSolicitudes(){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12805,7 +13073,7 @@ function ImpSolicitud2($idsol){
 
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerVacio.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->SetFont('Courier', 'B', 25);
         $pdf->SetTextColor(255,0,0);
         $pdf->SetXY(110, 28);
@@ -12880,15 +13148,14 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verCompras(){
-		//session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
-            $html = $this->load_page('app/views/pages/p.ver.compras.php');
+            $html = $this->load_page('app/views/pages/contabilidad/p.ver.compras.php');
             ob_start();
             $compras=$data->verCompras();
             if (count($compras)>0){
-                include 'app/views/pages/p.ver.compras.php';
+                include 'app/views/pages/contabilidad/p.ver.compras.php';
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             } else {
@@ -12904,16 +13171,15 @@ function ImpSolicitud2($idsol){
 	}
 
 	function recConta($folio){
-		//session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
-            $html = $this->load_page('app/views/pages/p.ver.compras.php');
+            $html = $this->load_page('app/views/pages/contabilidad/p.ver.compras.php');
             ob_start();
             $recconta=$data->recConta($folio);
             $compras=$data->verCompras();
             if (count($compras)>0){
-                include 'app/views/pages/p.ver.compras.php';
+                include 'app/views/pages/contabilidad/p.ver.compras.php';
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             } else {
@@ -12929,7 +13195,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verComprasRecibidas(){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12953,7 +13219,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function regCompraEdoCta($folio, $doc, $fecha){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -12978,7 +13244,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function buscaPagos(){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])){
         	$usuario = $_SESSION['user']->NOMBRE;
             $data = new pegaso;
@@ -13000,7 +13266,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function buscarPagos($campo){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])){
         	$usuario = $_SESSION['user']->NOMBRE;
             $data = new pegaso;
@@ -13024,7 +13290,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function cancelarPago($idp){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])){
         	$usuario = $_SESSION['user']->NOMBRE;
             $data = new pegaso;
@@ -13050,7 +13316,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function enviarConta($folios, $cuentaBancaria, $medio, $importe){
-		//session_cache_limiter('private_no_expire');        
+		        
      	if (isset($_SESSION['user'])) {            
              $dao = new pegaso;
              $misFolios = explode(",",$folios);
@@ -13068,30 +13334,36 @@ function ImpSolicitud2($idsol){
              }            
            } else {
              $e = "Favor de Iniciar Sesión";
-             header('Location: index.php?action=login&e=' . urlencode($e));
+             header('Location: index.php?action=login&e='.urlencode($e));
              exit;
      		}
      	}        
 
      	function pagoFacturas($idp){
-    		//session_cache_limiter('private_no_expire');
         	if (isset($_SESSION['user'])){
-            $data = new pegaso;
-            $rol=$_SESSION['user']->USER_ROL;
-            $pagina = $this->load_template('Compra Venta');
-            $html = $this->load_page('app/views/pages/p.pagoFacturas.php');
-            ob_start();
-            $total=$data->montoAplicado($idp);
-            $pago=$data->infoPago($idp); 
-            $facturas=$data->pagoFacturas($idp);
-            if (count($facturas)>0){
-                include 'app/views/pages/p.pagoFacturas.php';
-                $table = ob_get_clean();
-                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-            } else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO LA INFORMACION DE LAS FACTURAS CON ESTE PAGO, FAVOR DE REPORTAR A SISTEMAS.</h2><center></div>', $pagina);
-            }
-            $this->view_page($pagina);
+	            $data = new pegaso;
+	            $rol=$_SESSION['user']->USER_ROL;
+	            $pagina = $this->load_template('Compra Venta');
+	            $html = $this->load_page('app/views/pages/cobranza/p.pagoFacturas.php');
+	            ob_start();
+	            $fin=$data->entidades();
+	            $total=$data->montoAplicado($idp);
+	            $pago=$data->infoPago($idp);
+	            $facturas=$data->pagoFacturas($idp);
+	            foreach ($pago as $x) {
+	            	$x=$x->MONTO;
+	            }
+	            $facturaP =array();
+	            $y = $x-$total;
+	            echo $y;
+	            if($x > $total){
+	       			$facturasP=$data->facturasMaestro($pago);
+	       		}
+	            $bancos = $data->traeBancosSAT();
+	            include 'app/views/pages/cobranza/p.pagoFacturas.php';
+	            $table = ob_get_clean();
+	            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+	        	$this->view_page($pagina);
         } else {
             $e = "Favor de Iniciar Sesión";
             header('Location: index.php?action=login&e=' . urlencode($e));
@@ -13100,7 +13372,7 @@ function ImpSolicitud2($idsol){
      	}
 
      	function buscaContrarecibos(){
-     		//session_cache_limiter('private_no_expire');
+     		
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13118,7 +13390,7 @@ function ImpSolicitud2($idsol){
      	}
 
      	function buscarContrarecibos($campo){
-     		//session_cache_limiter('private_no_expire');
+     		
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13142,7 +13414,7 @@ function ImpSolicitud2($idsol){
      	}
 
      	function editIngresoBodega($idi, $costo, $proveedor, $cant, $unidad){
-    	//session_cache_limiter('private_no_expire');        
+    	        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	            
@@ -13166,7 +13438,7 @@ function ImpSolicitud2($idsol){
     }
 
     function revAplicaciones(){
-    		//session_cache_limiter('private_no_expire');        
+    		        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	            
@@ -13191,7 +13463,7 @@ function ImpSolicitud2($idsol){
 
 
     function dirVerFacturas($mes, $vend, $anio){
-    	//session_cache_limiter('private_no_expire');        
+    	        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos'); 
@@ -13241,7 +13513,7 @@ function ImpSolicitud2($idsol){
 
 
     function buscaOC($fechaedo){
-    		//session_cache_limiter('private_no_expire');
+    		
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
     		$fecha = $fechaedo;
@@ -13259,7 +13531,7 @@ function ImpSolicitud2($idsol){
     }
 
     function traeOC($campo, $fechaedo){
-    	//session_cache_limiter('private_no_expire');
+    	
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13285,7 +13557,7 @@ function ImpSolicitud2($idsol){
 
 
     function procesarOC($doco, $idb, $fechaedo, $montof, $factura, $tpf){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13306,7 +13578,7 @@ function ImpSolicitud2($idsol){
 
 
     function deudores($fechaedo, $banco){
-    	//session_cache_limiter('private_no_expire');
+    	
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13329,7 +13601,7 @@ function ImpSolicitud2($idsol){
     }
 
     function guardaDeudor($fechaedo, $monto,$proveedor, $banco, $tpf, $referencia, $destino){
-    	//session_cache_limiter('private_no_expire');
+    	
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13346,7 +13618,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function transfer($fechaedo, $bancoO){
-			//session_cache_limiter('private_no_expire');
+			
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13368,7 +13640,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function guardaTransPago($fechaedo, $monto, $bancoO, $bancoD, $tpf, $TT, $referencia){
-			//session_cache_limiter('private_no_expire');
+			
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13383,7 +13655,7 @@ function ImpSolicitud2($idsol){
     	}
 	}
 	function facturapagomaestro($maestro){
-			//session_cache_limiter('private_no_expire');
+			
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13403,7 +13675,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function pagoFacturaMaestro($maestro, $docf, $tipo){
-			//session_cache_limiter('private_no_expire');
+			
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13423,7 +13695,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function calendarCxC($cartera){
-			//session_cache_limiter('private_no_expire');
+			
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13439,7 +13711,7 @@ function ImpSolicitud2($idsol){
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             } else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO LA INFORMACION DE LA ORDEN DE COMPRA, FAVOR DE VIERFICAR Y EJECUTAR NUEVAMENTE.</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION.</h2><center></div>', $pagina);
             }
             $this->view_page($pagina);
         	} else {
@@ -13452,7 +13724,6 @@ function ImpSolicitud2($idsol){
 
 
 	function verMaestros(){
-			//session_cache_limiter('private_no_expire');
         	if (isset($_SESSION['user'])){
         	$cartera = $_SESSION['user']->CC;
             $data = new pegaso;
@@ -13460,13 +13731,13 @@ function ImpSolicitud2($idsol){
             $html = $this->load_page('app/views/pages/p.verMaestros.php');
             ob_start();
             $maestros = $data->verMaestros($cartera);
-            $saldoAcumulado=$data->saldoAcumulado();
+            //$saldoAcumulado=$data->saldoAcumulado();
             if (count($maestros)>0){
                 include 'app/views/pages/p.verMaestros.php';
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             } else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO LA INFORMACION DE LA ORDEN DE COMPRA, FAVOR DE VIERFICAR Y EJECUTAR NUEVAMENTE.</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION.</h2><center></div>', $pagina);
             }
             $this->view_page($pagina);
         	} else {
@@ -13476,9 +13747,16 @@ function ImpSolicitud2($idsol){
         	}	
 	}
 
+	function editaCarterasMaestro($maestro, $revision, $cobranza){
+		if($_SESSION['user']){
+			$data=new pegaso;
+			$res = $data->editaCarterasMaestro($maestro, $revision, $cobranza);
+			$this->verMaestros();
+		}
+	}
+
 
 	function editarMaestro($idm){
-			//session_cache_limiter('private_no_expire');
         	if (isset($_SESSION['user'])){
         	$data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13503,7 +13781,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function editaMaestro($idm){
-			//session_cache_limiter('private_no_expire');
+			
         	if (isset($_SESSION['user'])){
         	$data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13524,7 +13802,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function asociaCC($cc, $cliente, $cvem, $idm){
-		//session_cache_limiter('private_no_expire');
+		
 		if (isset($_SESSION['user'])){
         	$data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13544,7 +13822,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verAsociados($cc, $cancela, $clie){
-			//session_cache_limiter('private_no_expire');
+			
         	if (isset($_SESSION['user'])){
         	$data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13572,7 +13850,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function nuevo_maestro(){
-			//session_cache_limiter('private_no_expire');
+			
         	if (isset($_SESSION['user'])){
         	$data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13590,7 +13868,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function altaMaestro($nombre){
-		//session_cache_limiter('private_no_expire');
+		
         	if (isset($_SESSION['user'])){
         	$data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13611,7 +13889,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function buscaFacturas(){
-		//session_cache_limiter('private_no_expire');
+		
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13631,7 +13909,6 @@ function ImpSolicitud2($idsol){
 	}
 
 	function rastreadorFacturas($docf){
-		//session_cache_limiter('private_no_expire');
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13658,7 +13935,6 @@ function ImpSolicitud2($idsol){
 
 
 	function recCierreCob(){
-		//session_cache_limiter('private_no_expire');
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13683,7 +13959,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function recDocCierreCob($idp, $fecha){
-		//session_cache_limiter('private_no_expire');
+		
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13703,7 +13979,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function utilerias($opcion, $docp, $docd, $docf, $fechaIni, $fechaFin, $maestro){
-    	//session_cache_limiter('private_no_expire');        
+    	        
      	if (isset($_SESSION['user'])) {            
             $data = new pegaso;
             $pagina = $this->load_template('Pagos');        	            
@@ -13756,6 +14032,8 @@ function ImpSolicitud2($idsol){
             }elseif ($opcion == 20){
             	$idpreoc = $docp;
             	$analisis = $data->analisis($idpreoc, $fechaIni, $fechaFin);
+            }elseif($opcion == 21){
+            	$this->timbraFact($docf);
             }
             echo $resultado;
             //$cf = $data->asociaCF();
@@ -13770,8 +14048,24 @@ function ImpSolicitud2($idsol){
      	}
     }
 
+    function timbraFact($docf){
+    	if($_SESSION['user']){
+    		$data= new pegaso;
+    		$exec=$data->timbraFact($docf);
+    		exit('Exito');
+    	}
+    }
+
+    function generaJson($docf, $idc){
+    	if($_SESSION['user']){
+    		$data= new factura;
+    		$exec=$data->generaJson($docf, $idc);
+    		$this->xmlMenu();
+    	}
+    }
+
     function UtileriasResult($resultado, $resultado2){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina = $this->load_template('Pagos');
@@ -13788,7 +14082,7 @@ function ImpSolicitud2($idsol){
     }
 
     function liberarFactura($docf){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina = $this->load_template('Pagos');
@@ -13806,7 +14100,7 @@ function ImpSolicitud2($idsol){
     }
 
     function liberarNCCancelada($docf){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina = $this->load_template('Pagos');
@@ -13825,7 +14119,7 @@ function ImpSolicitud2($idsol){
 
 
     function contVenta($idp, $ida, $docf){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$conta = new CoiDAO;
@@ -13851,7 +14145,7 @@ function ImpSolicitud2($idsol){
     }
 
     function contabilizar_CaragoAnual(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$conta = new CoiDAO;
@@ -13882,7 +14176,7 @@ function ImpSolicitud2($idsol){
 
 
     function contabilizar_Aplicaciones(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$conta = new CoiDAO;
@@ -13914,8 +14208,7 @@ function ImpSolicitud2($idsol){
 
 
 
-    function contabilizar_CargaPagos(){
-    	//session_cache_limiter('private_no_expire');
+    function contabilizar_CargaPagos(){	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$conta = new CoiDAO;
@@ -13941,7 +14234,6 @@ function ImpSolicitud2($idsol){
     }
 
     function contabiliza_ventas(){
-    	//session_cache_limiter('private_no_expire');
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$conta = new CoiDAO;
@@ -13952,7 +14244,6 @@ function ImpSolicitud2($idsol){
     		$actualizaVentas=$data->act_ventas($insertaPoliza);
     		//break;
     		$this->utilerias(0,'','','');
-    		
     		$redireccionar="pagoFacturas&idp={$idp}";
             $pagina=$this->load_template('Pedidos');
             $html = $this->load_page('app/views/pages/p.redirectform.php');
@@ -13966,7 +14257,6 @@ function ImpSolicitud2($idsol){
 
 
     function contabiliza_NC(){
-    	//session_cache_limiter('private_no_expire');
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$conta = new CoiDAO;
@@ -13975,9 +14265,7 @@ function ImpSolicitud2($idsol){
     		$NC=$data->contabiliza_NC();
     		$insertaPoliza=$conta->contabiliza_NC($NC);
     		$actualizaVentas=$data->act_NC($insertaPoliza);
-    		//break;
     		$this->utilerias(0,'','','');
-    		
     		$redireccionar="pagoFacturas&idp={$idp}";
             $pagina=$this->load_template('Pedidos');
             $html = $this->load_page('app/views/pages/p.redirectform.php');
@@ -13990,7 +14278,7 @@ function ImpSolicitud2($idsol){
     }
 
     function cuentas_Clientes(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$conta = new CoiDAO;
@@ -14013,7 +14301,7 @@ function ImpSolicitud2($idsol){
 
 
     function crea_cuentas_Proveedores(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$conta = new CoiDAO;
@@ -14031,7 +14319,7 @@ function ImpSolicitud2($idsol){
    }
 
    function SaldoVencido(){
-   		//session_cache_limiter('private_no_expire');
+   		
    		if($_SESSION['user']){
    			$data= new pegaso;
    			$pagina = $this->load_template('Compra Venta');
@@ -14053,7 +14341,7 @@ function ImpSolicitud2($idsol){
    }
 
    function verInd($maestro, $status){
-   		//session_cache_limiter('private_no_expire');
+   		
    		if(isset($_SESSION['user'])){
    			$data=new pegaso;
    			$pagina = $this->load_template('Compra Venta');
@@ -14082,15 +14370,14 @@ function ImpSolicitud2($idsol){
     }
 
 	 function verSolProdVentas(){
-    	//session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
-        $html=$this->load_page('app/views/pages/p.verSolProd.php');
+        $html=$this->load_page('app/views/pages/compras/p.verSolProd.php');
         ob_start();
         $verSolicitudes = $data->verSolProdVentas();
         if (count($verSolicitudes)>0){
-            include 'app/views/pages/p.verSolProd.php';
+            include 'app/views/pages/compras/p.verSolProd.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
         }else{
@@ -14105,7 +14392,7 @@ function ImpSolicitud2($idsol){
     }
 
     function editaFTCART($ids, $cotizacion , $vendedor){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$datav = new pegaso_ventas;
@@ -14134,7 +14421,7 @@ function ImpSolicitud2($idsol){
 
 
     function guardaFTCART($ids, $clave, $categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $cotizacion, $cliente,  $costo_t, $costo_oc, $tipo, $doco, $par){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if($_SESSION['user']){
     		$data = new pegaso;
     		ob_start();
@@ -14156,7 +14443,7 @@ function ImpSolicitud2($idsol){
     }
 
     function produccionFTCART($ids){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if($_SESSION['user']){
     		$data= new pegaso;
     		$datav = new pegaso_ventas;
@@ -14172,7 +14459,7 @@ function ImpSolicitud2($idsol){
     }
 
     function verCategorias(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if($_SESSION['user']){
     		$data= new pegaso;
     		$datav= new pegaso_ventas;
@@ -14197,7 +14484,7 @@ function ImpSolicitud2($idsol){
 
 
     function catalogoProductosFTC($marca, $categoria, $desc1, $generico, $unidadmedida, $prov1, $desc2, $descripcion){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if($_SESSION['user']){
     		$user=$_SESSION['user']->USER_LOGIN;
     		$data= new pegaso;
@@ -14222,7 +14509,7 @@ function ImpSolicitud2($idsol){
     }
 
     function altaProductoFTC($marca, $categoria, $desc1, $generico, $unidadmedida, $prov1, $desc2){
-        //session_cache_limiter('private_no_expire');
+        
         if($_SESSION['user']){
             $data = new pegaso;
             $datav = new pegaso_ventas;
@@ -14245,11 +14532,12 @@ function ImpSolicitud2($idsol){
     }
 
     function creaProductoFTC($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $clave, $costo_t, $costo_oc){
-        //session_cache_limiter('private_no_expire');
+        
         if($_SESSION['user']){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos'); 
             $html = $this->load_page('app/views/pages/p.redirectform.php');
+
             $altaProd=$data->creaProductoFTC($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $clave, $costo_t, $costo_oc);
             $redireccionar = "catalogoProductosFTC&marca={$marca}&categoria={$categoria}&desc1={$desc1}&generico={$generico}&unidadmedida={$unidadmedida}&prov1={$prov1}&desc2={$desc2}";      
             include 'app/views/pages/p.redirectform.php';
@@ -14261,7 +14549,7 @@ function ImpSolicitud2($idsol){
     } 
 
     function cancelarCargaPago($idtrans, $monto, $tipo, $mes, $banco,  $cuenta, $cargo, $anio, $nvaFechComp, $nf){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if($_SESSION['user']){
     		$data=new pegaso;
     		ob_start();
@@ -14271,16 +14559,16 @@ function ImpSolicitud2($idsol){
     	}
     }
 
-    function verCajasAlmacen(){
-    	//session_cache_limiter('private_no_expire');
+    function verCajasAlmacen(){   	
         if($_SESSION['user']){
             $data = new pegaso;
 	        $pagina=$this->load_template('Pedidos');
-	        $html=$this->load_page('app/views/pages/p.verCajasAlmacen.php');
+	        $html=$this->load_page('app/views/pages/ventas/p.verCajasAlmacen.php');
 	        ob_start();
 	        $usuario= $_SESSION['user']->NOMBRE;
+            $letra = $_SESSION['user']->LETRA;
             $cajas = $data->verCajasAlmacen();
-            include 'app/views/pages/p.verCajasAlmacen.php';
+            include 'app/views/pages/ventas/p.verCajasAlmacen.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
             $this->view_page($pagina);
@@ -14294,45 +14582,59 @@ function ImpSolicitud2($idsol){
 	 	$data = new Pegaso;	
         $Cabecera=$data->datosCotizacionFTC($folio);
         $Detalle=$data->detalleCotizacionFTC($folio);
-  
-
+        $usuario =$_SESSION['user']->NOMBRE;
         $pdf = new FPDF('P','mm','Letter');
+        foreach ($Cabecera as $sta){
+        	$sts = $sta->INSTATUS;
+        }
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerVacio.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->SetFont('Courier', 'B', 25);
         $pdf->SetTextColor(255,0,0);
-        $pdf->SetXY(110, 28);
-  		$pdf->Write(10,'Ventas Pegaso');
-  		$pdf->SetXY(110, 38);
-  		$pdf->Write(10,utf8_decode('Cotización:'));
-  		$pdf->Ln(10);
+        $pdf->SetXY(110, 10);
+  		$pdf->Write(10,'Ventas');
+  		$pdf->SetXY(110, 17);
+  		$pdf->Write(10,utf8_decode('Cotización'));
+  		$pdf->SetTextColor(255,255,255);
+  		$pdf->SetFont('Courier', 'I', 20);
+  		$pdf->SetXY(10, 25);
+  		$pdf->Write(10,$sts);
         $pdf->SetTextColor(0,0,0);
-        $pdf->Ln(65);
         $pdf->SetFont('Arial', 'B', 15);
-        $pdf->SetXY(60, 60);
-  		$pdf->Write(6, ''); // Control de impresiones.
-  		$pdf->Ln(10);
+  		$pdf->Ln();
         foreach ($Cabecera as $data){
         $pdf->SetFont('Arial', 'B', 9);
-  		//$pdf->Write(6,'Cotizacion No:'.$data->IDSOL.utf8_decode(' Folio Pago Crédito CR-').strtoupper($data->TP_TES_FINAL).'-'.$data->FOLIO);
-  		$pdf->Write(6,'Cotizacion No:'.$data->SERIE.$data->FOLIO);
+  		$pdf->Write(6,'Cotizacion: '.$data->SERIE.$data->FOLIO.', Fecha de impresion:'.date('d-m-Y H:i:s').', Usuario Imprime:'.$usuario);
   		$pdf->Ln();
-  		$pdf->Write(6,'Fecha de Elaboracion: '.$data->DTFECREG);
+  		$pdf->Write(6,'Fecha de Elaboracion: '.$data->DTFECREG.', Estado de la cotizacion: '.$data->INSTATUS);
   		$pdf->Ln();
-  		$pdf->Write(6,'Vendedo : '.$data->CDUSUARI);
+  		$pdf->Write(6,'Vendedor : '.$data->CDUSUARI);
   		$pdf->Ln();
   		$pdf->Write(6,'Cliente : ('.$data->CVE_CLIENTE.')'.$data->NOMBRE.', RFC: '.$data->RFC);
   		$pdf->Ln();
-  		$pdf->Write(6,'Direccion: Calle :'.$data->CALLE.', Num Ext:'.$data->NUMEXT.', Colonia: '.$data->COLONIA);
+  		$pdf->Write(6,'Dias de Credito: '.$data->PLAZO.'   #################   Tipo de pago: Transferencia Interbancaria');
   		$pdf->Ln();
-  		$pdf->Write(6,'Estado: '.$data->ESTADO.', Pais: '.$data->PAIS);
+  		$pdf->Write(6,'Orden de Compra: '.$data->IDPEDIDO);
   		$pdf->Ln();
-  		$pdf->Write(6,'Dias de Credito: '.$data->PLAZO.'        #################   Tipo de pago: Transferencia Interbancaria');
+  		$pdf->SetFont('Arial', 'B', 8);
+  		$pdf->Cell(100,6,'Direccion Fiscal','L,R,T',0,'C');
+  		$pdf->Cell(100,6,'Direccion de Envio','L,R,T',0,'C');
   		$pdf->Ln();
-  		//$pdf->Write(6,'Monto Solicitado: $ '.number_format($data->MONTO,2).'       #################  Monto del Pago Realizado: $ '.number_format($data->MONTO_FINAL,2));
-  		//$pdf->Ln();
+  		$pdf->Cell(100,6,substr($data->CALLE.','.$data->NUMEXT,0,60),'L,R');
+  		$pdf->Cell(100,6,substr($data->CALLE_ENVIO.','.$data->NUMEXT_ENVIO.' '.$data->NUMINT_ENVIO,0,60),'L,R');
   		$pdf->Ln();
-        }
+  		$pdf->Cell(100,6,substr('Col. '.$data->COLONIA,0,60),'L,R');
+  		$pdf->Cell(100,6,substr('Col. '.$data->COLONIA_ENVIO.' '.$data->LOCALIDAD_ENVIO,0,60),'L,R');
+  		$pdf->Ln();
+  		$pdf->Cell(100,6,substr('Edo. '.$data->ESTADO.', Pais: '.$data->PAIS,0,60),'L,R');
+  		$pdf->Cell(100,6,substr('Edo. '.$data->ESTADO_ENVIO.', Pais: '.$data->PAIS_ENVIO,0,60),'L,R');
+  		$pdf->Ln();
+  		$pdf->Cell(100,6,substr('CP. '.$data->CODIGO.', Municipio: '.$data->MUNICIPIO,0,60),'L,R,B');
+  		$pdf->Cell(100,6,substr('CP. '.$data->CODIGO_ENVIO.', Municipio: '.$data->MUNICIPIO_ENVIO,0,60),'L,R,B');
+  		$pdf->Ln();
+  		//$pdf->Write(6,'Dias de Credito: '.$data->PLAZO.'   #################   Tipo de pago: Transferencia Interbancaria');
+  		$pdf->Ln();
+  		}
 
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->Cell(10,6,"Part.",1);
@@ -14342,12 +14644,11 @@ function ImpSolicitud2($idsol){
         $pdf->Cell(10,6,"UM",1);
         $pdf->Cell(20,6,"Precio",1);
         $pdf->Cell(20,6,"Descuento",1);
-        $pdf->Cell(25,6,"Subtotal ",1);
+        $pdf->Cell(20,6,"Subtotal ",1);
         $pdf->Cell(15,6,"Iva",1);
         $pdf->Cell(15,6,"Total",1);
         $pdf->Ln();
         $pdf->SetFont('Arial', 'I', 7);
-            //$total_oc = 0;
         	$descuento = 0;
             $subtotal = 0;
             $iva = 0;
@@ -14362,10 +14663,6 @@ function ImpSolicitud2($idsol){
         	$desctotal +=($row->DBIMPPRE * $row->FLCANTID) - $descuento; 
         	$iva += ($subtotal - $desctotal) *.16;
         	$total += ($subtotal - $desctotal)*1.16;
-            /*$total_subtotal += ($row->COST_REC * $row->CANT_REC);
-            $total_iva += ($row->COST_REC * $row->CANT_REC)* 0.16;
-            $total_final += ($row->COST_REC * $row->CANT_REC) * 1.16;
-            $total_oc += $row->TOT_PARTIDA;*/
             $pdf->Cell(10,6,($partida),'L,T,R');
             $pdf->Cell(20,6,($row->CLAVE_PROD),'L,T,R');
             $pdf->Cell(60,6,substr($row->NOMBRE, 0 , 34), 'L,T,R');
@@ -14373,7 +14670,7 @@ function ImpSolicitud2($idsol){
             $pdf->Cell(10,6,$row->UM,'L,T,R');
             $pdf->Cell(20,6,'$ '.number_format($row->DBIMPPRE,2),'L,T,R');
             $pdf->Cell(20,6,'% '.number_format($row->DBIMPDES,2),'L,T,R');
-            $pdf->Cell(25,6,'$ '.number_format(($row->DBIMPPRE * $row->FLCANTID) - (($row->DBIMPPRE * $desc) * $row->FLCANTID)  ,2),'L,T,R');
+            $pdf->Cell(20,6,'$ '.number_format(($row->DBIMPPRE * $row->FLCANTID) - (($row->DBIMPPRE * $desc) * $row->FLCANTID)  ,2),'L,T,R');
             $pdf->Cell(15,6,'$ '.number_format((  (($row->DBIMPPRE * $row->FLCANTID) - (($row->DBIMPPRE * $desc) * $row->FLCANTID) )* .16),2),'L,T,R');
             $pdf->Cell(15,6,'$ '.number_format(((($row->DBIMPPRE * $row->FLCANTID) - (($row->DBIMPPRE * $desc) * $row->FLCANTID)) * 1.16),2),'L,T,R');
             $pdf->Ln();				// Segunda linea descripcion
@@ -14384,7 +14681,7 @@ function ImpSolicitud2($idsol){
             $pdf->Cell(10,6,"",'L,B,R');
             $pdf->Cell(20,6,"",'L,B,R');
             $pdf->Cell(20,6,"",'L,B,R');
-            $pdf->Cell(25,6,"",'L,B,R');
+            $pdf->Cell(20,6,"",'L,B,R');
             $pdf->Cell(15,6,"",'L,B,R');
             $pdf->Cell(15,6,"",'L,B,R');
             $pdf->Ln();
@@ -14396,7 +14693,7 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
-        	$pdf->Cell(40,6,"SubTotal",1);
+        	$pdf->Cell(35,6,"SubTotal",1);
         	$pdf->Cell(15,6,'$ '.number_format($subtotal,2),1);
         	$pdf->Ln();
 
@@ -14407,10 +14704,9 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
-        	$pdf->Cell(40,6,"Descuento",1);
+        	$pdf->Cell(35,6,"Descuento",1);
         	$pdf->Cell(15,6,'$ '.number_format($desctotal,2),1);
         	$pdf->Ln();
-
 			$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
         	$pdf->Cell(20,6,"",0);
@@ -14418,10 +14714,9 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
-        	$pdf->Cell(40,6,"IVA",1);
+        	$pdf->Cell(35,6,"IVA",1);
         	$pdf->Cell(15,6,'$ '.number_format(($subtotal -$desctotal)*.16,2),1);
         	$pdf->Ln();
-
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
         	$pdf->Cell(20,6,"",0);
@@ -14429,25 +14724,20 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
-        	$pdf->Cell(40,6,"Total",1);
+        	$pdf->Cell(35,6,"Total",1);
         	$pdf->Cell(15,6,'$ '.number_format(($subtotal - $desctotal) *1.16,2),1);
         	$pdf->Ln();
-
-        	//$pdf->Ln(80);
-
         	$pdf->SetTextColor(255,0,0);
        		$pdf->SetXY(10, 230);
   			$pdf->Write(10,'Favor de confirmar con su vendedor la recepcion de esta cotizacion, si tiene algun comentario o duda con respecto a esta cotizacion favor de comunicarse,');
   			$pdf->Ln();
   			$pdf->Write(10,'a los sigientes numeros: Tel: ; , o pongase en contacto con: ');
 
-        $pdf->Output('Cotizacion_Pegaso_'.$folio.'_.pdf','i');
-
+        $pdf->Output('Cotizacion_'.$folio.'_.pdf','d');
 	}
 
-
 	function libPedidoFTC($folio, $idp, $idca, $urgente){
-		//session_cache_limiter('private_no_expire');
+		
         if($_SESSION['user']){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos'); 
@@ -14464,7 +14754,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verCatergoriasXMarcas(){
-		//session_cache_limiter('private_no_expire');
+		
         if($_SESSION['user']){
             $data = new pegaso;
             $datav = new pegaso_ventas;
@@ -14483,7 +14773,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function editarMXC($idcxm){
-		//session_cache_limiter('private_no_expire');
+		
         if($_SESSION['user']){
             $data = new pegaso;
             $datav = new pegaso_ventas;
@@ -14503,7 +14793,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function editaMXC($idmxc, $auxiliar){
-		//session_cache_limiter('private_no_expire');
+		
         if($_SESSION['user']){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos'); 
@@ -14521,7 +14811,7 @@ function ImpSolicitud2($idsol){
 
 
 	function verCotPenLib(){
-        //session_cache_limiter('private_no_expire');
+        
         if($_SESSION['user']){
             $data= new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -14540,7 +14830,7 @@ function ImpSolicitud2($idsol){
 
 
     function desLib($folio, $respuesta){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if($_SESSION['user']){
     		$data = new pegaso;
     		ob_start();
@@ -14551,15 +14841,15 @@ function ImpSolicitud2($idsol){
 
 
     function verProveedores(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
-    		$html = $this->load_page('app/views/pages/p.verProveedores.php');
+    		$html = $this->load_page('app/views/pages/Proveedores/p.verProveedores.php');
     		ob_start();
     		$proveedores=$data->verProveedores();
     		$lay = $data->LayOutCargaProv();
-    		include 'app/views/pages/p.verProveedores.php';
+    		include 'app/views/pages/Proveedores/p.verProveedores.php';
     		$table = ob_get_clean();
     		$pagina= $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
     		$this->view_page($pagina); 
@@ -14572,7 +14862,6 @@ function ImpSolicitud2($idsol){
 
 
     function verOrdCompCesta(){
-    	//session_cache_limiter('private_no_expire');
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -14591,7 +14880,7 @@ function ImpSolicitud2($idsol){
     }
 
     function editaProveedor($idprov){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -14611,7 +14900,7 @@ function ImpSolicitud2($idsol){
     }
 
     function editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if($_SESSION['user']){
     		$data =  new pegaso;
     		ob_start();
@@ -14621,24 +14910,23 @@ function ImpSolicitud2($idsol){
     	}
     }
 
-    function verCestas(){
-		//session_cache_limiter('private_no_expire');
+    function verCestas(){	
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
     		$html=$this->load_page('app/views/modules/m.msubCestas.php');
     		ob_start();
-    			$user = $_SESSION['user']->NOMBRE;
-    			$gerencia = $_SESSION['user']->LETRA;
-    			$proveedor=$data->CreaSubMenuProv();
-    			if (count($proveedor)){
-    				include 'app/views/modules/m.msubCestas.php';
-    				$table = ob_get_clean();
-    					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-    			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-    			}
-    			$this->view_page($pagina);
+    		$user = $_SESSION['user']->NOMBRE;
+    		$gerencia = $_SESSION['user']->LETRA;
+    		$proveedor=$data->CreaSubMenuProv();
+    		include 'app/views/modules/m.msubCestas.php';
+    		$table = ob_get_clean();
+    		if (count($proveedor)){
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    		}else{
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-success"><center><h2>No existen cestas pendientes.</h2><center></div>', $pagina);
+    		}
+    		$this->view_page($pagina);
     	}else{
     		$e = "Favor de iniciar Sesión";
     		header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -14647,7 +14935,6 @@ function ImpSolicitud2($idsol){
 
 
 	function verCanasta($idprov){
-		//session_cache_limiter('private_no_expire');
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -14673,7 +14960,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function bajaFTCArticualo($ids){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			ob_start();
@@ -14693,22 +14980,20 @@ function ImpSolicitud2($idsol){
 	
 
 	function rechazarSol($ids){
-		//session_cache_limiter('private_no_expire');
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.rechazarSol.php');
+    		$html=$this->load_page('app/views/pages/compras/p.rechazarSol.php');
     		ob_start();
-
-    			$ftcart=$data->traeFTCArt($ids);
+    		$ftcart=$data->traeFTCArt($ids);
+    		include 'app/views/pages/compras/p.rechazarSol.php';
+    		$table = ob_get_clean();		
     			if (count($ftcart)){
-    				include 'app/views/pages/p.rechazarSol.php';
-    				$table = ob_get_clean();
     					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
     			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+    				$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No hay solicitudes pendientes</h2><center></div>', $pagina);
     			}
-    			$this->view_page($pagina);
+    		$this->view_page($pagina);
     	}else{
     		$e = "Favor de iniciar Sesión";
     		header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -14716,17 +15001,15 @@ function ImpSolicitud2($idsol){
 	}
 
 	function rechazaSol($ids, $motivo, $vendedor){
-		//session_cache_limiter('private_no_expire');
 		if($_SESSION['user']){
 			$data= new pegaso;
 			ob_start();
 			$recahzar = $data->rechazaSol($ids, $motivo, $vendedor);
-			$this->verSolProdVentas();
+			echo "<script>window.close(true)</script>";
 		}
 	}
 
 	function verRechazos(){
-		//session_cache_limiter('private_no_expire');
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -14748,7 +15031,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function enterado($idr){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data = new pegaso;
 			$c = new pegaso_controller_ventas;
@@ -14764,14 +15047,22 @@ function ImpSolicitud2($idsol){
 	}
 
 	function preOrdenDeCompra($partidas){
-		//session_cache_limiter('private_no_expire');
 		if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
     		$html=$this->load_page('app/views/pages/p.verRechazados.php');
     		ob_start();
-    			$preorden=$data->preOrdenDeCompra($partidas);
-    			//break;
+    			$usuario = $_SESSION['user']->NOMBRE;
+				$tipoUsuario= $_SESSION['user']->LETRA; 
+
+				if( $_SESSION['user']->POLIZA_TIPO == 'G'){
+    				$preorden=$data->preOrdenDeCompra($partidas);
+    			}elseif($tipoUsuario !='a' and $_SESSION['user']->USER_ROL != 'suministros'){
+    				echo "<script> alert('El usuario: ".$usuario." no tiene los privilegios de relizar Preordenes de compras.')</script>";
+    			}else{
+    				$preorden=$data->preOrdenDeCompra($partidas);
+    			}
+    			//exit($usuario);
     			$redireccionar = 'verCestas';
     			$pagina=$this->load_template('Pedidos');
              	$html = $this->load_page('app/views/pages/p.redirectform.php');
@@ -14783,24 +15074,22 @@ function ImpSolicitud2($idsol){
     	}			
 	}
 
-
 	function verPreOC(){
-		//session_cache_limiter('private_no_expire');
 		if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.verPreOC.php');
+    		$html=$this->load_page('app/views/pages/compras/p.verPreOC.php');
     		ob_start();
-    			$preoc = $data->verPreOC();
-    			//$ccc=$data->verCCC($idm, $cvem);
-    			if (count($preoc)){
-    				include 'app/views/pages/p.verPreOC.php';
-    				$table = ob_get_clean();
-    					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-    			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-    			}
-    			$this->view_page($pagina);
+    		$preoc = $data->verPreOC();
+    		//$ccc=$data->verCCC($idm, $cvem);
+    		include 'app/views/pages/compras/p.verPreOC.php';
+    		$table = ob_get_clean();
+    		if (count($preoc)){
+    				$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    		}else{
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No se ha realizado ninguna PreOrden de compra.</h2><center></div>', $pagina);
+    		}
+    		$this->view_page($pagina);
     	}else{
     		$e = "Favor de iniciar Sesión";
     		header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -14816,19 +15105,19 @@ function ImpSolicitud2($idsol){
         $genqr=$qr->QRpreoc($Cabecera,1);
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerVacio.jpg',10,15,205,55);
-        $pdf->Image($genqr,170,5);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
+        //$pdf->Image($genqr,170,5);
         $pdf->SetFont('Courier', 'B', 25);
         $pdf->SetTextColor(255,0,0);
-        $pdf->SetXY(110, 28);
+        $pdf->SetXY(110, 15);
   		$pdf->Write(10,'Pre Orden ');
-  		$pdf->SetXY(110, 38);
+  		$pdf->SetXY(110, 25);
   		$pdf->Write(10,utf8_decode('de Compra'));
   		$pdf->Ln(10);
         $pdf->SetTextColor(0,0,0);
-        $pdf->Ln(65);
+        $pdf->Ln(30);
         $pdf->SetFont('Arial', 'B', 15);
-        $pdf->SetXY(60, 60);
+        $pdf->SetXY(60, 30);
   		$pdf->Write(6, ''); // Control de impresiones.
   		$pdf->Ln(10);
         foreach ($Cabecera as $data){
@@ -14875,25 +15164,26 @@ function ImpSolicitud2($idsol){
             $partida= 0;
             $descTot=0;
         foreach($Detalle as $row){
-        	$subtotal += ($row->COSTO_TOTAL - $row->DESCUENTO);
+        	$descuni = ($row->DESCUENTO / $row->CANTIDAD);
+        	$subtotal += ($row->COSTO_TOTAL);
         	$descTot += ($row->DESCUENTO);
         	$iva += $row->TOT_IVA;
         	$total += ($row->COSTO_TOTAL + $row->TOT_IVA);
-        	$desp = ($row->DESCUENTO / $row->COSTO_TOTAL) * 100;
+        	$desp = ($row->DESCUENTO / ($row->CANTIDAD*($row->COSTO+$descuni))) * 100;
 
             $pdf->Cell(8,6,($row->PARTIDA),'L,T,R');
             $pdf->Cell(15,6,($row->ART),'L,T,R');
             $pdf->Cell(70,6,substr($row->DESCRIPCION, 0,45), 'L,T,R');
             $pdf->Cell(10,6,number_format($row->CANTIDAD,2),'L,T,R');
             $pdf->Cell(10,6,$row->UM,'L,T,R');
-            $pdf->Cell(18,6,'$ '.number_format($row->COSTO,2),'L,T,R');
-            $pdf->Cell(18,6,'% '.number_format($desp,2),'L,T,R');
+            $pdf->Cell(18,6,'$ '.number_format($row->COSTO+$descuni,2),'L,T,R');
+            $pdf->Cell(18,6,'% '.number_format($desp,3),'L,T,R');
             $pdf->Cell(18,6,'$ '.number_format($row->COSTO_TOTAL ,2),'L,T,R');
             $pdf->Cell(15,6,'$ '.number_format($row->TOT_IVA,2),'L,T,R');
             $pdf->Cell(15,6,'$ '.number_format($row->TOT_IVA + $row->COSTO_TOTAL,2),'L,T,R');
             $pdf->Ln();				
             $pdf->Cell(8,6,"",'L,B,R');
-            $pdf->Cell(15,6,"",'L,B,R');
+            $pdf->Cell(15,6,$row->IDPREOC,'L,B,R');
             $pdf->Cell(70,6,substr($row->DESCRIPCION, 45 , 90),'L,B,R');
             $pdf->Cell(10,6,"",'L,B,R');
             $pdf->Cell(10,6,"",'L,B,R');
@@ -14944,7 +15234,7 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(18,6,"",0);
         	$pdf->Cell(18,6,"Total",1);
-        	$pdf->Cell(18,6,'$ '.number_format($total - $descTot,2),1);
+        	$pdf->Cell(18,6,'$ '.number_format($total,2),1);
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
         	$pdf->Ln();
@@ -14956,7 +15246,11 @@ function ImpSolicitud2($idsol){
   			//echo 'Tipo: '.$tipo;
   			//break;
        // $pdf->Output( 'app/Pre_Orden_de_Compra_Pegaso_No.'.$folio.'_.pdf',$tipo);
-  			$pdf->Output( 'C:\xampp\htdocs\Preordenes\Pre_Orden_de_Compra_Pegaso_No.'.$folio.'.pdf', $tipo);
+  			if($tipo != 'd'){
+  				$pdf->Output( "C:\\xampp\\htdocs\\Preordenes\\Pre_Orden_de_Compra_No.".$folio.".pdf", $tipo);
+  			}else{
+  				$pdf->Output( "Pre_Orden_de_Compra_No.".$folio.".pdf", $tipo);
+  			}
 	}
 
 
@@ -14973,7 +15267,7 @@ function ImpSolicitud2($idsol){
 
 
 	function confirmarPreOC($doco){
-		//session_cache_limiter('private_no_expire');
+		
 		if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -14992,7 +15286,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function editaPreoc($idd){
-		//session_cache_limiter('private_no_expire');
+		
 		if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -15010,7 +15304,7 @@ function ImpSolicitud2($idsol){
 
 
 	function eliminaPartidaPreoc($idd){
-		//session_cache_limiter('private_no_expire');
+		
 		if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -15027,7 +15321,7 @@ function ImpSolicitud2($idsol){
 
 
 	function eliminaPreOC($poc){
-		//session_cache_limiter('private_no_expire');
+		
 		if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -15046,7 +15340,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function editaPartidaPreOC($idd, $newCant, $newCost){
-		//session_cache_limiter('private_no_expire');
+		
 		if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -15070,8 +15364,8 @@ function ImpSolicitud2($idsol){
     		ob_start();
     		$redireccionar="verPreOC";
     		$confirma =$data->ConfirmaPreOrden($doco, $te, $tptes, $tipo, $conf);
-    		$correos = $data->correosProv($confirma);
-    		//$correo = 'genseg@hotmail.com';
+    		//$correos = $data->correosProv($confirma);
+    		$correo = 'genseg@hotmail.com';
     		$correo = $correos;
     		$doco = $confirma;
     		$tipo ='';
@@ -15088,7 +15382,7 @@ function ImpSolicitud2($idsol){
 
 
 	function verCCC($idm, $cvem){
-		//session_cache_limiter('private_no_expire');
+		
 		if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -15111,7 +15405,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function nuevo_cc($cvem){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15135,7 +15429,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function creaCC($cvem, $nombre, $contacto, $telefono, $presup, $idm){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos'); 
@@ -15155,7 +15449,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function rechazarFTC($idca, $idp, $folio, $urgente){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos'); 
@@ -15169,35 +15463,8 @@ function ImpSolicitud2($idsol){
 		}
 	}
 
-
-	function verDocumentosMaestro($maestro){
-		//session_cache_limiter('private_no_expire');
-		if(isset($_SESSION['user'])){
-			$data= new pegaso;
-			$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.verDocumentosMaestro.php');
-    		ob_start();
-    			$idm = '';
-    			$cvem = $maestro;
-    			$infoMaestro = $data->traeMaestro($idm, $cvem);
-    			$docs=$data->verDocumentosMaestro($maestro);
-    			if (count($infoMaestro)){
-    				include 'app/views/pages/p.verDocumentosMaestro.php';
-    				$table = ob_get_clean();
-    					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-    			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-    			}
-    			$this->view_page($pagina);
-    	}else{
-    		$e = "Favor de iniciar Sesión";
-    		header('Location: index.php?action=login&e='.urlencode($e)); exit;
-    	}			
-	}
-
-
 	function verDepositos(){
-		//session_cache_limiter('private_no_expire');
+		
 			if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -15219,7 +15486,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verDepositos2($banco, $mes, $anio, $tipo){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15248,7 +15515,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verFolioFacturas($mes, $anio, $tipo){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15277,7 +15544,7 @@ function ImpSolicitud2($idsol){
 
 
 	function verAcreedores2(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15299,7 +15566,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function reasignaAcreedor($nclie, $ida, $oldclie, $saldo){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			ob_start();
@@ -15312,7 +15579,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verFolio2015(){
-		//session_cache_limiter('private_no_expire');
+		
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15334,7 +15601,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verAplicaciones2($anio, $tipo){
-    	//session_cache_limiter('private_no_expire');
+    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -15361,7 +15628,7 @@ function ImpSolicitud2($idsol){
     }
 
     function detallePagoFactura($docf){
-    	//session_cache_limiter('private_no_expire');
+    	
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15383,7 +15650,7 @@ function ImpSolicitud2($idsol){
     }
 
     function verHistorialPago($ida){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15405,7 +15672,7 @@ function ImpSolicitud2($idsol){
     }
 
     function verCPNoIdentificados(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15427,7 +15694,7 @@ function ImpSolicitud2($idsol){
     }
 
     function detalleMaestro($idm, $cvem){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15451,7 +15718,7 @@ function ImpSolicitud2($idsol){
     }
 
     function docsMaestro($cvem){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15473,7 +15740,7 @@ function ImpSolicitud2($idsol){
     }
 
     function docsSucursal($cvecl){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15495,7 +15762,7 @@ function ImpSolicitud2($idsol){
     }
 
     function pagarFacturas($items, $seleccion_cr, $total, $pagos, $mes, $anio){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15520,18 +15787,45 @@ function ImpSolicitud2($idsol){
     	}		
     }
 
+    function comprobantePago($idp, $saldop, $items, $total, $retorno){
+    	if(isset($_SESSION['user'])){
+    		$data= new pegaso;
+			$pagina=$this->load_template('Pedidos');
+    		$html=$this->load_page('app/views/pages/cobranza/p.comprobantePago.php');
+    		ob_start();
+    		$pago=$data->verPagoParaComprobante($idp);
+    			include 'app/views/pages/cobranza/p.comprobantePago.php';
+    			$table = ob_get_clean();
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    			$this->view_page($pagina);
+    				
+    	}else{
+    		$e = "Favor de iniciar Sesión";
+    		header('Location: index.php?action=login&e='.urlencode($e)); exit;
+    	}	
+    }
 
-    function aplicarPago2($idp, $saldop, $items, $total){
-    	//session_cache_limiter('private_no_expire');
+
+    function aplicarPago2($idp, $saldop, $items, $total, $retorno){
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
     		$html=$this->load_page('app/views/pages/p.pagarFacturas.php');
     		ob_start();
-
-    			$aplicaPago = $data->aplicarPago2($idp, $saldop, $items, $total);
-    			$cliente = $aplicaPago;
-    			$this->SaldosxDocumento($cliente);
+    			$aplicaPago = $data->aplicarPago2($idp, $saldop, $items, $total, $retorno);
+    			if($retorno == 'cobranza'){
+    				$redireccionar = "CarteraxCliente&cve_maestro={$aplicaPago}";
+             		$pagina=$this->load_template('Pedidos');
+		            $html = $this->load_page('app/views/pages/p.redirectformCobranza.php');
+		            include 'app/views/pages/p.redirectformCobranza.php';
+		            $this->view_page($pagina);                     
+    			}else{
+    				$redireccionar = "SaldosxDocumento&cliente={$aplicaPago}";
+             		$pagina=$this->load_template('Pedidos');
+		            $html = $this->load_page('app/views/pages/p.redirectform.php');
+		            include 'app/views/pages/p.redirectform.php';
+		            $this->view_page($pagina);
+ 	   			}
     	}else{
     		$e = "Favor de iniciar Sesión";
     		header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -15539,16 +15833,13 @@ function ImpSolicitud2($idsol){
     }
 
     function verSolClientes(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
     		$html=$this->load_page('app/views/pages/p.verSolClientes.php');
     		ob_start();
-    			
-
     			$solicitudes=$data->verSolClientes();
-
     			if (count($solicitudes)>0 ){
     				include 'app/views/pages/p.verSolClientes.php';
     				$table = ob_get_clean();
@@ -15564,7 +15855,7 @@ function ImpSolicitud2($idsol){
     }
 
     function cortarCredito($cveclie, $idsolc, $fecha, $monto){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15580,7 +15871,7 @@ function ImpSolicitud2($idsol){
     }
 
     function verClientesCorte(){
-		//session_cache_limiter('private_no_expire');
+		
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15604,7 +15895,7 @@ function ImpSolicitud2($idsol){
     
 
     function liberarDeCorte($cveclie, $monto, $dias){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15629,7 +15920,7 @@ function ImpSolicitud2($idsol){
 
 
     function verFacturasCres(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15648,7 +15939,6 @@ function ImpSolicitud2($idsol){
     }
 
     function verDeudores(){
-    	//session_cache_limiter('private_no_expire');
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15667,16 +15957,15 @@ function ImpSolicitud2($idsol){
     }
 
     function recepcionOC(){
-    	//session_cache_limiter('private_no_expire');
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.recepcionOC.php');
+    		$html=$this->load_page('app/views/pages/Recibo/p.recepcionOC.php');
     		ob_start();
     			$rol=$_SESSION['user']->USER_ROL;
     			$ordenes=$data->recepcionOC();
     			$asignaciones = $data->asignacionBodega();
-    			include 'app/views/pages/p.recepcionOC.php';
+    			include 'app/views/pages/Recibo/p.recepcionOC.php';
     			$table = ob_get_clean();
     			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
     			$this->view_page($pagina);
@@ -15687,7 +15976,7 @@ function ImpSolicitud2($idsol){
     }
 
 	function recepcionOCBdg(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15708,7 +15997,7 @@ function ImpSolicitud2($idsol){
 
 
     function asignacionesBodega(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15727,7 +16016,7 @@ function ImpSolicitud2($idsol){
 
 
     function formulario(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$ordenes=$data->formulario();	
@@ -15736,13 +16025,11 @@ function ImpSolicitud2($idsol){
 
 
     function recibirOC($doco, $tipo){
-    	//session_cache_limiter('private_no_expire');
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.recibirOC.php');
+    		$html=$this->load_page('app/views/pages/Recibo/p.recibirOC.php');
     		ob_start();
-				
     			if($tipo == 'Inicial'){
        				$valida = $data->validaOC($doco);	
     			}elseif($tipo == 'enUso'){
@@ -15751,13 +16038,12 @@ function ImpSolicitud2($idsol){
     				$valida = 'A';	
     			}
     			echo 'Valor de la validacion'.$valida.'<p>';
-    			
  				if($valida == 'A'){
     				$bloquea= $data->controlOC($doco);	
     				$cabecera=$data->OCL($doco);
     				$detalle = $data->detalleOC($doco);
     				$cierre = $data->cierreRecep($doco);
-    				include 'app/views/pages/p.recibirOC.php';
+    				include 'app/views/pages/Recibo/p.recibirOC.php';
     				$table = ob_get_clean();
     				$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
     			}else{
@@ -15771,7 +16057,6 @@ function ImpSolicitud2($idsol){
     }
 
     function rechazarOC($doco, $tipo){
-    	//session_cache_limiter('private_no_expire');
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15787,7 +16072,8 @@ function ImpSolicitud2($idsol){
 
  				if($valida == 'A'){
     				$bloquea= $data->controlOC($doco);	
-    				$rechaca = $data->rechazarOC($doco, $tipo);
+    				//$rechaca = $data->rechazarOC($doco, $tipo);
+    				$cierreOC =$data->cerrarRecepcion($doco);
     				$redireccionar = "recepcionOC";
 		             $pagina=$this->load_template('Pedidos');
 		             $html = $this->load_page('app/views/pages/p.redirectform.php');
@@ -15805,7 +16091,7 @@ function ImpSolicitud2($idsol){
 
 
     function recibeParOC($cantidad, $idp, $doco, $partida){
-		//session_cache_limiter('private_no_expire');
+		
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			/*$pagina=$this->load_template('Pedidos');
@@ -15833,7 +16119,7 @@ function ImpSolicitud2($idsol){
     }
 
     function cerrarRecepcion($doco){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15859,7 +16145,7 @@ function ImpSolicitud2($idsol){
     }	
 
     function cancelaRecepcion($doco){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -15878,8 +16164,7 @@ function ImpSolicitud2($idsol){
     }
 
     function impresionRecepcion($doco){
-    		//session_cache_limiter('private_no_expire');
-                if (isset($_SESSION['user'])){
+            if (isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
     		$html=$this->load_page('app/views/pages/p.imprimeRecepcion.php');
@@ -15899,7 +16184,7 @@ function ImpSolicitud2($idsol){
                 }
     }
 
-    function imprimeRecep($doco, $docr){
+    function imprimeRecep($doco, $docr, $tipo){
     	$data = new Pegaso;	
         $Cabecera=$data->datosFTCRecep($doco);
         $Detalle=$data->detalleFTCRecep($doco, $docr);
@@ -15909,7 +16194,6 @@ function ImpSolicitud2($idsol){
         }else{
         	$imp = 'Reimpresion';
         }
-        
         foreach ($Detalle as $a ) {
         	$folio2 = $a->ID_RECEPCION;
         	$fecha = $a->FECHA;
@@ -15922,25 +16206,25 @@ function ImpSolicitud2($idsol){
 
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerVacio.jpg',10,15,205,55);
-        $pdf->SetFont('Courier', 'B', 25);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
+        $pdf->SetFont('Courier', 'B', 20);
         $pdf->SetTextColor(255,0,0);
-        $pdf->SetXY(110, 28);
+        $pdf->SetXY(110, 15);
   		$pdf->Write(10,'Recepcion');
-  		$pdf->SetXY(110, 38);
+  		$pdf->SetXY(110, 25);
   		$pdf->Write(10,utf8_decode('Orden de Compra'));
   		$pdf->Ln(10);
         $pdf->SetTextColor(0,0,0);
         $pdf->Ln(65);
-        $pdf->SetFont('Arial', 'B', 15);
-        $pdf->SetXY(60, 60);
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->SetXY(60, 30);
   		$pdf->Write(6, ''); // Control de impresiones.
   		$pdf->Ln();
   		$pdf->Write(6,$imp.'--> Folio de Pago: '.$tp_tes.' -->Monto del pago: $ '.number_format($pago_tes,2));
   		$pdf->Ln();
 
         foreach ($Cabecera as $data){
-        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->SetFont('Arial', 'B', 7);
   		//$pdf->Write(6,'Cotizacion No:'.$data->IDSOL.utf8_decode(' Folio Pago Crédito CR-').strtoupper($data->TP_TES_FINAL).'-'.$data->FOLIO);
   		$folio = $data->CVE_DOC;
   		$pdf->Write(6,'Orden de Compra No:'.$data->CVE_DOC.' / '. $data->OC);
@@ -15966,19 +16250,34 @@ function ImpSolicitud2($idsol){
   		//$pdf->Ln();
   		$pdf->Ln();
         }
-        $pdf->SetFont('Arial', 'B', 8);
-        $pdf->Cell(8,6,"Part.",1);
-        $pdf->Cell(15,6,"Art.",1);
-        $pdf->Cell(70,6,"Descripcion",1);
-        $pdf->Cell(10,6,"Cant",1);
-        $pdf->Cell(10,6,"UM",1);
-        $pdf->Cell(18,6,"Precio",1);
-        $pdf->Cell(18,6,"Descuento",1);
-        $pdf->Cell(18,6,"Subtotal ",1);
-        $pdf->Cell(15,6,"Iva",1);
-        $pdf->Cell(15,6,"Total",1);
+        $pdf->SetFont('Arial', 'B', 6);
+        $pdf->Cell(8,6,"Part.",'L,T,R');
+        $pdf->Cell(15,6,"Art.",'L,T,R');
+        $pdf->Cell(70,6,"Descripcion",'L,T,R');
+        $pdf->SetTextColor(13,71,252 );
+        $pdf->Cell(10,6,"Recibido",'L,T,R');
+		$pdf->SetTextColor(0,0,0);
+        $pdf->Cell(10,6,"UM",'L,T,R');
+        $pdf->Cell(13,6,"Precio",'L,T,R');
+        $pdf->Cell(10,6,"Desc",'L,T,R');
+        $pdf->Cell(18,6,"Subtotal",'L,T,R');
+        $pdf->Cell(15,6,"Iva",'L,T,R');
+        $pdf->Cell(15,6,"Total",'L,T,R');
+        $pdf->Ln(3);
+        $pdf->Cell(8,6,"",'L,B,R');
+        $pdf->Cell(15,6,"",'L,B,R');
+        $pdf->Cell(70,6,"",'L,B,R');
+        $pdf->SetTextColor(253, 161, 0);
+        $pdf->Cell(10,6,"Orig",'L,B,R');
+        $pdf->SetTextColor(0,0,0);
+        $pdf->Cell(10,6,"",'L,B,R');
+        $pdf->Cell(13,6,"",'L,B,R');
+        $pdf->Cell(10,6,"",'L,B,R');
+        $pdf->Cell(18,6,"",'L,B,R');
+        $pdf->Cell(15,6,"",'L,B,R');
+        $pdf->Cell(15,6,"",'L,B,R');
         $pdf->Ln();
-        $pdf->SetFont('Arial', 'I', 7);
+        $pdf->SetFont('Arial', 'I', 6);
          	$descuento = 0;
             $subtotal = 0;
             $iva = 0;
@@ -15987,14 +16286,17 @@ function ImpSolicitud2($idsol){
             $desctotal=0;
         foreach($Detalle as $row){
         	$subtotal += ($row->COST * $row->CANTIDAD_REC);
-
             $pdf->Cell(8,6,($row->PARTIDA),'L,T,R');
             $pdf->Cell(15,6,($row->PROD),'L,T,R');
             $pdf->Cell(70,6,substr($row->NOMPROD, 0,45), 'L,T,R');
+ 			$pdf->SetTextColor(13,71,252 );
+ 			$pdf->SetFont('Arial', 'B', 6);
             $pdf->Cell(10,6,number_format($row->CANTIDAD_REC,2),'L,T,R');
+            $pdf->SetFont('Arial', 'I', 6);
+            $pdf->SetTextColor(0,0,0);
             $pdf->Cell(10,6,$row->UM,'L,T,R');
-            $pdf->Cell(18,6,'$ '.number_format($row->COST,2),'L,T,R');
-            $pdf->Cell(18,6,'% '.number_format(0,2),'L,T,R');
+            $pdf->Cell(13,6,'$ '.number_format($row->COST,2),'L,T,R');
+            $pdf->Cell(10,6,'% '.number_format(0,2),'L,T,R');
             $pdf->Cell(18,6,'$ '.number_format($row->COST * $row->CANTIDAD_REC ,2),'L,T,R');
             $pdf->Cell(15,6,'$ '.number_format( ($row->COST * $row->CANTIDAD_REC )* .16,2),'L,T,R');
             $pdf->Cell(15,6,'$ '.number_format( ($row->COST * $row->CANTIDAD_REC) * 1.16,2),'L,T,R');
@@ -16002,10 +16304,12 @@ function ImpSolicitud2($idsol){
             $pdf->Cell(8,6,"",'L,B,R');
             $pdf->Cell(15,6,"",'L,B,R');
             $pdf->Cell(70,6,substr($row->NOMPROD, 45 , 90),'L,B,R');
+            $pdf->SetTextColor(253, 161, 0);
+            $pdf->Cell(10,6,number_format($row->CANTIDAD_OC,2),'L,B,R');
+            $pdf->SetTextColor(0,0,0);
             $pdf->Cell(10,6,"",'L,B,R');
+            $pdf->Cell(13,6,"",'L,B,R');
             $pdf->Cell(10,6,"",'L,B,R');
-            $pdf->Cell(18,6,"",'L,B,R');
-            $pdf->Cell(18,6,"",'L,B,R');
             $pdf->Cell(18,6,"",'L,B,R');
             $pdf->Cell(15,6,"",'L,B,R');
             $pdf->Cell(15,6,"",'L,B,R');
@@ -16016,8 +16320,8 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(20,6,"",0);
         	$pdf->Cell(60,6,"",0);
         	$pdf->Cell(10,6,"",0);
-        	$pdf->Cell(18,6,"",0);
-        	$pdf->Cell(18,6,"SubTotal",1);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(10,6,"SubT",1);
         	$pdf->Cell(18,6,'$ '.number_format($subtotal,2),1);
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
@@ -16027,8 +16331,8 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(20,6,"",0);
         	$pdf->Cell(60,6,"",0);
         	$pdf->Cell(10,6,"",0);
-        	$pdf->Cell(18,6,"",0);
-        	$pdf->Cell(18,6,"Descuento",1);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(10,6,"Desc",1);
         	$pdf->Cell(18,6,'$ '.number_format(0,2),1);
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
@@ -16038,8 +16342,8 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(20,6,"",0);
         	$pdf->Cell(60,6,"",0);
         	$pdf->Cell(10,6,"",0);
-        	$pdf->Cell(18,6,"",0);
-        	$pdf->Cell(18,6,"IVA",1);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(10,6,"IVA",1);
         	$pdf->Cell(18,6,'$ '.number_format($subtotal * .16,2),1);
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
@@ -16049,20 +16353,20 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(20,6,"",0);
         	$pdf->Cell(60,6,"",0);
         	$pdf->Cell(10,6,"",0);
-        	$pdf->Cell(18,6,"",0);
-        	$pdf->Cell(18,6,"Total",1);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(10,6,"Total",1);
         	$pdf->Cell(18,6,'$ '.number_format($subtotal * 1.16,2),1);
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
         	$pdf->Ln();
         	
-        $pdf->Output('Pre_Orden_de_Compra_Pegaso_No.'.$folio.'_.pdf','i');
+        $pdf->Output('Recepcion_No.'.$folio.'_.pdf',$tipo);
 
     }
 
 
     function verSaldosAFavor(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -16079,15 +16383,14 @@ function ImpSolicitud2($idsol){
         }
     }
 
-    function verRecepcionDeOrdenes(){
-    	//session_cache_limiter('private_no_expire');
+    function verRecepcionDeOrdenes(){ 	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.verRecepcionDeOrdenes.php');
+    		$html=$this->load_page('app/views/pages/Tesoreria/p.verRecepcionDeOrdenes.php');
     		ob_start();
     			$recepciones = $data->verRecepcionDeOrdenes();
-    			include 'app/views/pages/p.verRecepcionDeOrdenes.php';
+    			include 'app/views/pages/Tesoreria/p.verRecepcionDeOrdenes.php';
     			$table = ob_get_clean();
     			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
     			$this->view_page($pagina);
@@ -16098,7 +16401,6 @@ function ImpSolicitud2($idsol){
     }
 
     function valRecepcion($doco, $tipo){
-    	//session_cache_limiter('private_no_expire');
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -16143,7 +16445,7 @@ function ImpSolicitud2($idsol){
 
 
     function solAutCostos($idp, $cantidad, $doco, $partida, $desc1, $desc2, $desc3, $descf, $desc1M, $desc2M, $desc3M, $descfM, $precioLista, $totalCosto, $totalPartida){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		ob_start();
@@ -16160,7 +16462,7 @@ function ImpSolicitud2($idsol){
     }
 
     function cerrarValidacion($doco){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		ob_start();
@@ -16187,8 +16489,6 @@ function ImpSolicitud2($idsol){
     	}
     }
 
-
-
    function ImpValTes($doco, $folio){
     	$data = new Pegaso;	
         $Cabecera=$data->datosFTCRecep($doco);
@@ -16206,7 +16506,7 @@ function ImpSolicitud2($idsol){
 
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerVacio.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->SetFont('Courier', 'B', 25);
         $pdf->SetTextColor(255,0,0);
         $pdf->SetXY(110, 28);
@@ -16281,7 +16581,7 @@ function ImpSolicitud2($idsol){
             $pdf->Cell(15,6,'$ '.number_format( ($row->COST * $row->CANTIDAD_REC) * 1.16,2),'L,T,R');
             $pdf->Ln();				
             $pdf->Cell(8,6,"",'L,B,R');
-            $pdf->Cell(15,6,"",'L,B,R');
+            $pdf->Cell(15,6,$row->IDPREOC,'L,B,R');
             $pdf->Cell(70,6,substr($row->NOMPROD, 45 , 90),'L,B,R');
             $pdf->Cell(10,6,"",'L,B,R');
             $pdf->Cell(10,6,"",'L,B,R');
@@ -16294,7 +16594,8 @@ function ImpSolicitud2($idsol){
         }
         	$pdf->Cell(8,6,"",0);
         	$pdf->Cell(15,6,"",0);
-        	$pdf->Cell(20,6,"",0);
+        	$pdf->Cell(20
+        		,6,"",0);
         	$pdf->Cell(60,6,"",0);
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(18,6,"",0);
@@ -16342,7 +16643,7 @@ function ImpSolicitud2($idsol){
 
 
     function cancelaValidacionRecepcion($doco){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		ob_start();
@@ -16359,7 +16660,7 @@ function ImpSolicitud2($idsol){
     }
 
     function verSolCostos(){
-		//session_cache_limiter('private_no_expire');
+		
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -16377,7 +16678,7 @@ function ImpSolicitud2($idsol){
     }
 
     function ajustaPrecioLista($ida, $doco, $par){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$datav= new pegaso_ventas;
@@ -16402,7 +16703,7 @@ function ImpSolicitud2($idsol){
     }
 
     function aceptarCosto($doco, $par, $costo_o, $costo_n){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		ob_start();
@@ -16415,7 +16716,7 @@ function ImpSolicitud2($idsol){
     }
 
     function recValConta(){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
@@ -16433,7 +16734,7 @@ function ImpSolicitud2($idsol){
     }
 
     function recibirValidacion($doco, $folio){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data = new pegaso;
     		ob_start();
@@ -16464,7 +16765,7 @@ function ImpSolicitud2($idsol){
     }
 
     function verHistorialSaldo($prov){
-    	//session_cache_limiter('private_no_expire');
+    	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -16485,21 +16786,21 @@ function ImpSolicitud2($idsol){
     	}	
     }
 
-   	function verOrdenesCompra(){
-   		//session_cache_limiter('private_no_expire');
+   	function verOrdenesCompra(){	
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
+    		$usuario = $_SESSION['user']->NOMBRE;
 			$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.verOrdenesCompra.php');
+    		$html=$this->load_page('app/views/pages/compras/p.verOrdenesCompra.php');
     		ob_start();
-    			$oc=$data->verOrdenesCompra();
-    			if (count($oc)> 0 ){
-    				include 'app/views/pages/p.verOrdenesCompra.php';
-    				$table = ob_get_clean();
-    					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-    			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-    			}
+    		$oc=$data->verOrdenesCompra();
+    		include 'app/views/pages/compras/p.verOrdenesCompra.php';
+    		$table = ob_get_clean();
+    		if (count($oc)> 0 ){
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    		}else{
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No hay Ordenes de compra por el momento.</h2><center></div>', $pagina);
+    		}
     			$this->view_page($pagina);
     	}else{
     		$e = "Favor de iniciar Sesión";
@@ -16519,19 +16820,19 @@ function ImpSolicitud2($idsol){
         $genruta = $drive->genruta($Cabecera, $Detalle, $genqr);
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/headerVacio.jpg',10,15,205,55);
-         $pdf->Image($genqr,170,5);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
+        //$pdf->Image($genqr,170,5);
         $pdf->SetFont('Courier', 'B', 25);
         $pdf->SetTextColor(255,0,0);
-        $pdf->SetXY(110, 28);
+        $pdf->SetXY(110, 15);
   		$pdf->Write(10,'Orden ');
-  		$pdf->SetXY(110, 38);
+  		$pdf->SetXY(110, 25);
   		$pdf->Write(10,utf8_decode('de Compra'));
   		$pdf->Ln(10);
         $pdf->SetTextColor(0,0,0);
         $pdf->Ln(65);
         $pdf->SetFont('Arial', 'B', 15);
-        $pdf->SetXY(60, 60);
+        $pdf->SetXY(60, 35);
   		$pdf->Write(6, ''); // Control de impresiones.
   		$pdf->Ln(10);
         foreach ($Cabecera as $data){
@@ -16577,7 +16878,7 @@ function ImpSolicitud2($idsol){
         $pdf->Cell(8,6,"Part.",1);
         $pdf->Cell(15,6,"Art.",1);
         $pdf->Cell(70,6,"Descripcion",1);
-        $pdf->Cell(15,6,"Cant",1);
+        $pdf->Cell(10,6,"Cant",1);
         $pdf->Cell(10,6,"UM",1);
         $pdf->Cell(18,6,"Precio",1);
         $pdf->Cell(18,6,"Descuento",1);
@@ -16592,28 +16893,30 @@ function ImpSolicitud2($idsol){
             $total = 0;
             $partida= 0;
             $descTot=0;
-        foreach($Detalle as $row){
+  		foreach($Detalle as $row){
+        	$descuni = ($row->DESCUENTO / $row->CANTIDAD);
         	$subtotal += ($row->COSTO_TOTAL);
         	$descTot += ($row->DESCUENTO);
         	$iva += $row->TOT_IVA;
         	$total += ($row->COSTO_TOTAL + $row->TOT_IVA);
-        	$desp = ($row->DESCUENTO / $row->COSTO_TOTAL) * 100;
+        	$desp = ($row->DESCUENTO / ($row->CANTIDAD*($row->COSTO+$descuni))) * 100;
+
 
             $pdf->Cell(8,6,($row->PARTIDA),'L,T,R');
             $pdf->Cell(15,6,($row->ART),'L,T,R');
             $pdf->Cell(70,6,substr($row->DESCRIPCION, 0,45), 'L,T,R');
-            $pdf->Cell(15,6,number_format($row->CANTIDAD,2),'L,T,R');
+            $pdf->Cell(10,6,number_format($row->CANTIDAD,2),'L,T,R');
             $pdf->Cell(10,6,$row->UM,'L,T,R');
-            $pdf->Cell(18,6,'$ '.number_format($row->COSTO + $row->DESCUENTO,2),'L,T,R');
+            $pdf->Cell(18,6,'$ '.number_format($row->COSTO + $descuni,2),'L,T,R');
             $pdf->Cell(18,6,'% '.number_format($desp,2),'L,T,R');
             $pdf->Cell(18,6,'$ '.number_format($row->COSTO_TOTAL ,2),'L,T,R');
             $pdf->Cell(15,6,'$ '.number_format($row->TOT_IVA,2),'L,T,R');
             $pdf->Cell(15,6,'$ '.number_format($row->TOT_IVA + $row->COSTO_TOTAL,2),'L,T,R');
-            $pdf->Ln(4);				
+            $pdf->Ln();				
             $pdf->Cell(8,6,"",'L,B,R');
-            $pdf->Cell(15,6,"",'L,B,R');
+            $pdf->Cell(15,6,$row->IDPREOC,'L,B,R');
             $pdf->Cell(70,6,substr($row->DESCRIPCION, 45 , 90),'L,B,R');
-            $pdf->Cell(15,6,"",'L,B,R');
+            $pdf->Cell(10,6,"",'L,B,R');
             $pdf->Cell(10,6,"",'L,B,R');
             $pdf->Cell(18,6,"",'L,B,R');
             $pdf->Cell(18,6,'$ '.number_format($row->DESCUENTO,2),'L,B,R');
@@ -16626,7 +16929,7 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(15,6,"",0);
         	$pdf->Cell(20,6,"",0);
         	$pdf->Cell(60,6,"",0);
-        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(18,6,"",0);
         	$pdf->Cell(18,6,"SubTotal",1);
         	$pdf->Cell(18,6,'$ '.number_format($subtotal + $descTot,2),1);
@@ -16637,7 +16940,7 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(15,6,"",0);
         	$pdf->Cell(20,6,"",0);
         	$pdf->Cell(60,6,"",0);
-        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(18,6,"",0);
         	$pdf->Cell(18,6,"Descuento",1);
         	$pdf->Cell(18,6,'$ '.number_format($descTot,2),1);
@@ -16648,7 +16951,7 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(15,6,"",0);
         	$pdf->Cell(20,6,"",0);
         	$pdf->Cell(60,6,"",0);
-        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(18,6,"",0);
         	$pdf->Cell(18,6,"IVA",1);
         	$pdf->Cell(18,6,'$ '.number_format(($subtotal)*.16,2),1);
@@ -16659,22 +16962,22 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(15,6,"",0);
         	$pdf->Cell(20,6,"",0);
         	$pdf->Cell(60,6,"",0);
-        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(18,6,"",0);
         	$pdf->Cell(18,6,"Total",1);
         	$pdf->Cell(18,6,'$ '.number_format(($subtotal)*1.16,2),1);
         	$pdf->Cell(10,6,"",0);
         	$pdf->Cell(20,6,"",0);
-        	$pdf->Ln();
+        	$pdf->Ln(20);
         	$pdf->SetTextColor(255,0,0);
-       		$pdf->SetXY(10, 220);
+       		//$pdf->SetXY(10, 220);
   			$pdf->Write(10,'Favor de confirmar con su Comprador la recepcion de esta Orden de Compra. ('.$folio.')');
   			$pdf->Ln(5);
-  			$pdf->Write(10,'Si tiene algun comentario o duda favor de comunicarse a FERRETERA PEGASO SA DE CV por los siguientes medios:');
+  			$pdf->Write(10,'Si tiene algun comentario o duda favor de comunicarse a  por los siguientes medios:');
   			$pdf->Ln(5);
   			$pdf->Write(10,'Con: '.$usuario);
   			$pdf->Ln(5);
-  			$pdf->Write(10,'Telefonos :  55-5555-5555 con 10 lineas o por Correo a: compras@pegaso.com');
+  			$pdf->Write(10,'Telefonos :  55-5555-5555 con 10 lineas o por Correo a: compras@gmail.com');
   			$pdf->Ln(5);
   			$pdf->Write(10,'Linea de Atencion a Quejas: 5555555555');
   			$pdf->Ln(5);
@@ -16683,9 +16986,9 @@ function ImpSolicitud2($idsol){
   			
         //$pdf->Output( 'app/Orden de Compra Pegaso No.'.$folio.'.pdf','f');
   		if($tipo2 == 'impresion'){
-  		    $pdf->Output( 'Orden de Compra Pegaso No.'.$folio.'.pdf','D');
+  		    $pdf->Output( 'Orden de Compra No.'.$folio.'.pdf','D');
   		}else{
-  		    $pdf->Output( 'C:\xampp\htdocs\Ordenes\Orden de Compra Pegaso No.'.$folio.'.pdf','f');
+  		    $pdf->Output( 'C:\xampp\htdocs\Ordenes\Orden de Compra No.'.$folio.'.pdf','f');
 			
   		}	
     }
@@ -16703,8 +17006,7 @@ function ImpSolicitud2($idsol){
     }
 
 
-    function cambiarProv($ida, $cant, $origen, $prov, $tipo){
-    	//session_cache_limiter('private_no_expire');
+    function cambiarProv($ida, $cant, $origen, $prov, $tipo){    	
     	if($_SESSION['user']){
     		$data= new pegaso;
     		$exec = $data->cambiarProv($ida, $cant, $tipo);
@@ -16712,8 +17014,9 @@ function ImpSolicitud2($idsol){
     		if($origen == 'compras'){
     			$redireccionar='verProductosLiberados';
     		}else{
-    			$redireccionar = "verCestas";		
+    			$redireccionar = "verCanasta&idprov={$prov}";		
     		}
+
     	     $pagina=$this->load_template('Pedidos');
              $html = $this->load_page('app/views/pages/p.redirectform.php');
              include 'app/views/pages/p.redirectform.php';
@@ -16722,20 +17025,19 @@ function ImpSolicitud2($idsol){
     }
 
     function verSolProveedor(){
-    	//session_cache_limiter('private_no_expire');
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.verSolProveedor.php');
+    		//$html=$this->load_page('app/views/pages/compras/p.verSolProveedor.php');
     		ob_start();
-    			$solicitudes=$data->verSolProveedor();
-    			if (count($solicitudes)> 0 ){
-    				include 'app/views/pages/p.verSolProveedor.php';
-    				$table = ob_get_clean();
-    					$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-    			}else{
-    				$pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-    			}
+    		$solicitudes=$data->verSolProveedor();
+    		include 'app/views/pages/compras/p.verSolProveedor.php';
+   			$table = ob_get_clean();	
+    		if (count($solicitudes)> 0 ){
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    		}else{
+    			$pagina = $this->replace_content('/\CONTENIDO\#/ms',$table.'<div class="alert-success"><center><h2>Felicidades no hay pendientes por cambiar de proveedor...</h2><center></div>', $pagina);
+    		}
     			$this->view_page($pagina);
     	}else{
     		$e = "Favor de iniciar Sesión";
@@ -16744,11 +17046,10 @@ function ImpSolicitud2($idsol){
     }
 
     function cambioProveedor($prov1, $id, $idpreoc){
-    	//session_cache_limiter('private_no_expire');
     	if($_SESSION['user']){
     		$data = new pegaso;
-    		$exce = $data->cambioProveedor($prov1, $id, $idpreoc);
-    		$this->verSolProveedor();
+    		$response = $data->cambioProveedor($prov1, $id, $idpreoc);
+    		return $response;
     	}
     }
 
@@ -16781,7 +17082,7 @@ function ImpSolicitud2($idsol){
 
 
 	function actFecha($tipo, $docu, $fecha){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$actualiza = $data->actFecha($tipo, $docu, $fecha);
@@ -16792,13 +17093,11 @@ function ImpSolicitud2($idsol){
 	}
 
 	function guardaEdoCta($pagos, $compras, $gastos, $anio, $mes, $cuenta, $banco){
-		//session_cache_limiter('private_no_expire');
 		if($_SESSION['user']){
 			$data = new pegaso;
 			$pagina =$this->load_template('Pedidos');
 			ob_start();
 			$guardar=$data->guardaEdoCta($pagos, $compras, $gastos);
-			 
 			 if($banco == 'Banco Az'){
 	            	$banco = 'Banco Azteca';
 	            	$cuenta = '0110239668';
@@ -16806,7 +17105,6 @@ function ImpSolicitud2($idsol){
 	            	$banco = 'Scotiabank';
 	            	$cuenta= '044180001025870734';
 	            }
-
 	           // echo 'mes'.$mes.' anio '.$anio.' cuenta '.$cuenta.' banco '.$banco;
 	           // break;
 	         $redireccionar="estado_de_cuenta_mes&mes={$mes}&banco={$banco}&cuenta={$cuenta}&anio={$anio}&nvaFechComp=''";
@@ -16843,7 +17141,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function recibeRec($id, $tipo2){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data = new pegaso;
 			ob_start();
@@ -17041,10 +17339,10 @@ function ImpSolicitud2($idsol){
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
-	    	$html=$this->load_page('app/views/pages/p.verCajaAlmacen.php');
+	    	$html=$this->load_page('app/views/pages/ventas/p.verCajaAlmacen.php');
 	    	ob_start();
 	    	$id=$data->verCajaAlmacen($pedido);
-		  		include 'app/views/pages/p.verCajaAlmacen.php';
+		  		include 'app/views/pages/ventas/p.verCajaAlmacen.php';
 		    	$table = ob_get_clean();
 		    		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
 		  // $pagina = $this->replace_content('/\CONTENIDO\#/ms',$table.'<div class="alert-danger"><center><h2>SELECCIONAR EL MES Y EL USUARIO PARA CONTINUAR.</h2><center></div>', $pagina);
@@ -17056,12 +17354,12 @@ function ImpSolicitud2($idsol){
 	}
 
 	function buscaFacturaNC($opcion, $docf){
-		//session_commit('private_no_expire');
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
 	    	$html=$this->load_page('app/views/modules/m.tiposDeNC.php');
 	    	ob_start();
+	    	$tipoUsuario =$_SESSION['user']->LETRA;
 	    	if($opcion == 0){
 	    		$solicitudes=$data->solNC();
 	    		include 'app/views/modules/m.tiposDeNC.php';
@@ -17079,7 +17377,7 @@ function ImpSolicitud2($idsol){
 	    				}		
 	    		}
 	    		echo '<label><font size="10">Refacturacion:</font></label><br/><label><font size="5">Debera de elegir la factura que desea refacturar y el motivo de la refacturacion.</font></label>';
-	    		include 'app/views/pages/p.buscaFacturaRefacturacion.php';
+	    		include 'app/views/pages/Facturacion/p.buscaFacturaRefacturacion.php';
 		    	$table = ob_get_clean();
 		   		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
 		    	$this->view_page($pagina);
@@ -17088,6 +17386,14 @@ function ImpSolicitud2($idsol){
 	    		$e = "Favor de iniciar Sesión";
 	    		header('Location: index.php?action=login&e='.urlencode($e)); exit;
 	    	}		
+	}
+
+	function nclog($docf, $tipo){
+		if($_SESSION['user']){
+			$data = new pegaso; 
+			$response=$data->nclog($docf, $tipo);
+			return $response;
+		}
 	}
 
 	function verSolRefacturacion(){
@@ -17127,8 +17433,26 @@ function ImpSolicitud2($idsol){
 	    	}	
 	}
 
+	function refacturarSAT($docf, $satUso, $satFP, $satMP, $obs, $opcion){
+		if($_SESSION['user']){
+			$data=new pegaso;
+			$pagina=$this->load_template('Pedidos');
+	    	$html=$this->load_page('app/views/pages/p.buscaFacturaRefacturacion.php');
+	    	ob_start();
+	    	$exec=$data->refacturarSAT($docf, $satUso, $satFP, $satMP, $obs, $opcion);
+		  	$redireccionar="buscaFacturaNC&opcion=1&docf={$docf}"; 
+		  	$pagina=$this->load_template('Pedidos');
+            $html = $this->load_page('app/views/pages/p.redirectform.php');
+            include 'app/views/pages/p.redirectform.php';
+            $this->view_page($pagina);            
+	  	}else{
+	    		$e = "Favor de iniciar Sesión";
+	    		header('Location: index.php?action=login&e='.urlencode($e)); exit;
+	   	}			
+	}
+
 	function refacturarDireccion($docf, $calle, $num_ext, $num_int, $colonia, $municipio, $ciudad, $referencia, $obs, $opcion, $cp){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -17147,7 +17471,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function facturaProcesoCambioFecha($docf){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			ob_start();
@@ -17158,22 +17482,32 @@ function ImpSolicitud2($idsol){
 	    	}	
 	}
 
-
 	function ejecutaRefac($opcion, $idsol){
-		if($_SESSION['user']){
-			$data = new pegaso;
-			ob_start();
-			$exec=$data->ejecutaRefac($opcion, $idsol);
-			echo "<script>window.close();</script>";
+			if($_SESSION['user']){
+				$data = new pegaso;
+				ob_start();
+				if($opcion == 6 ){
+					$exec=$data->ejecutaCyS($opcion, $idsol);
+					$this->ImprimeFacturaPegaso($exec['factura'], "d");
+				}else{
+					$exec=$data->ejecutaRefac($opcion, $idsol);
+				}	
+				if($exec['status'] == 'ok'){
+					$fecha  = date('d-m-Y');
+					//$movFactura=$data->moverFactura($exec['factura'], $exec['rfc']);
+	  				//$movNC=$data->moverNC($exec['nc'],$exec['rfc']);
+	  				$texto="Se ha creado la Prefactura:".$exec['factura'].' y la Nota de Credito: '.$exec['nc'].', para imprimir estos documentos por favor revise el modulo de impresion de facturas, gracias.';
+	  			//echo "<script>window.close();</script>"; 
+				echo "<script>alert(".$texto.")</script>";
+			}
 		}
 	}
 
-	function guardaPartida($docf, $par, $precio){
-		//session_cache_limiter('private_no_expire');
+	function guardaPartida($docf, $par, $precio, $ncant){
 		if($_SESSION['user']){
 			$data= new pegaso;
 			ob_start();
-	    	$exec=$data->guardaPartida($docf, $par, $precio);
+	    	$exec=$data->guardaPartida($docf, $par, $precio, $ncant);
 	    	return $exec;
 		  	}else{
 	    		$e = "Favor de iniciar Sesión";
@@ -17181,12 +17515,11 @@ function ImpSolicitud2($idsol){
 	    	}	
 	}
 
-	function solicitudPrecio($docf){
-		//session_cache_limiter('private_no_expire');
+	function solicitudPrecio($docf, $clie, $suso, $smp, $sfp, $obs){
 		if($_SESSION['user']){
 			$data= new pegaso;
 			ob_start();
-	    	$exec=$data->solicitudPrecio($docf);
+	    	$exec=$data->solicitudPrecio($docf, $clie, $suso, $smp, $sfp, $obs);
 	    	return $exec;
 		  	}else{
 	    		$e = "Favor de iniciar Sesión";
@@ -17195,7 +17528,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verSolicitudesNC(){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -17214,14 +17547,13 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verDetSolNC($id, $tipo, $factura){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
 	    	$html=$this->load_page('app/views/pages/p.verDetSolNC.php');
 	    	ob_start();
 	    		$solicitudes = $data->verSolNC($id);
-
 	    		if($tipo != 'CAMBIO PRECIO'){
 	    			$detalle = $data->verDetSolNC($id, $tipo);		
 	    		}else{
@@ -17239,7 +17571,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verMovInventario($producto){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -17257,7 +17589,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function ejecutarRecepcion($ida, $cantRec, $cantOr){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data=new pegaso;
 			ob_start();
@@ -17270,15 +17602,16 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verRecepDev(){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
-	    	$html=$this->load_page('app/views/pages/p.verRecepciones.php');
+	    	$html=$this->load_page('app/views/pages/Bodega/p.verRecepciones.php');
 	    	ob_start();
 	    		$recepciones = $data->verRecepDev();
+	    		$saldos = $data->saldosFacturasDevolucion($recepciones);
 	    		$ingresos =$data->verRecepOCI();
-	    		include 'app/views/pages/p.verRecepciones.php';
+	    		include 'app/views/pages/Bodega/p.verRecepciones.php';
 		    	$table = ob_get_clean();
 		   		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
 		    	$this->view_page($pagina);		
@@ -17303,7 +17636,7 @@ function ImpSolicitud2($idsol){
 		$detalle = $data->recepOCI($oc);
 		$pdf = new FPDF('P', 'mm', 'Letter');
 			$pdf->AddPage();
-			$pdf->Image('app/views/images/headerOCIrecep.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 10 );
 			$pdf->Ln(70);
 			foreach($datos as $t){
@@ -17416,7 +17749,7 @@ function ImpSolicitud2($idsol){
     */
 
 	function quitarRecepDev($folio){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data=new pegaso;
 			$response = $data->quitarRecepDev($folio);
@@ -17425,17 +17758,15 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verSolBodega(){
-		//session_cache_limiter('private_no_expire');
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
-	    	$html=$this->load_page('app/views/pages/p.verSolBodega.php');
+	    	$html=$this->load_page('app/views/pages/bodega/p.verSolBodega.php');
 	    	$rol = null;
-
 	    	ob_start();
 	    		$rol = $_SESSION['user']->USER_ROL;
 	    		$solicitudes = $data->verSolBodega();
-	    		include 'app/views/pages/p.verSolBodega.php';
+	    		include 'app/views/pages/bodega/p.verSolBodega.php';
 		    	$table = ob_get_clean();
 		   		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
 		    	$this->view_page($pagina);		
@@ -17446,7 +17777,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function quitarSum($ida){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data=new pegaso;
 			ob_start();
@@ -17459,7 +17790,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function procesarAsigAuto($ida, $tipo){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data = new pegaso;
 			ob_start();
@@ -17472,7 +17803,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verValesBodega(){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -17492,7 +17823,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verInventarioBodega(){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -17512,7 +17843,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function cierreInvBodega($datos){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -17549,7 +17880,6 @@ function ImpSolicitud2($idsol){
 	}
 
 	function invPatio(){
-		////session_cache_limiter('private_no_expire');
 		if(isset($_SESSION['user'])){
 			$data= new pegaso;
 			$pagina = $this->load_template('Menu Admin');
@@ -17558,7 +17888,11 @@ function ImpSolicitud2($idsol){
 			ob_start();
 			include 'app/views/modules/m.mCajasInventarioFisico.php';
 			$table = ob_get_clean();
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			if(count($cajas) > 0 ){
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+			}else{
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table.'<div class="alert-danger"><center><h2>No existe informacion para mostrar.</h2><center></div>', $pagina);
+			}
 			$this-> view_page($pagina);
 		}else{
 			$e = "Favor de Revisar sus datos";
@@ -17571,6 +17905,7 @@ function ImpSolicitud2($idsol){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
 	    	$html=$this->load_page('app/views/pages/p.verInventarioPatio.php');
+	    	$usuario = $_SESSION['user']->NOMBRE;
 	    	ob_start();
 	    		$inventario=$data->invPatioDetalle($caja);
 	    		include 'app/views/pages/p.verInventarioPatio.php';
@@ -17584,7 +17919,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function cierreInvPatio($datos){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -17603,7 +17938,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verValesPatio(){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -17620,17 +17955,16 @@ function ImpSolicitud2($idsol){
 	    }	
 	}
 
-	function nuevaOrdenInterna(){
-		//session_cache_limiter('private_no_expire');
+	function nuevaOrdenInterna(){	
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
-	    	$html=$this->load_page('app/views/pages/p.nuevaOrdenInterna.php');
+	    	$html=$this->load_page('app/views/pages/compras/p.nuevaOrdenInterna.php');
 	    	ob_start();
 	    		$temp = $data->temporal();
 	    		$productos=$data->traeProductosOCI();
 	    		//$proveedores = $data->traeProveedoresOCI();
-	    		include 'app/views/pages/p.nuevaOrdenInterna.php';
+	    		include 'app/views/pages/compras/p.nuevaOrdenInterna.php';
 		    	$table = ob_get_clean();
 		   		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
 		    	$this->view_page($pagina);		
@@ -17640,9 +17974,8 @@ function ImpSolicitud2($idsol){
 	    }	
 	}
 
-
 	function provOI($clave){
-		////session_cache_limiter('private_no_expire');
+		//
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$response=$data->provOI($clave);
@@ -17651,7 +17984,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function addOCI($prod, $cant, $prov, $temp){
-		////session_cache_limiter('private_no_expire');
+		//
 		if($_SESSION['user']){
 			$data = new pegaso;
 			$response = $data->addOCI($prod, $cant, $prov, $temp);
@@ -17660,7 +17993,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function delOCI($linea, $temp){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$response = $data->delOCI($linea,$temp);
@@ -17669,17 +18002,17 @@ function ImpSolicitud2($idsol){
 	}
 
 	function cerrarOCI($temp){
-		//session_cache_limiter('private_no_expire');
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
-	    	$html=$this->load_page('app/views/pages/p.nuevaOrdenInterna.php');
+	    	$html=$this->load_page('app/views/pages/compras/p.nuevaOrdenInterna.php');
 	    	ob_start();
 	    		$exec = $data->cerrarOCI($temp);
-	    		//include 'app/views/p.hp';
-		    	//$table = ob_get_clean();
-		   		//$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-		    	$this->MenuBodega2();		
+	    		$redireccionar="nuevaOrdenInterna";
+	    		$pagina=$this->load_template('Pedidos');
+            	$html = $this->load_page('app/views/pages/p.redirectform.php');
+            	include 'app/views/pages/p.redirectform.php';
+            	$this->view_page($pagina); 
 	    }else{
 	    		$e = "Favor de iniciar Sesión";
 	    		header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -17692,7 +18025,7 @@ function ImpSolicitud2($idsol){
         //$detalle = $data->detalleOCI($idoci);
 		$pdf = new FPDF('P', 'mm', 'Letter');
 			$pdf->AddPage();
-			$pdf->Image('app/views/images/headerOCIpdf.jpg',10,15,205,55);
+			$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
 			$pdf->SetFont('Arial', 'I', 10 );
 			$pdf->Ln(70);
 			foreach($datos as $t){
@@ -17783,7 +18116,7 @@ function ImpSolicitud2($idsol){
 
 
 	function verOCI(){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$pagina=$this->load_template('Pedidos');
@@ -17801,7 +18134,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function execOCI($idoci, $tipo){
-		//session_cache_limiter('private_no_expire');
+		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$response = $data->execOCI($idoci, $tipo);
@@ -17892,7 +18225,7 @@ function ImpSolicitud2($idsol){
         }
         $pdf->AddPage();
         
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->Cell(70,6,"Impresion de Folios Asignacion: ".$folio);
@@ -17952,19 +18285,15 @@ function ImpSolicitud2($idsol){
         $pdf->Output('Asignacion de Bodega.pdf','i');
 	}
 
-	function impFolioReciboBodega($doco){
+	function impFolioReciboBodega($doco, $tipo){
 		$data= new pegaso;
 		$datos = $data->impFolioReciboBodega($doco);
         $pdf = new FPDF('P','mm','Letter');
-
-        //var_dump($datos);
-        //break;
         foreach($datos as $row){
         	$folio = $row->FOLIO_IMP;
         }
         $pdf->AddPage();
-        
-        $pdf->Image('app/views/images/headerRECEPpdf.jpg',10,15,205,55);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
         $pdf->Ln(70);  
         //$pdf->Write(50,6,"RECIBO");
         $pdf->SetFont('Arial', 'B', 10);
@@ -18048,9 +18377,29 @@ function ImpSolicitud2($idsol){
 			$ids=$data->ids();
 			$verifica = $dataVid->verificarID($ids);
 			//$aplica = $data->aplica($verifica);
-
 		}
 
+	}
+
+	function verificaPreOC($i, $f){
+		if($_SESSION['user']){
+			$data = new verificaIDS;
+			$pagina=$this->load_template('Pedidos');
+	    	$html=$this->load_page('app/views/pages/VerificaIds/p.verificaPOC.php');
+	    	ob_start();
+	    		$verifica=array();
+	    		//exit(count($verifica));
+	    		if($i !='' and $f != ''){
+	    			$verifica = $data->revisionPOC($i, $f);
+	    		}
+	    		include 'app/views/pages/VerificaIds/p.verificaPOC.php';
+		    	$table = ob_get_clean();
+		   		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+		    	$this->view_page($pagina);	
+	    }else{
+	    		$e = "Favor de iniciar Sesión";
+	    		header('Location: index.php?action=login&e='.urlencode($e)); exit;
+	    }	
 	}
 
 	function solRefac($idsol, $tipo){
@@ -18069,9 +18418,10 @@ function ImpSolicitud2($idsol){
 	    	$html=$this->load_page('app/views/pages/p.verInventarioPatioGral.php');
 	    	ob_start();
 	    		$inventario=$data->invPatioGral($opcion);
-
 	    		if($opcion == 5 ){
+	    			$html=$this->load_page('app/views/pages/p.invBodegaGral.php');
 	    			echo "<script> alert('Se ha grabado el inventario)</script>";
+	    			$this->invBodegaGral();
 	    		}else{
 	    			include 'app/views/pages/p.verInventarioPatioGral.php';
 		    		$table = ob_get_clean();
@@ -18294,17 +18644,24 @@ function ImpSolicitud2($idsol){
 		}
 	}
 
-	function recibirLogistica(){
+	function recibirLogistica($ruta){
 		if($_SESSION['user']){
 			$data=new pegaso;
 			$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.recibirLogistica.php');
+    		$html=$this->load_page('app/views/pages/Reparto/p.recibirLogistica.php');
     		ob_start();
     		$tipo = 3;
-    		$logistica=$data->recibirLogistica();
-    		include 'app/views/pages/p.recibirLogistica.php';
-    		$table = ob_get_clean();
-    		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    		$rutas=$data->recibirLogistica($ruta);
+    		if($ruta == 'a'){
+    			$html=$this->load_page('app/views/pages/Reparto/m.recibirRutas.php');
+    			include 'app/views/pages/Reparto/m.recibirRutas.php';
+    			$table = ob_get_clean();
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    		}else{
+    			include 'app/views/pages/Reparto/p.recibirLogistica.php';
+    			$table = ob_get_clean();
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    		}
     		$this->view_page($pagina);
 		}
 	}
@@ -18326,13 +18683,17 @@ function ImpSolicitud2($idsol){
 	function seguimientoCajas(){
 		if($_SESSION['user']){
 			$data=new pegaso;
-			$pagina=$this->load_template('Pedidos');
+			$pagina=$this->load_template_popup('Pedidos');
     		$html=$this->load_page('app/views/modules/m.seguimientoCajas.php');
     		ob_start();
     		$mes=$data->meses();
     		include 'app/views/modules/m.seguimientoCajas.php';
     		$table = ob_get_clean();
-    		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+	   		if(count($mes)> 0){
+	    		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+	    	}else{
+	    		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No existen aún folios de facturación.</h2><center></div>', $pagina);
+	    	}
     		$this->view_page($pagina);
 		}
 	}
@@ -18340,7 +18701,7 @@ function ImpSolicitud2($idsol){
 	function detalleCajasMensual($mes, $anio){
 		if($_SESSION['user']){
 			$data=new pegaso;
-			$pagina=$this->load_template('Pedidos');
+			$pagina=$this->load_template_popup('Pedidos');
     		$html=$this->load_page('app/views/modules/m.seguimientoCajasDia.php');
     		ob_start();
     		//$dias = $data->seguimientoCajas($mes, $anio);
@@ -18355,13 +18716,14 @@ function ImpSolicitud2($idsol){
 	function seguimientoCajasDiaDetalle($mes, $anio, $dia){
 		if($_SESSION['user']){
 			$data=new pegaso;
-			$pagina=$this->load_template('Pedidos');
-    		$html=$this->load_page('app/views/pages/p.seguimientoCajaDiaDetalle.php');
+			$pagina=$this->load_template_popup('Pedidos');
+    		$html=$this->load_page('app/views/pages/cobranza/p.seguimientoCajaDiaDetalle.php');
     		ob_start();
     		//$dias = $data->seguimientoCajas($mes, $anio);
     		$rol = $_SESSION['user']->USER_ROL;
+    		$tipo2 = $_SESSION['user']->LETRA;
     		$dias=$data->seguimientoCajasDiaDetalle($mes, $anio,$dia);
-    		include 'app/views/pages/p.seguimientoCajaDiaDetalle.php';
+    		include 'app/views/pages/cobranza/p.seguimientoCajaDiaDetalle.php';
     		$table = ob_get_clean();
     		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
     		$this->view_page($pagina);
@@ -18381,24 +18743,26 @@ function ImpSolicitud2($idsol){
             $this->view_page($pagina);                     
     	}
 
-	function impPreFact($idc){
+	function impPreFact($idc,$docf, $tipo, $cajas){
 		$data= new pegaso;
 		$qr= new qrpegaso;
 		$usuario =$_SESSION['user']->NOMBRE;
-		$Cabecera = $data->impPreFactCabecera($idc);
-        $Detalle = $data->impPreFactDetalle($idc);
+		$hoy =date('d-m-Y H:i:s');
+		$cerrar = $data->cerrarCaja($idc, $docf, $tipo, $cajas);
+		$Cabecera = $data->impPreFactCabecera($idc, $cajas);
+        $Detalle = $data->impPreFactDetalle($idc, $cajas);
         $tipo = 3;
         $genqr = $qr->QRpreFact($Cabecera, $tipo);
         $pdf = new FPDF('P','mm','Letter');
        	$pdf->AddPage();
-        $pdf->Image('app/views/images/headerVacio2.png',10,1,205,35);
-        $pdf->Image($genqr,180,8);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
+        //$pdf->Image($genqr,180,8);
         $pdf->SetFont('Courier', 'B', 25);
         $pdf->SetTextColor(255,0,0);
         $pdf->SetXY(110, 10);
-  		$pdf->Write(10,'PREFACTURA ');
+  		$pdf->Write(10,'PREFACTURA');
   		$pdf->SetXY(110, 20);
-  		$pdf->Write(10,utf8_decode('CAJA: '.$idc));
+  		$pdf->Write(10,utf8_decode('No. '.$idc));
   		//$pdf->Ln(10);
         $pdf->SetTextColor(0,0,0);
         $pdf->Ln(50);
@@ -18410,9 +18774,9 @@ function ImpSolicitud2($idsol){
         	$folio = $data->ID;
         	$pedido = $data->SUPEDIDO;
         $pdf->SetFont('Arial', 'B', 7);
-  		$pdf->Write(6,'Pedido:'.$data->CVE_FACT);
+  		$pdf->Write(6,'Pedido:'.$data->CVE_FACT.' -- Fecha de Prefactura'.$data->FECHA);
   		$pdf->Ln(4);
-  		$pdf->Write(6,'Usuario : '.$data->USUARIO);
+  		$pdf->Write(6,'Usuario Embalaje: '.$data->USUARIO.' ---> Usuario Imprime: '.$usuario.'---> Fecha de Impresion:'.$hoy);
   		$pdf->Ln(4);
   		$pdf->Write(6,'Cliente : ('.$data->CLAVE.')'.$data->NOMBRE);
   		$pdf->Ln(4);
@@ -18426,14 +18790,16 @@ function ImpSolicitud2($idsol){
   		$pdf->Ln(8);
         }
         $pdf->SetFont('Arial', 'B', 6);
-        $pdf->Cell(8,6,"Part.",1);
-        $pdf->Cell(15,6,"Art.",1);
-        $pdf->Cell(70,6,"Descripcion",1);
-        $pdf->Cell(15,6,"Cant",1);
+        $pdf->Cell(6,6,"Part.",1);
+        $pdf->Cell(13,6,"Art.",1);
+        $pdf->Cell(13,6,"Clave SAT",1);
+        $pdf->Cell(13,6,"Unidad SAT",1);
+        $pdf->Cell(60,6,"Descripcion",1);
+        $pdf->Cell(8,6,"Cant",1);
         $pdf->Cell(10,6,"UM",1);
-        $pdf->Cell(18,6,"Precio",1);
-        $pdf->Cell(18,6,"Descuento",1);
-        $pdf->Cell(18,6,"Subtotal ",1);
+        $pdf->Cell(13,6,"Precio",1);
+        $pdf->Cell(13,6,"Descuento",1);
+        $pdf->Cell(15,6,"Subtotal ",1);
         $pdf->Cell(15,6,"Iva",1);
         $pdf->Cell(15,6,"Total",1);
         $pdf->Ln();
@@ -18445,101 +18811,115 @@ function ImpSolicitud2($idsol){
             $partida= 0;
             $descTot=0;
         foreach($Detalle as $row){
-        	$subtotal += (0);
-        	$descTot += (0);
-        	$iva += 0;
-        	$total += 0;
+        	$subtotal += ($row->PRECIO * $row->CANTIDAD);
+        	$descTot += ($row->PRECIO*(($row->DESCUENTO/100)*$row->CANTIDAD));
+        	$iva += (($row->PRECIO * $row->CANTIDAD)-(($row->PRECIO*($row->DESCUENTO/100))*$row->CANTIDAD))*.16;
+        	$total += (($row->PRECIO * $row->CANTIDAD)-(($row->PRECIO*($row->DESCUENTO/100))*$row->CANTIDAD))*1.16;
         	$desp = 0;
 
-            $pdf->Cell(8,6,($row->PARTIDA),'L,T,R');
-            $pdf->Cell(15,6,($row->ARTICULO),'L,T,R');
-            $pdf->Cell(70,6,substr($row->DESCRIPCION, 0,45), 'L,T,R');
-            $pdf->Cell(15,6,number_format($row->CANTIDAD,2),'L,T,R');
+            $pdf->Cell(6,6,($row->PARTIDA),'L,T,R');
+            $pdf->Cell(13,6,($row->ARTICULO),'L,T,R');
+            $pdf->Cell(13,6,($row->CLAVE_SAT),'L,T,R');
+           	$pdf->Cell(13,6,($row->UNIDAD_SAT),'L,T,R');
+            $pdf->Cell(60,6,substr(html_entity_decode($row->DESCRIPCION,ENT_QUOTES), 0,45), 'L,T,R');
+            $pdf->Cell(8,6,number_format($row->CANTIDAD,2),'L,T,R');
             $pdf->Cell(10,6,$row->UM,'L,T,R');
-            $pdf->Cell(18,6,'$ '.number_format(0,2),'L,T,R');
-            $pdf->Cell(18,6,'% '.number_format(0,2),'L,T,R');
-            $pdf->Cell(18,6,'$ '.number_format(0 ,2),'L,T,R');
-            $pdf->Cell(15,6,'$ '.number_format(0,2),'L,T,R');
-            $pdf->Cell(15,6,'$ '.number_format(0,2),'L,T,R');
+            $pdf->Cell(13,6,'$ '.number_format($row->PRECIO,2),'L,T,R');
+            $pdf->Cell(13,6,'% '.number_format($row->DESCUENTO,2),'L,T,R');
+            $pdf->Cell(15,6,'$ '.number_format(($row->PRECIO * $row->CANTIDAD)-(($row->PRECIO * ($row->DESCUENTO/100))*$row->CANTIDAD),2),'L,T,R');
+            $pdf->Cell(15,6,'$ '.number_format((($row->PRECIO * $row->CANTIDAD)-(($row->PRECIO*($row->DESCUENTO/100))*$row->CANTIDAD))*.16,2),'L,T,R');
+            $pdf->Cell(15,6,'$ '.number_format((($row->PRECIO * $row->CANTIDAD)-(($row->PRECIO*($row->DESCUENTO/100))*$row->CANTIDAD))*1.16,2),'L,T,R');
             $pdf->Ln(4);				
+            $pdf->Cell(6,6,"",'L,B,R');
+            $pdf->Cell(13,6,"",'L,B,R');
+            $pdf->Cell(13,6,"",'L,B,R');
+            $pdf->Cell(13,6,"",'L,B,R');
+            $pdf->Cell(60,6,substr(html_entity_decode($row->DESCRIPCION,ENT_QUOTES), 45 , 90),'L,B,R');
             $pdf->Cell(8,6,"",'L,B,R');
-            $pdf->Cell(15,6,"",'L,B,R');
-            $pdf->Cell(70,6,substr($row->DESCRIPCION, 45 , 90),'L,B,R');
-            $pdf->Cell(15,6,"",'L,B,R');
             $pdf->Cell(10,6,"",'L,B,R');
-            $pdf->Cell(18,6,"",'L,B,R');
-            $pdf->Cell(18,6,'$ '.number_format(0,2),'L,B,R');
-            $pdf->Cell(18,6,"",'L,B,R');
+            $pdf->Cell(13,6,"",'L,B,R');
+            $pdf->Cell(13,6,'$ '.number_format(($row->PRECIO*($row->DESCUENTO/100)),2),'L,B,R');
+            $pdf->Cell(15,6,"",'L,B,R');
             $pdf->Cell(15,6,"",'L,B,R');
             $pdf->Cell(15,6,"",'L,B,R');
             $pdf->Ln();
         }
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(25,6,"",0);
         	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(63,6,"",0);
         	$pdf->Cell(15,6,"",0);
-        	$pdf->Cell(20,6,"",0);
-        	$pdf->Cell(60,6,"",0);
-        	$pdf->Cell(15,6,"",0);
-        	$pdf->Cell(18,6,"",0);
-        	$pdf->Cell(18,6,"SubTotal",1);
-        	$pdf->Cell(18,6,'$ '.number_format($subtotal + $descTot,2),1);
-        	$pdf->Cell(10,6,"",0);
-        	$pdf->Cell(20,6,"",0);
-        	$pdf->Ln();
-			$pdf->Cell(8,6,"",0);
-        	$pdf->Cell(15,6,"",0);
-        	$pdf->Cell(20,6,"",0);
-        	$pdf->Cell(60,6,"",0);
-        	$pdf->Cell(15,6,"",0);
-        	$pdf->Cell(18,6,"",0);
-        	$pdf->Cell(18,6,"Descuento",1);
-        	$pdf->Cell(18,6,'$ '.number_format($descTot,2),1);
-        	$pdf->Cell(10,6,"",0);
-        	$pdf->Cell(20,6,"",0);
-        	$pdf->Ln();
-			$pdf->Cell(8,6,"",0);
-        	$pdf->Cell(15,6,"",0);
-        	$pdf->Cell(20,6,"",0);
-        	$pdf->Cell(60,6,"",0);
-        	$pdf->Cell(15,6,"",0);
-        	$pdf->Cell(18,6,"",0);
-        	$pdf->Cell(18,6,"IVA",1);
-        	$pdf->Cell(18,6,'$ '.number_format(($subtotal)*.16,2),1);
-        	$pdf->Cell(10,6,"",0);
-        	$pdf->Cell(20,6,"",0);
-        	$pdf->Ln();
         	$pdf->Cell(8,6,"",0);
-        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(15,6,"SubTotal",1);
+        	$pdf->Cell(15,6,'$ '.number_format($subtotal,2),1);
+        	$pdf->Cell(13,6,"",0);
         	$pdf->Cell(20,6,"",0);
-        	$pdf->Cell(60,6,"",0);
+        	$pdf->Ln();
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(25,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(63,6,"",0);
         	$pdf->Cell(15,6,"",0);
-        	$pdf->Cell(18,6,"",0);
-        	$pdf->Cell(18,6,"Total",1);
-        	$pdf->Cell(18,6,'$ '.number_format(($subtotal)*1.16,2),1);
-        	$pdf->Cell(10,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(15,6,"Descuento",1);
+        	$pdf->Cell(15,6,'$ '.number_format($descTot,2),1);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(20,6,"",0);
+        	$pdf->Ln();
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(25,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(63,6,"",0);
+        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(15,6,"IVA",1);
+        	$pdf->Cell(15,6,'$ '.number_format(($subtotal-$descTot)*.16,2),1);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(20,6,"",0);
+        	$pdf->Ln();
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(25,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(63,6,"",0);
+        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(15,6,"Total",1);
+        	$pdf->Cell(15,6,'$ '.number_format(($subtotal-$descTot)*1.16,2),1);
+        	$pdf->Cell(13,6,"",0);
         	$pdf->Cell(20,6,"",0);
         	$pdf->Ln(5);
         	$pdf->SetTextColor(255,0,0);
        		$pdf->SetXY(10, 220);
   			$pdf->Write(10,'Favor de confirmar con el Cliente la entrega de este pedido. ('.$pedido.')');
   			$pdf->Ln(3);
-  			$pdf->Write(10,'Si tiene algun comentario o duda favor de comunicarse a FERRETERA PEGASO SA DE CV por los siguientes medios:');
+  			$pdf->Write(10,'Si tiene algun comentario o duda favor de comunicarse a  por los siguientes medios:');
   			$pdf->Ln(3);
   			$pdf->Write(10,'Con: '.$usuario);
   			$pdf->Ln(3);
-  			$pdf->Write(10,'Telefonos :  55-5555-5555 con 10 lineas o por Correo a: logistica@pegaso.com');
+  			$pdf->Write(10,'Telefonos :  55-5555-5555 con 10 lineas o por Correo a: logistica@gamil.com');
   			$pdf->Ln(3);
   			$pdf->Write(10,'Linea de Atencion a Quejas: 5555555555');
   			$pdf->Ln(5);
   			$pdf->SetFont('Arial','',14);
-  			$pdf->Write(10, '"DOCUMENTO INTENCIONALMENTE CON VALORES EN 0.00"');
-  			$pdf->Ln(5);
-  			$pdf->Write(10,'"DOCUMENTO INFORMATIVO SIN VALIDEZ OFICIAL O FISCAL"');
-  			
+  			//$pdf->Write(10, '"DOCUMENTO INTENCIONALMENTE CON VALORES EN 0.00"');
+  			//$pdf->Ln(5);
+  			$pdf->Write(10,'"DOCUMENTO SIN VALIDEZ FISCAL"');
         //$pdf->Output( 'app/Orden de Compra Pegaso No.'.$folio.'.pdf','f');
-  		    $pdf->Output( 'C:\xampp\htdocs\Prefacturas\Prefactura Caja No.'.$folio.'.pdf','D');
+  		    $pdf->Output( 'Prefactura Caja No.'.$folio.'.pdf','D');
 			
   	}	
-
 
   	function verComprobantesRecibo($idc){
   		if($_SESSION['user']){
@@ -18555,11 +18935,827 @@ function ImpSolicitud2($idsol){
   		}
   	}
 	
-  	function facturar($idc, $fp, $mp, $uso, $cp){
+  	function facturar($idc, $uso, $tpago, $mpago, $cp, $rel, $ocdet, $entdet){
   		if($_SESSION['user']){
   			$data = new pegaso;
-  			$response = $data->creaFactura($idc, $fp, $mp, $uso, $cp);
+  			$fact = new factura;
+  			$ctrl = new pegaso_controller_cobranza;
+  			$idcc='';
+  			if(strpos($idc, ",")!==False){
+  				$idcc = $idc;
+  				$union = $fact->unionCajas($idc);
+  				$idc = $union;
+  				if($idc==1){
+  					return $response = array("status"=>'No',"Motivo"=>'Almenos una de las cajas seleccionadas ya ha sido facturada, por favor actualizar la pagina.');
+  				}
+  			}
+  			$response = $fact->nuevafactura($idc, $uso, $tpago, $mpago, $cp, $rel, $ocdet, $entdet);
+  			if($response['status'] == 'ok'){
+				//$actCajas=$data->actCajasParFact($idcc);
+				$factura='c:\xampp\htdocs\Facturas\FacturasJson\\'.trim($response['rfc']).'('.$response['factura'].')'.$response['fecha'].'.xml';
+				$a=$data->leeXML($factura); 
+  				$infoXML = $data->insertarArchivoXMLCargado($archivo=$factura, $tipo='F', $a);
+  				$factura = $response['factura'];
+  				$this->ImprimeFacturaPegaso($response['factura'], $destino='f');
+  				$correo=$_SESSION['user']->USER_EMAIL;
+  				$env=$ctrl->enviarFact($response['factura'],$correo, $mensaje="Correo generado de forma automatica");
+  			}elseif($response['status'] == 'detallista'){
+  				echo '<script> alert("Las facturas Detallistas tardan en aparacer hasta 30 minutos, favor de esperar")</script>';
+  				echo '<a href="'.$response['archivo'].'" download >Descarga Addenda</a><br/>';
+				echo '<a href="#" onclick="javascritp:window.self.close();" class="btn btn-info">Cerrar ventana</a>';
+				$correo='genseg@hotmail.com';    /// correo electronico.
+        		$_SESSION['correo']=$correo;
+        		$_SESSION['docf'] = $response['archivo'];   //// guardamos los datos en la variable goblal $_SESSION.
+        		$_SESSION['titulo'] = 'Facturar el documento '.$response['archivo'];   //// guardamos los datos en la variable global ESSION
+        		include 'app/mailer/send.ComplementoDetallista.php';
+  			}
+  			if(strpos($idcc, ",")!==False){
+  				$cerrarUnion=$fact->cerrarUnionCajas($idcc, $factura);
+  			}
   			return $response;
+  		}
+  	}
+
+function ImprimeFacturaPegaso($factura, $destino){
+  		$data= new pegaso;
+		$qr= new qrpegaso;	
+		$letras=new NumberToLetterConverter;
+		$usuario=$_SESSION['user']->NOMBRE;
+		$DF=$data->traeDF($ide= 1);
+		$Cabecera=$data->facturaPegaso($factura);
+		$fiscal=$data->infoFiscal($factura);
+        $Detalle=$data->detalleFacturaPegaso($factura);
+        $cancelaciones = $data->traeCancelaciones($factura);
+        $tipo=3;
+        $genqr=$qr->QRFactura($Cabecera, $fiscal);
+        $pdf=new FPDF('P','mm','Letter');
+       	$pdf->AddPage();
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],5,1);
+        if(substr($factura,0,3)=='NCR' or substr($factura,0,3)=='NCS' or substr($factura,0,3)=='NCD' or substr($factura,0,3)=='NCB'){
+        	$tipoComp = 'E (EGRESO)';
+        	$tipoDoc = 'Nota de Credito';
+        }else{
+       		$tipoComp = 'I (INGRESO)';
+        	$tipoDoc = 'Factura';
+        }
+        foreach ($fiscal as $dataF) {
+        	$uuid = $dataF->UUID;
+        	$selloSAT = $dataF->SELLOSAT;
+        	$selloCFD = $dataF->SELLOCFD;
+        	$NoCertiSat= $dataF->NOCERTIFICADOSAT;
+        	$fechaTimbre =$dataF->FECHATIMBRADO;
+        	$certificado = $dataF->CERTIFICADO;
+        	$sello = $dataF->SELLO;
+        	$version =$dataF->VERSIONSAT;
+        	$rfcProv=$dataF->RFCPROV;
+        	$certcontri=$dataF->NO_CERT_CONTR;
+        	$formapago = $dataF->FORMAPAGO;
+        	$metodopago = $dataF->METODOPAGO;
+        	$moneda=$dataF->MONEDA;
+        	$tipocambio = $dataF->TIPOCAMBIO;
+        	$lugar = $dataF->LUGAREXPEDICION;
+        	$cadenaSat = '||'.$version.'|'.$uuid.'|'.$fechaTimbre.'|'.$rfcProv.'|'.$selloSAT.'|'.$NoCertiSat;
+        	$usocfdi = $dataF->USO_CFDI;
+        }
+
+        $pdf->SetFont('Courier','B', 6);
+        $pdf->SetXY(75, 1);
+  		$pdf->Write(10,'Domicilio Fiscal: '.$DF->CALLE.', '.$DF->EXTERNO.', '.$DF->INTERNO);
+  		$pdf->SetXY(75, 5);
+  		$pdf->Write(10,'Col:'.$DF->COLONIA.', CP: '.$DF->CP);
+  		$pdf->SetXY(75, 9);
+  		$pdf->Write(10, $DF->DELEGACION.', '.$DF->ESTADO);
+        $pdf->SetXY(75, 13);
+  		$pdf->Write(10,'RFC:'.$DF->RFC.'Regimen Fiscal:'.$DF->REGIMEN_FISCAL);
+        $pdf->SetXY(75, 17);
+  		$pdf->Write(10,'');
+        $pdf->SetXY(75, 21);
+        $pdf->Write(10,'LUGAR DE EXPEDICION: '.$lugar);
+        $pdf->SetXY(140, 1);
+
+        $pdf->SetFont('Courier','B',8);
+  		$pdf->Write(10,$tipoDoc);
+  		$pdf->SetXY(140, 5);
+  		$pdf->Write(10,$factura);
+  		$pdf->SetXY(140, 9);
+  		$pdf->Write(10,'Folio Fiscal: ');
+  		$pdf->SetXY(140, 13);
+  		$pdf->Write(10,$uuid);
+  		$pdf->SetXY(140, 17);
+		$pdf->Write(10,'Fecha y Hora certificacion: ');
+  		$pdf->SetXY(140, 21);
+  		$pdf->Write(10,$fechaTimbre);
+  		$pdf->SetXY(140, 25);
+  		$pdf->Write(10,'No. Serie del Certificado SAT: ');
+  		$pdf->SetXY(140, 29);
+  		$pdf->Write(10,$NoCertiSat);
+  		$pdf->SetXY(140, 33);
+  		$pdf->Write(10,'No. Serie del Certificado');
+  		$pdf->SetXY(140, 37);
+  		$pdf->Write(10,'Contribuyente:');
+		$pdf->SetXY(140, 41);
+  		$pdf->Write(10,$certcontri);
+  		$pdf->SetXY(140, 45);
+  		$pdf->Write(10,'Forma Pago: '.$formapago.' Metodo Pago: '.$metodopago.' ');
+  		$pdf->SetXY(140, 49);
+  		$pdf->Write(10,'Moneda / Tipo de Cambio: '.$moneda.'/'.$tipocambio);
+  		$pdf->SetXY(140, 53);
+  		$pdf->Write(10,'USO CFDI:'.$usocfdi);
+  		$pdf->SetXY(140, 57);
+  		$pdf->Write(10,'Tipo de Comprobante: '.$tipoComp);
+        $pdf->SetXY(140, 60);
+        if(count($cancelaciones) > 0){
+        	$pdf->Write(10,'Relacion:'.'04 Cancela y Sust.');
+  			$pdf->SetXY(140, 64);
+  			$pdf->Write(10,'UUID:');
+        	$y = 64;	
+        	foreach ($cancelaciones as $key) {
+        		$y = $y + 4;	
+        		$pdf->SetXY(140,$y);
+  				$pdf->Write(10, $key->UUID_ORIGINAL);	
+        	}
+        }
+        $pdf->SetTextColor(0,0,0);
+        $pdf->Ln(50);
+        $pdf->SetFont('Arial', 'B', 15);
+        $pdf->SetXY(50, 30);
+  		$pdf->Write(6, ''); // Control de impresiones.
+        $pdf->Ln(8);
+        foreach ($Cabecera as $data){
+        	$pedido = $data->PEDIDO_CLIENTE;
+        	$documento = $data->DOCUMENTO;
+        	$maestro= isset($data->MAESTRO)? $data->MAESTRO:'';
+        $pdf->SetFont('Arial', 'B', 7);
+  		$pdf->Write(6,'Usuario Imprime: '.$usuario);
+  		$pdf->Ln(4);
+  		$pdf->Write(6,'Cliente : ('.$data->CLAVE.')'.$data->NOMBRE.' RFC: '.$data->RFC);
+  		$pdf->Ln(4);
+  		$pdf->Write(6,'Direccion: Calle :'.$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F);
+  		$pdf->Ln(4);
+  		$direccionCompleta='Direccion: Calle :'.$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F;
+  		//if()
+  		//$pdf->Write(6,'Calle (continuacion):'.$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F);
+  		$pdf->Write(6,'Colonia: '.$data->COLONIA_F.' Estado: '.$data->ESTADO_F);
+  		$pdf->Ln(4);
+  		$pdf->Write(6,'Codigo Postal: '.$data->CP_F.' Pais: '.$data->PAIS_F);
+  		$pdf->Ln(4);
+  		$pdf->Write(6,'Pedido Cliente:'.$data->PEDIDO_CLIENTE.' -- Pedido: '.$data->COTIZACION.'-- Prefactura: PF'.$data->CAJAF);
+  		$pdf->Ln(10);
+  		if(!empty($data->CALLE_E)){
+  			$pdf->Write(6,'DIRECCION DE ENVIO:');
+  			$pdf->Ln(4);
+  			$pdf->Write(6,'Direccion Envio Calle :'.$data->CALLE_E.', Num Ext:'.$data->EXTERIOR_E.', Num Int:'.$data->INTERIOR_E);
+  			$pdf->Ln(4);
+  			$pdf->Write(6,'Colonia: '.$data->COLONIA_E.' Estado: '.$data->ESTADO_E);
+  			$pdf->Ln(6);
+  			$pdf->Write(6,'Codigo Postal: '.$data->CP_E.', Pais: '.$data->PAIS_F);
+  			$pdf->Ln(6);
+  		}
+  		if(!empty($data->OBSERVACION)){
+  			$pdf->Write(6,'Observaciones del cliente:'.substr($data->OBSERVACION,0,65));
+  			$pdf->Ln(4);
+  			$pdf->Write(6, substr($data->OBSERVACION, 81, 150));
+  				if(substr($tipoDoc,0,1)!= 'N'){
+  					$pdf->Ln(4);
+  					$pdf->Write(6, substr($data->OBSERVACIONES,0, 65));
+  					$pdf->Ln(4);
+  					$pdf->Write(6, 'Banco y Cuenta de Deposito: '.$data->BANCO_PEGASO);
+  					$pdf->Ln(4);
+  					$pdf->Write(6, 'Banco y Cuenta Origen: '.$data->BANCO_EMISOR.' / '.$data->CTA_EMISORA);
+  					$pdf->Ln(6);	
+  				}
+  			}
+  		}
+  		$pdf->SetFont('Arial', 'B', 6);
+        $pdf->Cell(6,6,"Part.",1);
+        $pdf->Cell(13,6,"Art.",1);
+        $pdf->Cell(13,6,"Clave SAT",1);
+        $pdf->Cell(13,6,"Unidad SAT",1);
+        $pdf->Cell(60,6,"Descripcion",1);
+        $pdf->Cell(8,6,"Cant",1);
+        $pdf->Cell(10,6,"UM",1);
+        $pdf->Cell(13,6,"Precio",1);
+        $pdf->Cell(13,6,"Descuento",1);
+        $pdf->Cell(15,6,"Subtotal ",1);
+        $pdf->Cell(15,6,"Iva",1);
+        $pdf->Cell(15,6,"Total",1);
+        $pdf->Ln();
+        $pdf->SetFont('Arial', 'I', 6);
+         	$descuento = 0;
+            $subtotal = 0;
+            $iva = 0;
+            $total = 0;
+            $partida= 0;
+            $descTot=0;
+            $PARTIDA=0;
+        foreach($Detalle as $row){
+        	if($row->CANTIDAD > 0){
+        	$PARTIDA++;
+        	$descpor=number_format((($row->DESC1/($row->PRECIO * $row->CANTIDAD)) *100),2,".","");
+        	$descuni = $row->PRECIO * ($descpor * 0.0100);
+        	$subtotal += ($row->PRECIO * $row->CANTIDAD);
+        	$descTot += ($descuni*$row->CANTIDAD);
+        	$iva += (($row->PRECIO * $row->CANTIDAD)-$row->DESC1)*.16;
+        	$total += (($row->PRECIO * $row->CANTIDAD)-$row->DESC1)*1.16;
+        	$desp = 0;
+        	$m = $total;
+			$Monto=number_format($m,0);
+			$M1=number_format($m,2);
+			$M4=substr($M1,0,-2);
+		    $centavos=substr($M1,-2);
+		   	$m5= $M4.'00';
+		   	$res=$letras->to_word($m5);   
+		    $descr=strlen($row->DESCRIPCION); 
+            
+		        if ($centavos == 00){
+		        	$leyenda = 'PESOS CON 00/100 MN';
+		        }else{
+		        	$leyenda = 'PESOS CON '.$centavos.'/100 MN';
+		        }
+            $pdf->Cell(6,6,($PARTIDA),'L,T,R');
+            $pdf->Cell(13,6,(substr($row->ARTICULO,0,8)),'L,T,R');
+            $pdf->Cell(13,6,($row->CLAVE_SAT),'L,T,R');
+           	$pdf->Cell(13,6,($row->MEDIDA_SAT),'L,T,R',0, 'C');
+            $pdf->Cell(60,6,substr($row->DESCRIPCION, 0,45), 'L,T,R');
+            $pdf->Cell(8,6,number_format($row->CANTIDAD,2),'L,T,R');
+            $pdf->Cell(10,6,$row->UM,'L,T,R',0, 'C');
+            $pdf->Cell(13,6,'$ '.number_format($row->PRECIO,2),'L,T,R',0, 'R');
+            $pdf->Cell(13,6,'% '.number_format($descpor,2),'L,T,R',0,'R');
+            $pdf->Cell(15,6,'$ '.number_format(($row->PRECIO * $row->CANTIDAD)-$row->DESC1,2),'L,T,R',0, 'R');
+            $pdf->Cell(15,6,'$ '.number_format((($row->PRECIO * $row->CANTIDAD)-($row->DESC1))*.16,2),'L,T,R',0, 'R');
+            $pdf->Cell(15,6,'$ '.number_format((($row->PRECIO * $row->CANTIDAD)-($row->DESC1))*1.16,2),'L,T,R',0, 'R');
+            
+            if($descr > 95){
+	            $pdf->Ln(4);				
+	            $pdf->Cell(6,6,"",'L,R');
+	            $pdf->SetFont('Arial', 'I', 5);
+	            $pdf->Cell(13,6,'('.substr($row->DESCCVE,0,20).')','L');
+	            $pdf->Cell(13,6,"",'R');
+	            $pdf->SetFont('Arial', 'I', 6);
+	            $pdf->Cell(13,6,substr($row->DESCUNI,0),'L,R');
+            	$pdf->Cell(60,6,substr($row->DESCRIPCION, 45,55),'L,R');
+	            $pdf->Cell(8,6,strlen($row->DESCRIPCION),'L,R');
+	            $pdf->Cell(10,6,"",'L,R');
+	            $pdf->Cell(13,6,"",'L,R');
+	            $pdf->Cell(13,6,'$ '.number_format(($descuni),2),'L,R',0, 'R');
+	            $pdf->Cell(15,6,"",'L,R');
+	            $pdf->Cell(15,6,"",'L,R');
+	            $pdf->Cell(15,6,"",'L,R');
+            }else{
+            	$pdf->Ln(4);				
+	            $pdf->Cell(6,6,"",'L,B,R');
+	            $pdf->SetFont('Arial', 'I', 5);
+	            $pdf->Cell(13,6,'('.substr($row->DESCCVE,0,20).')','L,B');
+	            $pdf->Cell(13,6,"",'B,R');
+	            $pdf->SetFont('Arial', 'I', 6);
+	            $pdf->Cell(13,6,substr($row->DESCUNI,0),'L,B,R');
+            	$pdf->Cell(60,6,substr($row->DESCRIPCION, 45,55),'L,R,B');
+	            $pdf->Cell(8,6,"",'L,B,R');
+	            $pdf->Cell(10,6,"",'L,B,R');
+	            $pdf->Cell(13,6,"",'L,B,R');
+	            $pdf->Cell(13,6,'$ '.number_format(($descuni),2),'L,B,R',0, 'R');
+	            $pdf->Cell(15,6,"",'L,B,R');
+	            $pdf->Cell(15,6,"",'L,B,R');
+	            $pdf->Cell(15,6,"",'L,B,R');
+            }
+            $di=100;
+	            while($descr > 65 and $di <= $descr){
+	            	$di=$di;
+	            	$df=$di+20;
+	        		
+            		if($df <= $descr){
+            			$pdf->Ln(4);				
+            			$pdf->Cell(6,6,"",'L,R');
+            			$pdf->SetFont('Arial', 'I', 5);
+            			$pdf->Cell(13,6,"",'L,R');
+            			$pdf->Cell(13,6,"",'L,R');
+            			$pdf->SetFont('Arial', 'I', 6);
+            			$pdf->Cell(13,6,"",'L,R');
+                   		$pdf->Cell(60,6,substr($row->DESCRIPCION, $di,55),'L,R');
+                   		$pdf->Cell(8,6,"",'L,R');
+            			$pdf->Cell(10,6,"",'L,R');
+            			$pdf->Cell(13,6,"",'L,R');
+            			$pdf->Cell(13,6,"",'L,R');
+            			$pdf->Cell(15,6,"",'L,R');
+            			$pdf->Cell(15,6,"",'L,R');
+            			$pdf->Cell(15,6,"",'L,R');
+            		}else{
+                   		$pdf->Ln(4);				
+            			$pdf->Cell(6,6,"",'L,B,R');
+            			$pdf->SetFont('Arial', 'I', 5);
+            			$pdf->Cell(13,6,"",'L,B,R');
+            			$pdf->Cell(13,6,"",'L,B,R');
+            			$pdf->SetFont('Arial', 'I', 6);
+            			$pdf->Cell(13,6,"",'L,B,R');
+                   		$pdf->Cell(60,6,substr($row->DESCRIPCION, $di,55),'L,B,R');
+            			$pdf->Cell(8,6,"" ,'L,B,R');
+            			$pdf->Cell(10,6,"",'L,B,R');
+            			$pdf->Cell(13,6,"",'L,B,R');
+            			$pdf->Cell(13,6,"",'L,B,R');
+            			$pdf->Cell(15,6,"",'L,B,R');
+            			$pdf->Cell(15,6,"",'L,B,R');
+            			$pdf->Cell(15,6,"",'L,B,R');
+            		}     		
+            		$di = $di +20;
+            		//$pdf->Ln();    	
+	            }
+            $pdf->Ln();
+        	}
+        }
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(25,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(63,6,"",0);
+        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+
+        	$pdf->Cell(15,6,"SubTotal",1);
+        	$pdf->Cell(15,6,'$ '.number_format($subtotal,2),1,0, 'R');
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(20,6,"",0);
+        	$pdf->Ln();
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(122,6,$res.$leyenda,0,0,'C');
+        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(15,6,"Descuento",1);
+        	$pdf->Cell(15,6,'$ '.number_format($descTot,2),1,0, 'R');
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(20,6,"",0);
+        	$pdf->Ln();
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(25,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(63,6,"",0);
+        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(15,6,"IVA",1);
+        	$pdf->Cell(15,6,'$ '.number_format(($subtotal-$descTot)*.16,2),1,0, 'R');
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(20,6,"",0);
+        	$pdf->Ln();
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(25,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(63,6,"",0);
+        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(15,6,"Total",1);
+        	$pdf->Cell(15,6,'$ '.number_format(($subtotal-$descTot)*1.16,2),1,0, 'R');
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(20,6,"",0);
+        	$pdf->Ln(3);
+        	$pdf->Image($genqr);
+			//$pdf->SetXY(10, 220);
+			$pdf->Ln(3);
+			$pdf->SetFont('Arial','',6);
+  			$pdf->Write(4,'POR ESTE PAGARE DEBEMOS Y PAGAREMOS INCONDICIONALMENTE A LA ORDEN DE '.$DF->RAZON_SOCIAL.' LA CANTIDAD DE $ '.number_format(($subtotal-$descTot)*1.16,2).', ESTA FACTURA CAUSARA INTERESES MORATORIOS DEL 3.5 % MENSUAL, SOBRE EL VALOR TOTAL DE LA MISMA AL NO SER PAGADA A LOS 30 DIAS DE RECEPCION DE ESTE DOCUMENTO');
+  			$pdf->Ln(6);
+  			$pdf->Write(4, 'RECIBI DE CONFORMIDAD LOS PRODUCTOS QUE AMPARA LA PRESENTE FACTURA');
+  			$pdf->Ln(6);
+  			$pdf->Write(4,'Nombre _______________________________________  Cargo: _______________________________________  Firma: ______________________________'); 
+  			$pdf->Ln(6);
+  			$pdf->Write(4,'Los datos personales obtenidos en este documento tienen por finalidad dar cumplimiento a las disposiciones establecidas por la Ley Federal de Protección de Datos Personales en Posesión de los Particulares');
+  			$pdf->Ln(6);
+  			$pdf->SetFont('Arial','',5);
+  			$pdf->Write(6,'Este documento es una representacion impresa de un CFDI');
+  			$pdf->Ln(3);
+  			$pdf->Write(6,'Sello digital del CFDI:');
+  			$pdf->Ln(6);
+  			$pdf->MultiCell(0,3,$selloSAT,1,'j');
+  			$pdf->Ln(0);
+  			$pdf->Write(6,'Cadena Original del complemento de certificacion digital del SAT:');
+  			$pdf->Ln(6);
+  			$pdf->MultiCell(0,3,$cadenaSat,1);
+  			$pdf->Ln(0);
+  			$pdf->Write(6,'Sello digital del SAT:');
+  			$pdf->Ln(6);
+  			$pdf->MultiCell(0,3,$selloCFD,1,'j');
+        	$pdf->SetTextColor(255,0,0);
+  			$pdf->Write(6,'Favor de confirmar con el Cliente la entrega de su pedido. ('.$pedido.')');
+  			$pdf->Ln(3);
+  			$pdf->Write(6,'Si tiene algun comentario o duda favor de comunicarse a FTC por los siguientes medios:');
+  			$pdf->Ln(3);
+  			$pdf->Write(6,'Con: '.$usuario);
+  			$pdf->Ln(3);
+  			$pdf->Write(6,'Telefonos : 55-73126323, 55-4020-1811 o por Correo a: info@ftcenlinea.com');
+  			$pdf->Ln(3);
+  			$pdf->Write(6,'Linea de Atencion a Quejas: 55 5055-3392');
+  			$pdf->Ln(5);
+  			$pdf->SetFont('Arial','',14);
+  			//// informacion de la rerfacturacion de pegaso.
+  			ob_get_clean();
+
+  		if($maestro != 'MIGDAL'){
+  			if(substr($documento,0,3)=='RFP' or substr($documento,0,3)=='NCR'){
+	  			$data= new pegaso;
+	  			$pdf->SetFont('Courier','B', 6);	
+	  			$infoRefact=$data->infoRefacturacion($documento);
+	  			$pdf->Write(10,'Factura Original:'.$infoRefact['Factura Original'].',  Cajas: '.$infoRefact['Caja']);
+	  			$pdf->Ln(4);
+	  			$pdf->Write(10,'Nota de Credito de la Factura Original:'.$infoRefact['Nota de Credito']);
+	  			$pdf->Ln(4);
+	  			$pdf->Write(10,'Razon de la Refacturacion:'.$infoRefact['Razon'].'  Pedio Asociado:'.$infoRefact['Pedido Asociado']);
+	  			$pdf->Ln(4);
+	  			$pdf->Write(10,'Observaciones : '.$infoRefact['Observaciones']);
+	  			$pdf->Ln(4);
+  			}
+  		}
+  		if($destino == 'd'){
+  			$pdf->Output( $factura.'.pdf',$destino );
+  			$this->ImprimeFacturaPegaso($factura, $destino='f');	
+  		}elseif($destino ==  'f'){
+  			$pdf->Output( 'C:\xampp\htdocs\Facturas\facturaPegaso\\'.$factura.'.pdf',$destino );
+  		}
+  	}
+
+	function imprimeUUID($uuid){
+  		$data= new pegaso;
+		//$qr= new qrpegaso;
+		$letras=new NumberToLetterConverter;
+		$usuario=$_SESSION['user']->NOMBRE;
+		$DF=$data->traeDF($ide= 1);
+		$cabecera=$data->cabeceraUUID($uuid);
+		$partidas=$data->detalleUUID($uuid);
+		$impuestos=$data->impuestosUUID($uuid);
+		$pdf=new FPDF('P','mm','Letter');
+       	$pdf->AddPage();
+       	$pdf->Image('app/views/images/logos/'.$DF->RUTA_LOGO,10,3,60,30);
+       	$pdf->Ln(35);
+        foreach ($cabecera as $dataF) {
+        	$uuid = $dataF->UUID;
+        	$selloSAT = $dataF->SELLOSAT;
+        	$selloCFD = $dataF->SELLOCFD;
+        	$NoCertiSat= $dataF->NOCERTIFICADOSAT;
+        	$fechaTimbre =$dataF->FECHATIMBRADO;
+        	$certificado = $dataF->CERTIFICADO;
+        	$sello = $dataF->SELLO;
+        	$version =$dataF->VERSIONSAT;
+        	$rfcProv=$dataF->RFCPROV;
+        	$certcontri=$dataF->NO_CERT_CONTR;
+        	$formapago = $dataF->FORMAPAGO;
+        	$metodopago = $dataF->METODOPAGO;
+        	$moneda=$dataF->MONEDA;
+        	$tipocambio = $dataF->TIPOCAMBIO;
+        	$lugar = $dataF->LUGAREXPEDICION;
+        	$cadenaSat = '||'.$version.'|'.$uuid.'|'.$fechaTimbre.'|'.$rfcProv.'|'.$selloSAT.'|'.$NoCertiSat;
+        	$usocfdi = $dataF->USO;
+        }
+
+        $pdf->SetFont('Arial', 'B', 6);
+        $pdf->Ln();
+        $pdf->SetFont('Arial', 'I', 6);
+        foreach ($cabecera as $c) {
+        }
+        $pdf->SetFillColor(179, 215, 255);
+        
+        $pdf->SetFont('Arial', 'B', 7);
+        $pdf->Cell(100,6,'Emisor',1,0,'C',True);
+        $pdf->Cell(100,6,'Receptor',1,0,'C', True);
+        $pdf->Ln(6);
+        $pdf->SetFont('Arial', 'I', 6);
+        $pdf->Cell(100,6,$c->NOMBRE_EMISOR,1,0,'C');
+        $pdf->Cell(100,6,$c->NOMBRE_RECEPTOR,1,0,'C');
+        $pdf->Ln(6);
+        $pdf->Cell(100,6,$c->RFCE,1,0,'C');
+        $pdf->Cell(100,6,$c->CLIENTE,1,0,'C');
+        $pdf->Ln(6);
+        $pdf->Ln(6);
+        $pdf->SetFillColor(179, 255, 218);
+        $pdf->SetFont('Arial', 'B', 7);
+        $pdf->Cell(200,6,'Informacion General del Documento',1,0,'C', True);
+        $pdf->Ln(6);
+        $pdf->SetFont('Arial', 'I', 6);
+		$pdf->Cell(100,6,'Fecha de Timbrado: '.$c->FECHA,1,0,'C');
+        $pdf->Cell(100,6,'UUID: '.$c->UUID,1,0,'C');
+		$pdf->Ln(6);
+		$pdf->Cell(100,6,'Serie: '.$c->SERIE,1,0,'C');
+        $pdf->Cell(100,6,'Folio: '.$c->FOLIO,1,0,'C');
+		$pdf->Ln(6);
+		$pdf->Cell(100,6,'Monto: '.number_format($c->IMPORTE,2),1,0,'C');
+        $pdf->Cell(100,6,'Uso: '.$c->USO,1,0,'C');
+		$pdf->Ln(6);
+		$pdf->Cell(100,6,'Moneda: '.$c->MONEDA,1,0,'C');
+        $pdf->Cell(100,6,'Forma de Pago: '.$c->FORMAPAGO,1,0,'C');
+		$pdf->Ln(6);
+		$pdf->Cell(100,6,'Tipo de Cambio: '.$c->TIPOCAMBIO,1,0,'C');
+        $pdf->Cell(100,6,'Metodo de Pago: '.$c->METODOPAGO,1,0,'C');                                
+        $pdf->Ln(6);
+		$pdf->Cell(100,6,'Lugar de Expedicion: '.$c->LUGAREXPEDICION,1,0,'C');
+        $pdf->Cell(100,6,'Fecha de Timbrado: '.$c->FECHATIMBRADO,1,0,'C');
+		$pdf->Ln(6);
+        $pdf->Ln(6);
+        $pdf->SetFont('Arial', 'B', 7);
+        $pdf->SetFillColor(230, 179, 255);
+        $pdf->Cell(200,6,'Desgloce de impuestos por Partida',1,0,'C', True);
+        $pdf->SetFont('Arial', 'I', 6);
+        $pdf->Ln(6);
+        foreach ($impuestos as $imp) {
+        	$nombre= '';
+        	if($imp->IMPUESTO == '001'){
+        		$nombre = 'ISR';
+        	}elseif($imp->IMPUESTO == '002'){
+        		$nombre = 'IVA';
+        	}elseif($imp->IMPUESTO == '003'){
+        		$nombre = 'IEPS';
+        	}
+        	$pdf->Cell(5 ,6,$imp->PARTIDA,1,0,'C');
+        	$pdf->Cell(34,6,'Numero / Nombre: '.$imp->IMPUESTO.' / '.$nombre,1,0,'C');
+	        $pdf->Cell(34,6,'Factor: '.$imp->TIPOFACTOR,1,0,'C');
+    	    $pdf->Cell(33,6,'Tasa: '.$imp->TASA,1,0,'C');
+        	$pdf->Cell(33,6,'Base: '.number_format($imp->BASE,2),1,0,'C');
+	        $pdf->Cell(31,6,'Monto: '.number_format($imp->MONTO,2),1,0,'C');
+	        $pdf->Cell(30,6,'Tipo: '.$imp->TIPO,1,0,'C');
+	        $pdf->Ln(6);
+        }
+		
+		$pdf->Ln(6);
+        $pdf->Ln(6);
+        $pdf->SetFont('Arial', 'B', 7);
+        $pdf->SetFillColor(255, 187, 153);
+		$pdf->Cell(200,6,'Partidas del Documento',1,0,'C', True);
+		$pdf->SetFont('Arial', 'I', 6);
+        $pdf->Ln(6);
+        $pdf->Cell(5,6,'Ln',1,0,'C');	
+        $pdf->Cell(125,6,'Descripcion',1,0,'C');	
+        $pdf->Cell(15,6,'Clave',1,0,'C');	
+        $pdf->Cell(10,6,'Unidad',1,0,'C');	
+        $pdf->Cell(15,6,'Cantidad',1,0,'C');	
+        $pdf->Cell(15,6,'Importe',1,0,'C');	
+        $pdf->Cell(15,6,'Descuento',1,0,'C');	
+        $pdf->Ln(6);
+        foreach ($partidas as $par) {
+        	$pdf->Cell(5,6,$par->PARTIDA,1,0,'C');
+    	    $pdf->Cell(125,6,substr($par->DESCRIPCION,0,100),1,0,'L');
+        	$pdf->Cell(15,6,$par->CLAVE_SAT,1,0,'C');
+	        $pdf->Cell(10,6,$par->UNIDAD_SAT,1,0,'C');
+	        $pdf->Cell(15,6,$par->CANTIDAD,1,0,'C');
+	        $pdf->Cell(15,6,number_format($par->IMPORTE,2),1,0,'C');
+	        $pdf->Cell(15,6,number_format($par->DESCUENTO,2),1,0,'C');
+	        $pdf->Ln(6);
+        }
+  		$pdf->Output($c->RFCE.'-'.substr($fechaTimbre,0,10).'-'.number_format($c->IMPORTE,2).'-'.$uuid.'.pdf', 'D');		
+  	}
+
+
+  	function ImprimeNCI($factura, $destino){
+  		$data= new pegaso;
+		$qr= new qrpegaso;	
+		$letras=new NumberToLetterConverter;
+		$usuario=$_SESSION['user']->NOMBRE;
+		$Cabecera=$data->facturaPegaso($factura);
+		$Detalle=$data->detalleFacturaPegaso($factura);
+        $tipo=3;
+        $pdf=new FPDF('P','mm','Letter');
+       	$pdf->AddPage();
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
+        if(substr($factura,0,3)=='NCR' or substr($factura,0,3)=='NCS' or substr($factura,0,3)=='NCD' or substr($factura,0,3)=='NCI'){
+        	$tipoComp = 'E (EGRESO)';
+        	$tipoDoc = 'Nota de Credito';
+        }else{
+       		$tipoComp = 'I (INGRESO)';
+        	$tipoDoc = 'Factura Pegaso';
+        }
+        $pdf->SetFont('Courier','B', 6);
+        $pdf->SetXY(75, 1);
+  		$pdf->Write(10,'Domicilio Fiscal: Guillermo Barrono No 14-A.');
+  		$pdf->SetXY(75, 5);
+  		$pdf->Write(10,'Col. Industrial las Armas, CP 54080');
+  		$pdf->SetXY(75, 9);
+  		$pdf->Write(10,'Tlalnepantla de Baz, Edo. Mex.');
+        $pdf->SetXY(75, 13);
+  		$pdf->Write(10,'RFC: FPE980326GH9, Regimen Fiscal:');
+        $pdf->SetXY(75, 17);
+  		$pdf->Write(10,'601 REGIMEN GENERAL DE LEY PERSONAS MORALES');
+        $pdf->Ln(20);
+        foreach ($Cabecera as $data){
+        	$pedido = $data->PEDIDO_CLIENTE;
+        	$documento = $data->DOCUMENTO;
+        	$maestro= isset($data->MAESTRO)? $data->MAESTRO:'';
+        $pdf->SetFont('Arial','B',15);
+        $pdf->Write(6,$factura);
+        $pdf->Ln();
+        $pdf->SetFont('Arial', 'B', 7);
+        $pdf->SetTextColor(255, 133, 102);
+  		$pdf->Write(6,'Usuario Imprime: '.$usuario);
+  		$pdf->Ln(4);
+  		$pdf->Write(6,'Fecha de Impresion: '.date('d-m-Y H:i:s'));
+  		$pdf->Ln(4);
+  		$pdf->SetTextColor(153, 179, 255);
+  		$pdf->Write(6,'Usuiario Nota de Credito Interna: '.$data->USUARIO);
+  		$pdf->Ln(4);
+  		$pdf->Write(6,'Fecha de Nota de Credito Interna: '.$data->FECHA);
+  		$pdf->Ln(4);
+  		$pdf->SetTextColor(0,0,0);
+  		$pdf->Write(6,'Cliente : ('.$data->CLAVE.')'.$data->NOMBRE.' RFC: '.$data->RFC);
+  		$pdf->Ln(4);
+  		$pdf->Write(6,'Direccion: Calle :'.$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F);
+  		$pdf->Ln(4);
+  		$direccionCompleta='Direccion: Calle :'.$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F;
+  		
+  		$pdf->Write(6,'Colonia: '.$data->COLONIA_F.' Estado: '.$data->ESTADO_F);
+  		$pdf->Ln(4);
+  		$pdf->Write(6,'Codigo Postal: '.$data->CP_F.' Pais: '.$data->PAIS_F);
+  		$pdf->Ln(4);
+  		
+  		$pdf->Write(6,'Pedido Cliente: '.$data->PEDIDO_CLIENTE.' --- Pedido Pegaso: '.$data->COTIZACION);
+  		$pdf->Ln(10);
+  		$pdf->Write(6,'DIRECCION DE ENVIO:');
+  		$pdf->Ln(4);
+  		$pdf->Write(6,'Direccion Envio Calle :'.$data->CALLE_E.', Num Ext:'.$data->EXTERIOR_E.', Num Int:'.$data->INTERIOR_E);
+  		$pdf->Ln(4);
+  		$pdf->Write(6,'Colonia: '.$data->COLONIA_E.' Estado: '.$data->ESTADO_E);
+  		$pdf->Ln(6);
+  		$pdf->Write(6,'Codigo Postal: '.$data->CP_E.', Pais: '.$data->PAIS_F);
+  		$pdf->Ln(6);
+  		
+  		$pdf->Write(6,'Observaciones del cliente:'.substr($data->OBSERVACION,0,65));
+  		$pdf->Ln(4);
+  		$pdf->Write(6, substr($data->OBSERVACION, 81, 150));
+  		
+  			if(substr($tipoDoc,0,1)!= 'N'){
+  				$pdf->Ln(4);
+  				$pdf->Write(6, substr($data->OBSERVACIONES,0, 65));
+  				$pdf->Ln(4);
+  				$pdf->Write(6, 'Banco y Cuenta de Deposito: '.$data->BANCO_PEGASO);
+  				$pdf->Ln(4);
+  				$pdf->Write(6, 'Banco y Cuenta Origen: '.$data->BANCO_EMISOR.' / '.$data->CTA_EMISORA);
+  				$pdf->Ln(6);	
+  			}
+  		}
+  		$pdf->Ln(10);
+        $pdf->SetFont('Arial', 'B', 6);
+        $pdf->Cell(6,6,"Part.",1);
+        $pdf->Cell(13,6,"Art.",1);
+        $pdf->Cell(13,6,"Clave SAT",1);
+        $pdf->Cell(13,6,"Unidad SAT",1);
+        $pdf->Cell(60,6,"Descripcion",1);
+        $pdf->Cell(8,6,"Cant",1);
+        $pdf->Cell(10,6,"UM",1);
+        $pdf->Cell(13,6,"Precio",1);
+        $pdf->Cell(13,6,"Descuento",1);
+        $pdf->Cell(15,6,"Subtotal ",1);
+        $pdf->Cell(15,6,"Iva",1);
+        $pdf->Cell(15,6,"Total",1);
+        $pdf->Ln();
+        $pdf->SetFont('Arial', 'I', 6);
+         	$descuento = 0;
+            $subtotal = 0;
+            $iva = 0;
+            $total = 0;
+            $partida= 0;
+            $descTot=0;
+
+        foreach($Detalle as $row){
+        	$descpor=number_format((($row->DESC1/($row->PRECIO * $row->CANTIDAD)) *100),2,".","");
+        	$descuni = $row->PRECIO * ($descpor * 0.0100);
+        	$subtotal += ($row->PRECIO * $row->CANTIDAD);
+        	$descTot += ($descuni*$row->CANTIDAD);
+        	$iva += (($row->PRECIO * $row->CANTIDAD)-$row->DESC1)*.16;
+        	$total += (($row->PRECIO * $row->CANTIDAD)-$row->DESC1)*1.16;
+        	$desp = 0;
+        		$m = $total;
+				$Monto=number_format($m,0);
+				$M1=number_format($m,2);
+				$M4=substr($M1,0,-2);
+		        $centavos=substr($M1,-2);
+		   		$m5= $M4.'00';
+		   		$res=$letras->to_word($m5);
+		        if ($centavos == 00){
+		        	$leyenda = 'PESOS CON 00/100 MN';
+		        }else{
+		        	$leyenda = 'PESOS CON '.$centavos.'/100 MN';
+		        }
+
+            $pdf->Cell(6,6,($row->PARTIDA),'L,T,R');
+            $pdf->Cell(13,6,($row->ARTICULO),'L,T,R');
+            $pdf->Cell(13,6,($row->CLAVE_SAT),'L,T,R');
+           	$pdf->Cell(13,6,($row->MEDIDA_SAT),'L,T,R',0, 'C');
+            $pdf->Cell(60,6,substr($row->DESCRIPCION, 0,45), 'L,T,R');
+            $pdf->Cell(8,6,number_format($row->CANTIDAD,2),'L,T,R');
+            $pdf->Cell(10,6,$row->UM,'L,T,R',0, 'C');
+            $pdf->Cell(13,6,'$ '.number_format($row->PRECIO,2),'L,T,R',0, 'R');
+            $pdf->Cell(13,6,'% '.number_format($descpor,2),'L,T,R',0,'R');
+            $pdf->Cell(15,6,'$ '.number_format(($row->PRECIO * $row->CANTIDAD)-$row->DESC1,2),'L,T,R',0, 'R');
+            $pdf->Cell(15,6,'$ '.number_format((($row->PRECIO * $row->CANTIDAD)-($row->DESC1))*.16,2),'L,T,R',0, 'R');
+            $pdf->Cell(15,6,'$ '.number_format((($row->PRECIO * $row->CANTIDAD)-($row->DESC1))*1.16,2),'L,T,R',0, 'R');
+            $pdf->Ln(4);				
+            $pdf->Cell(6,6,"",'L,B,R');
+            $pdf->Cell(13,6,"",'L,B,R');
+            $pdf->Cell(13,6,"",'L,B,R');
+            $pdf->Cell(13,6,"",'L,B,R');
+            $pdf->Cell(60,6,substr($row->DESCRIPCION, 45 , 90),'L,B,R');
+            $pdf->Cell(8,6,"",'L,B,R');
+            $pdf->Cell(10,6,"",'L,B,R');
+            $pdf->Cell(13,6,"",'L,B,R');
+            $pdf->Cell(13,6,'$ '.number_format(($descuni),2),'L,B,R',0, 'R');
+            $pdf->Cell(15,6,"",'L,B,R');
+            $pdf->Cell(15,6,"",'L,B,R');
+            $pdf->Cell(15,6,"",'L,B,R');
+            $pdf->Ln();
+        }
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(25,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(63,6,"",0);
+        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+
+        	$pdf->Cell(15,6,"SubTotal",1);
+        	$pdf->Cell(15,6,'$ '.number_format($subtotal,2),1,0, 'R');
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(20,6,"",0);
+        	$pdf->Ln();
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(122,6,$res.$leyenda,0);
+        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(15,6,"Descuento",1);
+        	$pdf->Cell(15,6,'$ '.number_format($descTot,2),1,0, 'R');
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(20,6,"",0);
+        	$pdf->Ln();
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(25,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(63,6,"",0);
+        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(15,6,"IVA",1);
+        	$pdf->Cell(15,6,'$ '.number_format(($subtotal-$descTot)*.16,2),1,0, 'R');
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(20,6,"",0);
+        	$pdf->Ln();
+        	$pdf->Cell(6,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(25,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(63,6,"",0);
+        	$pdf->Cell(15,6,"",0);
+        	$pdf->Cell(8,6,"",0);
+        	$pdf->Cell(15,6,"Total",1);
+        	$pdf->Cell(15,6,'$ '.number_format(($subtotal-$descTot)*1.16,2),1,0, 'R');
+        	$pdf->Cell(13,6,"",0);
+        	$pdf->Cell(20,6,"",0);
+        	$pdf->Ln(5);
+        	////$pdf->Image($genqr);
+			//$pdf->SetXY(10, 220);
+  			
+        	$pdf->SetTextColor(255,0,0);
+  			$pdf->Write(10,'Favor de confirmar con el Cliente la entrega de su pedido. ('.$pedido.')');
+  			$pdf->Ln(3);
+  			$pdf->Write(10,'Si tiene algun comentario o duda favor de comunicarse a FERRETERA PEGASO SA DE CV por los siguientes medios:');
+  			$pdf->Ln(3);
+  			$pdf->Write(10,'Con: '.$usuario);
+  			$pdf->Ln(3);
+  			$pdf->Write(10,'Telefonos : 55-5220-9798 y 55-5220-9799con 10 líneas o por Correo a: ferreterapegaso@hotmail.com');
+  			$pdf->Ln(3);
+  			$pdf->Write(10,'Linea de Atencion a Quejas: 55 5220-9798');
+  			$pdf->Ln(5);
+  			$pdf->SetFont('Arial','',14);
+
+  			//// informacion de la rerfacturacion de pegaso.
+
+  		if($maestro != 'MIGDAL'){
+  			if(substr($documento,0,3)=='RFP' or substr($documento,0,3)=='NCR'){
+	  			$data= new pegaso;
+	  			$pdf->SetFont('Courier','B', 6);	
+	  			$infoRefact=$data->infoRefacturacion($documento);
+	  			$pdf->Write(10,'Factura Original:'.$infoRefact['Factura Original'].',  Cajas: '.$infoRefact['Caja']);
+	  			$pdf->Ln(4);
+	  			$pdf->Write(10,'Nota de Credito de la Factura Original:'.$infoRefact['Nota de Credito']);
+	  			$pdf->Ln(4);
+	  			$pdf->Write(10,'Razon de la Refacturacion:'.$infoRefact['Razon'].'  Pedio Asociado:'.$infoRefact['Pedido Asociado']);
+	  			$pdf->Ln(4);
+	  			$pdf->Write(10,'Observaciones : '.$infoRefact['Observaciones']);
+	  			$pdf->Ln(4);
+  			}
+  		}
+  	
+  		if($destino == 'd'){
+  			$pdf->Output( $factura.'.pdf',$destino );
+  			$this->ImprimeFacturaPegaso($factura, $destino='f');	
+  		}elseif($destino ==  'f'){
+  			$pdf->Output( 'C:\xampp\htdocs\Facturas\facturaPegaso\\'.$factura.'.pdf',$destino );
   		}
   	}
 
@@ -18587,7 +19783,11 @@ function ImpSolicitud2($idsol){
     		$ocmes=$data->verOCmes();
     		include 'app/views/modules/m.ocxmes.php';
     		$table = ob_get_clean();
-    		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    		if(count($ocmes) > 0 ){
+		    	$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    		}else{
+		    	$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No se encontró información para mostrar, no se ha realizado ninguna Orden de Compra.</h2><center></div>',$pagina);
+    		}
     		$this->view_page($pagina);
   		}
   	}
@@ -18620,20 +19820,31 @@ function ImpSolicitud2($idsol){
   		}
   	}
 
-  	function seguimientoCajasRecibir($tipo){
-  		if($_SESSION['user']){
-  			$data=new pegaso;
-  			$pagina =$this->load_template('Pedidos');
-  			$html=$this->load_page('app/views/pages/p.seguimientoCajasRecibir.php');
-    		ob_start();
-    		$tipo2=$tipo;
-    		$documentos=$data->seguimientoCajasRecibir($tipo);
-    		include 'app/views/pages/p.seguimientoCajasRecibir.php';
-    		$table = ob_get_clean();
-    		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-    		$this->view_page($pagina);
-  		}	
-  	}
+  	//function seguimientoCajasRecibir($tipo){
+  	//	if($_SESSION['user']){
+  	//		$data=new pegaso;
+  	//		$pagina =$this->load_template('Pedidos');
+  	//		if($tipo == 62){
+  	//			$tipo2 =6;
+  	//			$html=$this->load_page('app/views/pages/p.seguimientoCajasRecibir.php');
+  	//		}elseif($tipo == 6 or $tipo == 7){
+  	//			$html=$this->load_page('app/views/pages/cobranza/p.seguimientoCajasRecibirCartera.php');	
+  	//		}
+  	//		ob_start();
+    //		$tipo2=$tipo;
+    //		$documentos=$data->seguimientoCajasRecibir($tipo);
+    //		if($tipo == 62){
+    //			$tipo2 = 6;
+    //		include 'app/views/pages/p.seguimientoCajasRecibir.php';
+    //		}elseif($tipo == 6 or $tipo == 7){
+    //		include 'app/views/pages/cobranza/p.seguimientoCajasRecibirCartera.php';	
+    //		}
+    //		
+    //		$table = ob_get_clean();
+    //		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+    //		$this->view_page($pagina);
+  	//	}	
+  	//}
 
   	function grabaCtrCbo($idc, $info){
   		if($_SESSION['user']){
@@ -18704,12 +19915,12 @@ function ImpSolicitud2($idsol){
   		if($_SESSION['user']){
   			$data = new pegaso;
   			$pagina = $this->load_template_popup();
-  			$html=$this->load_page('app/views/pages/p.motivosFallidos.php');
+  			$html=$this->load_page('app/views/pages/Suministros/p.motivosFallidos.php');
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
     		$motivos=$data->motivosFallidos($oc);
     		$partidas=$data->partidasOC($oc);
-    		include 'app/views/pages/p.motivosFallidos.php';
+    		include 'app/views/pages/Suministros/p.motivosFallidos.php';
   			$table = ob_get_clean();
   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
   			$this->view_page($pagina);
@@ -18734,7 +19945,11 @@ function ImpSolicitud2($idsol){
     		$ocf=$data->verOrdenesFallidas();
     		include 'app/views/pages/p.verOrdenesFallidas.php';
   			$table = ob_get_clean();
-  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			if(count($ocf) >0 ){
+	  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			}else{
+	  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No hay Ordenes de compra fallidas por el momento.</h2><center></div>', $pagina);
+  			}
   			$this->view_page($pagina);	
   		}
   	}
@@ -18752,6 +19967,599 @@ function ImpSolicitud2($idsol){
   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
   			$this->view_page($pagina);	
   		}
-  	}
+	}
+	
+	function facturacionSeleccionaCargaXML($tipo){
+        if (isset($_SESSION['user'])) {            
+            $data = new pegaso;
+            $pagina = $this->load_template('Pagos');        	            
+            $html = $this->load_page('app/views/pages/p.factura.upload.xml.php');            
+            ob_start();            
+            include 'app/views/pages/p.factura.upload.xml.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+
+            $this->view_page($pagina);
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+	}
+
+	function facturacionCargaXML($files2upload, $tipo){
+        if (isset($_SESSION['user'])) {            
+            $data = new pegaso;
+            $valid_formats = array("xml", "XML");
+            $max_file_size = 1024 * 1000; //1000 kb
+            //$target_dir = "C:\\Temp\\uploads\\xml\\";
+            
+            if($tipo == 'F'){
+            	$target_dir="C:/xampp/htdocs/uploads/xml/emitidos/";	
+            }elseif($tipo == 'C'){
+            	$target_dir = "C:/xampp/htdocs/uploads/xml/cancelados/";	
+            }elseif($tipo == 'R'){
+            	$target_dir = "C:/xampp/htdocs/uploads/xml/recibidos/";
+            }
+            $count = 0;
+            $respuesta = 0;
+			// Loop $_FILES to exeicute all files
+			foreach ($_FILES['files']['name'] as $f => $name) {	
+                if ($_FILES['files']['error'][$f] == 4) {
+                    continue; // Skip file if any error found
+                }
+                if ($_FILES['files']['error'][$f] == 0){
+                    if ($_FILES['files']['size'][$f] > $max_file_size) {
+                        $message[] = "$name es demasiado grande para subirlo.";
+                        continue; // Skip large files
+                    }elseif(!in_array(pathinfo($name, PATHINFO_EXTENSION), $valid_formats)){
+                        $message[] = "$name no es un archivo permitido.";
+                        continue; // Skip invalid file formats
+                    }else{ // No error found! Move uploaded files 
+                        $archivo = $target_dir.$name;
+                        $ar = $name;
+                        $a=$data->leeXML($_FILES['files']['tmp_name'][$f]);
+                        if($a['tcf'] == 'falso'){
+                    }else{
+                        $exec = $data->seleccionarArchivoXMLCargado($archivo, $a['uuid']); /// Cuando se selecciona el archivo para su alamcenamiento.
+                        	if($exec==null){
+                        	    if (move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name)){
+                        	        $count++; // Number of successfully uploaded file
+									$respuesta += $data->insertarArchivoXMLCargado($archivo, $tipo, $a);
+									//unlink($_FILES["files"]["tmp_name"][$f]);
+                        	    }
+                        	} else {
+                        	    echo "<b><br/>Archivo $ar duplicado. No se ha logrado subir.<b/><br/>";
+                        	}	
+                        }
+                    }
+                }
+            }
+            echo "<br/><br/><b>Archivos cargados con exito: $count-$respuesta</b>";
+            $this->facturacionSeleccionaCargaXML($tipo);
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+    }
+
+    function calcularImpuestos(){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$calculos = $data->calcularImpuestos($uuid='a');
+            $this->xmlMenu();
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+    	}
+    }
+
+    function recDocRev($idc){
+    	if($_SESSION['user']){
+    		$data= new pegaso;
+    		$response=$data->recDocRev($idc);
+    		return $response;
+    	}
+    }
+
+    function buscaDocv($docv){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$response=$data->buscaDocv($docv);
+    		return $response;
+    	}
+    }
+
+    function verXMLSP($mes, $anio, $ide){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$pagina = $this->load_template();
+  			$html=$this->load_page('app/views/pages/xml/p.verXMLSP.php');
+  			ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+  			$uuid =false;
+    		$info=$data->verXMLSP($mes, $anio, $ide, $uuid);
+    		include 'app/views/pages/xml/p.verXMLSP.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}
+    }
+
+    function imprimeXML($uuid){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$pagina = $this->load_template();
+  			$html=$this->load_page('app/views/pages/xml/p.buscaXML.php');
+  			ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+    		$info= $data->verXMLIngreso($uuid);
+    		include 'app/views/pages/xml/p.buscaXML.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}
+    }
+
+    function verXML($uuid, $ide){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$coi = new CoiDAO;
+    		$pagina = $this->load_template();
+  			$html=$this->load_page('app/views/pages/xml/p.verXML.php');
+  			ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+  			//$actualiza=$coi->
+  			$infoCabecera=$data->verXMLSP($mes=false, $anio= false, $ide, $uuid);
+    		$info=$data->verXML($uuid, $ide);
+    		$cccliente=$coi->traeCuentaCliente($infoCabecera, $ide);
+    		$ccC=$coi->traeCatalogoCuentas($tipo='V', $ide);
+    		//$ccG=$coi->traeCatalogoCuentas($tipo='G');
+    		$ccpartidas=$coi->traeCuentasSAT($info);
+    		$cimpuestos=array("iva"=>'0101010101010',"ieps"=>'0202020202020', "isr"=>'0303030303030');
+    		$param=$coi->traeParametros();
+    		include 'app/views/pages/xml/p.verXML.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}	
+    }
+
+    function formProveedor(){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$pagina = $this->load_template();
+  			$html=$this->load_page('app/views/pages/Proveedores/p.formProveedor.php');
+  			ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+  			include 'app/views/pages/Proveedores/p.formProveedor.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}
+    }
+
+
+    function editarArticulo($art, $tipo){
+    	if($_SESSION['user']){
+    		$data  = new pegaso;
+    		$response = $data->editarArticulo($art, $tipo);
+    		return $response;
+    	}
+    }
+
+    function validaEdoCta($banco, $cuenta, $fecha){
+    	if($_SESSION['user']){
+    		$data = new pegaso;;
+    		$response = $data->validaEdoCta($banco, $cuenta, $mes=substr($fecha,5,2), $anio = substr($fecha,0,4));
+    		$response=='No'? $response=array("status"=>'No'):$response=array("status"=>'ok');
+    		return $response;
+    	}
+    }
+
+    function gcvesat($prod, $cvesat, $idp, $nuni, $tipo){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$response = $data->gcvesat($prod, $cvesat, $idp, $nuni, $tipo);
+    		return $response;
+    	}
+    }
+
+    function addenda($docf){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+  			$addenda=$data->obtieneAddenda($docf);
+  			//$addenda="p.addendaLiverpool.php";
+  			$pagina = $this->load_template();
+  			$html=$this->load_page("app/views/pages/Addendas/$addenda");
+    		include "app/views/pages/Addendas/$addenda";
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}
+    	return;
+    }
+
+
+    function prefacturasPendientes(){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$pagina = $this->load_template();
+  			$html=$this->load_page('app/views/pages/xml/p.prefacturasPendientes.php');
+  			ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+  			$prefacturas=$data->prefacturasPendientes();
+    		include 'app/views/pages/xml/p.prefacturaspendientes.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}
+    }
+
+    function chkstat($idsol){
+    	if($_SESSION['user'])
+    		$data=new pegaso;
+    		$response=$data->chkstat($idsol);
+    		return $response;
+    }
+
+    function addendaMabe($docf, $oc, $planta){
+    	if($_SESSION['user']){
+    		$data=new pegaso;
+    		$response=$data->addendaMabe($docf, $oc, $planta);
+    		return;
+    	}
+    }
+
+    function addendaAzteca($docf, $oc, $recepcion, $cc){
+    	if($_SESSION['user']){
+    		$data=new pegaso;
+    		$response=$data->addendaAzteca($docf, $oc, $recepcion, $cc);
+    		return; 
+    	}
+    }
+
+    function addendaLiverpool($docf, $oc, $entrada, $infoAdicional, $depopersona){
+    	if($_SESSION['user']){
+    		$data=new pegaso;
+    		$response=$data->addendaLiverpool($docf, $oc, $entrada, $infoAdicional, $depopersona);
+    		return;
+    	}
+    }
+
+    function addendaElektra($docf, $oc, $rri){
+    	if($_SESSION['user']){
+    		$data=new pegaso;
+    		$response=$data->addendaElektra($docf, $oc, $rri);
+    		echo "<Mensaje>";	
+    	}
+    }
+
+   function addendaPropimex($docf, $oc, $entrada, $remision){
+    	if($_SESSION['user']){
+    		$data=new pegaso;
+    		$response=$data->addendaPropimex($docf, $oc, $entrada, $remision);
+    		return;
+    	}
+    }
+
+	function addendaAceitera($docf, $oc, $ent){
+    	if($_SESSION['user']){
+    		$data=new pegaso;
+    		$response=$data->addendaAceitera($docf, $oc, $ent);
+    		return;
+    	}
+    }
+
+    function addendaLoreal($docf, $oc, $recepcion, $cc){
+    	if($_SESSION['user']){
+    		$data=new pegaso;
+    		$response=$data->addendaLoreal($docf, $oc, $recepcion, $cc);
+    		return; 
+    	}
+    }
+
+    function timbraNCDescLogSub($docf){
+    	if($_SESSION['user']){
+    		$data=new factura;
+    		$response=$data->timbraNCDescLogSub($docf);
+    		ob_start();
+    		$pagina = $this->load_template('Pagos');
+    		$redireccionar = "imprimeXML";
+    		$pagina=$this->load_template('Pedidos');
+            $html = $this->load_page('app/views/pages/p.redirectform.php');
+            include 'app/views/pages/p.redirectform.php';
+            $this->view_page($pagina);    
+    		return $response;
+    	}
+    }
+
+    function refacturarCancela($docf){
+    	if($_SESSION['user']){
+    		$data=new pegaso;
+    		$response = $data->refacturarCancela($docf);
+    		return;
+    	}
+    }
+
+    function verFTCNCpendientes($docnc){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$pagina = $this->load_template();
+    		
+    		if($docnc==''){
+    			$html=$this->load_page('app/views/pages/Bodega/p.verFTCNCpendientes.php');	
+    		}else{
+    			$html=$this->load_page('app/views/pages/Bodega/p.verFTCNCpendientesDetalle.php');	
+    		}
+  			ob_start();
+  			$nc = $data->verFTCNCpendientes($docnc);
+  			$user=$_SESSION['user']->NOMBRE;
+  			if($docnc==''){
+  				include 'app/views/pages/Bodega/p.verFTCNCpendientes.php';		
+  			}else{
+  				include 'app/views/pages/Bodega/p.verFTCNCpendientesDetalle.php';
+  			}
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}
+    }
+
+    function timbraNC($docf, $docn){
+    	if($_SESSION['user']){
+    		$data = new factura;
+    		$response = $data->generaJsonNC($docf,$docn);
+    		if($response == '99'){
+    			return;
+    		}else{
+    			$mover=$data->moverNCSUB($docf,$response);	
+    		}
+    		return $mover;
+    	}
+    }
+
+    function generaNCold($idd){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$revisa = $data->revisaNCold($idd);
+    		if($revisa== 1){
+   				echo "<script> alert('No es posible procesar 2 veces una Devolicion')</script>";
+    			$this->verRecepDev();
+    		}else{
+    			$response = $data->generaNCold($idd);
+    			echo "<script> alert('Se genero la devolucion:{$response}')</script>";
+    			$this->verRecepDev();
+    		}
+    		return;
+    	}
+    }
+
+    function verDetalleDevolucion($idd){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$detalle=$data->verDetalleDevolucion($idd);
+    		$pagina = $this->load_template();
+  			$html=$this->load_page('app/views/pages/Bodega/p.verDetalleDevolucion.php');
+  			ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+  			$prefacturas=$data->prefacturasPendientes();
+    		include 'app/views/pages/Bodega/p.verDetalleDevolucion.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}
+    }
+
+    function ctrlParcial($idc){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$response = $data->ctrlParcial($idc);
+    		return $response;
+    	}
+    }
+
+    function verPedidosSinMaterial($docp){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$pagina = $this->load_template();
+  			$html=$this->load_page('app/views/pages/Facturacion/p.verPedidosSinMaterial.php');
+  			ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+  			if(!empty($docp)){
+  				$pedido=$data->traePedido($docp);
+  				$cajas=$data->traeCajas($docp);
+  				if(empty($pedido)){
+  				echo "<script>alert('No se encontro el pedido')</script>";
+  				}
+  			}
+    		include 'app/views/pages/Facturacion/p.verPedidosSinMaterial.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}
+    }
+
+    function prefactura($docp){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$response = $data->prefactura($docp);
+    		return $response;
+    	}
+    }
+
+
+    function verRecepcion($idr){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$pagina = $this->load_template_popup();
+  			$html=$this->load_page('app/views/pages/p.verRecepcion.php');
+  			ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+  			$recepcion=$data->verRecepcion($idr);
+    		include 'app/views/pages/p.verRecepcion.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}
+    }
+
+    function copiarProd($idp){
+    	if($_SESSION['user']){
+    		$data=new pegaso;
+    		$act=$data->copiarProd($idp);
+    		return $act;
+    	}
+    }
+
+    function guardaProveedor($nombre,$rfc,$marca,$telefono,$calle,$ext,$int,$ciudad,$cp,$pais,$deleg,$mun,$correoGen,$contPrim){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$guardar=$data->guardaProveedor($nombre,$rfc,$marca,$telefono,$calle,$ext,$int,$ciudad,$cp,$pais,$deleg,$mun,$correoGen,$contPrim);
+			echo "<script>alert(".$guardar.")</script>";
+    		echo "<script>window.close();</script>"; 
+    	}
+    }
+
+    function validaRFC($rfc, $tipo){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$response = $data->validaRFC($rfc, $tipo);
+    		return $response;
+    	}
+    }
+
+    function crearCliente($nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo){
+    	$data = new pegaso;
+    	$guarda = $data->crearCliente($nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo);
+    }
+
+    function verFactura($docf){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$pagina = $this->load_template_popup();
+  			$html=$this->load_page('app/views/pages/cobranza/p.verFactura.php');
+  			ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+  			$factura=$data->verFactura($docf);
+    		include 'app/views/pages/cobranza/p.verFactura.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}
+    }
+
+    function catColaboradores(){
+    	if( $_SESSION['user']->NOMBRE=='anayeli' or $_SESSION['user']->NOMBRE=='Tesoreria'){
+    		$data= new pegaso;
+    		$pagina = $this->load_template();
+  			$html=$this->load_page('app/views/pages/p.catColaboradores.php');
+  			ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+  			$colaboradores=$data->catColaboradores();
+    		include 'app/views/pages/p.catColaboradores.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+    	}else{
+    		$this->MenuTesoreria();	
+    	}
+    }
+
+    function crearColaborador($nombre, $segundo, $paterno, $materno, $compania, $puesto, $clave, $tarjeta, $cveBanco, $tarBanco){
+    	if($_SESSION['user']->NOMBRE=='anayeli' or $_SESSION['user']->NOMBRE=='Tesoreria'){
+    		$data = new pegaso;
+    		$crear=$data->crearColaborador($nombre, $segundo, $paterno, $materno, $compania, $puesto, $clave, $tarjeta, $cveBanco, $tarBanco);
+    		$this->catColaboradores();
+    	}
+    }
+
+    function creaCaja($docf, $tipo){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		if($tipo == 'v'){
+    			$response=$data->buscaCaja($docf);	
+    		}elseif($tipo == 'c'){
+    		}
+    	}	
+    }
+
+
+ 	function crearCajaC($docf){
+		if($_SESSION['user']){
+			$data = new pegaso;
+			$response = $data->crearCajaC($docf);
+			return $response;
+		}
+	}
+
+	function verDatosEnvio($clie){
+		if($_SESSION['user']){
+			$data= new pegaso;
+			$datos = $data->verDatosEnvio($clie);
+			$pagina = $this->load_template_popup();
+  			$html=$this->load_page('app/views/pages/Clientes/p.verDatosEnvio.php');
+  			ob_start();
+  			$user=$_SESSION['user']->NOMBRE;
+  			include 'app/views/pages/Clientes/p.verDatosEnvio.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);
+		}
+	}
+
+	function salvarDatosEnvio($clave,$calle,$ext,$int,$col,$del,$ciudad,$edo,$pais,$cp,$obs){
+		if($_SESSION['user']){
+			$data= new pegaso;
+			$datos = $data->salvarDatosEnvio($clave,$calle,$ext,$int,$col,$del,$ciudad,$edo,$pais,$cp,$obs);
+			$this->verDatosEnvio($clave);
+		}
+	}
+
+	function bajaM($idm, $cvem){
+		$data= new pegaso;
+		$res=$data->bajaM($idm, $cvem);
+		return $res;
+	}
+
+	function libVal(){
+		$data=new pegaso;
+		$res=$data->libVal();
+		return $res;
+	}
+
+	function buscaDoc($docf){
+		$data= new pegaso;
+		$ctrl = new pegaso_controller_cobranza;
+		$res =$data->buscaDoc($docf);
+		if($res['status']== 'ok'){
+			$factura='c:\xampp\htdocs\Facturas\FacturasJson\\'.$res['archivo'];
+			copy("C:\\xampp\\htdocs\\Facturas\\FacturasJson\\".$res['archivo'], "C:\\xampp\\htdocs\\Facturas\\facturaPegaso\\".$docf.".xml");
+			$a=$data->leeXML($archivo=$factura);
+  			$infoXML = $data->insertarArchivoXMLCargado($archivo = $factura, $tipo='F', $a);
+  			$factura = $res['factura'];
+  			$this->ImprimeFacturaPegaso($res['factura'], $destino='f');
+  			$correo=$_SESSION['user']->USER_EMAIL;
+  			$env=$ctrl->enviarFact($res['factura'],$correo, $mensaje="Correo generado de forma automatica");
+		}
+		return $res;
+	}
+
+	function ctaXML($uuid, $cta, $t, $obs, $fecha){
+		$data= new pegaso;
+		$res = $data->ctaXML($uuid, $cta, $t, $obs, $fecha);
+		return $res;
+	}
+
+	function traePago($idp, $t){
+		$data = new pegaso;
+		$res = $data->traePago($idp, $t);
+		return $res;
+	}
+
 }?>
 

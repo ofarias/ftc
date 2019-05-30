@@ -1,7 +1,0 @@
-
-Cta.	Banco	 Saldo 
-OO102587073	Scotiabank	                    -  
-9818771457	Citibanamex	  439,114.44
-O156324495	Bancomer	     50,253.01
-O1720110239668	Acteca	     34,496.31
-137219	Multivia	     30,300.84

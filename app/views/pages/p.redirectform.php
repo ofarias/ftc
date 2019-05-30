@@ -5,6 +5,6 @@
 
 <script type="text/javascript">
 	$( document ).ready(function() {
-        window.location="index.php?action=<?php echo $redireccionar;?>"
+		window.location="index.php?action=<?php echo $redireccionar;?>"
 	});
 </script>

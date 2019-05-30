@@ -29,9 +29,9 @@
          }
      endforeach;
  
-     $asunto = "Orden de Compra Ferretera Pegaso SA de CV.";  
+     $asunto = "Orden de Compra.";  
      $mensaje.= "<p>Le informamos que hemos creado una orden de compra a nombre de $contacto con una fecha estimada de recepcion el $promesaPago.</p>";
-     $mensaje.= "<p>Gracias por su apoyo.<br />Atentamente Ferretera Pegaso</p> <br/> En breve debera recibir una llamada de nuestro personal para confirmar esta Orden.<br/>Si en un lapso maximo de 24 horas no recibe la llamada, le pedimos de favor que lo reporte a los telefonos 5220 9799 o a los correos: <font color='red'>elipegaso@hotmail.com, ferreterapegaso@hotmail.com</font>";
+     $mensaje.= "<p>Gracias por su apoyo.<br />Atentamente </p> <br/> En breve debera recibir una llamada de nuestro personal para confirmar esta Orden.<br/>Si en un lapso maximo de 24 horas no recibe la llamada, le pedimos de favor que lo reporte a los telefonos 5555 5555 o a los correos: <font color='red'>compras@gmail.com, comprasAd@gmail.com</font>";
      try {
         $mail = new PHPMailer();
         $mail->isSMTP(true); // telling the class to use SMTP
@@ -46,14 +46,14 @@
         $mail->Host = 'tls://smtp.gmail.com';
         $mail->Port = 587;
         $mail->SMTPAuth = true;
-        $mail->Username   = "cxpferreterapegaso@gmail.com";  // Nombre del usuario SMTP
+        $mail->Username   = "info@ftcenlinea.com";  // Nombre del usuario SMTP
         $mail->Password   = "genseg89+";
-        $mail->AddAddress($correo, $correoUsuario, 'pegasocompras@gmail.com');      //Direccion a la que se envia
-        $mail->SetFrom('cxpferreterapegaso@gmail.com' , "Pegaso. Cuentas por pagar"); // Esccribe datos de contacto
-        $mail->Subject = 'Orden de compra '.$data->OC.' Ferretera Pegaso SA de CV';
+        $mail->AddAddress($correo, $correoUsuario, 'info@ftcenlinea.com');      //Direccion a la que se envia
+        $mail->SetFrom('info@ftcenlinea.com' , "Cuentas por pagar"); // Esccribe datos de contacto
+        $mail->Subject = 'Orden de compra '.$data->OC;
         $mail->AltBody = 'Para ver correctamente este mensaje, por favor usa un manejador de correo con compatibilidad HTML !'; // optional - MsgHTML will create an alternate automatically
         $mail->MsgHTML($mensaje); 
-        $mail->AddAttachment(realpath('C:\xampp\htdocs\Ordenes\Orden de Compra Pegaso No.'.$data->OC.'.pdf'),'Orden de Compra Pegaso No.'.$data->OC.'.pdf','base64','application/pdf');
+        $mail->AddAttachment(realpath('C:\xampp\htdocs\Ordenes\Orden de Compra No.'.$data->OC.'.pdf'),'Orden de Compra No.'.$data->OC.'.pdf','base64','application/pdf');
         $mail->Send();
          //die(var_dump($mail));
 ?>

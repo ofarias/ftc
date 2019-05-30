@@ -4,6 +4,8 @@
                 <h3 class="page-header">
                 </h3>
                 <?php foreach ($cierres as $key): 
+                    $mes = '';
+                    $tipo = '';
                     if($key->MES == 1){
                         $mes = 'ENERO';
                     }elseif($key->MES == 2){
@@ -29,20 +31,19 @@
                     }elseif($key->MES == 12){
                         $mes = 'DICIEMBRE';
                     }
-
                     $color='';
                     if($key->TIPO == 'Remisiones'){
                         $tipo = 'Remisiones';
                         $color = 'red';
-                    }elseif ($key->TIPO == 'PFM') {
+                    }elseif ($key->TIPO == 'PF') {
                         $tipo = 'Empaque';
                         $color = 'black';
-                    }elseif ($key->TIPO == 'BFM') {
+                    }elseif ($key->TIPO == 'BF') {
                         $tipo = 'Bodega';
                         $color = 'white';
                     }
-
                 ?>
+                
                 <div class="col-md-4">
                     <div class="panel panel-default">
                         <div class="panel-heading">

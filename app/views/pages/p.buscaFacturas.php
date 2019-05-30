@@ -40,6 +40,7 @@
                                         <tr>
                                             <!--<th>Todos: <input type="checkbox" name="marcarTodo" id="marcarTodo" /></th>-->
                                             <th>Factura</th>
+                                            <th>Caja</th>
                                             <th>Cliente</th>
                                             <th>Importe</th>
                                             <th>Saldo</th>
@@ -48,7 +49,7 @@
                                             <th>Fecha Logistica</th>
                                             <th>Fecha Revision</th>
                                             <th>Fecha Cobranza</th>
-                                            
+                                        
                                         </tr>
                                     </thead>
                                   <tbody>
@@ -58,10 +59,15 @@
                                             if($data->STATUS == 'C'){
                                                 $color = "style='background-color:red;'"; 
                                             }
-                                             
                                         ?>
                                        <tr class='odd gradex' <?php echo $color?>>
                                             <td><?php echo $data->CVE_DOC;?></td>
+                                            <td><?php echo empty($data->CAJA)? 'Sin Caja':$data->CAJA?>
+                                                <?php if(empty($data->CAJA)){?>
+                                                    <br/>
+                                                    <a onclick="crearCaja('<?php echo $data->CVE_DOC?>')">Crear Caja</a>
+                                                <?php }?>
+                                            </td>
                                             <td><?php echo $data->NOMBRE?></td>
                                             <td><?php echo '$ '.number_format($data->IMPORTE,2)?></td>
                                             <td><?php echo '$ '.number_format($data->SALDOFINAL,2)?></td>
@@ -70,12 +76,10 @@
                                             <td><?php echo $data->FECHA_SECUENCIA?></td>
                                             <td><?php echo $data->FECHA_REV;?></td>
                                             <td><?php echo $data->FECHA_REC_COBRANZA;?></td>
-                                            
                                         </tr> 
                                         <?php endforeach; ?>
                                  </tbody>
                                  </table>
-                            <!-- /.table-responsive -->
                       </div>
             </div>
         </div>
@@ -84,7 +88,25 @@
 ?>
 
 
-
+<script type="text/javascript">
+    function crearCaja(docf){
+        if(confirm('Desea Crear la caja para el documento' + docf )){
+            $.ajax({
+                url:'index.php',
+                type:'post',
+                dataType:'json',
+                data:{crearCajaC:docf},
+                success:function(data){
+                    if(data.status == 'ok'){
+                        alert(data.caja + data.lugar);
+                    }   
+                }
+            })
+        }else{
+            alert('no quizo');
+        }
+    }
+</script>
 
 
 

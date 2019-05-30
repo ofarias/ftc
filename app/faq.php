@@ -1,6 +1,32 @@
 
 
+Crear una lista desplegable.
 
+ <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <font color="white"><i class="fa fa-user fa-fw"></i> </font> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user">
+                        <!--<li><a href="index.php?action=perfil"><i class="fa fa-user fa-fw"></i> Perfil</a>
+                        </li>-->
+                        <li class="divider"></li>
+                        <li>
+                        <a href="index.php?action=salir"><i class="fa fa-sign-out fa-fw"></i> S a l i r </a>
+                        </li>
+                        <li>
+                        <a href="index.php?action=CambiarSenia&id="  target="popup" onclick="window.open(this.href, this.target, 'width=800,height=600'); return false;" ><i class="fa fa-id-card-o"></i> Cambiar Contraseña</a>
+                        </li>
+                    </ul>
+                    <!-- /.dropdown-user -->
+                </li>
+
+Subir Archivo.
+
+<form action="upload_pedido_ventas.php" method="post" enctype="multipart/form-data">
+  <input type="file" name="fileToUpload" id="fileToUpload" accept=".pdf">
+  <input type="hidden" name="cotizacion" value="<?php echo $data->PEDIDO?>">
+  <input type="submit" value="Subir Pedido" name="submit" <?php echo (!empty($data->NOMBRE_ARCHIVO))? 'disabled=disabled':'' ?>>
+</form>
 
 Historial del ID Pegaso.
 
@@ -24,12 +50,7 @@ onClick="window.open(this.href, this.target, 'width=300,height=400'); return fal
 
 
   <!--Modified by GDELEON 3/Ago/2016-->
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
-<link rel="stylesheet" href="/resources/demos/style.css">
-<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+
 <script>
 
   $(document).ready(function() {
@@ -178,9 +199,6 @@ $("#enviar").click(function (){
         items.val(folios);       
         $("#FORM_ACTION").submit();
     });
-
-
-
 
 
 ///// Metodo para enviar por correo:
@@ -623,4 +641,107 @@ $sql = $mysql->asignaUnidad($datos);
                                 document.getElementById('cuerpo').appendChild(midiv); // Lo pones en "body", si quieres ponerlo dentro de algún id en concreto usas     document.getElementById('donde lo quiero poner').appendChild(midiv);*/
                                 document.getElementById('cuerpo').appendChild(del);
 
-######################################################################################################################                              
+######################################################################################################################   
+
+Array JS
+
+array1.forEach(function(element) {
+  console.log(element);
+});
+
+/*Recargamos desde caché*/
+location.reload();
+/*Forzamos la recarga*/
+location.reload(true);
+
+
+
+***********************
+
+formatear un numero con JavaScript
+
+function formatMoney(n, c, d, t) {
+  var c = isNaN(c = Math.abs(c)) ? 2 : c,
+    d = d == undefined ? "." : d,
+    t = t == undefined ? "," : t,
+    s = n < 0 ? "-" : "",
+    i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c))),
+    j = (j = i.length) > 3 ? j % 3 : 0;
+
+  return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+};
+
+document.getElementById("b").addEventListener("click", event => {
+  document.getElementById("x").innerText = "Result was: " + formatMoney(document.getElementById("d").value);
+});
+
+<label>Insert your amount: <input id="d" type="text" placeholder="Cash amount" /></label>
+<br />
+<button id="b">Get Output</button>
+<p id="x">(press button to get output)</p>
+
+
+<style type="text/css">
+input[type=number] {
+   width: 50px;
+}
+input[type=text]{
+    width: 100px;
+}
+
+</style>
+
+
+<td align="right" id="sub_<?php echo $i?>"  width="100"><?php echo '$ '.number_format($subtotal,2)?>
+                                            <br/><label id="subtotal_<?php echo $i?>"></label>
+
+   var valor = $(this).val();
+
+
+JAVA sCRIPT
+  function format(numero){
+            var long = numero[0].length;
+            var cent = numero[1].substring(0,3);
+            if(long > 6){
+                var tipo = 'Millones';
+                if (long == 9){
+                    var mill = 3;
+                }else if(long == 8){
+                    var mill = 2;
+                }else if(long == 7){
+                    var mill = 1
+                }
+                var millones = numero[0].substring(0,mill);
+                var miles = numero[0].substring(mill, mill + 3 );
+                var unidades = numero[0].substring(mill + 3, mill +6);
+                var texto = '$  '+ millones + ',' + miles + ','+ unidades +'.' + cent;
+            }else if(long > 3){
+                if (long == 6){
+                    var mill = 3;
+                }else if(long == 5){
+                    var mill = 2;
+                }else if(long == 4){
+                    var mill = 1
+                }
+                var millones = numero[0].substring(0,mill);
+                var miles = numero[0].substring(mill, mill + 3 );
+                var unidades = numero[0].substring(mill + 3, mill +6);
+                var texto = '$  '+ millones + ',' + miles +'.' + cent;
+            }else if(long > 0){
+                if (long == 3){
+                    var mill = 3;
+                }else if(long == 4){
+                    var mill = 2;
+                }else if(long == 1){
+                    var mill = 1
+                }
+                var millones = numero[0].substring(0,mill);
+                var miles = numero[0].substring(mill, mill + 3 );
+                var unidades = numero[0].substring(mill + 3, mill +6);
+                var texto = '$  '+ millones +'.' + cent;
+            }else if(long == 0){
+                var tipo = 'Menos de peso';
+                var texto = 'Entro: ' + tipo;
+            }
+            return (texto);
+    } 

@@ -61,9 +61,7 @@
 
 <script>
     function grabar(){
-        
         var f = new Date();
-
         if(f.getDate() != 1){
             if(confirm('Desea Grabar el Inventario?')){
                 var form = document.getElementById('gr');

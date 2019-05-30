@@ -7,23 +7,45 @@
                 </h3>
             </div>
 
-            <?php if($user == 'gcompras' and count($solicitudes)>0){?>
-             <div class="col-md-4">
+            <?php if($user == 'gcompras' and $solicitudes > 0){?>
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Solicitud de Cambio de Costo</h4>
                     </div>
                     <div class="panel-body">
-                        <p><?php echo '('.$solicitudes.') Pendienetes' ?></p>
+                        <p><?php echo '('.$solicitudes.') Pendientes' ?></p>
                         <center><a href="index.php?action=verSolCostos" class="btn btn-default"><img src="app/views/images/File-warning-icon.png"></a></center>
                     </div>
                 </div>
             </div>
-
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> P R O V E E D O R E S</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p>Catalogo de proveedores</p>
+                        <center><a href="index.php?action=verProveedores" class="btn btn-default"><img src="app/views/images/File-warning-icon.png"></a></center>
+                    </div>
+                </div>
+            </div>
             <?php }?>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> P R O V E E D O R E S</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p>Catalogo de proveedores</p>
+                        <center><a href="index.php?action=verProveedores" class="btn btn-default"><img src="app/views/images/File-warning-icon.png"></a></center>
+                    </div>
+                </div>
+            </div>
+
 
             <?php if($aux != 'Si'){?>
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Status Orden</h4>
@@ -35,7 +57,7 @@
                 </div>
             </div>
 
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i>Ver Solicitud Cambio Proveedor</h4>
@@ -47,7 +69,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i>Productos Liberados desde Tesoreria</h4>
@@ -60,7 +82,7 @@
             </div>
 
 
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Administracion de Categorias</h4>
@@ -73,7 +95,7 @@
             </div>
 
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Administracion de Marcas</h4>
@@ -85,7 +107,7 @@
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Ver Marcas x Categoria</h4>
@@ -98,7 +120,7 @@
             </div>
 
        
-               <div class="col-md-4">
+               <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Cestas Agrupadas </h4>
@@ -111,7 +133,7 @@
             </div>
             <?php } ?>
             <!--
-                <div class="col-md-4">
+                <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Cestas </h4>
@@ -123,7 +145,7 @@
                 </div>
             </div>
 
-              <div class="col-md-4">
+              <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Ver e Imprimir Preorden de Compra. </h4>
@@ -137,7 +159,7 @@
 
           
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Crear Ordenes de Compra</h4>
@@ -148,7 +170,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Ver Ordenes de Compra</h4>
@@ -159,7 +181,7 @@
                     </div>
                 </div>
             </div>            
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Catalogo de Inventarios</h4>
@@ -173,7 +195,7 @@
 
         -->
                       
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Catalogo de Productos</h4>
@@ -185,7 +207,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Ver Solicitudes</h4>
@@ -196,7 +218,7 @@
                     </div>
                 </div>
             </div>
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Lista de Pedidos Pendientes</h4>
@@ -209,7 +231,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Lista de Todos los Pedidos</h4>
@@ -220,7 +242,7 @@
                     </div></a></center>
                     </div>
                 </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -231,7 +253,7 @@
                     </div>
                 </div>
             </div>
-           <!-- <div class="col-md-4">
+           <!-- <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Estado de Pedidos</h4>
@@ -242,7 +264,7 @@
                     </div>
                 </div>
                 </div> 			
-			<div class="col-md-4">
+			<div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Lista de Pedidos</h4>
@@ -253,7 +275,7 @@
                     </div>
                 </div>
             </div> 
-			<div class="col-md-4">
+			<div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i>  Ordenes por Categorias:</h4>
@@ -265,7 +287,7 @@
                 </div>
             </div>	
 
-			<div class="col-md-4">
+			<div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i>  Ordenes por Categorias:</h4>
@@ -277,7 +299,7 @@
                 </div>
             </div>
 
-			<div class="col-md-4">
+			<div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i>  Ordenes por Categorias:</h4>
@@ -289,7 +311,7 @@
                 </div>
             </div>	
 			
-			<div class="col-md-4">
+			<div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i>  Ordenes por Categorias:</h4>
@@ -301,7 +323,7 @@
                 </div>
             </div>
 
-			<div class="col-md-4">
+			<div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Ordenes por Categorias:</h4>
@@ -313,7 +335,7 @@
                 </div>
             </div>	
 			-->
-			<div class="col-md-4">
+			<div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Orden - URGENCIAS</h4>
@@ -324,7 +346,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Estado de Pedidos</h4>
@@ -335,7 +357,7 @@
                     </div>
                 </div>
             </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Detalle de Orden de Compra</h4>
@@ -346,7 +368,7 @@
                     </div>
                 </div>
             </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> REVISION DE OC</h4>
@@ -357,7 +379,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Captura de productos</h4>
@@ -368,7 +390,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> No suministrables</h4>
@@ -379,7 +401,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading"> 
                         <h4><i class="fa fa-list-alt"></i> Catalogo de productos</h4>
@@ -390,7 +412,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                <div class="panel panel-default">
                    <div class="panel-heading"> 
                        <h4><i class="fa fa-list-alt"></i> Productos POR RFC</h4>
@@ -405,7 +427,7 @@
          
 
             <!--
-			 <div class="col-md-4">
+			 <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -416,7 +438,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -427,7 +449,7 @@
                     </div>
                 </div>
             </div>
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -438,7 +460,7 @@
                     </div>
                 </div>
             </div> 
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -449,7 +471,7 @@
                     </div>
                 </div>
             </div> 
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -460,7 +482,7 @@
                     </div>
                 </div>
             </div> 
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -471,7 +493,7 @@
                     </div>
                 </div>
             </div> 
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -482,7 +504,7 @@
                     </div>
                 </div>
             </div> 
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -493,7 +515,7 @@
                     </div>
                 </div>
             </div> 
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -504,7 +526,7 @@
                     </div>
                 </div>
             </div> 
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -515,7 +537,7 @@
                     </div>
                 </div>
             </div> 
-             <div class="col-md-4">
+             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -526,7 +548,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -537,7 +559,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -548,7 +570,7 @@
                     </div>
                     </div>
                     </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -559,7 +581,7 @@
                     </div>
                 </div>
         </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -571,7 +593,7 @@
 
               </div>
         </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -582,7 +604,7 @@
                     </div>
             </div>
                     </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -594,7 +616,7 @@
 
                                     </div>
                     </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Seguimiento a Pedidos</h4>
@@ -606,7 +628,7 @@
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Pagos</h4>
@@ -618,7 +640,7 @@
                 </div>
             </div>
             
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Asignacion Ruta</h4>
@@ -631,7 +653,7 @@
             </div>   -->
 
             <?php if ($usuario == 'DANIEL GARCIA CANALES'){ ?>
-           <div class="col-md-4">
+           <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i>Ver Deudores</h4>

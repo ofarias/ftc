@@ -1,0 +1,52 @@
+body {
+  padding-top: 50px;
+}
+
+h2 {
+	margin: 0 0 15px;
+}
+
+/*
+.blur {
+	-webkit-filter: blur(3.5px);
+	-moz-filter: blur(3.5px);
+	-o-filter: blur(3.5px);
+	-ms-filter: blur(3.5px);
+	filter: blur(3.5px);
+}
+*/
+
+#main {
+	padding: 20px 0;
+}
+
+.tablas-resultados {
+	position: relative;
+}
+.tablas-resultados .overlay {
+	position: absolute;
+	left:0;
+	right:0;
+	top:0;
+	bottom:0;
+	background-color: #fff;
+	opacity: 0.5;
+	z-index: 1000;
+}
+
+.tablas-resultados.listo .overlay {
+	display: none;
+}
+.tablas-resultados .table td {
+	white-space: nowrap;
+}
+
+.tab-pane {
+	padding: 15px;
+	border: solid 1px #ddd;
+	margin-top: -1px;
+	overflow: auto;
+}
+.tab-pane .form-inline {
+	margin-bottom: 10px;
+}

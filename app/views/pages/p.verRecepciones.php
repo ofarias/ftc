@@ -28,7 +28,7 @@
                                         foreach ($recepciones as $data):
                                             $archivo = 'DEVOLUCION_'.$data->FOLIO_DEV;
                                             $i++;
-                                            ?>
+                                        ?>
                                         <tr id="<?php echo $i?>">
                                             <td><?php echo $data->FOLIO_DEV;?></td>
                                             <td><?php echo $data->NOMBRE;?></td>

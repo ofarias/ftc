@@ -34,7 +34,11 @@
                                         $color = '';
                                     }
                                     $i++;
-                                    $CANTIDAD = $data->RECEPCION - $data->EMPACADO;
+                                    if(empty($data->RECEPCION)){
+                                        $CANTIDAD = $data->ENBODEGA;
+                                    }else{
+                                        $CANTIDAD = $data->RECEPCION - $data->EMPACADO;    
+                                    }
                                     $total = $total + (($data->COSTO * $CANTIDAD) * 1.16);
                             ?>
                                     <tr class="odd gradeX"  id="tr_<?php echo $i?>" <?php echo $color?>>
@@ -47,7 +51,7 @@
                                         <td><?php echo $data->NOM_PROV?></td>
                                         <td><?php echo $data->RECEPCION?></td>
                                         <td><?php echo $data->EMPACADO?></td>
-                                        <td><?php echo $data->RECEPCION -$data->EMPACADO?></td>
+                                        <td><?php echo $CANTIDAD?></td>
                                         <td><?php echo $data->UM?></td>
                                         <td><?php echo $data->COSTO?></td>
                                         <td align="right"><?php echo '$ '.number_format($data->COSTO * $CANTIDAD,2)?> <br/> <?php echo '$ '.number_format((($data->COSTO * $CANTIDAD) * .16),2)?> <br/> <font color="red"><?php echo '$ '.number_format((($data->COSTO * $CANTIDAD) * 1.16),2)?> </font></td>

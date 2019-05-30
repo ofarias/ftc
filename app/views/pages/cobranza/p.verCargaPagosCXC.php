@@ -4,7 +4,7 @@
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                               Ver Relacion de Pagos sin cierre.
+                               Saldos de los Maestros.
                         </div>
                         <!-- /.panel-heading -->
                            <div class="panel-body">
@@ -27,7 +27,7 @@
                                     </thead>
                                   <tbody>
                                         <?php
-                                        foreach ($pagos as $data):
+                                        foreach ($info as $data):
 
                                         if(empty($data->TIPO_PAGO)){
                                             $tipo = 'Ingreso por Venta';

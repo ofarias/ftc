@@ -1,6 +1,6 @@
 <?php
 session_start();
-session_cache_limiter('private_no_expire');
+//session_cache_limiter('private_no_expire');
 require_once('app/controller/pegaso.controller.php');
 $controller = new pegaso_controller;
 $target_dir = "C:\\xampp\\htdocs\\PegasoFTC\\app\\LayoutBBVA\\Alta\\";

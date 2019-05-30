@@ -47,6 +47,17 @@
             </div>
             <?php }?>
 
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> Ver Proveedores</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p>Proveedores / Categorias / Marcas</p>
+                        <center><a href="index.php?action=verProveedores" class="btn btn-default"><img src="app/views/images/folder.png"></a></center>
+                    </div>
+                </div>
+            </div>
 
             <?php foreach($preordenes as $key){?>
              <div class="col-xs-16 col-md-3">

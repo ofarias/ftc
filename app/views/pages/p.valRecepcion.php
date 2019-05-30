@@ -391,7 +391,7 @@ $(document ).ready(subTotales);
 
         var idp = document.getElementById("idp_"+i).value;
         var cantidad = document.getElementById("cant_"+i).value;
-        var doco = document.getElementById("doco_"+1).value;
+        var doco = document.getElementById("doco_"+i).value;
         var partida = i;
         var desc1 = document.getElementById("desc1_"+i).value;
         var desc2 = document.getElementById("desc2_"+i).value;

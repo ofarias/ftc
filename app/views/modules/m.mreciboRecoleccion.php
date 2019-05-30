@@ -55,19 +55,7 @@
                <?php }?>   
 
             
-            <?php if($usuario =='Juliana Garcia Gutierrez'){?>
-               <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Liberar Pedido a Produccion </h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>Cajas y Pedidos.</p>
-                        <center><a href="index.php?action=verCajasAlmacen" class="btn btn-default"><img src="app/views/images/boxes-brown-icon.png"></a></center>
-                    </div>
-                </div>
-            </div>
-            <?php }?>               
+         
 
             <?php if($usuario =='Adriana Raya'){?>
                  <div class="col-md-4">

@@ -26,7 +26,7 @@
                             ?>
                                     <tr>
                                         <td><?php echo $sc->NOMBRE?></td>
-                                        <td><?php echo $sc->SUCURSALES?></td>
+                                        <td><a href="index.php?action=CarteraxCliente&cve_maestro=<?php echo $sc->CLAVE;?>"  class="btn btn-info" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;"><?php echo $sc->SUCURSALES?></a></td>
                                         <td align="right"><?php echo '$ '.number_format($sc->LIMITE_GLOBAL,2);?></td>                                    
                                         <td align="right"><?php echo '$ '.number_format($sc->SALDO_2015,2,".",",");?></td>
                                         <td align="right"><?php echo '$ '.number_format($sc->SALDO_2016,2,".",",");?></td>
@@ -98,7 +98,7 @@
                                         <td align="right"><?php echo '$ '.number_format($sc->S16,2,".",",");?></td>
                                         <td align="right"><?php echo '$ '.number_format($sc->S17,2);?></td>
                                         <td align="right"><?php echo '$ '.number_format($total,2);?></td>
-                                    <form action="index.php" method="post">
+                                    <form action="index.cobranza.php" method="post">
                                         <input type="hidden" name="cliente" value="<?php echo $sc->CC;?>"/>
                                         <td><button type='submit' name="DetalleCliente" class="btn btn-info">Detalle</button></td>
                                     </form>

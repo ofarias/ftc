@@ -14,7 +14,7 @@
                             <p>Operador: <?php echo $CreaU->OPERADOR;?></p>
                             <p>Coordinador: <?php echo $CreaU->COORDINADOR;?></p>
                             <p>Documentos: <font color="red"><b><?php echo $CreaU->DOCUMENTOS?></b></font></p>
-                            <center><a href="index.php?action=RutaUnidad&idr=<?php echo $CreaU->IDU;?>" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/custom-icon-design/flatastic-2/64/truck-icon.png"></a></center>
+                            <center><a href="index.php?action=RutaUnidad&idr=<?php echo $CreaU->IDU;?>&tipo=<?php echo $tipo?>" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/custom-icon-design/flatastic-2/64/truck-icon.png"></a></center>
                         </div>
                     </div>
                 </div>    

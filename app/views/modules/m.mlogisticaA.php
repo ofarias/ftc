@@ -90,7 +90,7 @@
                         <center><a href="index.php?action=reenrutar" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
                     </div>
                 </div>
-           </div>	
+           </div>   
            <!-- Finaliza Sub menu para ver re enrutar -->
             
             
@@ -105,7 +105,7 @@
                         <center><a href="index.php?action=totales" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
                     </div>
                 </div>
-           </div>	
+           </div>   
            <!-- Finaliza Sub menu para ver totales -->
             
             
@@ -120,7 +120,7 @@
                         <center><a href="index.php?action=pnoenrutar" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
                     </div>
                 </div>
-           </div>	
+           </div>   
            <!-- Finaliza Sub menu para Parcial-No-Enrutar-->
             
              <div class="col-md-4">

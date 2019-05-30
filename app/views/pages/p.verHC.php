@@ -95,9 +95,15 @@
                                             }elseif($data->STATUS_DEST == 6){
                                                 $color = "style='background-color: #CEE3F6'";
                                                 $tipod = 'Con Comprobante <br/> Listo para Recepcion';
+                                            }elseif($data->STATUS_DEST == 61){
+                                                $color = "style='background-color:#f2c294'";
+                                                $tipod = 'Procesado, Recibido en Contra Recibo';
                                             }elseif ($data->STATUS_DEST == 7){
                                                 $color = "style='background-color:#81BEF7'";
                                                 $tipod = 'Recibido, Sin Contra Recibo';
+                                            }elseif($data->STATUS_DEST == 71){
+                                                $color = "style='background-color:#f2c294'";
+                                                $tipod = 'Con Contra Recibo, Recibido en Cobranza';
                                             }elseif ($data->STATUS_DEST == 8){
                                                 $color = "style='background-color:#6699ff'";
                                                 $tipod = 'Recibido, Con Contra Recibo';

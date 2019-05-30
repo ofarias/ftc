@@ -5,9 +5,8 @@
                 <h3 class="page-header">
                     <!--<img src="app/views/images/logob.jpg">-->
                 </h3>
-            </div>
-           
-
+            </div> 
+<?php if(count($ocmes) > 0){ ?> 
            <?php foreach($ocmes[0] as $key):?> 
             <div class="col-xs-12 col-md-4">
                 <div class="panel panel-default">
@@ -62,7 +61,7 @@
                 </div>
             </div>
         <?php endforeach;?>
-
+<?php }?>
         </div>
 </div>
     

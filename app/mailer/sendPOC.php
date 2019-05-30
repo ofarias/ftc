@@ -27,9 +27,9 @@ require_once('./app/PHPMailer/class.smtp.php');
              return;
          }
      endforeach;
-     $asunto = "Pre Orden de Compra Ferretera Pegaso.";  
+     $asunto = "Pre Orden de Compra.";  
      $mensaje.= "<p>Le informamos que hemos creado una preorden de compra a nombre de $contacto con una fecha estimada de recepcion el $promesaPago.</p>";
-     $mensaje.= "<p>Gracias por su apoyo.<br />Atentamente Ferretera Pegaso</p> <br/> En breve debera recibir una llamada de nuestro personal para confirmar esta Preorden.<br/>Si en un lapso maximo de 1 dia no recibe la llamada, le pedimos de favor que lo reporte a los telefonos 5220 9799 o a los correos: <font color='red'>elipegaso@hotmail.com, ferreterapegaso@hotmail.com</font>";
+     $mensaje.= "<p>Gracias por su apoyo.<br />Atentamente </p> <br/> En breve debera recibir una llamada de nuestro personal para confirmar esta Preorden.<br/>Si en un lapso maximo de 1 dia no recibe la llamada, le pedimos de favor que lo reporte a los telefonos 5220 9799 o a los correos: <font color='red'>compras@hotmail.com, compras@hotmail.com</font>";
      try { 
         $mail = new PHPMailer();
         $mail->isSMTP(true); // telling the class to use SMTP
@@ -45,14 +45,14 @@ require_once('./app/PHPMailer/class.smtp.php');
         $mail->Host = 'tls://smtp.gmail.com';
         $mail->Port = 587;
         $mail->SMTPAuth = true;
-        $mail->Username   = "cxpferreterapegaso@gmail.com";  // Nombre del usuario SMTP
+        $mail->Username   = "info@ftcenlinea.com";  // Nombre del usuario SMTP
         $mail->Password   = "genseg89+";          // Contraseña del servidor SMTP
-        $mail->AddAddress($correo, $correoUsuario, 'pegasocompras@gmail.com');      //Direccion a la que se envia
-        $mail->SetFrom('cxpferreterapegaso@gmail.com' , "Pegaso. Cuentas por pagar"); // Esccribe datos de contacto
-        $mail->Subject = 'Pre orden de compra Ferretera Pegaso SA de CV';
+        $mail->AddAddress($correo, $correoUsuario, 'info@ftcenlinea.com');      //Direccion a la que se envia
+        $mail->SetFrom('info@ftcenlinea.com' , "Cuentas por pagar"); // Esccribe datos de contacto
+        $mail->Subject = 'Pre orden de compra ';
         $mail->AltBody = 'Para ver correctamente este mensaje, por favor usa un manejador de correo con compatibilidad HTML !'; // optional - MsgHTML will create an alternate automatically
         $mail->MsgHTML($mensaje); 
-        $mail->AddAttachment(realpath('C:\xampp\htdocs\Preordenes\Pre_Orden_de_Compra_Pegaso_No.'.$idpoc.'.pdf'),'Pre_Orden_de_Compra_Pegaso_No.'.$idpoc.'_.pdf','base64','application/pdf');
+        $mail->AddAttachment(realpath('C:\xampp\htdocs\Preordenes\Pre_Orden_de_Compra_No.'.$idpoc.'.pdf'),'Pre_Orden_de_Compra_No.'.$idpoc.'_.pdf','base64','application/pdf');
         $mail->Send();
 ?>
         

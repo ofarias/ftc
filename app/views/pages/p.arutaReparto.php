@@ -75,7 +75,7 @@
                                             <td><?php echo $data->CODIGO;?></td>
                                             <td><?php echo $data->FECHAELAB;?></td>
                                             <td><?php echo $data->FACTURA;?></td>
-                                            <td><?php echo $data->REMISIONDOC;?></td>
+                                            <td><?php echo $data->REMISION;?></td>
                                             <td><?php echo $data->DIAS ?> 
                                                 <?php if($data->VUELTAS > 0){?>
                                                 <br/><b><font size="2 pxs" color="white"><a href="index.php?action=verVueltas&idcaja=<?php echo $data->ID?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;"><?php echo $data->VUELTAS ?>&nbsp;&nbsp;Vueltas</a></font></b>

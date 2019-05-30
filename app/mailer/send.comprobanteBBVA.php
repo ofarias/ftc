@@ -41,13 +41,13 @@ require_once('./app/PHPMailer/class.smtp.php');
                  //$mensaje.= '<br />Fecha Promesa de pago : ' . $data->PROMESA_PAGO;
                  $mensaje.= '<br />Monto : ' . number_format($data['IMPORTE'], 2, '.', ',').'</p>';
                  $mensaje.= "<p>Le informamos que hemos realizado una transferencia electronica a nombre de $contacto el dia $fechapago.</p>";
-                 $mensaje.= "<p>Gracias por su confianza<br />Atentamente Ferretera Pegaso</p>";
+                 $mensaje.= "<p>Gracias por su confianza<br />Atentamente </p>";
              } else {
                  echo "No se ha localizado el correo electr&oacute;nico a quien enviar. No se va a enviar el correo.";
                  return;
              }
         
-                 $asunto = "Comprobante de Pago Ferretera Pegaso.";  
+                 $asunto = "Comprobante de Pago.";  
          try {
              $mail = new PHPMailer();
         $mail->isSMTP(true); // telling the class to use SMTP
@@ -71,10 +71,10 @@ require_once('./app/PHPMailer/class.smtp.php');
         $mail->Host = 'tls://smtp.gmail.com';
         $mail->Port = 587;
         $mail->SMTPAuth = true;
-        $mail->Username   = "cxpferreterapegaso@gmail.com";  // Nombre del usuario SMTP
+        $mail->Username   = "info@ftcenlinea.com";  // Nombre del usuario SMTP
          $mail->Password   = "genseg89+";
              $mail->AddAddress($correo);      //Direccion a la que se envia, separados por comas.
-             $mail->SetFrom('cxpferreterapegaso@gmail.com' , "Pegaso. Cuentas por pagar"); // Esccribe datos de contacto
+             $mail->SetFrom('info@ftcenlinea.com' , "Cuentas por pagar"); // Esccribe datos de contacto
              $mail->Subject = $asunto;
              $mail->AltBody = 'Para ver correctamente este mensaje, por favor usa un manejador de correo con compatibilidad HTML !'; // optional - MsgHTML will create an alternate automatically
              $mail->MsgHTML($mensaje);

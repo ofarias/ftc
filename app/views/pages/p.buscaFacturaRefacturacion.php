@@ -1,3 +1,4 @@
+
 <div class="row">
     <br />
 </div>
@@ -8,7 +9,7 @@
             <input type="text" name="docf" class="form-control" placeholder="Numero de Factura">
             <input type="hidden" name="opcion" value="<?php echo $opcion?>">
           </div>
-          <button type="submit" value = "enviar" name = "buscaFacturaNC" class="btn btn-default">Buscar</button>
+                <button type="submit" value = "enviar" name = "buscaFacturaNC" class="btn btn-default">Buscar</button>
           </form>
     </div>
 </div>
@@ -21,7 +22,6 @@
             $validacion = 1;
         }     
     }
-    
 }?>
 <?php if(!empty($factura)){?>
 <div>
@@ -52,7 +52,8 @@
                                         </tr>
                                     </thead>   
                                   <tbody>
-                                        <?php foreach ($factura as $data):?>
+                                        <?php foreach ($factura as $data):
+                                            $clie = $data->CVE_CLPV;?>
                                         <tr <?php echo ($data->SALDOFINAL <= 10)? "title='Lo sentimos no se puede refacturar una factura saldada, favor de revisar con el gerente...'":"title='Al refacturar se le dara aviso al gerente y al vendedor de este movimiento...'" ?>>                                            
                                             <td><?php echo '('.$data->CVE_CLPV.')'.$data->NOMBRE;?></td>
                                             <td><?php echo $data->CVE_DOC;?></td>
@@ -67,13 +68,21 @@
                                             <form action="index" method="POST">
                                             <input type="hidden" name="docf" value="<?php echo $data->CVE_DOC?>" id="factura">
                                             <td>
-                                                <?php if($data->SALDOFINAL >=10 & $validacion == 0 ){?>
+                                                <?php if($data->SALDOFINAL >=10 & $validacion == 0 ){?>     
                                                 <select required="required" nombre = "tipo" id="tipo" onchange="enviar()" >
                                                     <option value="">Seleccionar un tipo</option>
                                                     <option value="fec"> Cambio de Fecha </option>
-                                                    <!--<option value="dir"> Cambio Direccion </option>-->
+                                                    <option value="dir"> Cambio Direccion </option>
                                                     <option value="cli"> Cambio de Cliente</option>
-                                                    <!--<option value="pre"> Cambio en precios </option>-->
+                                                    <option value="pre"> Cambio en precios </option>
+                                                    <option value="sat">Cambio de Datos Fiscales</option>
+                                                    <option value="cancela"> Cancela y Sustituye</option>                                                    
+                                                    <?php if(substr($data->CVE_DOC,0,3) == 'FAA' or (substr($data->CVE_DOC,0,2)== 'RF' and substr($data->CVE_DOC,0,3) != 'RFP')){?>
+                                                    <option value="migrar">Migrar factura</option>
+                                                    <?php }?>
+                                                    <?php if(  strpos(strtoupper($data->NOMBRE_MAESTRO) ,'SUBURBIA') !== false && $tipoUsuario== 'G'){?>
+                                                        <option value="suburbia">Descuento Logistico Suburbia </option>
+                                                    <?php }?>
                                                 </select>
                                                 <?php }?>
                                             </td>
@@ -121,13 +130,13 @@
                                     </thead>   
                                   <tbody>
                                         <?php foreach ($historico as $data2):
-                                            if($data2->STATUS_SOLICITUD == 1){
+                                            if($data2->STATUS_SOLICITUD == 0){
                                                 $STATUS = 'Nueva';
-                                            }elseif($data2->STATUS_SOLICITUD == 2){
+                                            }elseif($data2->STATUS_SOLICITUD == 1){
                                                 $STATUS = 'Autorizado / Sin Ejecutar';
-                                            }elseif($data2->STATUS_SOLICITUD == 3){
+                                            }elseif($data2->STATUS_SOLICITUD == 2){
                                                 $STATUS = 'Rechazado';
-                                            }elseif($data2->STATUS_SOLICITUD == 4){
+                                            }elseif($data2->STATUS_SOLICITUD == 3){
                                                 $STATUS = 'Autorizado / Ejecutado';
                                             }else{
                                                 $STATUS = 'Otro';
@@ -165,8 +174,7 @@
     <?php }?>
 <?php }?>
 
-<div class="hide" id="fecha">
-    
+<div class="hide" id="fecha">    
     <label><font size="6">Selecciono la Refacturacion por fecha, por favor seleccionar la fecha correcta, recuerda que solo se puede elejir fechas igual o posterior al dia de hoy:</font></label>
     <form action="index.php" method="post">
         <input type="hidden" name="docf" value="<?php echo $docf?>">
@@ -208,8 +216,114 @@
         <button value="enviar" name="refacturarFecha" class="btn btn-info" > Solicitar </button>
     </form>
 </div>
+
+<div class="hide" id="cys">
+    <label><font size="6">Cancela y Sustituye:</font></label>
+    <form action="index.php" method="post">
+        <input type="hidden" name="docf" value="<?php echo $docf?>">
+        <label>Observaciones </label><input type="text" name="obs" size="200" placeholder="Observaciones" required="required" id="obs">
+        <input type="hidden" name="opcion" value="6">
+        <input type="hidden" name="nfecha" value="">
+        <button value="enviar" name="refacturarFecha" class="btn btn-info" > Solicitar </button>
+    </form>
+</div>
+
+<div class="hide" id="sat">
+    <label><font size="6">Datos Fiscales :</font></label>
+    <form action="index.php" method="post">
+        <input type="hidden" name="docf" value="<?php echo $docf?>">
+        <label>Nuevos datos Fiscales: &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;<br/>
+            
+            <label>Colocar los datos Fiscales</label> <br/>
+            <br/>Uso de CFDI     : <select name="satUso" required class="uso">
+                <option value="">"Uso CFDI"</option>
+                <option value="G01">"G01 Adquisición de mercancias"</option>
+                <option value="G02">"G02 Devoluciones, descuentos o bonificaciones"</option>
+                <option value="G03">"G03 Gastos en general"</option>
+                <option value="I01">"I01 Construcciones"</option>
+                <option value="I02">"I02Mobilario y equipo de oficina por inversiones"</option>
+                <option value="I03">"I03Equipo de transporte"</option>
+                <option value="I04">"I04Equipo de computo y accesorios"</option>
+                <option value="I05">"I05Dados, troqueles, moldes, matrices y herramental"</option>
+                <option value="I06">"I06Comunicaciones telefónicas"</option>
+                <option value="I07">"I07Comunicaciones satelitales"</option>
+                <option value="I08">"I08Otra maquinaria y equipo"</option>
+                <option value="P01">"P01 Por definir"</option>
+            </select><br/>
+            <br/>Tipo de pago    : <select name="satMP" required class="tpago">
+                <option value="">"Metodo de Pago"</option>
+                <option value="PUE">"PUE Pago en una sola exhibición"</option>
+                <option value="PPD">"PPD Pago en parcialidades o diferido"</option>
+            </select><br/>
+            <br/>Forma de Pago: <select name="satFP" required class="mpago">
+                <option value="">"Forma de Pago"</option>
+                <option value="03">"03 Transferencia Electronica de Fondos"</option>
+                <option value="01">"01 Efectivo"</option>
+                <option value="02">"02 Cheque Nominativo"</option>
+                <option value="04">"04 Tarjeta de Credito"</option>
+                <option value="05">"05 Monedero Electronico"</option>
+                <option value="15">"15 Condonacion"</option>
+                <option value="17">"17 Compensacion"</option>
+                <option value="30">"30 Aplicacion de Anticipos"</option>
+                <option value="99">"99 Por Definir"</option>
+            </select><br/>
+            <br/>
+        <label>Observaciones </label><input type="text" name="obs" placeholder="Observaciones" required="required" id="obs"><br/>
+        <input type="hidden" name="opcion" value="3">
+        <button value="enviar" name="refacturarSAT" class="btn btn-info" > Solicitar </button>
+    </form>
+</div>
+
+
 <div class="hide" id="pre">
-    <label><font size="6">Cambio de precios en Productos:</font></label>
+    <div>
+        <input type="hidden" name="docf" value="<?php echo $docf?>" id= >
+        <label>Cliente Nuevo: &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;<br/>
+            <select name="nfecha" required="required" id="nfecha">
+                <option value="<?php echo $clie?>">Seleccione el Cliente Nuevo</option>
+                <?php foreach ($cliente as $key): ?>
+                    <option value="<?php echo $key->CLAVE?>"><?php echo $key->CLAVE?> - <?php echo $key->NOMBRE ?></option>
+                <?php endforeach ?>
+            </select>
+    </div>
+    <div>
+        <p><b>Colocar los datos Fiscales</b></p>
+            <br/>Uso de CFDI     : <select name="satUso" required class="uso" id="satUso">
+                <option value="">"Uso CFDI"</option>
+                <option value="G01">"G01 Adquisición de mercancias"</option>
+                <option value="G02">"G02 Devoluciones, descuentos o bonificaciones"</option>
+                <option value="G03">"G03 Gastos en general"</option>
+                <option value="I01">"I01 Construcciones"</option>
+                <option value="I02">"I02Mobilario y equipo de oficina por inversiones"</option>
+                <option value="I03">"I03Equipo de transporte"</option>
+                <option value="I04">"I04Equipo de computo y accesorios"</option>
+                <option value="I05">"I05Dados, troqueles, moldes, matrices y herramental"</option>
+                <option value="I06">"I06Comunicaciones telefónicas"</option>
+                <option value="I07">"I07Comunicaciones satelitales"</option>
+                <option value="I08">"I08Otra maquinaria y equipo"</option>
+                <option value="P01">"P01 Por definir"</option>
+            </select><br/>
+            <br/>Tipo de pago    : <select name="satMP" required class="tpago" id="satMP">
+                <option value="">"Metodo de Pago"</option>
+                <option value="PUE">"PUE Pago en una sola exhibición"</option>
+                <option value="PPD">"PPD Pago en parcialidades o diferido"</option>
+            </select><br/>
+            <br/>Forma de Pago: <select name="satFP" required class="mpago" id="satFP">
+                <option value="">"Forma de Pago"</option>
+                <option value="03">"03 Transferencia Electronica de Fondos"</option>
+                <option value="01">"01 Efectivo"</option>
+                <option value="02">"02 Cheque Nominativo"</option>
+                <option value="04">"04 Tarjeta de Credito"</option>
+                <option value="05">"05 Monedero Electronico"</option>
+                <option value="15">"15 Condonacion"</option>
+                <option value="17">"17 Compensacion"</option>
+                <option value="30">"30 Aplicacion de Anticipos"</option>
+                <option value="99">"99 Por Definir"</option>
+            </select><br/>
+            <br/>
+        <p>Observaciones </p><input type="text" name="obs" placeholder="Observaciones" required="required" id="obs2"><br/>
+ </div>
+    <p><font size="6">Cambio de precios en Productos:</font></p>
     <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
@@ -223,6 +337,7 @@
                                         <tr>
                                             <th>Partida</th>
                                             <th>Cantidad</th>
+                                            <th>Nueva Cantidad</th>
                                             <th>Clave</th>
                                             <th>Descripcion</th>
                                             <th>Precio Actual </th>
@@ -244,18 +359,19 @@
                                         <tr>                                            
                                             <td><?php echo $partida->NUM_PAR;?></td>
                                             <td><?php echo $partida->CANT;?></td>
+                                            <td><input type="number" name="ncant" value="<?php echo $partida->CANT?>" id="ncant_<?php echo $partida->NUM_PAR?>" Style='width:70px' onchange="totales(<?php echo $partida->NUM_PAR?>, nuevoPrecio_<?php echo $partida->NUM_PAR?>.value)"></td>
                                             <td><?php echo $partida->CVE_ART?></td>
                                             <td><?php echo $partida->NOMBRE;?></td>
                                             <td align="right"><?php echo '$ '.number_format($partida->PREC,2,'.',',');?></td>
                                             <td><?php echo '$ '.number_format($partida->PREC * $partida->CANT,2,'.',',');?></td>
                                             <td align="right"><?php echo '$ '.number_format(($partida->CANT * $partida->PREC) * .16,2);?></td>
                                             <td align="right"><?php echo '$ '.number_format(($partida->CANT * $partida->PREC) * 1.16,2);?></td>
-                                            <td align="right"><input type="number" step="any" name="nuevoPrecio" onchange="totales(<?php echo $partida->NUM_PAR?>,this.value)" id="nuevoPrecio_<?php echo $partida->NUM_PAR?>"><br/><input type="text" size ="8" id="diferencia_<?php echo $partida->NUM_PAR?>" value="0" readonly></td>
+                                            <td align="right"><input type="number" step="any" name="nuevoPrecio" value="<?php echo $partida->PREC?>" onchange="totales(<?php echo $partida->NUM_PAR?>,this.value)" id="nuevoPrecio_<?php echo $partida->NUM_PAR?>"><br/><input type="text" size ="8" id="diferencia_<?php echo $partida->NUM_PAR?>" value="0" readonly></td>
                                             <td align="right"><input type="text" size="10" name="nuecoSubTotal" value="0" id="nst_<?php echo $partida->NUM_PAR?>" readonly></td>
                                             <td align="right"><input type="text" size="10" name="ni" id="ni_<?php echo $partida->NUM_PAR?>" value="0" readonly></td>
                                             <td align="right"><input type="text" size="10" name="nt" value="0" id="nt_<?php echo $partida->NUM_PAR?>" readonly> <br/> <input type="text" name="difTot" id="difTotal_<?php echo $partida->NUM_PAR?>" readonly></td>
 
-                                            <input type="hidden" name="cantidad" value="<?php echo $partida->CANT?>" id="cant_<?php echo $partida->NUM_PAR ?>">
+                                            <input type="hidden" name="cantidad" value="<?php echo $partida->CANT?>" id="canto_<?php echo $partida->NUM_PAR ?>">
                                             <input type="hidden" name="base" value="<?php echo $partida->PREC?>" id="base_<?php echo $partida->NUM_PAR?>">
                                             <input type="hidden" name="docf" id="docf_<?php echo $partida->NUM_PAR?>" value="<?php echo $partida->CVE_DOC?>">
                                         </tr>
@@ -272,18 +388,72 @@
     </div>
 </div>
 </div>
-<script type="text/javascript">
+
+<div class="hide" id="migrar">
+    <p><font size="3pxs"> <b>Se migrara la factura a un folio FP, el cual no se timbrara hasta se cuadre, favor de realizar posterior mente la funcion de Cambio de precio</b></font></p>
+    <form action="index.php" method="post">
+        <input type="hidden" name="docf" value="<?php echo $docf?>">
+        <input type="hidden" name="refacturarFecha">
+        <input type="hidden" name="opcion" value="3">
+        <input type="hidden" name="nfecha" value="">
+        <p>Observaciones:</p>
+        <p><input type="text" name="obs" placeholder="Observaciones" required="required" id="obs" size="250"></p>
+        <p><button value="enviar" name="refacturarFecha" class="btn btn-info" > Solicitar </button></p>
+    </form>
+</div>
+
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
 <link rel="stylesheet" href="/resources/demos/style.css">
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
-<script>
+<script type="text/javascript">
 
+    $("select").change(function(){
+        var tipo = $(this).val();
+        var docf = document.getElementById('factura').value;
+        if(tipo == 'suburbia'){
+            if(confirm('Selecciono el descuento logistico de suburbia, si continua, no podra hacer NC porsteriores.?')){
+                $.ajax({
+                    url:'index.php',
+                    type:'post',
+                    dataType:'json',
+                    data:{nclog:docf, tipo:tipo},
+                    success:function(data){
+                        if(data.status == 'no'){
+                            alert('No se pudo validar el documento: ' + docf +', puede ser que tenga una Validacion previa.');
+                            location.reload(true);
+                        }else if(data.status == 'ok'){
+                            alert('Se aprovo la solicitud, ahora puede realizar la NC de descuento logistico');
+                            location.reload(true);
+                        }
+                    }
+                });
+
+            }else{
+                document.getElementById('tipo').value='';
+
+            }
+
+        }
+    })
 
     function solicitudPrecio(p){
         var difTotal = 0;
+
+        var clie=document.getElementById('nfecha').value; 
+        var suso = document.getElementById('satUso').value; 
+        var smp = document.getElementById('satMP').value; 
+        var sfp = document.getElementById('satFP').value; 
+        var obs = document.getElementById('obs2').value; 
+
+        if(suso==""||smp==""||sfp==""||obs==""){
+            alert('Uso' +  suso + ", MP:" + smp + ' FP:' + sfp + ' obs: '+ obs);
+            alert('Favor de llenar los datos fiscales y las observaciones.');
+            return;
+        }
+
         document.getElementById('tipo').classList.add('hide');
         for(var i =1; i <= p; i++){
             var pn = document.getElementById('difTotal_'+i).value;
@@ -291,34 +461,34 @@
         }
         if(difTotal != 0 ){
             if(confirm('Se procede a la solicitud')){
-                
                 for(var a = 1; a <=p; a++){
-                   
                     var dif= document.getElementById('difTotal_'+a).value;
                     var nuevoPrecio = document.getElementById('nuevoPrecio_'+a).value;
                     var docf = document.getElementById('docf_'+a).value;
-                    if(nuevoPrecio != 0){
+                    var ncant =document.getElementById('ncant_'+a).value;
+                    var cant = document.getElementById('canto_'+a).value;
+                    if(nuevoPrecio != 0 || ncant != cant){
                         $.ajax({
                             type:"POST",
                             url:"index.php",
                             dataType: "json",
-                            data: {guardaPartida:a, precio:nuevoPrecio, partida:a, docf:docf},
+                            data: {guardaPartida:a, precio:nuevoPrecio, partida:a, docf:docf, ncant:ncant},
                             success: function(data){
                                 if(data.status == 'ok'){
-                                    alert('Se cambio el precio ...');
+                                    //alert('Se cambio el precio ...');
                                     $.ajax({
                                         type:"POST",
                                         url:"index.php",
                                         dataType:"json",
-                                        data:{solicitudPrecio:1, docf:docf},
+                                        data:{solicitudPrecio:1, docf:docf, clie:clie, suso:suso, smp:smp, sfp:sfp, obs:obs},
                                         success: function(data){
-                                            alert('Creo la solicitud....');
-                                            window.location.reload(true); 
+                                            //alert('Creo la solicitud....');
+                                            location.reload(true); 
                                                 }
                                         });
                                 }else{
                                     alert('No se puede crear por que hay una solicitus en proceso ' );
-                                    window.location.reload(true); 
+                                    location.reload(true); 
                                 }
                             }
                         });    
@@ -331,8 +501,8 @@
 
 
     function totales(P, precio, precioBase){
-
-        var cantidad = parseFloat(document.getElementById('cant_'+P).value,2);
+        var cantidad = parseFloat(document.getElementById('ncant_'+P).value,2);
+        var canto= parseFloat(document.getElementById('canto_'+P).value,2);
         var precio = parseFloat(precio,2);
         var base = parseFloat(document.getElementById('base_'+P).value,2);
         var dif = (base - precio) * -1; 
@@ -340,8 +510,8 @@
         var NI = (precio * cantidad) * .16;
         var NT = (precio * cantidad) * 1.16;
 
-        var T = (base * cantidad) *1.16;
-        var difTot = (T - NT) *-1
+        var T = (base * canto) *1.16;
+        var difTot=(T-NT) * -1
 
         alert('la diferencia es: ' + dif + ' Base: '+ precio + ' base: '+ base );
         document.getElementById('nst_' + P).value = NST.toFixed(2);
@@ -351,9 +521,10 @@
         document.getElementById('difTotal_'+P).value = difTot.toFixed(2);
     }
 
-  $(document).ready(function() {
-    $(".date").datepicker({dateFormat: 'dd.mm.yy'});
-  } );
+    $(document).ready(function() {
+       $(".date").datepicker({dateFormat: 'dd.mm.yy'});
+    } );
+
     function enviar(){
         var docf = document.getElementById('factura').value;
         var tipo = document.getElementById('tipo').value;
@@ -366,25 +537,58 @@
                     document.getElementById("dir").classList.add('hide');
                     document.getElementById("cli").classList.add('hide');
                     document.getElementById("pre").classList.add('hide');
-
+                    document.getElementById("sat").classList.add('hide');
+                    document.getElementById("cys").classList.add('hide');
+                    document.getElementById("migrar").classList.add('hide');
                 }else if( tipo == 'dir'){
                     document.getElementById("fecha").classList.add('hide');
                     document.getElementById("dir").classList.remove('hide');
                     document.getElementById("cli").classList.add('hide');
                     document.getElementById("pre").classList.add('hide');
+                    document.getElementById("sat").classList.add('hide');
+                    document.getElementById("cys").classList.add('hide');
+                    document.getElementById("migrar").classList.add('hide');
                 }else if(tipo == 'cli'){
                     document.getElementById("fecha").classList.add('hide');
                     document.getElementById("dir").classList.add('hide');
                     document.getElementById("cli").classList.remove('hide');
                     document.getElementById("pre").classList.add('hide');
-
+                    document.getElementById("sat").classList.add('hide');
+                    document.getElementById("cys").classList.add('hide');
+                    document.getElementById("migrar").classList.add('hide');
                 }else if(tipo == 'pre'){
                     document.getElementById("fecha").classList.add('hide');
                     document.getElementById("dir").classList.add('hide');
                     document.getElementById("cli").classList.add('hide');
                     document.getElementById("pre").classList.remove('hide');
-
-                }                   
+                    document.getElementById("sat").classList.add('hide');
+                    document.getElementById("cys").classList.add('hide');
+                    document.getElementById("migrar").classList.add('hide');
+                }else if(tipo == 'sat'){
+                    document.getElementById("fecha").classList.add('hide');
+                    document.getElementById("dir").classList.add('hide');
+                    document.getElementById("cli").classList.add('hide');
+                    document.getElementById("pre").classList.add('hide');
+                    document.getElementById("sat").classList.remove('hide');
+                    document.getElementById("cys").classList.add('hide');
+                    document.getElementById("migrar").classList.add('hide');
+                }else if(tipo == 'cancela'){
+                    document.getElementById("fecha").classList.add('hide');
+                    document.getElementById("dir").classList.add('hide');
+                    document.getElementById("cli").classList.add('hide');
+                    document.getElementById("pre").classList.add('hide');
+                    document.getElementById("sat").classList.add('hide');
+                    document.getElementById("cys").classList.remove('hide');
+                    document.getElementById("migrar").classList.add('hide');
+                }else if(tipo == 'migrar'){
+                    document.getElementById("fecha").classList.add('hide');
+                    document.getElementById("dir").classList.add('hide');
+                    document.getElementById("cli").classList.add('hide');
+                    document.getElementById("pre").classList.add('hide');
+                    document.getElementById("sat").classList.add('hide');
+                    document.getElementById("cys").classList.add('hide');
+                    document.getElementById("migrar").classList.remove('hide');
+                }                       
             }
         }
 

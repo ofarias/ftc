@@ -19,7 +19,6 @@
 
                               }
                           }else{
-
                           }
                         ?>
                         <!-- /.panel-heading -->
@@ -53,7 +52,6 @@
                                             <td><?php echo $data->TIPO;?></td>
                                             <td><?php echo $data->TIPO2;?></td>
                                             <td><?php echo $data->COORDINADOR;?></td>
-                                            <!--<td><p><i class="fa fa-chevron-right"></i></p></td> --> 
                                             <td><center><a href="index.php?action=modificaUn&un=<?php echo $data->IDU?>" class="btn btn-warning" role="button"><p><i class="fa fa-pencil-square-o"></i></p></a></center></td>
                                             <td><center><a style="text-decoration: none" href="index.php?action=eliminaUn&un=<?php echo $data->IDU;?>" class="btn btn-warning" role="button"><p><i class="fa fa-trash"></i></p></a></center></td>                   
                                         </tr>
@@ -69,7 +67,7 @@
 </div>
 
 <!--Fancy Box para nuevo usuarios-->
-<div id="dialogU" title="Nuevo Usuario">
+<div id="dialogU" title="Nueva Unidad">
 <div class="row">
 	<div class="col-lg-12">
 		<h2>Alta Nueva Unidad</h2>

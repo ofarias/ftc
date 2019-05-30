@@ -596,7 +596,6 @@
 
     function agregar(art, fol){
         //alert('Se Agregara el articulo' + art + ' a la cotizacion :' + fol);
-
          $.ajax({
             type:"POST",
             url:"index.v.php",
@@ -607,7 +606,7 @@
                     alert('Se agrego la partida');  
                     document.getElementById('descripcion').value = '';  
                 }else if (data.status =='no'){
-                    alert('No se logro insertar');
+                    alert('No se logro insertar por que la cotizacion ya ha sido finalizada');
                 }
             }
             });    
@@ -618,7 +617,7 @@
 
        //alert('Llegan las variables' + id +' , ' + porc  + ', ' + precio + ', ' + costo +  ', ' +  tipo +  ', '+ mm + ', ' + desc + ', ' + tipo2);
         
-       var porcentaje = 22.9;
+       var porcentaje = 9.9;
         if(mm != 0){
             porcentaje = mm;
         }

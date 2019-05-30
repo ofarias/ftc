@@ -29,9 +29,9 @@
              return;
          }
      endforeach;
-     $asunto = "Contrarecibo Ferretera Pegaso.";  
+     $asunto = "Devolucion de Mercancia.";  
      $mensaje.= "<p>Le informamos que se ha recibido mercancia por devolucion de la factura $FACTURA.</p>";
-     $mensaje.= "<p>Si usted piensa que es un error favor de verificarlo con el cliente<br/> <br/> <br/> Atentamente Bodega <br/><br/> Ferretera Pegaso</p>";
+     $mensaje.= "<p>Si usted piensa que es un error favor de verificarlo con el cliente<br/> <br/> <br/> Atentamente Bodega <br/><br/> </p>";
      try {
          
          $mail = new PHPMailer();
@@ -48,11 +48,11 @@
         $mail->Host = 'tls://smtp.gmail.com';
         $mail->Port = 587;
         $mail->SMTPAuth = true;
-        $mail->Username   = "cxpferreterapegaso@gmail.com";  // Nombre del usuario SMTP
+        $mail->Username   = "info@ftcenlinea.com";  // Nombre del usuario SMTP
          $mail->Password   = "genseg89+";
          //$mail->AddAddress($correo, $contacto);      //Direccion a la que se envia
          $mail->AddAddress('genseg@hotmail.com');
-         $mail->SetFrom('cxpferreterapegaso@gmail.com' , "Pegaso. Aviso de Devolucion"); // Esccribe datos de contacto
+         $mail->SetFrom('info@ftcenlinea.com' , "Aviso de Devolucion"); // Esccribe datos de contacto
          $mail->Subject = $asunto;
          $mail->AltBody = 'Para ver correctamente este mensaje, por favor usa un manejador de correo con compatibilidad HTML !'; // optional - MsgHTML will create an alternate automatically
          $mail->MsgHTML($mensaje);

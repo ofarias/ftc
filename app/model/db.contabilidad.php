@@ -8,7 +8,7 @@ require_once 'app/model/verificaID.php';
 class contabilidad extends database{
 
 	function crearSubMenuMesesConta(){
-		$this->query="SELECT * FROM CIERRE_MENSUAL WHERE TIPO = 'Remisiones' or TIPO = 'PFM' or TIPO= 'BFM' order by anio asc, mes asc";
+		$this->query="SELECT * FROM CIERRE_MENSUAL WHERE TIPO = 'Remisiones' or TIPO = 'PF' or TIPO= 'BF' order by anio asc, mes asc";
 		$rs=$this->ejecutaQuerySimple();
 		while($tsArray = ibase_fetch_object($rs)){
 			$data[]=$tsArray;

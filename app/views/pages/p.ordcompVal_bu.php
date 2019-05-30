@@ -26,29 +26,19 @@ $query     .= " '".$HOY."',";
 $query     .= " 0, 'C', 0, 1, 0, 0, '',";
 $query     .= " '".$HOY."',";
 $query     .= " '', 'A')";
-
-
 //echo $query;
-
-
 //if (isset($_POST['enviar'])) {
-
 //print_r($_POST['seleccion']);
-
 $posicion=$_POST['PROVEEDORCUENTA'];
 //print_r($posicion);
     if (is_array($_POST['seleccion'])) {
         $selected = '';
         $num_seleccionados = count($_POST['seleccion']);
         $num_seleccionados;
-
        // $num_provedores = count($PROVEEDOR);
         //$array = array($PROVEEDOR);
-
 //var_dump($array);
         //echo $PROV  =   $_POST["PROVEEDOR"];
-        
-
         for ($i=0; $i<$num_seleccionados; $i++){
             //echo $posicion[$i].'-'.$PROVEEDOR;
             $array = array($PROVEEDOR);

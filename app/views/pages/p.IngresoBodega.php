@@ -24,10 +24,14 @@
 	</div>
 </div>
 
-<?php if(gettype($suministros) == 'array'){ ?>
+<div id="cuerpo">
+    
+</div>
+<div id="req">
+<?php if(count($suministros) > 0){ ?>
 <div class="row">
     <div class="col-lg-12">
-        <div class="panel panel-default" id="">
+        <div class="panel panel-default">
             <div class="panel-heading">
                 El producto es requerido en las siguientes cotizaciones:<br/>
                 Cantidad ingresada: <?php echo $cant?> &nbsp; &nbsp; disponible: <font color="black"><input type="text" size="8" name="disponible" id="disp" value="<?php echo $cant?>" readonly></font>
@@ -75,11 +79,8 @@
         </div>
     </div>
 </div>
-
-<?php } else{ ?>
-<?php } ?>
-
-
+<?php }?>
+</div>
 <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -87,13 +88,43 @@
 <script src="http://bootboxjs.com/bootbox.js"></script>
 <script type="text/javascript">
 
-     $("#descripcion").autocomplete({
+    $("#descripcion").autocomplete({
         source: "index.v.php?descAuto=1",
         minLength: 3,
         select: function(event, ui){
         }
     })
-     function asignar(i){
+
+    $("#descripcion").change(function(){
+        var prod = document.getElementById("descripcion").value;
+        //var tipo = $(this).attr("tipo");
+        document.getElementById("req").classList.add('hide');
+        alert ('Se buscan cotizaciones con los productos: ' + prod);
+        $.ajax({
+            url:'index.v.php',
+            type:'post',
+            dataType:'json',
+            data:{traePendientes:prod},
+            success:function(data){
+                    var miArray = data;
+                    miArray.forEach( function(valor, indice, array) {
+                            var obj = valor;
+                                var midiv = document.createElement("div");
+                                midiv.setAttribute("id","div_"+indice);
+                            Object.keys(obj).forEach(function(key) {
+                              var linea = document.createElement("td");
+                              linea.setAttribute("id",obj[key]+"_"+indice);
+                              linea.innerHTML= key +":<b> "+ obj[key] + "</b>-|-" ;
+                              midiv.innerHTML = "<p>"+"Para el Cliente: " + obj[key] +"</p>";    
+                              document.getElementById('cuerpo').appendChild(linea);
+                            })
+                            document.getElementById('cuerpo').appendChild(midiv); 
+                    });
+                }   
+        })
+    })
+
+    function asignar(i){
      	if(confirm('Asignar el producto a la solicitud?')){
      		//alert('Si');
      		document.getElementById('boton_'+i).classList.add('hide');

@@ -1,33 +1,11 @@
 <br/>
-
-<form action="index.php" method="post">
-<input type="hidden" name="opcion" value = "1" >
-<input type="text" name="docd" placeholder="Nota de Credito", required="required" >
-<button name="utilerias" type="submit" value="enviar" >Libera Nota de credito</button>
-<br/>
-<br/>
-</form>
-<form action="index.php" method="post">
-<input type ="text" name="docp" placeholder="Pedido a Urgencia" required="required">
-<input type="hidden" name="opcion" value="2">
-<button name="utilerias" type="submit" value="enviar"> Colocar a  Urgencia</button>
-</form>
-<br/>
-<br/>
-<form action="index.php" method="post">
-<input type ="text" name="docp" placeholder="Pedido a Reenrutar" required="required">
-<label> con la factura  </label>
-<input type="text" name="docf" placeholder="Factura a Reenrutar" required="required">
-<input type="hidden" name="opcion" value="3">
-<button name="utilerias" type="submit" value="enviar"> Reenrutar Pedido</button>
-</form>
-
 <div class="row">
     <div class="container-fluid">
         <div class="form-horizontal">
             <div class="panel panel-default">
                 <div class="panel panel-heading">
                     <h3>Captura de Cargo Financiero.</h3>
+                      <input type="hidden" name="mensaje" value="<?php echo $mensaje?>" id="mensaje">
                 </div>
                 <br />
                 <div class="panel panel-body">
@@ -59,14 +37,15 @@
                             <input type="text" name="cliente" id="cliente" class="form-control" placeholder="Nombre del cliente" />
                             <div id="clienteList"></div>
                         </div>-->
-                        <button name = "guardaCargoFinanciero" type = "submit" value = "enviar" class="btn button-warning"> Guardar</button>
+                        <button name="guardaCargoFinanciero" type = "submit" value = "enviar" class="btn button-warning"> Guardar</button>
                     </form>       
                     </div>
             </div>
         </div>
     </div>
 </div>
-
+<label>Ver Historico: &nbsp;&nbsp;&nbsp;</label>Si <input type="radio" name="historico" value="si" onchange="verHistorico(this.value)">
+&nbsp;&nbsp;&nbsp; No<input type="radio" name="historico" value="no" onchange="verHistorico(this.value)">
 <br>
 <div class="row">
     <div class="col-lg-12">
@@ -74,8 +53,7 @@
             <div class="panel-heading">
             Cargos Financieros pendientes de aplicar;
             </div>
-
-  <div class="panel-body">
+                        <div class="panel-body">
                             <div class="table-responsive">
                                     <table class="table table-striped table-bordered table-hover">
                                     <thead>
@@ -102,13 +80,68 @@
                                             <td><?php echo '$ '.number_format($data->MONTO,2);?></td>
                                             <td><?php echo '$ '.number_format($data->SALDO,2);?></td>  
                                             <form action = "index.php" method = "post">
-                                            <input type="hidden" value ="<?php echo $data->ID?>" name = "idcf" />
-                                            <input type="hidden" name="rfc" value ="<?php echo $data->RFC?>" />
-                                            <input type="hidden" name="banco" value="<?php echo $data->BANCO?>" />
-                                            <input type="hidden" name="cuenta" value="<?php echo $data->CUENTA?>" />
-                                            <td>
-                                               <button name="asociarCF" value="enviar" type = "submit" class = "btn btn-warning"> Asociar</button> 
-                                            </td>   
+                                                <input type="hidden" value ="<?php echo $data->ID?>" name = "idcf" />
+                                                <input type="hidden" name="rfc" value ="<?php echo $data->RFC?>" />
+                                                <input type="hidden" name="banco" value="<?php echo $data->BANCO?>" />
+                                                <input type="hidden" name="cuenta" value="<?php echo $data->CUENTA?>" />
+                                                <td>
+                                                   <button name="asociarCF" value="a" type="submit" class="btn btn-warning"> Asociar</button><br/>
+                                                   <button name="asociarCF" value="c" type="submit" class="btn btn-danger" onclick="alerta()">Cancelar</button>
+                                                </td>   
+                                            </form>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                 </tbody>
+                                </table>
+                            </div>
+                    </div>
+                    </div>
+    </div>
+</div>
+<br/>
+<br>
+
+<div id="historico" class="row hidden" >
+    <div class="col-lg-12">
+        <div class="panel panel-default"> 
+            <div class="panel-heading">
+            Cargos Financieros pendientes de aplicar;
+            </div>
+                    <div class="panel-body">
+                            <div class="table-responsive">
+                                    <table class="table table-striped table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Folio</th>
+                                            <th>Cliente</th>
+                                            <th>Banco / Cuenta</th>
+                                            <th>Fecha de Cargo</th>
+                                            <th>Importe</th>
+                                            <th>Saldo</th>
+                                            <th>Aplicar</th>
+                                        </tr>
+                                    </thead>                                   
+                                  <tbody>
+                                        <?php 
+                                        foreach ($cfh as $data):
+                                            ?>
+                                        <tr>
+                                         <!--<tr class="odd gradeX" style='background-color:yellow;' >-->
+                                            <td><?php echo $data->ID;?></td>
+                                            <td><?php echo $data->CLIENTE;?></td>
+                                            <td><?php echo $data->BANCO;?> / <?php echo $data->CUENTA?></td>
+                                            <td><?php echo $data->FECHA_RECEP;?></td>
+                                            <td><?php echo '$ '.number_format($data->MONTO,2);?></td>
+                                            <td><?php echo '$ '.number_format($data->SALDO,2);?></td>  
+                                            <form action = "index.php" method = "post">
+                                                <input type="hidden" value ="<?php echo $data->ID?>" name = "idcf" />
+                                                <input type="hidden" name="rfc" value ="<?php echo $data->RFC?>" />
+                                                <input type="hidden" name="banco" value="<?php echo $data->BANCO?>" />
+                                                <input type="hidden" name="cuenta" value="<?php echo $data->CUENTA?>" />
+                                                <td>
+                                                   <button name="asociarCF" value="a" type="submit" class="btn btn-warning"> Asociar</button><br/>
+                                                   <button name="asociarCF" value="c" type="submit" class="btn btn-danger" onclick="alerta()">Cancelar</button>
+                                                </td>   
                                             </form>
                                         </tr>
                                         <?php endforeach; ?>
@@ -120,14 +153,31 @@
     </div>
 </div>
 <br />
-
 <!--Modified by GDELEON 3/Ago/2016-->
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <script>
         
+    function verHistorico(t){
+        alert('ver Historico')
+        if(t == 'si'){
+            document.getElementById('historico').classList.remove('hidden')    
+        }else if(t == 'no'){
+            document.getElementById('historico').classList.add('hidden')    
+        }
+    }
+
+    function alerta(){
+        alert('Se cancela el cargo financiero.');
+        location.reload(true)
+    }
+
    $(function() {
     $("#fecha").datepicker({dateFormat:'dd.mm.yy'});
+    var mensaje = document.getElementById('mensaje').value;
+    if(mensaje != ''){
+        alert(mensaje);
+    }
   } );
 
       /* $(document).ready(function(){

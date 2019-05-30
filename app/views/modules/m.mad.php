@@ -3,203 +3,156 @@
         <div class="row">
             <div class="col-lg-12">
                 <h3 class="page-header">
-                    <!--<img src="app/views/images/logob.jpg">-->
                 </h3>
             </div>
-            <div class="col-md-4">
+            <div>
+                <p><label> Bienvenido: <?php echo $usuario?></label></p>
+                <p><label><?php echo $_SESSION['empresa']['nombre'].'<br/>'.$_SESSION['rfc']?></label></p>
+            </div>
+            <br/>
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Catalogo de productos Almacen 9</h4>
+                        <h4><i class="fa fa-list-alt"></i>Prveedores y Productos</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Catalogo de Productos Almacen 9</p>
-                        <center><a href="index.php?action=ccompvent" class="btn btn-default"><img src="app/views/images/folder.png"></a></center>
-                    </div>
-                </div>
-            </div>  
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Ordenes de Commpra</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>TODAS LAS CATEGORIAS.</p>
-                        <center><a href="index.php?action=ordcomp" class="btn btn-default"><img src="app/views/images/order.png"></a></center>
-                    </div>
-                </div>
-            </div>          
-            
-          
-            
-           <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Estado de Pedidos</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>Consulta detalle</p>
-                        <center><a href="index.php?action=pedimento" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/martz90/hex/72/car-icon.png"></a></center>
+                        <p>Proveedores y Productos</p>
+                        <center><a href="index.php?action=menuPP" class="btn btn-default" > <img src="app/views/images/Proveedores y Productos/Proveedores y productos ico.png" width="80" height="90"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Lista de Pedidos Pendientes</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>PEDIDOS PENDIENTES.</p>
-                        <center><a href="index.php?action=lista_pedidos" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/martz90/hex/72/car-icon.png"></a></center>
-                    </div></a></center>
-                    </div>
-                </div>
-            </div>
-
-           
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Detalle de Orden de Compra</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>Detalle de la O.C.</p>
-                        <center><a href="index.php?action=detalleOC" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/martz90/hex/72/car-icon.png"></a></center>
-                    </div>
-                </div>
-            </div>
-           <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> REVISION DE OC</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>ORDENES DE COMPRA</p>
-                        <center><a href="index.php?action=ordenes" class="btn btn-default"><img src="app/views/images/order.png"></a></center>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> COMPRAS MAESTRA</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>COMPRAS MAESTRA</p>
-                        <center><a href="index.php?action=cmaestra" class="btn btn-default"><img src="app/views/images/order.png"></a></center>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Captura de productos</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p> Captura de productos</p>
-                        <center><a href="index.php?action=capturaproductos" class="btn btn-default"><img src="app/views/images/order.png"></a></center>
-                    </div>
-                </div>
-            </div>
-                    <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Catalogo de productos</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>Catalogo de productos Almacen 10</p>
-                        <center><a href="index.php?action=Cat10&alm=10" class="btn btn-default"><img src="app/views/images/order.png"></a></center>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Liberar pendientes </h4>
-                    </div>
-                    <div class="panel-body">
-                        <p></p>
-                        <center><a href="index.php?action=pxr" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/martz90/hex/72/car-icon.png"></a></center>
-                    </div>
-                </div>
-            </div>
-
-
-            <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> No suministrables</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>Pedidos no suministrablers</p>
-                        <center><a href="index.php?action=VerNoSuministrableCompras" class="btn btn-default"><img src="app/views/images/order.png"></a></center>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Seguimiento de operadores</h4>
+                        <h4><i class="fa fa-list-alt"></i> C L I E N T E S </h4>
                     </div>
                     <div class="panel-body">
-                        <p>Busqueda de operadores</p>
-                        <center><a href="index.php?action=RegistroOperadores&formro=1" class="btn btn-default"><img src="app/views/images/Truck-icon.png"></a></center>
+                        <p>Clientes y Maestros</p>
+                        <center><a href="index.php?action=menuCM" class="btn btn-default" > <img src="app/views/images/Clientes/clientes.png" width="80" height="90"></a></center>
                     </div>
                 </div>
             </div>
-
-             <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Cancelar Recepciones</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>Cancelación de recepciones</p>
-                        <center><a href="index.php?action=VerRecepcionesACancelar" class="btn btn-default"><img src="app/views/images/order.png"></a></center>
-                    </div>
-                </div>
-            </div>
-            
-             <div class="col-md-4">
-                <div class="panel panel-default">
-                    <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Avanzar orden de compra</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p><br></p>
-                        <center><a href="index.php?action=VerOrdenesAvanzar" class="btn btn-default"><img src="app/views/images/order.png"></a></center>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Ventas vs cobrado</h4>
+                        <h4><i class="fa fa-list-alt"></i> V E N T A S </h4>
                     </div>
                     <div class="panel-body">
-                        <p>Reporte de ventas contra cobrado por cliente</p>
-                        <center><a href="index.php?action=ventVScobr" class="btn btn-default"><img src="app/views/images/folder.png"></a></center>
+                        <p>Ventas</p>
+                        <center><a href="index.php?action=menuV" class="btn btn-default" > <img src="app/views/images/Ventas/ventas.png" width="80" height="90"></a></center>
                     </div>
                 </div>
-            </div> }
-            
-
-            <div class="col-xs-12 col-md-4">
+            </div>
+            <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Utilidad facturas.</h4>
+                        <h4><i class="fa fa-list-alt"></i> S U M I N I S T R O S</h4>
                     </div>
                     <div class="panel-body">
-                        <p><br></p>
-                        <center><a href="index.php?action=utilidadFacturas" class="btn btn-default"><img src="app/views/images/invoice-icon.png" style="width:64px"></a></center>
+                        <p>Suministros</p>
+                        <center><a href="index.php?action=menuS" class="btn btn-default" > <img src="app/views/images/Suministros/Suministros.png" width="80" height="90"></a></center>
                     </div>
                 </div>
-            </div> 
-            
-
-            
-        </div>
-
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> T E S O R E R I A </h4>
+                    </div>
+                    <div class="panel-body">
+                        <p>Tesoreria</p>
+                        <center><a href="index.php?action=menuT" class="btn btn-default" > <img src="app/views/images/Tesoreria/Tesoreria.png" width="80" height="90"></a></center>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> L O G I S T I C A </h4>
+                    </div>
+                    <div class="panel-body">
+                        <p><b>Recoleccion</b></p>
+                        <center><a href="index.php?action=menuLR" class="btn btn-default" > <img src="app/views/images/Logistica Recoleccion/logistica.png" width="80" height="90"></a></center>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> B O D E G A </h4>
+                    </div>
+                    <div class="panel-body">
+                        <p><b>Recibo</b></p>
+                        <center><a href="index.php?action=menuB" class="btn btn-default" > <img src="app/views/images/Bodega/Bodega.png" width="80" height="90"></a></center>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> E M P A Q U E </h4>
+                    </div>
+                    <div class="panel-body">
+                        <p><b>Empaque</b></p>
+                        <center><a href="index.php?action=menuBE" class="btn btn-default" > <img src="app/views/images/Empaque/Empaque.png" width="80" height="90"></a></center>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> L O G I S T I C A </h4>
+                    </div>
+                    <div class="panel-body">
+                        <p><b>Entrega</b></p>
+                        <center><a href="index.php?action=menuLE" class="btn btn-default"> <img src="app/views/images/Logistica/Logistica.png" width="80" height="90"></a></center>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> R E V I S I O N </h4>
+                    </div>
+                    <div class="panel-body">
+                        <p><b>Facturas a Revision</b></p>
+                        <center><a href="index.php?action=menuR" class="btn btn-default"> <img src="app/views/images/Revision/Revision_1.png" alt="Smiley face"  width="80" height="90"></a></center>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> C O N T A B I L I D A D </h4>
+                    </div>
+                    <div class="panel-body">
+                        <p><b>Contabilidad</b></p>
+                        <center><a href="index.php?action=menuCO" class="btn btn-default" > <img src="app/views/images/Contabilidad/contabilidad.png" width="80" height="90"></a></center>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> XML </h4>
+                    </div>
+                    <div class="panel-body">
+                        <p>Bodega</p>
+                        <center><a href="index.php?action=menuXML" class="btn btn-default" > <img src="app/views/images/Xml/Xml.png" width="80" height="90"></a></center>
+                    </div>
+                </div>
+            </div>
+             <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> Administración de Usuarios</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p>Usuarios.</p>
+                        <center><a href="index.php?action=ausers" class="btn btn-default"> <img src="app/views/images/AdminUsuarios/AdminUsr.png" width="58" height="60"></a></center>
+                    </div>
+                </div>
+            </div>    
     </div>
+</div>
     

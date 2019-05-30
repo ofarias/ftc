@@ -20,13 +20,11 @@
 
 		<?php foreach ($producto as $data): ?>
 			
-		<form action="index.php" method="post">
+		<form action="index.php" method="post" id="editaProducto">
 			<input type="hidden" name="cotizacion" value="<?php echo $cotizacion?>">
 			<input type="hidden" name="cliente" value="<?php echo $cliente?>">
 			<input type="hidden" name="ids" value="<?php echo $data->ID;?>"/>
-                        <!-- Control para activar e inactivar producto -->
-                        <!-- Fin del control para inactivar producto -->
-
+  
 			<div class="form-group">
 				<label for="categoria" class="col-lg-2 control-label">Vendedor que Solicita:</label>
 				<div class="col-lg-10">
@@ -229,7 +227,8 @@
 
 			<div class="form-group">
     			<div class="col-lg-offset-2 col-lg-10">
-					<button name="guardaFTCART" type="submit" value="enviar" class="btn btn-warning"> Guardar <i class="fa fa-floppy-o"></i></button>
+    				<input type="hidden" name="guardaFTCART" value="guardaFTCART">
+					<input type="button" name="guardaFTCART" value="Guardar" onclick="val()">
 				</div>
 			</div>
 		</form>
@@ -242,6 +241,22 @@
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <script>
+	function val(){
+		var costo= document.getElementById('costo_prov').value;
+		var proveedor =document.getElementById('prov1').value;
+		//alert(costo);
+		if(costo == '' || costo == 0){
+			alert('El costo no puede ser 0.00' + costo);
+		}else{
+			if(proveedor=='' || proveedor.search(':') == -1  ){
+				alert('debe de colocar el proveedor');
+			}else{
+				var form = document.getElementById('editaProducto');
+				console.log(form);
+				form.submit();
+			}
+		}
+	}
 	function CostoTotal(costo_prov,desc1,desc2,desc3,desc4,desc5){
 		//var checkbox = iva;
 		var impuesto = 16.00;
@@ -268,7 +283,7 @@
 		document.getElementById("costo_oc").value=totaloc.toFixed(2);
 		document.getElementById("costo_t").value=totalsi.toFixed(2);
 		document.getElementById("costo_total").value=total.toFixed(2);
-		document.getElementBtId("costo_prov").value=costoProveedor.toFixed(2);
+		document.getElementById("costo_prov").value=costoProveedor.toFixed(2);
 	}
 
 	$("#prov1").autocomplete({

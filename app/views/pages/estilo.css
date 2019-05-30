@@ -6,8 +6,8 @@
 /*! normalize.css v3.0.3 | MIT License | github.com/necolas/normalize.css */
 html {
   font-family: sans-serif;
-  -webkit-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 80%;
+      -ms-text-size-adjust: 80%;
 }
 body {
   margin: 0;
@@ -68,7 +68,7 @@ mark {
   background: #ff0;
 }
 small {
-  font-size: 80%;
+  font-size: 70%;
 }
 sub,
 sup {
