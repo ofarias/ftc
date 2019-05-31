@@ -197,6 +197,9 @@ class controller_coi{
 			$data_coi= new CoiDAO;
 			$infoPoliza=$data->traePago($idp, $tipo);
 			$res=$data_coi->polizaFinal($uuid, $tipo, $idp, $infoPoliza);
+			if($res['status'] == 'ok'){
+				$xmlPol=$data->actXml($uuid, $tipo=$res['tipo'], $res);
+			}
 			return $res;
 		}
 	}

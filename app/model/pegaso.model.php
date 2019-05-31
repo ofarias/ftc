@@ -24525,7 +24525,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(SELECT first 1 RAZON_SOCIAL FROM FTC_EMPRESAS WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = cliente and tipo = 'Cliente') as cuenta_Contable,
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid) AS VARCHAR(100)),'') as poliza
-						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E') $uuid";
+						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status ='F') $uuid";
     	}else{
     				$this->query="SELECT x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
@@ -24533,7 +24533,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = rfce) as cuenta_Contable,
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid) AS VARCHAR(100)),'') as poliza
-						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E') $uuid";
+						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F') $uuid";
     	}
     	$res=$this->EjecutaQuerySimple();
     	while($tsArray = ibase_fetch_object($res)){
@@ -26224,7 +26224,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						  	and extract(year from fecha) = $anio 
 							$condicion
 					group by extract(month from fecha),extract(year from fecha), tipo";
-		echo $this->query;
+		//echo $this->query;
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data []=$tsArray;
@@ -26307,12 +26307,17 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$periodo = $crea['periodo'];
 		$ejercicio = $crea['ejercicio'];
 		$usuario =$_SESSION['user']->NOMBRE; 
-		$this->query="UPDATE XML_DATA set STATUS='D' where uuid='$uuid'";
+		$status = 'D';
+		if($tipo == 'Ig'){
+			$status='I';	
+		}elseif($tipo == 'Eg'){
+			$status='E';	
+		}
+		$this->query="UPDATE XML_DATA set STATUS='$status' where uuid='$uuid'";
 		$this->EjecutaQuerySimple();
 		$this->query="INSERT INTO XML_POLIZAS (ID, UUID, STATUS, POLIZA, TIPO, PERIODO, EJERCICIO, USUARIO, FECHA) 
 							VALUES (NULL, '$uuid', 'A', '$poliza', '$tipo', $periodo, $ejercicio, '$usuario', current_timestamp)";
 		$this->grabaBD();
-		//echo $this->query;
 		return;
 	}
 

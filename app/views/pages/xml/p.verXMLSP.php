@@ -62,24 +62,30 @@
                                                 $color2= "brown";
                                             }
                                             $rfcEmpresa=$_SESSION['rfc'];
-                                            $test= 'npend';
+                                            $test= 'Pago';
                                             if($key->STATUS == 'P'){
-                                                $descSta = 'Pendiente';
-                                                $test= 'pend';
+                                                $descSta = 'P';
+                                                $test= 'Pendiente';
                                             }elseif($key->STATUS== 'D'){
                                                 $descSta = 'Poliza de Dr para ver la poliza del documento da click en el UUID';
                                                 $color = 'style="background-color:#f9fbae"';
+                                                $test = 'Poliza Dr';
+                                                $color2= "#f9fbae";
                                             }elseif($key->STATUS=='I'){
                                                 $descSta = 'Con Poliza de Ingreso para ver las polizas del documento da click en el UUID';
                                                 $color = 'style="background-color:#a0ecfb"';
+                                                $test = 'Poliza Ig';
+                                                $color2= "#a0ecfb";
                                             }elseif($key->STATUS=='E'){
                                                 $descSta = 'Con Poliza de Egreso para ver las polizas del documento da click en el UUID';
                                                 $color = 'style="background-color:#bcffe9"';
+                                                $test = 'Poliza Eg';
+                                                $color2= "#bcffe9";
                                             }
                                         ?>
                                         <tr class="<?php echo $test?> odd gradeX " <?php echo $color ?> title="<?php echo $descSta?>" id="ln_<?php echo $ln?>" >
                                             <td><?php echo $ln?></td>
-                                            <td><?php echo $descSta.'<br/><font color="blue">'.$key->POLIZA.'</font>'?></td>
+                                            <td><?php echo $test.'<br/><font color="blue">'.$key->POLIZA.'</font>'?></td>
                                             <td><a href="index.coi.php?action=verPolizas&uuid=<?php echo $key->UUID ?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=1320'); return false"> <?php echo $key->UUID ?></a> </td>
                                             <td><?php echo $tipo?></td>
                                             <td><?php echo $key->SERIE.$key->FOLIO?></td>
@@ -135,9 +141,7 @@
         var color = chek.getAttribute("color")
         if(t == 'c'){
             renglon.style.background="#F08080";         
-            return;
-        }
-        if(chek.checked){
+        }else if(chek.checked){
             renglon.style.background="#F08080";         
         }else{
             renglon.style.background=color;

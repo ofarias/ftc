@@ -1500,7 +1500,7 @@ class pegaso_controller{
 	}
 
 	/*Header para los popup?*/
-	function load_template_popup($title='Ferretera Pegaso'){
+	function load_template_popup($title='sat2app'){
 		$pagina = $this->load_page('app/views/master.php');
 		$header = $this->load_page('app/views/sections/s.header2.php');
 		$pagina = $this->replace_content('/\#HEADER\#/ms' ,$header , $pagina);
@@ -20107,7 +20107,7 @@ function ImprimeFacturaPegaso($factura, $destino){
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$coi = new CoiDAO;
-    		$pagina = $this->load_template();
+    		$pagina = $this->load_template_popup();
   			$html=$this->load_page('app/views/pages/xml/p.verXML.php');
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
