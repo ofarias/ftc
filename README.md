@@ -26,7 +26,9 @@ setting alias db, change `/etc/firebird/2.5/aliases.conf`, set a new record:
 Alef.fdb = /var/lib/firebird/2.5/data/Alef.fdb    
 Alef = /var/lib/firebird/2.5/data/Alef.fdb    
 ```
+
 Create a shell script to copy every bucket file into local server:
+
 ``` 
 gsutil cp -p 'gs://ftc-hosting/ftcenlinea/sat2app/0 BD_FTC_Meta_v8.sql' .
 gsutil cp -p 'gs://ftc-hosting/ftcenlinea/sat2app/0.1 generadores a 0.SQL’ .
@@ -81,7 +83,7 @@ unsuccessful metadata update
 After line 56 in file coi_FTC_CUENTAS_SAT.sql
 ```
 
-# Configuración Apache2
+## Configuración Apache2
 Prepare the apache2 to work with the application:
 `sudo vim /etc/apache2/sites-available/{subdomain}.conf`
 ```
@@ -120,9 +122,10 @@ Prepare the apache2 to work with the application:
 </VirtualHost>
 ```
 
-# Crear el registro del subdominio en CLOUD DNS:
+## Crear el registro del subdominio
+GO to your console-network and set a new cloud dns record (A - {subdoaim}) for subdomain register.
 
-Ejecutar la instrucción que asocia el subdominio: 
+[After that] Ejecutar la instrucción que asocia el subdominio: 
 `sudo a2ensite {subdomain}`
 
 Finalmente reiniciar el apache2:
@@ -131,7 +134,7 @@ Finalmente reiniciar el apache2:
 En caso de haber un error al iniciar, verificar el estado a través de:
 `sudo systemctl status apache2.service`
 
-# Install php7.x
+## Install php7.x
 
 - set new lib repo for debian
 ```
@@ -187,7 +190,7 @@ sudo service apache2 restart
 
 $db = ‘localhost:Alef.fdb';
 $username = 'SYSDBA';
-$password = ‘MASTERDB';
+$password = {password}';
 
 // Connect to database:
 $dbh = ibase_connect($db, $username, $password);
@@ -208,6 +211,3 @@ ibase_free_result($rc);
 ibase_close($dbh);
 ?>
 ```
-
-
-# UPGRADE Model params for connection, need permissions on repo
