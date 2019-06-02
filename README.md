@@ -58,29 +58,32 @@ for f in *.sql; do isql-fb -q -i "$f" Alef.fdb ; done
 ```
 
 ### Errores de la ejecución del script de carga:
-#### Statement failed, 
-#### SQLSTATE = 42S02
-#### Dynamic SQL Error
+```
+Statement failed, 
+SQLSTATE = 42S02
+Dynamic SQL Error
 - SQL error code = -204
 - Table unknown
 - CUENTAS18
 - At line 25, column 10
-#### At line 37 in file coi_CUENTAS_FTC.sql
+At line 37 in file coi_CUENTAS_FTC.sql
 Statement failed, SQLSTATE = 42000
 unsuccessful metadata update
--Generator GEN_FTC_CUENTAS_SAT_ID already exists
+- Generator GEN_FTC_CUENTAS_SAT_ID already exists
 After line 16 in file coi_FTC_CUENTAS_SAT.sql
 Statement failed, SQLSTATE = 42S01
 unsuccessful metadata update
--Table FTC_CUENTAS_SAT already exists
+- Table FTC_CUENTAS_SAT already exists
 After line 34 in file coi_FTC_CUENTAS_SAT.sql
 Statement failed, SQLSTATE = 42S11
 unsuccessful metadata update
--Index PK_FTC_CUENTAS_SAT already exists
+- Index PK_FTC_CUENTAS_SAT already exists
 After line 56 in file coi_FTC_CUENTAS_SAT.sql
+```
 
 # Configuración Apache2
-sudo vim /etc/apache2/sites-available/sat2app.ftcenlinea.com.conf
+Prepare the apache2 to work with the application:
+`sudo vim /etc/apache2/sites-available/{subdomain}.conf`
 ```
 <VirtualHost *:80> 
     # The ServerName directive sets the request scheme, hostname and port that 
@@ -92,10 +95,10 @@ sudo vim /etc/apache2/sites-available/sat2app.ftcenlinea.com.conf
     # However, you must set it for any further virtual host explicitly. 
 
 
-    ServerName sat2app.ftcenlinea.com 
-    # ServerAlias www.sat2app.ftcenlinea.com 
-    ServerAdmin ofarias@ftcenlinea.com 
-    DocumentRoot /var/www/sat2app/html 
+    ServerName {subdomain} 
+    # ServerAlias www.{subdomain} 
+    ServerAdmin info@ftcenlinea.com 
+    DocumentRoot /var/www/{subdomain-asis}/html 
 
 
     # Available loglevels: trace8, ..., trace1, debug, info, notice, warn, 
@@ -113,36 +116,39 @@ sudo vim /etc/apache2/sites-available/sat2app.ftcenlinea.com.conf
     # enabled or disabled at a global level, it is possible to # include a line for only one particular virtual host. For example the 
     # following line enables the CGI configuration for this host only # after it has been globally disabled with "a2disconf". 
 
-
     #Include conf-available/serve-cgi-bin.conf
 </VirtualHost>
 ```
 
 # Crear el registro del subdominio en CLOUD DNS:
 
-
 Ejecutar la instrucción que asocia el subdominio: 
-sudo a2ensite sat2app.ftcenlinea.com
+`sudo a2ensite {subdomain}`
 
 Finalmente reiniciar el apache2:
-sudo service apache2 restart
+`sudo service apache2 restart`
 
 En caso de haber un error al iniciar, verificar el estado a través de:
-sudo systemctl status apache2.service
+`sudo systemctl status apache2.service`
 
-Install php7.x
+# Install php7.x
 
-# set new lib repo for debian
+- set new lib repo for debian
+```
 echo 'deb http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
 echo 'deb-src http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list
-# install the gig key to use repo:
+```
+
+- install the gig key to use repo:
+```
 cd /tmp
 wget https://www.dotdeb.org/dotdeb.gpg
 sudo apt-key add dotdeb.gpg
 # verify the “OK” response, and remove key
 rm dotdeb.gpg
-
-# set package to install in a variable:
+``` 
+- set package to install in a variable:
+```
 y = libapache2-mod-php7.0 php-pear php7.0 php7.0-cgi php7.0-cli php7.0-common php7.0-fpm php7.0-gd php7.0-json php7.0-mysql php7.0-readline
 echo $y
 sudo apt-get install $y
@@ -150,26 +156,33 @@ sudo apt-get install $y
 sudo a2enmod proxy_fcgi setenvif
 sudo a2enconf php7.0-fpm
 sudo service apache2 restart
-sudo vim /var/www/sat2app/html/index.php
-    
+```
+
+- Now, it's time to execute a simple test:
+`sudo vim /var/www/sat2app/html/index.php`
+
+```
 <?php 
     phpinfo();
 ?>
+```
 
-# for php7 management service:
-sudo systemctl [stop,start,restart,reload] php7.0-fpm.service
+- for php7 management service:
+`sudo systemctl [stop,start,restart,reload] php7.0-fpm.service`
 
-Setting up firebird - php
-sudo apt-get install php7-interbase
+- Setting up firebird - php
+`sudo apt-get install php7-interbase`
 
-Change # to ; comments at: /etc/php5/mods-available/interbase.ini
+- Change # to ; comments at: /etc/php5/mods-available/interbase.ini
+```
 sudo phpenmod interbase
 sudo systemctl restart php7.0-fpm.service
 sudo service apache2 restart
+```
 
-Test the interbase interface
-
-
+- Now, time to test the interbase interface
+`sudo vim /var/www/sat2app/html/index.php`
+```
 <?php
 
 $db = ‘localhost:Alef.fdb';
@@ -194,7 +207,7 @@ ibase_free_result($rc);
 // Release the handle associated with the connection
 ibase_close($dbh);
 ?>
+```
 
 
-
-UPGRADE Model params for connection, need permissions on repo
+# UPGRADE Model params for connection, need permissions on repo
