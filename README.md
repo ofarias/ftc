@@ -1,7 +1,6 @@
-Registro de actividades realizadas en instancia “ftcenlinea” para configurar la aplicación sat2app
+# Preparación del proyecto 
 
-Instalación base de datos firebird:
-
+## Instalación base de datos firebird:
 Installation: apt-get install firebird2.5-superclassic
 Configuration: dpkg-reconfigure firebird2.5-superclassic
 Install dev tools: apt-get install firebird2.5-dev
@@ -12,22 +11,23 @@ Data location: /var/lib/firebird/2.5/data/
 Connection user: firebird.firebird
 Sample database: connect "localhost:/var/lib/firebird/2.5/data/employee.fdb" user 'SYSDBA' password 'MASTERDB';
 
-New sample database:
+### New sample database:
 sudo chown firebird.firebird {database}.fdb
 sudo mv {database}.fdb /var/lib/firebird/2.5/data/
 isql-fb
-connect "localhost:/var/lib/firebird/2.5/data/{databse}.fdb" user 'SYSDBA' password 'MASTERDB’;
+connect "localhost:/var/lib/firebird/2.5/data/{databse}.fdb" user 'SYSDBA' password 'MASTERKEY’;
 show tables;
 
-Creating database 
-## created shell script to copy every file in Bucket to the server:
-## may you should comment de database creation from principal script and execute the statement directly !
-## setting alias db:
-##   change /etc/firebird/2.5/aliases.conf, set a new record: 
-Alf.fdb = /var/lib/firebird/2.5/data/Alf.fdb    
-Alf = /var/lib/firebird/2.5/data/Alf.fdb    
-
---> shell script content: 
+### Creating database 
+created shell script to copy every file in Bucket to the server:
+may you should comment de database creation from principal script and execute the statement directly !
+setting alias db, change `/etc/firebird/2.5/aliases.conf`, set a new record: 
+```
+Alef.fdb = /var/lib/firebird/2.5/data/Alef.fdb    
+Alef = /var/lib/firebird/2.5/data/Alef.fdb    
+```
+Create a shell script to copy every bucket file into local server:
+``` 
 gsutil cp -p 'gs://ftc-hosting/ftcenlinea/sat2app/0 BD_FTC_Meta_v8.sql' .
 gsutil cp -p 'gs://ftc-hosting/ftcenlinea/sat2app/0.1 generadores a 0.SQL’ .
 gsutil cp -p 'gs://ftc-hosting/ftcenlinea/sat2app/1 Bancos_sat.sql’ .
@@ -50,15 +50,14 @@ gsutil cp -p 'gs://ftc-hosting/ftcenlinea/sat2app/xml Limpiar Tablas.sql’ .
 gsutil cp -p 'gs://ftc-hosting/ftcenlinea/sat2app/Semanas/Insertar Semanas.xlsx’ .
 gsutil cp -p 'gs://ftc-hosting/ftcenlinea/sat2app/Semanas/Semanas.sql’ .
 gsutil cp -p 'gs://ftc-hosting/ftcenlinea/sat2app/Semanas/Semanas2019.sql’ .
+```
 
-
-isql-fb -q -i {script.sql}
-
-Se ha preparado un shell script para la carga de datos (one only execution)
-
+Create another shell script to prepare the database and load data (one only execution)
+```
 for f in *.sql; do isql-fb -q -i "$f" Alef.fdb ; done
+```
 
-Errores de la ejecución del script de carga:
+### Errores de la ejecución del script de carga:
 Statement failed, 
 SQLSTATE = 42S02
 Dynamic SQL Error
@@ -80,9 +79,9 @@ unsuccessful metadata update
 -Index PK_FTC_CUENTAS_SAT already exists
 After line 56 in file coi_FTC_CUENTAS_SAT.sql
 
-Configuración Apache2
+# Configuración Apache2
 sudo vim /etc/apache2/sites-available/sat2app.ftcenlinea.com.conf
-
+```
 <VirtualHost *:80> 
     # The ServerName directive sets the request scheme, hostname and port that 
     # the server uses to identify itself. This is used when creating 
@@ -117,8 +116,9 @@ sudo vim /etc/apache2/sites-available/sat2app.ftcenlinea.com.conf
 
     #Include conf-available/serve-cgi-bin.conf
 </VirtualHost>
+```
 
-Crear el registro del subdominio en CLOUD DNS:
+# Crear el registro del subdominio en CLOUD DNS:
 
 
 Ejecutar la instrucción que asocia el subdominio: 
