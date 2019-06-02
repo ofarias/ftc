@@ -20,10 +20,10 @@ connect "localhost:/var/lib/firebird/2.5/data/{databse}.fdb" user 'SYSDBA' passw
 show tables;
 
 Creating database 
-# created shell script to copy every file in Bucket to the server:
-# may you should comment de database creation from principal script and execute the statement directly !
-# setting alias db:
-#.   change /etc/firebird/2.5/aliases.conf, set a new record: 
+## created shell script to copy every file in Bucket to the server:
+## may you should comment de database creation from principal script and execute the statement directly !
+## setting alias db:
+##   change /etc/firebird/2.5/aliases.conf, set a new record: 
 Alf.fdb = /var/lib/firebird/2.5/data/Alf.fdb    
 Alf = /var/lib/firebird/2.5/data/Alf.fdb    
 
