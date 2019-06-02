@@ -43,7 +43,7 @@
                                            <td> N/A </td>
                                               
                                              </tr>
-                                        <?php endforeach; ?>
+                                        
                                  </tbody>
                                  </table>
                             <!-- /.table-responsive -->

@@ -41,7 +41,9 @@
                                 	<td><?php echo $data->IDENTIFICADOR; ?></td>
                                 	<td><?php echo $data->NOMBRE; ?></td>
                                 	<td><?php echo $data->FECHA_PAGO; ?></td>
-                                	<!-- <td><?ph echo $data->CUENTA;?></td> -->                                             	 
+                                	<!-- <td>
+										<?php echo $data->CUENTA;?>
+									</td> -->
                                 	<td><?php echo "$ " . number_format($data->MONTO, 2, '.', ','); ?></td>
                                 	<td><?php echo "$ " . number_format($data->DIFERENCIA, 2, '.', ','); ?></td>
                             	</tr>
