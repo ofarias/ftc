@@ -58,14 +58,14 @@ for f in *.sql; do isql-fb -q -i "$f" Alef.fdb ; done
 ```
 
 ### Errores de la ejecución del script de carga:
-Statement failed, 
-SQLSTATE = 42S02
-Dynamic SQL Error
--SQL error code = -204
--Table unknown
--CUENTAS18
--At line 25, column 10
-At line 37 in file coi_CUENTAS_FTC.sql
+#### Statement failed, 
+#### SQLSTATE = 42S02
+#### Dynamic SQL Error
+- SQL error code = -204
+- Table unknown
+- CUENTAS18
+- At line 25, column 10
+#### At line 37 in file coi_CUENTAS_FTC.sql
 Statement failed, SQLSTATE = 42000
 unsuccessful metadata update
 -Generator GEN_FTC_CUENTAS_SAT_ID already exists
