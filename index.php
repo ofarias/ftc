@@ -10,7 +10,7 @@ $controller_cxc = new pegaso_controller_cobranza;
 $controller_v = new pegaso_controller_ventas;
 $controllerxml = new xml;
 if(isset($_GET['action'])){
-$action = $_GET['action'];
+	$action = $_GET['action'];
 }else{
 	$action = '';
 }
@@ -2665,8 +2665,8 @@ exit();
 	$res=$controller->traePago($_POST['idp'], $_POST['t']);
 	echo json_encode($res);
 	exit();
-}
-else{switch ($_GET['action']){
+}else{
+	switch ($_GET['action']){
 	//case 'inicio':
 	//	$controller->Login();
 	//	break;

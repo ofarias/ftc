@@ -1,7 +1,7 @@
 <?php 
 require_once 'app/model/database.php';
 /*Clase para hacer uso de database*/
-class pegaso extends database{
+class pegaso extends database {
 	
 		if(isset($_POST["query"])){
 			$output = '';
