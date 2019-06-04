@@ -14266,9 +14266,8 @@ function Pagos() {
     	if(count($cc)){
     		$cc = implode(",",$cc);	
     	}*/
-
     	$this->query ="SELECT max(CLAVE) as CLAVE FROM MAESTROS WHERE upper(SUBSTRING(CLAVE FROM 1 FOR 3)) = upper(SUBSTRING('$nombre' from 1 for 3))";
-    	echo $this->query;
+    	//echo $this->query;
     	$rs=$this->QueryObtieneDatosN();
     	$row= ibase_fetch_object($rs);
 
@@ -24509,11 +24508,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	if(!empty($uuid)){
     		$uuid = "and uuid = '".$uuid."'"; 
     	}elseif ($mes == 0 and $ide == 'Emitidos') {
-    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and cliente != '".$_SESSION['rfc']."'";
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and x.cliente != '".$_SESSION['rfc']."'";
     	}elseif ($mes == 0 and $ide == 'Recibidos') {
     		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and cliente = '".$_SESSION['rfc']."'";
     	}elseif($ide == 'Emitidos'){
-    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente != '".$_SESSION['rfc']."'";
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and x.cliente != '".$_SESSION['rfc']."'";
     	}elseif($ide == 'Recibidos'){
     		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente = '".$_SESSION['rfc']."'";
     	}
@@ -24521,11 +24520,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	if($ide== 'Emitidos'){
 					$this->query="SELECT x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
-    					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
+    					(select first 1 nombre from xml_clientes xc where xc.rfc = x.cliente) as nombre, 
     					(SELECT first 1 RAZON_SOCIAL FROM FTC_EMPRESAS WHERE rfc = rfce) as emisor,
-    					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = cliente and tipo = 'Cliente') as cuenta_Contable,
+    					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = x.cliente and tipo = 'Cliente') as cuenta_Contable,
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid) AS VARCHAR(100)),'') as poliza
-						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E') $uuid";
+    					,'' as tp_tes
+    					, fecha_recep as fecha_edo_cta
+						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F') $uuid";
     	}else{
     				$this->query="SELECT x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
@@ -24533,8 +24534,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = rfce) as cuenta_Contable,
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid) AS VARCHAR(100)),'') as poliza
-						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E') $uuid";
+						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
+						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F') $uuid";
     	}
+    	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while($tsArray = ibase_fetch_object($res)){
     		$data[]=$tsArray;
@@ -26010,7 +26013,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$this->query="SELECT cast(LIST(CLAVE||'-->'||NOMBRE) as varchar(100)) AS ENTIDAD FROM $tabla WHERE upper(RFC) containing(upper('$rfc'))";
 		$res=$this->EjecutaQuerySimple();
 		$row=ibase_fetch_object($res);
-		if($row){
+		if(!empty($row->ENTIDAD)){
 			$mensaje=array("status"=>'no', "aviso"=>"El RFC existe en el ".$tipo.' -->'.$row->ENTIDAD);
 		}else{
 			$mensaje=array("status"=>'ok', "aviso"=>"No existe el RFC eb la BD");
@@ -26224,7 +26227,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						  	and extract(year from fecha) = $anio 
 							$condicion
 					group by extract(month from fecha),extract(year from fecha), tipo";
-		echo $this->query;
+		//echo $this->query;
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data []=$tsArray;
@@ -26307,12 +26310,17 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$periodo = $crea['periodo'];
 		$ejercicio = $crea['ejercicio'];
 		$usuario =$_SESSION['user']->NOMBRE; 
-		$this->query="UPDATE XML_DATA set STATUS='D' where uuid='$uuid'";
+		$status = 'D';
+		if($tipo == 'Ig'){
+			$status='I';	
+		}elseif($tipo == 'Eg'){
+			$status='E';	
+		}
+		$this->query="UPDATE XML_DATA set STATUS='$status' where uuid='$uuid'";
 		$this->EjecutaQuerySimple();
 		$this->query="INSERT INTO XML_POLIZAS (ID, UUID, STATUS, POLIZA, TIPO, PERIODO, EJERCICIO, USUARIO, FECHA) 
 							VALUES (NULL, '$uuid', 'A', '$poliza', '$tipo', $periodo, $ejercicio, '$usuario', current_timestamp)";
 		$this->grabaBD();
-		//echo $this->query;
 		return;
 	}
 
@@ -26580,6 +26588,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             $res=$this->grabaBD();
             $ridp=ibase_fetch_object($res);
             if($ridp->ID > 0 ){
+            	$mensaje = array("status"=>'ok', "mensaje"=>"Se ha insertado el abono al banco".$row->ID);
 	            $this->query="UPDATE XML_DATA SET IDPAGO = $ridp->ID WHERE UUID = '$uuid'";
 	            $this->queryActualiza();
             }
@@ -26594,7 +26603,29 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$row=ibase_fetch_object($res);
 			return array("status"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->IMPORTE, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "proveedor"=>$row->NOM_PROV,"monto"=>"$ ".number_format($row->IMPORTE,2), "ctaProvCoi"=>$row->CTACOIPROV, "fecha_edo"=>$row->FECHA_EDO_CTA, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->FACTURA, "importe"=>$row->IMPORTE);
 		}elseif($t = 'Ingreso'){
-			return array("statsu"=>'ok', "info"=>"Esto es un abono");
+			$this->query="SELECT C.*, 
+               				(select CTA_CONTAB
+               				 from PG_BANCOS B
+               				 where B.BANCO || ' - ' || B.NUM_CUENTA = C.BANCO) as CCOI,
+               				 (select BANCO
+               				 from PG_BANCOS B
+               				 where B.BANCO || ' - ' || B.NUM_CUENTA = C.BANCO) as BBANCO,
+               				 (select NUM_CUENTA
+               				 from PG_BANCOS B
+               				 where B.BANCO || ' - ' || B.NUM_CUENTA = C.BANCO) as CUENTA,
+               				(select NOMBRE
+               				 from XML_CLIENTES
+               				 where IDCLIENTE = substring(C.CLIENTE from 5 )) as NOM_PROV,
+               				(select CUENTA_CONTABLE
+               				 from XML_CLIENTES
+               				 where IDCLIENTE = substring(C.CLIENTE from 5 )) as CTACOIPROV, extract(month from C.FECHA_RECEP) as PERIODO,
+               				extract(year from C.FECHA_RECEP) as EJERCICIO
+        		from CARGA_PAGOS c where C.ID = $idp";
+			//echo $this->query;
+			$res=$this->EjecutaQuerySimple();
+			$row=ibase_fetch_object($res);
+
+			return array("statsu"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->MONTO, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "proveedor"=>$row->NOM_PROV,"monto"=>"$ ".number_format($row->MONTO,2), "ctaProvCoi"=>$row->CTACOIPROV, "fecha_edo"=>$row->FECHA_RECEP, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->OBS, "importe"=>$row->MONTO);
 		}
 	}
 

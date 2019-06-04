@@ -127,7 +127,7 @@
         
         function ejecuta(tipo, anio){
             var anio = document.getElementById(anio).value
-            window.open("index.php?action=mXMLSP&tipo="+tipo+"&anio="+anio, "popup");
+            window.open("index.php?action=mXMLSP&tipo="+tipo+"&anio="+anio, "self");
             return false;
 
         }

@@ -15,25 +15,28 @@
     <?php if(empty($polizas)){?>
         <input type="button" name="grabaP" onclick="crearPolizas('<?php echo $ide?>')" class="btn btn-success" value="Crear Polizas">
     <?php }else{?>
-        <?php echo $polizas?>
+        <b><?php echo $polizas?></b><br/>
     <?php }?>
     <?php if(empty($pol->IDPAGO)){?>
         <input type="button" name="banco" onclick="banco('<?php echo $ide?>')" class="btn btn-info" value="Registro Edo Cta" >
     <?php }else{?>
         <label><?php echo strtoupper($pol->TP_TES).' registrado en '.$pol->BANCO .', fecha: &nbsp;&nbsp;&nbsp;'.substr($pol->FECHA_EDO_CTA,0,10)?></label>
-        <button onclick="polizaFinal('<?php echo $pol->UUID?>', '<?php echo $tipo?>', <?php echo $pol->IDPAGO?>)" class="btn btn-success">
-        Poliza de <?php echo $tipo?>
-        </button>
+        <?php if($pol->STATUS == 'D' ){?>
+            <button onclick="polizaFinal('<?php echo $pol->UUID?>', '<?php echo $tipo?>', <?php echo $pol->IDPAGO?>)" class="btn btn-success">
+            Poliza de <?php echo $tipo?>
+            </button>
+        <?php }?>
         <br/>
         <br/>
     <?php }?>
 </div>
+<!--
 <div style="float: left; width: 400px;" >
     <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cuenta de IVA : &nbsp;&nbsp;&nbsp; <?php echo '<b>'.$cimpuestos['iva'].'</b>' ?></p>
     <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cuenta de IEPS : &nbsp; <?php echo '<b>'.$cimpuestos['ieps'].'</b>'?></p>
     <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cuenta de ISR : &nbsp;&nbsp;&nbsp;<?php echo '<b>'.$cimpuestos['isr'].'</b>'?> </p>
 </div>
-
+-->
 <br/><br/>
  <?php foreach ($infoCabecera as $key0){ 
         $rfcEmpresa = $_SESSION['rfc'];
@@ -317,7 +320,7 @@
                             success:function(data){
                                 if(data.status == 'ok'){
                                     //document.getElementById('l_'+doc).classList.add('hide');
-                                    alert(data.mensaje);   
+                                    //alert(data.mensaje);   
                                     location.reload(true);
                                 }else if(data.status == 'no'){
                                     alert(data.mensaje);
@@ -467,7 +470,6 @@
     }
 
     function impFact(factura){
-        alert('Proximamente');
             $.ajax({
                 url:'index.php',
                 type:'post',
@@ -534,9 +536,11 @@
                                     data:{polizaFinal:1, uuid, tipo, idp},
                                     success:function(data){
                                         $.alert('Listo, se creo la Poliza de ' + tipo )
+                                        location.reload(true)
                                     },
                                     error:function(){
                                         $.alert('No se pudo crear la poliza de ' + tipo + ' favor de revisar la informacion')
+                                        location.reload(true)
                                     }
                                 })
                             }
@@ -555,9 +559,7 @@
                 alert('No se encontro la informacion del pago, favor de reportar a sistemas')
                 return false;
             }
-        })
-
-        
+        })        
     }
         
 </script>

@@ -1297,7 +1297,7 @@ class CoiDAO extends DataBaseCOI {
         $row=ibase_fetch_object($res);
         $par = 0;
         if(isset($row->NUM_POLIZ)){
-            echo 'Se grabo la poliz: '.$row->NUM_POLIZ;
+            //echo 'Se grabo la poliza: '.$row->NUM_POLIZ;
             $this->query="UPDATE FOLIOS SET FOLIO$periodo2 = trim('$row->NUM_POLIZ') WHERE TIPPOL='$subTipo' AND Ejercicio = $ejercicio";
             $this->EjecutaQuerySimple();
             $par++;
@@ -1331,7 +1331,7 @@ class CoiDAO extends DataBaseCOI {
             $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                         VALUES ('$subTipo', '$row->NUM_POLIZ', $par, $periodo, $ejercicio, '$ctaIVApp', '$fecha', '$conceptoIP', 'H', $montoI, 0, 1, 0, $par, 0,0, null , null)";
             $this->grabaBD();
-            return array("status"=>'ok', "mensaje"=>'Se genero la poliza'.$row->NUM_POLIZ);            
+            return array("status"=>'ok', "mensaje"=>'Se genero la poliza: '.$row->NUM_POLIZ, "tipo"=>$subTipo, "numero"=>$row->NUM_POLIZ, "periodo"=>$periodo, "ejercicio"=>$ejercicio);            
         }
     }
 }      
