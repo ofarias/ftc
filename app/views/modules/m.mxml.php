@@ -91,6 +91,8 @@
                 </div>
             </div>
         </div>
+    -->
+    <?php if($_SESSION['user']->USER_LOGIN == 'ofarias'){?>
          <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -102,6 +104,8 @@
                 </div>
             </div>
         </div>
+    <?php }?>
+        <!--
          <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading">

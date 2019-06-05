@@ -361,7 +361,10 @@ class pegaso_controller{
 			ob_start();
 			$cambio=$data->cambioSenia($nuevaSenia, $actual, $usuario);
 			if($cambio['status']=='ok'){
-				$cambio=$data2->cambioSenia($nuevaSenia, $usuario);
+				$cambio2=$data2->cambioSenia($nuevaSenia, $usuario);
+				if($cambio2['status']== 'm'){
+					$cambioM=$data->cambioMultiple($nuevaSenia, $actual, $usuario, $cambio2['empresas']);
+				}
 			}
 			$this->CerrarVentana();
 		}else{
@@ -2060,7 +2063,10 @@ class pegaso_controller{
 			ob_start(); 
 			$exec = $data->ActualizaUsr($mail, $usuario, $contrasena, $email, $rol, $estatus);
 			if($exec['status'] == 'ok'){
-				$cambio=$data2->cambioSenia($contrasena = $exec['contra'], $usuario);
+				$cambio=$data2->cambioSenia($contrasena, $usuario);
+				if($cambio['status']=='m'){
+					$cambioM=$data->cambioMultiple($contrasena, $actual= 'md5', $usuario , $cambio['empresas']);
+				}
 			}
 			$pagina=$this->load_template('Pedidos');
 			$html=$this->load_page('app/views/pages/p.redirectform.php');
@@ -18990,7 +18996,7 @@ function ImprimeFacturaPegaso($factura, $destino){
         $genqr=$qr->QRFactura($Cabecera, $fiscal);
         $pdf=new FPDF('P','mm','Letter');
        	$pdf->AddPage();
-        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],5,1);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],5,1, 60, 30);
         if(substr($factura,0,3)=='NCR' or substr($factura,0,3)=='NCS' or substr($factura,0,3)=='NCD' or substr($factura,0,3)=='NCB'){
         	$tipoComp = 'E (EGRESO)';
         	$tipoDoc = 'Nota de Credito';
@@ -19020,15 +19026,15 @@ function ImprimeFacturaPegaso($factura, $destino){
 
         $pdf->SetFont('Courier','B', 6);
         $pdf->SetXY(75, 1);
+  		$pdf->Write(10,$DF->RAZON_SOCIAL);
+        $pdf->SetXY(75, 5);
   		$pdf->Write(10,'Domicilio Fiscal: '.$DF->CALLE.', '.$DF->EXTERNO.', '.$DF->INTERNO);
-  		$pdf->SetXY(75, 5);
-  		$pdf->Write(10,'Col:'.$DF->COLONIA.', CP: '.$DF->CP);
   		$pdf->SetXY(75, 9);
+  		$pdf->Write(10,'Col:'.$DF->COLONIA.', CP: '.$DF->CP);
+  		$pdf->SetXY(75, 13);
   		$pdf->Write(10, $DF->DELEGACION.', '.$DF->ESTADO);
-        $pdf->SetXY(75, 13);
-  		$pdf->Write(10,'RFC:'.$DF->RFC.'Regimen Fiscal:'.$DF->REGIMEN_FISCAL);
         $pdf->SetXY(75, 17);
-  		$pdf->Write(10,'');
+  		$pdf->Write(10,'RFC:'.$DF->RFC.'Regimen Fiscal:'.$DF->REGIMEN_FISCAL);
         $pdf->SetXY(75, 21);
         $pdf->Write(10,'LUGAR DE EXPEDICION: '.$lugar);
         $pdf->SetXY(140, 1);

@@ -88,10 +88,24 @@ class ftc extends ftcws {
     }
 
     function cambioSenia($nuevaSenia, $usuario){
+        $nuevaSenia = md5($nuevaSenia);
+        $data=array();
+        $x = array("status"=>'s',"empresas"=>$data);
         $this->query="UPDATE ftc_usuarios SET contrasenia = '$nuevaSenia' where usuario = '$usuario'";
         $this->queryActualiza();
-        return;
+        $this->query="SELECT feu.*, (SELECT ruta_bd FROM ftc_empresas fe where feu.ide = fe.ide) as rutaBD FROM ftc_empresas_usuarios feu WHERE idu = (select id from ftc_usuarios where usuario='$usuario')";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=mysqli_fetch_array($res)){
+            $data[]=$tsArray;
+        }
+        if(count($data) > 1){
+            /// si tiene mas de una empresa asignada, tenemos que cambiarle la contraseña a todas. 
+            $x=array("status"=>'m',"empresas"=>$data);
+        }
+        return $x;
     }
+
+    
 
 }      
 ?>

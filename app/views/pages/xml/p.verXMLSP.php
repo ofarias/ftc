@@ -141,7 +141,6 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
-
      function marcar(ln, t){
         var renglon = document.getElementById("ln_"+ln)
         var chek = document.getElementById(ln)

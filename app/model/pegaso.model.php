@@ -154,6 +154,19 @@ class pegaso extends database{
 		}
 		return $a;
 	}
+
+	function cambioMultiple($nuevaSenia, $actual, $usuario, $data){
+        $o = $_SESSION['bd'];
+       	$nuevaSenia=md5($nuevaSenia);
+        foreach($data as $emp){
+        	$_SESSION['bd']=$emp['rutaBD'];
+			$this->query="UPDATE PG_USERS SET user_pass = '$nuevaSenia' where id = (SELECT ID FROM PG_USERS WHERE USER_LOGIN = '$usuario')";
+			$this->EjecutaQuerySimple();
+			$a=array("status"=>'ok', "mensaje"=>'Cambio la contraseña');
+			$_SESSION['bd']=$o;
+        }
+        return;
+    }
 ///// Lista los pedidos PENDIENTES.
 	function LPedidos(){
 		$l = $_SESSION['user']->LETRA;
@@ -24516,7 +24529,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	}elseif($ide == 'Recibidos'){
     		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente = '".$_SESSION['rfc']."'";
     	}
-
     	if($ide== 'Emitidos'){
 					$this->query="SELECT x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
@@ -26645,4 +26657,5 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $data;
 	}
 
+	
 }?>
