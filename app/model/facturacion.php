@@ -440,6 +440,12 @@ class factura extends database {
 		$dect=2; //decimales Truncados.
 		$imp1=0.16;
 		$usuario = $_SESSION['user']->NOMBRE;
+		############### Traemos los datos Fiscales para la factura.##############
+    	//$docu=$nfact['folioNC'];
+    	$this->query="SELECT * FROM FTC_EMPRESAS WHERE ID = 1";
+    	$r=$this->EjecutaQuerySimple();
+    	$rowDF=ibase_fetch_object($r);
+		#########################################################################
 		$this->query="SELECT P.*,
 						(SELECT DBIMPPRE FROM FTC_COTIZACION_DETALLE
 		                WHERE cdfolio = (SELECT cdfolio FROM FTC_COTIZACION WHERE CVE_COTIZACION = DOCUMENTO)
@@ -761,7 +767,12 @@ class factura extends database {
 
     function timbraFact($docf, $idc){
     	$usuario = $_SESSION['user']->NOMBRE;
-		
+		############### Traemos los datos Fiscales para la factura.##############
+    	//$docu=$nfact['folioNC'];
+    	$this->query="SELECT * FROM FTC_EMPRESAS WHERE ID = 1";
+    	$r=$this->EjecutaQuerySimple();
+    	$rowDF=ibase_fetch_object($r);
+		#########################################################################
 		if(gettype($idc) == 'array'){
     		$cfdiRelacionado = array("UUID"=>$idc["uuid_c"]);
 			//$cfdiRelacionado = array("UUID"=>"C46B2089-99B3-174C-B164-804944240C64");
@@ -1026,6 +1037,12 @@ class factura extends database {
 
     function timbraNC($docf, $idc){
     	$usuario = $_SESSION['user']->NOMBRE;
+    	############### Traemos los datos Fiscales para la factura.##############
+    	//$docu=$nfact['folioNC'];
+    	$this->query="SELECT * FROM FTC_EMPRESAS WHERE ID = 1";
+    	$r=$this->EjecutaQuerySimple();
+    	$rowDF=ibase_fetch_object($r);
+		#########################################################################
 		echo 'Documento: '.$docf.' Caja: '.$idc.'<br/>';
 		//exit();
 		$this->query="SELECT * FROM FTC_NC WHERE DOCUMENTO = '$docf'";
@@ -1305,6 +1322,12 @@ class factura extends database {
 
  	function timbraNCDescLogSub($docf){
     	$usuario = $_SESSION['user']->NOMBRE;
+    	############### Traemos los datos Fiscales para la factura.##############
+    	//$docu=$nfact['folioNC'];
+    	$this->query="SELECT * FROM FTC_EMPRESAS WHERE ID = 1";
+    	$r=$this->EjecutaQuerySimple();
+    	$rowDF=ibase_fetch_object($r);
+		#########################################################################
     	$this->query="SELECT * FROM FTC_NC WHERE NOTAS_CREDITO ='$docf'";
     	$res=$this->EjecutaQuerySimple();
     	$row=ibase_fetch_object($res);

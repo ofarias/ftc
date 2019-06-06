@@ -659,7 +659,7 @@ class pegaso_controller{
 			$rechazos = $data->verRechazo();
 			$usuario=$_SESSION['user']->NOMBRE;
 			$letra = $_SESSION['user']->LETRA;
-				$table= ob_get_clean();
+			$table= ob_get_clean();
 				include 'app/views/modules/m.mV.php';
 				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
 			$this-> view_page($pagina);
@@ -6257,29 +6257,25 @@ function liberaPendientes($doco, $id_preoc, $pxr, $par){
 
 	}
 
-
 	function liberaPendientes2($doco, $id_preoc, $pxr, $par){
-		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;	
 			ob_start();
 			$liberar=$data->LiberarPartidasNoRecibidas($doco, $id_preoc, $pxr, $par);
-			}
-			
+		}
 	}
 
     function FormCapturaGasto(){
-            
             if(isset($_SESSION['user'])){
             $data = new pegaso;	
             $pagina=$this->load_template('PXR');				
-            $html = $this->load_page('app/views/pages/p.formnuevogasto.php');
+            $html = $this->load_page('app/views/pages/Tesoreria/p.formnuevogasto.php');
             ob_start();
             $exec = $data->traeConceptoGastos();
             $prov = $data->traeProveedoresGastos();
             $clasificacion = $data->traeClasificacionGastos();
             if($exec != ''){
-            	include 'app/views/pages/p.formnuevogasto.php';
+            	include 'app/views/pages/Tesoreria/p.formnuevogasto.php';
 		$table = ob_get_clean();
 		$pagina = $this->replace_content('/\#CONTENIDO\#/ms' , $table, $pagina);
             }else{

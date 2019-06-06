@@ -26,7 +26,7 @@
                                 <select class="form-control" name="proveedor" required = "required"><br/>
                                     <option>--Selecciona un proveedor--</option>
                                     <?php foreach ($prov as $data): ?>
-                                        <option value="<?php echo !empty($data->CLAVE)? $data->CLAVE:'xml_'.$data->IDCLIENTE; ?>"><?php echo $data->NOMBRE; ?></option>
+                                        <option value="<?php echo !empty($data->CLAVE)? $data->CLAVE:'xml_'.$data->IDCLIENTE; ?>">(&nbsp; <?php echo !empty($data->CLAVE)? $data->CLAVE:'xml'?>&nbsp;)&nbsp;<?php echo $data->NOMBRE; ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
