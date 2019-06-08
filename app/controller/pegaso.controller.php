@@ -9810,14 +9810,14 @@ function imprimirFacturasAcuse(){
         	$html = $this->load_page('app/views/pages/Tesoreria/p.pagos.listado.php');
         	ob_start();
         	$exec = $data->Pagos();
+        	$gastos = $data->listadoGastos();
            	$table = ob_get_clean();
-        	if (count($exec) > 0) {
-            	include 'app/views/pages/Tesoreria/p.pagos.listado.php';
+        	include 'app/views/pages/Tesoreria/p.pagos.listado.php';
+        	if(count($exec) > 0 and count($gastos) > 0) {
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	}else{	
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table . '<div class="alert-danger"><center><h2>No existen datos para mostrar. </h2><center></div>', $pagina);
-            	include 'app/views/pages/Tesoreria/p.pagos.listado.php';
-        	}
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table . '<div class="alert-danger"><center><h2>No existen Pagos o gastos pendientes. </h2><center></div>', $pagina);
+          	}
         	$this->view_page($pagina);
     	} else {
         	$e = "Favor de Iniciar Sesión";
@@ -9830,11 +9830,11 @@ function imprimirFacturasAcuse(){
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');
-        	$html = $this->load_page('app/views/pages/p.pagos.gastos.listado.php');
+        	$html = $this->load_page('app/views/pages/Tesoreria/p.pagos.gastos.listado.php');
         	ob_start();
         	$exec = $data->listadoGastos();
         	if (count($exec) > 0) {
-            	include 'app/views/pages/p.pagos.gastos.listado.php';
+            	include 'app/views/pages/Tesoreria/p.pagos.gastos.listado.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
@@ -9848,17 +9848,16 @@ function imprimirFacturasAcuse(){
     	}
 	}
     
-	function pagoGasto($identificador) {
-    	
+	function pagoGasto($identificador) {	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');
-        	$html = $this->load_page('app/views/pages/p.pago.gasto.php');
+        	$html = $this->load_page('app/views/pages/Tesoreria/p.pago.gasto.php');
         	ob_start();
         	$cuentaBancarias = $data->CuentasBancos();
         	$exec = $data->PagosGastos($identificador);
         	if (count($exec) > 0) {
-            	include 'app/views/pages/p.pago.gasto.php';
+            	include 'app/views/pages/Tesoreria/p.pago.gasto.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
@@ -9923,33 +9922,22 @@ function imprimirFacturasAcuse(){
 	}
     
 	function PagoGastoCorrecto($cuentabanco, $documento, $tipopago, $monto, $proveedor, $claveProveedor, $fechadocumento) {
-    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
-
         	$pagina = $this->load_template('Pagos');
-        	// $html = $this->load_page('app/views/pages/p.pagoc.php'); cafaray 3/sep/2016
-        	$html = $this->load_page('app/views/pages/p.pagos.gastos.listado.php');
+        	$html = $this->load_page('app/views/pages/Tesoreria/p.pagos.gastos.listado.php');
         	ob_start();
-        	//generamos consultas
-       	 
-        	//$guarda = $data->GuardaPagoCorrecto($docu, $tipop, $monto, $entregadoa);
         	$guarda = $data->GuardaPagoGastoCorrecto($cuentabanco, $documento, $tipopago, $monto, $proveedor, $claveProveedor, $fechadocumento);
         	if($guarda!=null){
             	$error = "Datos guardados correctamente";
         	} else {
             	$error = "Hubieron errores al registrar el pago. Revise la bitacora de operación.";
         	}
-        	$exec = $data->listadoGastos();
-        	if (count($guarda) > 0) {
-            	include 'app/views/pages/p.pagos.gastos.listado.php';
-            	$table = ob_get_clean();
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-            	$pagina.="<script>alert('$error');</script>";
-        	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-        	}
-        	$this->view_page($pagina);
+        	$redireccionar = 'pago_gastos';
+        	$pagina=$this->load_template('Pedidos');
+        	$html = $this->load_page('app/views/pages/p.redirectform.php');
+            include 'app/views/pages/p.redirectform.php';
+        	$this->view_page($pagina);        	
     	} else {
         	$e = "Favor de Iniciar Sesión";
         	header('Location: index.php?action=login&e=' . urlencode($e));
@@ -9957,8 +9945,7 @@ function imprimirFacturasAcuse(){
     	}
 	}
 
-function verXautorizar(){
-    	
+	function verXautorizar(){	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pedidos');
@@ -14881,16 +14868,15 @@ function ImpSolicitud2($idsol){
     	}
     }
 
-    function editaProveedor($idprov){
-    	
+    function editaProveedor($idprov){   	
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
-    		$html = $this->load_page('app/views/pages/p.editaProveedor.php');
+    		$html = $this->load_page('app/views/pages/Proveedores/p.editaProveedor.php');
     		ob_start();
     		$responsables=$data->traeResponsablesProve();
     		$proveedor=$data->editaProveedor($idprov);
-    		include 'app/views/pages/p.editaProveedor.php';
+    		include 'app/views/pages/Proveedores/p.editaProveedor.php';
     		$table = ob_get_clean();
     		$pagina= $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
     		$this->view_page($pagina); 
@@ -14901,12 +14887,11 @@ function ImpSolicitud2($idsol){
     	}	
     }
 
-    function editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3){
-    	
+    function editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3, $serv){
     	if($_SESSION['user']){
     		$data =  new pegaso;
     		ob_start();
-    		$edita = $data->editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3);
+    		$edita = $data->editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3, $serv);
     		$this->editaProveedor($idprov);
     		
     	}

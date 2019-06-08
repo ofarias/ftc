@@ -86,6 +86,17 @@
                 </div>   
             </div>
             <div class="col-md-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4><i class="fa fa-list-alt"></i>Recepci&oacute;n de pagos</h4>
+                </div>
+                <div class="panel-body">
+                    <p>Recibir pagos</p>
+                    <center><a href="index.php?action=listadoXrecibir" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                </div>
+            </div>
+        </div>
+            <div class="col-md-3">
                  <div class="panel panel-default">
                     <div class="panel-heading">
                     <h4>Carga Cargos</h4>

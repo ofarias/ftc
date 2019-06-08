@@ -171,6 +171,7 @@ class CoiDAO extends DataBaseCOI {
 
     function creaPoliza($tipo, $uuid, $cabecera, $detalle, $impuestos){
         /// Obtenemos la fecha del documento
+
         $usuario=$_SESSION['user']->USER_LOGIN;
         foreach($cabecera as $cb){
             $periodo=$cb->PERIODO;
@@ -197,10 +198,12 @@ class CoiDAO extends DataBaseCOI {
             $nat0='H';
             $nat1='D';
             $con = '';
+            $tipoXML='Recibido';
         }else{
             $nat0='D';
             $nat1='H';
             $con = 'Venta ';
+            $tipoXML='Emitido';
         }
         foreach($cabecera as $pol){
             $concepto = $con.substr($pol->NOMBRE.', '.$pol->DOCUMENTO.', '.$pol->FECHA, 0, 120);
@@ -209,7 +212,6 @@ class CoiDAO extends DataBaseCOI {
                                 values ('$tipo','$folio', $periodo, $ejercicio, '$pol->FECHA', '$concepto', 0, '', 'N', 0, 1, 0, substring('PHP $usuario' from 1 for 15),'$uuid', 0, '')";
             $this->EjecutaQuerySimple();
             //echo '<br/>Inserta Poliza:'.$this->query.'<br/>';
-
             $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$pol->FECHA', '$concepto', '$nat0' , $pol->IMPORTE, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
             $this->EjecutaQuerySimple();  
@@ -243,10 +245,11 @@ class CoiDAO extends DataBaseCOI {
                         $cuenta = '';
                         $parImp = $partida + 1;
                         if($tf=='Retencion'){
-                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status = 1 and factor = '$factor' and tipo = '$tf' and poliza ='$tipo'";
+                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status = 1 and factor = '$factor' and tipo = '$tf' and poliza ='$tipo' and tipo_xml = '$tipoXML'";
                         }else{
-                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status = 1 and factor = '$factor'and tipo = '$tf' and poliza ='$tipo' and tasa=$tasa";
+                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status = 1 and factor = '$factor'and tipo = '$tf' and poliza ='$tipo' and tasa=$tasa and tipo_xml = '$tipoXML'";
                         }
+                        //echo 'Busqueda de la cuenta de impuestos: '.$this->query;
                         $res=$this->EjecutaQuerySimple();
                         $rowImp = ibase_fetch_object($res);
                         if(!empty($rowImp)){

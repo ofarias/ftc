@@ -62,7 +62,7 @@ class pegaso extends database{
 		$this->query="INSERT INTO FTC_INICIO_LOGS (ID, USR_LOGIN, USR_NOMBRE, USR_EQUIPO, FECHA, STATUS, IP, PHP, navegador)
 							VALUES (null, '$usuario', '$nombre', '$equipo',current_timestamp, 'I','$ip', '$p', '$pn')";
 		$this->grabaBD();
-		if($usuario == 'ofarias'){
+		if($usuario == 'ofarias999'){
 			$this->revisaParametros($uuid = false);
 		}
 		return;
@@ -9811,8 +9811,6 @@ function VerCobranzaC($cc){
         return $data;
 	}
 
-	
-
 	function verPedidosPendientes(){
 		$a="SELECT * FROM PEDIDO ";
 		$this->query=$a;
@@ -9829,8 +9827,8 @@ function VerCobranzaC($cc){
 		return $result;
 	}
 
-	 function listadoGastos(){
-        $this->query = " SELECT A.ID,
+	function listadoGastos(){
+        $this->query = "SELECT A.ID,
         A.STATUS,
         A.CVE_CATGASTOS,
         B.CONCEPTO,
@@ -9841,13 +9839,14 @@ function VerCobranzaC($cc){
         B.PRESUPUESTO,
         A.FECHA_CREACION,
         A.CLASIFICACION,
-        C.DESCRIPCION
+        C.DESCRIPCION, 
+        (SELECT NOMBRE FROM PROV01 WHERE CLAVE = A.CVE_PROV) AS PROV
         FROM GASTOS A
         left JOIN CAT_GASTOS B ON A.CVE_CATGASTOS = B.ID
         left JOIN CLA_GASTOS C ON C.ID = A.CLASIFICACION
         WHERE A.STATUS = 'E'
         and (AUTORIZACION ='' or AUTORIZACION = '1')";
-        $result = $this->QueryObtieneDatosN();
+        $result = $this->EjecutaQuerySimple();
         while ($tsArray = ibase_fetch_object($result)) {
             $data[] = $tsArray;
         }
@@ -9855,14 +9854,13 @@ function VerCobranzaC($cc){
     }
     
 	function PagosGastos($identificador) {
-        $this->query = "SELECT a.ID, d.CONCEPTO, d.PROVEEDOR, a.MONTO_PAGO, a.FECHA_CREACION, a.SALDO, a.TIPO_PAGO, a.CLASIFICACION, c.DESCRIPCION 
+        $this->query = "SELECT a.ID, d.CONCEPTO, d.PROVEEDOR, a.MONTO_PAGO, a.FECHA_CREACION, a.SALDO, a.TIPO_PAGO, a.CLASIFICACION, c.DESCRIPCION, (SELECT NOMBRE FROM PROV01 WHERE CLAVE = a.CVE_PROV) AS PROV 
                         from GASTOS a 
                         left JOIN CLA_GASTOS c ON a.clasificacion = c.id
                         left JOIN CAT_GASTOS d ON a.CVE_CATGASTOS = d.ID 
                         where a.status <> 'C' and FECHA_CREACION > '03/14/2016' AND d.ACTIVO = 'S' AND AUTORIZACION = '1' 
                         AND a.ID = '$identificador'
                         ORDER BY a.FECHA_CREACION asc ";
-        //echo 'Esta es la consulta:'.var_dump($this);
         $result = $this->QueryObtieneDatosN();
         while ($tsArray = ibase_fetch_object($result)) {
             $data[] = $tsArray;
@@ -10845,7 +10843,11 @@ function Pagos() {
 			$bn=ibase_fetch_object($res);
 			$corte = $bn->DIA_CORTE;
 			$fechaIni=$corte.'.'.$mes.'.'.$anio;
-			$fechafin=($corte-1).'.'.($mes+1).'.'.$anio;
+			if($corte == 1){
+				$fechafin=($corte).'.'.($mes+1).'.'.$anio;
+			}else{
+				$fechafin=($corte-1).'.'.($mes+1).'.'.$anio;
+			}
 		###########################################################
 
 		$this->query="SELECT 1 as s, FECHA_RECEP AS sort, 'Venta' AS TIPO,  iif(FOLIO_X_BANCO = 'TR', (FOLIO_X_BANCO||id), FOLIO_X_BANCO) AS CONSECUTIVO, FECHA_RECEP AS FECHAMOV, MONTO AS ABONO, 0 AS CARGO, SALDO AS SALDO, BANCO AS BANCO, USUARIO AS USUARIO, tipo_pago as TP, id as identificador, registro as registro, folio_acreedor as FA , fecha_recep as fe, '' as comprobado, contabilizado, seleccionado, '' as tp_tes, CEP, ARCHIVO_CEP, obs 
@@ -15678,24 +15680,19 @@ function Pagos() {
     	return $data;
     }
 
-    function editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3){
-    	
+    function editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3, $serv){
     	$user=$_SESSION['user']->NOMBRE;
     	$this->query="SELECT * FROM PROV01 WHERE trim(CLAVE) = TRIM('$idprov')";
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
     	$cer = $row->CERTIFICADO;
-
     	if($cer == 'Si' and $certificado == 'Si'){
-    		$this->query="UPDATE PROV01 SET urgencia ='$urgencia', envio= '$envio', recoleccion='$recoleccion', tp_efectivo = '$tp_efe', tp_credito = '$tp_cr', tp_transferencia= '$tp_tr', tp_cheque='$tp_ch', certificado = '$certificado', nom_banco='$banco', cuenta='$cuenta', beneficiario = '$beneficiario', resp_compra='$responsable', diascred = $plazo, emailpred = '$email1', email2 = '$email2', email3 = '$email3' WHERE CLAVE = '$idprov'";
+    		$this->query="UPDATE PROV01 SET urgencia ='$urgencia', envio= '$envio', recoleccion='$recoleccion', tp_efectivo = '$tp_efe', tp_credito = '$tp_cr', tp_transferencia= '$tp_tr', tp_cheque='$tp_ch', certificado = '$certificado', nom_banco='$banco', cuenta='$cuenta', beneficiario = '$beneficiario', resp_compra='$responsable', diascred = $plazo, emailpred = '$email1', email2 = '$email2', email3 = '$email3', fax= '$serv' WHERE CLAVE = '$idprov'";
 	    	$rs=$this->EjecutaQuerySimple();
     	}elseif (empty($cer) or $cer == 'No'  ){
-    		$this->query="UPDATE PROV01 SET urgencia ='$urgencia', envio= '$envio', recoleccion='$recoleccion', tp_efectivo = '$tp_efe', tp_credito = '$tp_cr', tp_transferencia= '$tp_tr', tp_cheque='$tp_ch', certificado = '$certificado', nom_banco='$banco', cuenta='$cuenta', beneficiario = '$beneficiario', resp_compra='$responsable', fecha_cert = current_timestamp, usr_cert = '$user', num_cert= iif(num_cert is null, 1, num_cert + 1), diascred = $plazo , emailpred = '$email1', email2 = '$email2', email3 = '$email3' WHERE CLAVE = '$idprov'";
+    		$this->query="UPDATE PROV01 SET urgencia ='$urgencia', envio= '$envio', recoleccion='$recoleccion', tp_efectivo = '$tp_efe', tp_credito = '$tp_cr', tp_transferencia= '$tp_tr', tp_cheque='$tp_ch', certificado = '$certificado', nom_banco='$banco', cuenta='$cuenta', beneficiario = '$beneficiario', resp_compra='$responsable', fecha_cert = current_timestamp, usr_cert = '$user', num_cert= iif(num_cert is null, 1, num_cert + 1), diascred = $plazo , emailpred = '$email1', email2 = '$email2', email3 = '$email3', fax= '$serv' WHERE CLAVE = '$idprov'";
 	    	$rs=$this->EjecutaQuerySimple();
     	}
-    	
-    	//echo $this->query;
-    	//break;
     	return;
     }
 

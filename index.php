@@ -1799,10 +1799,15 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	if(!empty($_POST['email3'])){
 		$email3=$_POST['email3'];
 	}
+	if(isset($_POST['serv'])){
+		$serv=$_POST['serv'];
+	}else{
+		$serv='';
+	}
 	//echo $tp_ch.'<p>';
 	//echo $beneficiario.'<p>';
 	//break;
-	$controller->editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3);
+	$controller->editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3, $serv);
 }elseif (isset($_POST['bajaFTCArticualo'])){
 	$ids = $_POST['ids'];
 	//$controller->bajaFTCArticualo($ids);
