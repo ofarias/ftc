@@ -23829,7 +23829,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 			            if($rfc == $rfcEmpresa){
 			            	$tipoC = 'Proveedor';
-							$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfce'";
+							$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfce' and tipo ='$tipoC'";
 			            	$res=$this->EjecutaQuerySimple();
 			            	$row=ibase_fetch_object($res);
 			            	$nombreE=htmlentities($nombreE, ENT_QUOTES);
@@ -23843,7 +23843,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            	}			            	
 			            }else{
 			            	$tipoC = 'Cliente';
-			            	$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfc'";
+			            	$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfc' and tipo ='$tipoC'";
 			            	$res=$this->EjecutaQuerySimple();
 			            	$row=ibase_fetch_object($res);
 			            	$nombre_recep=htmlentities($nombre_recep, ENT_QUOTES);
