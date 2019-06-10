@@ -24529,7 +24529,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$rfcr = $cliente[0];
     	$uuid = $cliente[2];
     	if($ide == 'Emitidos'){
-			$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfcr'";
+			$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfcr' and tipo = 'Cliente'";
 	    	$this->queryActualiza();
 	    	foreach ($partidas as $key){
 	    		$key=explode(":", $key);
@@ -24540,7 +24540,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$this->queryActualiza();
 	      	}
     	}else{
-    		$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfc'";
+    		$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfc' and tipo = 'Proveedor'";
 	    	$this->queryActualiza();	
 	    	foreach ($partidas as $key){
 	    		$key=explode(":", $key);
