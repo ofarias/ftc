@@ -90,7 +90,7 @@
                                             <td><?php echo $tipo?></td>
                                             <td><?php echo $key->SERIE.$key->FOLIO?></td>
                                             <td><?php echo $key->FECHA;?> </td>
-                                            <td><?php echo '('.$key->CLIENTE.')  <br/><b>'.$key->NOMBRE.'<b/>';?></td>
+                                            <td><?php echo '('.$key->CLIENTE.')  <br/><b>'.utf8_encode($key->NOMBRE).'<b/>';?></td>
                                             <td><?php echo '('.$key->RFCE.')  <br/><b>'.$key->EMISOR.'<b/>'?></td>
                                             <td><?php echo '$ '.number_format($key->SUBTOTAL,2);?></td>
                                             <td><?php echo '$ '.number_format($key->IVA,2);?></td>
