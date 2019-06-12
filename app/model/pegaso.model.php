@@ -62,7 +62,7 @@ class pegaso extends database{
 		$this->query="INSERT INTO FTC_INICIO_LOGS (ID, USR_LOGIN, USR_NOMBRE, USR_EQUIPO, FECHA, STATUS, IP, PHP, navegador)
 							VALUES (null, '$usuario', '$nombre', '$equipo',current_timestamp, 'I','$ip', '$p', '$pn')";
 		$this->grabaBD();
-		if($usuario == 'ofarias999'){
+		if($usuario == 'ofarias' and $_SESSION['empresa']['auto']== 'si'){
 			$this->revisaParametros($uuid = false);
 		}
 		return;
@@ -71,12 +71,13 @@ class pegaso extends database{
 	function revisaParametros($uuid){
 		$data=array();
 		$data2=array();
+		$fi = $_SESSION['empresa']['fecha_inicio'];
 		if(!empty($uuid)){
 			$this->query="SELECT * FROM XML_DATA XD LEFT JOIN XML_POLIZAS XP ON XP.UUID = XD.UUID WHERE XD.UUID = '$uuid'";
 		}else{
-			$this->query="SELECT * FROM XML_DATA XD LEFT JOIN XML_POLIZAS XP ON XP.UUID = XD.UUID WHERE XD.STATUS = 'P' and XD.TIPO = 'I'";
+			$this->query="SELECT * FROM XML_DATA XD LEFT JOIN XML_POLIZAS XP ON XP.UUID = XD.UUID WHERE XD.STATUS = 'P' and XD.TIPO = 'I' and xd.fecha >= '$fi' ";
 		}
-		
+
 		$rs=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($rs)) {
 			$data[]=$tsArray;
@@ -9375,12 +9376,13 @@ function VerCobranzaC($cc){
     	$montonc = $rowM->TOTAL;
 
     	//echo '<br/>'.substr($factura, 0,3 == 'FAA').'<br/>';
-
     	if(substr($factura, 0,3) == 'FAA' or (substr($factura, 0,2) == 'RF' and substr($factura, 0,3) != 'RFP')){
     	$this->query="UPDATE FACTF01 SET NC_APLICADAS = iif(NC_APLICADAS='','$docNCD', NC_APLICADAS||','||'$docNCD'), IMPORTE_NC= IMPORTE_NC + $montonc, saldofinal = saldofinal - $montonc where CVE_DOC = '$factura'"; 	
     	}else{
+
     	$this->query="UPDATE FTC_FACTURAS SET NOTAS_CREDITO = iif(NOTAS_CREDITO='','$docNCD', NOTAS_CREDITO||','||'$docNCD'), MONTO_NC= MONTO_NC + $montonc, saldo_final = saldo_final - $montonc where documento = '$factura'";
     	}
+    	
     	$rs=$this->queryActualiza();
     	if($rs == 1){
 	    	return array("status"=>"ok","devolucion"=>$folsig, "idcaja"=>$idc, "docf"=>$docf);
@@ -9828,6 +9830,7 @@ function VerCobranzaC($cc){
 	}
 
 	function listadoGastos(){
+		$data = array();
         $this->query = "SELECT A.ID,
         A.STATUS,
         A.CVE_CATGASTOS,
@@ -12448,10 +12451,8 @@ function Pagos() {
    		return $mensaje;
    	}
 
-
-
-
    	function asociaCF(){
+   		$data = array();
    		$this->query="SELECT cf.*, (select max(nombre) from clie01 c where c.rfc = cf.rfc) as cliente 
    						from CARGO_FINANCIERO cf 
    						where cf.saldo > 0";
@@ -12980,6 +12981,7 @@ function Pagos() {
     }
 
     function verPagoSolicitudes(){
+    	$data=array();
     	$this->query = "SELECT s.*, p.nombre as nom_prov 
     				FROM SOLICITUD_PAGO s
     				left join prov01 p on p.clave = s.proveedor
@@ -13896,6 +13898,7 @@ function Pagos() {
     }
 
      function verProveedores(){
+    	$data = array();
     	$this->query="SELECT p.*, b.banco as bancosat FROM PROV01 p left join bancos_sat b on b.clave = p.banco where STATUS = 'A'";
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
@@ -15177,6 +15180,7 @@ function Pagos() {
 
 
       function verSolProdVentas(){
+      	$data = array();
     	$user=$_SESSION['user']->NOMBRE;
     	$aux =$_SESSION['user']->AUX_COMP;
     	//echo 'Valida si es auxiliar o no: '.$aux;
@@ -15393,7 +15397,7 @@ function Pagos() {
     }
     
     function catalogoProductosFTC($descripcion){
-
+    	$data = array();
     	if(!empty($descripcion)){
     		$id= strpos($descripcion,':');
     		if($id === false){
@@ -23647,6 +23651,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			}
 		}
 		$rfcEmpresa = $_SESSION['rfc'];
+		//echo '<br/>'.utf8_decode($nombre_recep);
 		if($rfcEmpresa != $rfce and $rfcEmpresa!=$rfc){
 			echo ('<br/><font color="red">El RFC NO CORRESPONDE A LA EMPRESA SELECCIONADA, SOLO SE PUEDEN SUBIR RFC DE LA EMPRESA SELECCIONA....'. $uuid.'</font><br/>');
 			$tipo = 'falso';
@@ -23832,7 +23837,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfce' and tipo ='$tipoC'";
 			            	$res=$this->EjecutaQuerySimple();
 			            	$row=ibase_fetch_object($res);
-			            	$nombreE=htmlentities($nombreE, ENT_QUOTES);
+			            	$nombreE=$nombreE;
 			            	if(empty($row)){
 			            		$this->query="INSERT INTO XML_CLIENTES (IDcliente, RFC, NOMBRE, CALLE, EXTERIOR, INTERIOR, COLONIA, MUNICIPIO, ESTADO, PAIS, CP, TIPO)
 			            				  VALUES (NULL, '$rfce', '$nombreE', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";
@@ -23846,7 +23851,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            	$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfc' and tipo ='$tipoC'";
 			            	$res=$this->EjecutaQuerySimple();
 			            	$row=ibase_fetch_object($res);
-			            	$nombre_recep=htmlentities($nombre_recep, ENT_QUOTES);
+			            	$nombre_recep=$nombre_recep;
 			            	if(empty($row)){
 			            		$this->query="INSERT INTO XML_CLIENTES (IDcliente, RFC, NOMBRE, CALLE, EXTERIOR, INTERIOR, COLONIA, MUNICIPIO, ESTADO, PAIS, CP, TIPO)
 			            					  VALUES (NULL, '$rfc', '$nombre_recep', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '	$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";	
@@ -24292,7 +24297,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			$result=$this->queryActualiza();
     			//print_r($result);
     			if($result < 1){
-    				echo '<br/>Error al guardar: <br/>'.$this->query;
+    				echo '<br/>Error al guardar Impuesto: <br/>'.$this->query;
     				$this->query="INSERT INTO XML_EXCEPCION (ID, UUID, TIPO) VALUES (NULL, '$key->UUID', 'IMP')";
     				if($this->grabaBD()){
     	
@@ -24412,6 +24417,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	while($tsArray = ibase_fetch_object($res)){
     		$data[]=$tsArray;
     	}
+
     	return ($data);
     }
 

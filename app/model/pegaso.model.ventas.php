@@ -596,6 +596,7 @@ class pegaso_ventas extends database{
 */
 
     function traeMarcas(){
+        $data=array();
         $this->query="SELECT * FROM MARCAS WHERE STATUS = 'A'";
         $rs=$this->QueryObtieneDatosN();
             while($tsarray = ibase_fetch_object($rs)){
@@ -605,6 +606,7 @@ class pegaso_ventas extends database{
     }
 
     function traeMarcasT(){
+        $data=array();
         $this->query="SELECT * FROM MARCAS WHERE STATUS <> 'A'";
         $rs=$this->QueryObtieneDatosN();
             while($tsarray = ibase_fetch_object($rs)){
@@ -650,6 +652,7 @@ class pegaso_ventas extends database{
     }
 
     function traeCategorias(){
+        $data = array();
         $this->query="SELECT * FROM CATEGORIAS WHERE STATUS = 'A'";
         $rs=$this->QueryObtieneDatosN();
             while($tsarray = ibase_fetch_object($rs)){
@@ -659,6 +662,7 @@ class pegaso_ventas extends database{
     }
 
     function traeCategoriasT(){
+        $data = array();
         $this->query="SELECT * FROM CATEGORIAS where (status = 'P' or status ='B')";
         $rs=$this->QueryObtieneDatosN();
             while($tsarray = ibase_fetch_object($rs)){
@@ -1879,13 +1883,11 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         $res=$this->EjecutaQuerySimple();  
         $row=ibase_fetch_object($res);
         $sf=$row->SF;
-
         if($sf > 5){
                 //$this->query="UPDATE CAJAS SET STATUS_LOG = 'NC', status_recepcion = iif(status_recepcion >=5, status_recepcion, 5) WHERE ID = $idc";
                 //        $res=$this->queryActualiza();
                 $this->query="EXECUTE PROCEDURE SP_LIB_X_NC ($idc)";
                 $res=$this->queryActualiza();
-        
                 if($res == 1){
                     return array("status"=>'ok');
                 }else{

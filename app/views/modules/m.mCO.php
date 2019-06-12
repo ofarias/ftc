@@ -6,7 +6,9 @@
             <div>
                 <label> Bienvenido: <?php echo $usuario?></label>
             </div>
-        
+            <?php if($_SESSION['user']->LETRA == 'G'){?>
+            <p><input type="text" name="enviaNC" placeholder="Enviar Caja a NC" onchange="cajaNC(this.value)"></p>
+            <?php }?>
         <div class="col-md-3">    
             <div class="panel panel-default">
                 <div class="panel-heading">

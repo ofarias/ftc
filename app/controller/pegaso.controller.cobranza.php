@@ -560,8 +560,6 @@ class pegaso_controller_cobranza{
         } 
     }
 
-
-
     function SaldosxDocumento($cliente){    //19072016
         //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
@@ -591,7 +589,6 @@ class pegaso_controller_cobranza{
                 header('Location: index.php?action=login&e='.urlencode($e)); 
             }
     }
-
 
     function detalleComprometido($cliente){
         if(isset($_SESSION['user'])){

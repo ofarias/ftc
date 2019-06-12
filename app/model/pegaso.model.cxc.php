@@ -376,26 +376,27 @@ class pegasoCobranza extends database {
         $data = array();
         $c='';
         if($tipo == 'v'){
-            $c=" and f.CLAVE_MAESTRO = '".$cve_maestro."' and f.vencimiento is not null ";
+            $c=" f.saldofinal > 3 and f.CLAVE_MAESTRO = '".$cve_maestro."' and f.vencimiento is not null ";
         }elseif($tipo == 'sv'){
-            $c=" and f.CLAVE_MAESTRO = '".$cve_maestro."' and f.vencimiento is null ";
+            $c=" f.saldofinal > 3 and f.CLAVE_MAESTRO = '".$cve_maestro."' and f.vencimiento is null ";
         }elseif ($tipo == 'ccd') {
-            $c = ' and f.c_compras = '.$cve_maestro;
+            $c = ' f.saldofinal > 3 and f.c_compras = '.$cve_maestro;
         }elseif($tipo == 't'){
-            $c = " and f.CLAVE_MAESTRO ='".$cve_maestro."'";
+            $c = " f.saldofinal > 3 and f.CLAVE_MAESTRO ='".$cve_maestro."'";
+        }elseif($tipo == 'h'){
+            $c=" f.CLAVE_MAESTRO = '".$cve_maestro."' ";
         }
         $this->query="SELECT * FROM FACTURAS f LEFT JOIN FTC_REGISTRO_COBRANZA RC ON RC.DOCUMENTO = f.cve_doc and rc.MARCA = 'S' 
-                    WHERE  f.saldofinal > 3 $c
+                    WHERE $c
                       order by f.fechaelab, f.vencimiento";
         $rs = $this->EjecutaQuerySimple();
             while ($tsArray=ibase_fetch_object($rs)) {
                 $data[]=$tsArray;
             }
-            //echo $this->query.'<br/>';
         $this->query="SELECT * FROM FACTURAS_FP f LEFT JOIN FTC_REGISTRO_COBRANZA RC ON RC.DOCUMENTO = f.cve_doc and rc.MARCA = 'S' 
-                    WHERE f.saldofinal > 3 $c
+                    WHERE $c
                       order by f.fechaelab, f.vencimiento";
-            //echo $this->query.'<br/>';
+        //echo $this->query;
         $rs = $this->EjecutaQuerySimple();
             while ($tsArray=ibase_fetch_object($rs)) {
                 $data[]=$tsArray;
