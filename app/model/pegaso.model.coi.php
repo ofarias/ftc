@@ -197,7 +197,7 @@ class CoiDAO extends DataBaseCOI {
         if($cb->CLIENTE == $_SESSION['rfc']){
             $nat0='H';
             $nat1='D';
-            $con = '';
+            $con = 'Gasto / Compra';
             $tipoXML='Recibido';
         }else{
             $nat0='D';
@@ -206,7 +206,7 @@ class CoiDAO extends DataBaseCOI {
             $tipoXML='Emitido';
         }
         foreach($cabecera as $pol){
-            $concepto = $con.substr($pol->NOMBRE.', '.$pol->DOCUMENTO.', '.$pol->FECHA, 0, 120);
+            $concepto = substr($con.', '.$pol->DOCUMENTO.', '.$pol->NOMBRE, 0, 120);
             $cuenta = $pol->CUENTA_CONTABLE;
             $this->query="INSERT INTO $tbPol(TIPO_POLI, NUM_POLIZ, PERIODO, EJERCICIO, FECHA_POL, CONCEP_PO, NUM_PART, LOGAUDITA, CONTABILIZ, NUMPARCUA, TIENEDOCUMENTOS, PROCCONTAB, ORIGEN, UUID, ESPOLIZAPRIVADA, UUIDOP) 
                                 values ('$tipo','$folio', $periodo, $ejercicio, '$pol->FECHA', '$concepto', 0, '', 'N', 0, 1, 0, substring('PHP $usuario' from 1 for 15),'$uuid', 0, '')";
@@ -226,7 +226,6 @@ class CoiDAO extends DataBaseCOI {
             $cuenta = $aux->CUENTA_CONTABLE;
             $documento = $aux->DOCUMENTO;
             $concepto = substr($aux->DESCRIPCION.', '.$documento.', '.$proveedor, 0, 120); 
-
                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $aux->IMPORTE - $aux->DESCUENTO, 0, $tc, 0, $partida, 0,0, null, null)";
                 $this->EjecutaQuerySimple();   
