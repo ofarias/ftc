@@ -93,7 +93,9 @@
                             '</select> <br/>'+
             'Saldo Inicial: <br/> <input name="saldo" type="number" step="any" placeholder="Saldo Inicial" size="50" class="sal"> <br/>'+
 
-            'Dia de Corte: <br/> <input name="fecha" type="number" placeholder="Dia de corte de la Cuenta" min="1" max="31" class="fec" "> <br/>'+
+            'Dia de Corte: <br/> <input name="fecha" type="number" placeholder="Dia de corte de la Cuenta" min="1" max="31" class="fec" "> '+
+                '<img src="app/views/images/flow.png" onMouseOver="this.src=' + "'app/views/images/cancel.jpg', width='500', height='800' " +'" onMouseOut="this.src='+"'app/views/images/flow.png', width='45', height='30'"+ '"style="cursor:pointer;">'+
+            '<br/>'+
             
             'Serie: <br/><input name="motivo" type="text" placeholder="Serie de los folios" size ="100" class="obs"> <br/>' +
 
