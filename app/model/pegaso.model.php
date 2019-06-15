@@ -4,9 +4,10 @@ require_once 'app/model/model.ftc.php';
 require_once 'app/model/class.ctrid.php';
 require_once 'app/model/verificaID.php';
 require_once 'app/model/pegaso.model.reparto.php';
-require_once('app/views/unit/commonts/numbertoletter.php');
-require_once('app/model/facturacion.php');
-require_once('app/controller/controller.coi.php');
+require_once 'app/views/unit/commonts/numbertoletter.php';
+require_once 'app/model/facturacion.php';
+require_once 'app/controller/controller.coi.php';
+require_once 'app/simplexlsx-master/src/SimpleXLSX.php';
 
 class pegaso extends database{
 	/*Comprueba datos de login*/
@@ -26521,5 +26522,82 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $data;
 	}
 
-	
+	function revisaXLSX($target_file, $datos){
+		$data=array();
+		if($xlsx = SimpleXLSX::parse($target_file)){
+			echo "<h2>$target_file</h2>";
+			echo '<pre>';
+			//print_r( $xlsx->rows() );
+			echo '</pre>';
+			$i=0;
+			$l=1;
+			$e=0;
+			foreach ($xlsx->rows() as $key) {
+				if($i > 0 ){
+					$clave = $key[0];
+					$fecha = $key[1];
+					$desc = $key[2];
+					$abono = empty($key[3])? 0:$key[3];
+					$cargo = empty($key[4])? 0:$key[4];
+					$tipo = $key[6];
+					$uuid = $key[7];
+					if($cargo <> 0 and $abono <> 0 ){
+						$e++;
+						echo $clave.' <font color="red">No Inserta la linea por que el valor cargo y valor de abono son mayores a 0.00 .</font><br/>';
+					}else{
+						if((gettype($abono) == 'integer' or gettype($abono) =='double') and (gettype($cargo) == 'integer' or gettype($cargo)=='double')){
+							if(($abono + $cargo) > 0 and !empty($tipo) and ($tipo == 'EFE' or $tipo == 'CHQ' or $tipo =='TNS' or $tipo == 'TDC')){
+								$ca = ($abono>0)? 'a':'c';
+								$monto = ($abono>0)? $abono:$cargo;
+								//echo $clave.' <b>Inserta el '.$ca.' con la informacion</b> de tipo : '.$tipo.'<br/>';
+							}else{
+								$e++;
+								echo $clave.' <font color="red">No Inserta la linea por que no tiene Valor o no contiene tipo valido.</font><br/>';
+							}
+						}else{
+							$e++;
+							echo $clave.' <font color="red">error valor de abono '.gettype($abono).' Valor de Cargo '.gettype($cargo).'</font><br/>';
+						}
+					}
+					if(!empty($fecha)){
+						$fecha = substr($fecha,0,10);
+						$val=explode('-', $fecha);
+						if(count($val) == 3 and checkdate($val[1], $val[2],$val[0])){
+						}else{	
+							$e++;
+							echo 'No se encontro una fecha valida, la celda B2 debe de tener el formato de fecha dd/mm/yyyy';
+						}
+					}else{
+						$e++;
+					}
+					if($e == 0){
+						$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid);
+					}
+				}		
+				$i++;
+				$l++;
+			}
+		} else {
+			echo SimpleXLSX::parseError();
+		}
+
+		if($e >0 ){
+			exit();
+			return array("status"=>'No');
+		}else{
+			return array("status"=>'ok', "data"=>$data);
+		}
+	}
+
+	function cargaXLSX($datos, $data){
+		foreach ($data as $key) {
+			//echo '<br/>'.print_r($key);
+			if($key['ca']=='a'){
+				echo '<br/>Inserta un abono';
+			}elseif($key['ca']=='c'){
+				echo '<br/>Inserta un Cargo';
+			}
+		}
+		exit();
+	}
 }?>

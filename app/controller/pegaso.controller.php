@@ -20543,5 +20543,22 @@ function ImprimeFacturaPegaso($factura, $destino){
 		return $res;
 	}
 
+	function cargaEdoCtaXLS($target_file, $datos, $banco, $cuenta){
+		if($_SESSION['user']){
+			$data = new pegaso;
+			$pagina = $this->load_template('Pagos');        	
+        	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta.php');
+        	$res= $data->revisaXLSX($target_file, $datos);
+			if($res['status']== 'ok'){
+				$carga=$data->cargaXLSX($datos, $res['data']);
+			}
+			$html = $this->load_page('app/views/pages/p.redirectform.php');
+			$redireccionar="estado_de_cuenta&banco={$banco}&cuenta={$cuenta}";
+			$pagina=$this->load_template('Pedidos');
+            $html = $this->load_page('app/views/pages/p.redirectform.php');
+            include 'app/views/pages/p.redirectform.php';
+            //$this->view_page($pagina);    
+		}
+	}
 }?>
 

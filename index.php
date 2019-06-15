@@ -4295,7 +4295,12 @@ exit();
 			break;
 		case 'imprimeUUID':
 			$controller->imprimeUUID($_GET['uuid']);
-			break;	
+			break;
+		case 'estado_de_cuenta':
+			$banco = $_GET['banco'];
+			$cuenta = $_GET['cuenta'];
+			$controller->estado_de_cuenta($banco, $cuenta);			
+			break;
 		default: 
 		header('Location: index.php?action=login');
 		break;
