@@ -24499,13 +24499,16 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     						(select sum(monto) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as IEPS,
      						(select TASA from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as TASA_ISR,
     						(select TASA from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as TASA_IVA, 
-    						(select TASA from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as TASA_IEPS,
+    						(select TASA from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') 
+    						'' as TASA_IEPS,
      						(select TIPOFACTOR from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as FACT_ISR,
     						(select TIPOFACTOR from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as FACT_IVA, 
-    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as FACT_IEPS,
+    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') 
+    						'' as FACT_IEPS,
     						(select BASE from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as B_ISR,
     						(select BASE from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as B_IVA, 
-    						(select BASE from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as B_IEPS,
+    						(select BASE from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') 
+    						0 as B_IEPS,
     						(select sum(monto) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as ISR_R,
     						(select sum(monto) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as IVA_R, 
     						(select sum(monto) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as IEPS_R,
