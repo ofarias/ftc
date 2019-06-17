@@ -81,12 +81,10 @@
                     </div>             
         </form>
             </div>
-                <!-- Submit Button  -->
                 <div class="panel-footer">
                     <div class="form-group">
                         <div class="col-lg-offset-2 col-lg-10">
                             <button name="editaBanco" type="submit" class="btn btn-warning" form="form1">Guardar<i class="fa fa-floppy-o"></i></button>
-                            <!-- <a class="btn btn-warning" href="index.php?action=">Cancelar <i class="fa fa-times"></i></a> -->
                         </div>
                     </div>
                 </div>

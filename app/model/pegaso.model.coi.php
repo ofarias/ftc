@@ -705,9 +705,9 @@ class CoiDAO extends DataBaseCOI {
                  }       
 
                 return $polizasAplicaciones; 
-            }
+    }
 
-        function insertarPolizas_Ig_Ventas($datosPolizas){
+    function insertarPolizas_Ig_Ventas($datosPolizas){
                 ##########################################################
                 ##VALIDAMOS QUE EXISTA LA CUENTA, SI NO, LA CREAMOS ######
                 ##########################################################
@@ -838,7 +838,7 @@ class CoiDAO extends DataBaseCOI {
                  }       
 
                 return $polizasAplicaciones; 
-            }
+    }
 
     function tabla_temp_aplicaciones($aplicaciones, $pagos){
         $this->query="DELETE from temp_table";
@@ -1279,7 +1279,7 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function polizaFinal($uuid, $tipo, $idp, $infoPoliza){
-        /// Insertamos la poliza de egreso.
+        /// Insertamos la poliza de egreso nuevo sistema.
         $usuario=$_SESSION['user']->USER_LOGIN;
         $ejercicio = $infoPoliza['ejercicio'];
         $eje = substr($ejercicio, -2);
