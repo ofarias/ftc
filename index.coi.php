@@ -51,7 +51,7 @@ if (isset($_POST['usuario'])){
 	echo json_encode($res);
 	exit();
 }elseif(isset($_POST['polizaFinal'])){
-	$res=$controller_coi->polizaFinal($_POST['uuid'], $_POST['tipo'], $_POST['idp']);
+	$res=$controller_coi->polizaFinal($_POST['uuid'], $_POST['tipo'], $_POST['idp'], $_POST['tipoxml']);
 	echo json_encode($res);
 	exit();
 }

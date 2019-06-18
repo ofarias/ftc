@@ -24394,7 +24394,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente = '".$_SESSION['rfc']."'";
     	}
     	if($ide== 'Emitidos'){
-					$this->query="SELECT x.* , cr.*, 
+					$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
     					(select first 1 nombre from xml_clientes xc where xc.rfc = x.cliente) as nombre, 
     					(SELECT first 1 RAZON_SOCIAL FROM FTC_EMPRESAS WHERE rfc = rfce) as emisor,
@@ -24404,7 +24404,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					, fecha_recep as fecha_edo_cta
 						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F') $uuid";
     	}else{
-    				$this->query="SELECT x.* , cr.*, 
+    				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
     					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
     					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = rfce) as emisor,
@@ -26182,6 +26182,16 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $data;	
 	}
 
+	function impuestosPolizaFinal($uuid){
+		$data = array();
+		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) AS MONTO, SUM(BASE) AS BASE  FROM XML_IMPUESTOS WHERE UUID = '$uuid' group by impuesto, tasa, tipofactor, Tipo";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		return $data;	
+	}
+
 	function actXml($uuid, $tipo, $crea){
 		$poliza = str_pad($crea['numero'], 5, ' ', STR_PAD_LEFT);
 		$periodo = $crea['periodo'];
@@ -26421,6 +26431,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	   								'$t',
 	   								9999,
 	   								'$usuario') RETURNING id";
+	   			//echo $this->query;
 		  		$rs=$this->EjecutaQuerySimple();
 		  		$row = ibase_fetch_object($rs);
 		  		if($row->ID > 0){
@@ -26440,18 +26451,19 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$rs=$this->EjecutaQuerySimple();
 			$row=ibase_fetch_object($rs);
 			$sb=$row->SERIE;
-			$sbl=strlen($sb) + 1;
+			$sbl=0;
+			if(!empty($sb)){
+				$sbl=strlen($sb)+2;
+			}
 			$cuentaCompleta=$row->BANCO.' - '.$row->NUM_CUENTA;
-			$this->query="SELECT MAX(cast(substring(FOLIO_X_BANCO from 6 for 6) as int)) as ULTIMO
-		    			FROM CARGA_PAGOS
-		    			WHERE FOLIO_X_BANCO STARTING WITH '$sb'";
+			$this->query="SELECT coalesce( MAX(cast(substring(FOLIO_X_BANCO from $sbl) as int)), 0) as ULTIMO FROM CARGA_PAGOS	WHERE FOLIO_X_BANCO STARTING WITH '$sb'";
 		    $rs=$this->	QueryObtieneDatosN();
+		    //echo $this->query;
 		    $row=ibase_fetch_object($rs);
 		    if($row){
-		    	$folio=$sb.'-'.$row->ULTIMO+1;
-		    }else{
-		    	$folio=$sb.'-1';
+		    	$folio=$sb.'-'.($row->ULTIMO+1);
 		    }
+
 			$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_APLI, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, CF, FOLIO_ACREEDOR, TIPO_PAGO, REGISTRO, CONTABILIZADO, POLIZA_INGRESO, APLICACIONES, MONTO_ACREEDOR, MONTO_CF, CVE_MAESTRO, CIERRE_CONTA, USUARIO_CONTA, FECHA_CONTA, SELECCIONADO, GUARDADO, ARCHIVO, CEP, ARCHIVO_CEP, OBS)
                  VALUES (null
                  		, 'xml_'||(SELECT IDCLIENTE FROM XML_CLIENTES WHERE tipo='Cliente' and rfc = (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid'))
@@ -26465,7 +26477,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             $res=$this->grabaBD();
             $ridp=ibase_fetch_object($res);
             if($ridp->ID > 0 ){
-            	$mensaje = array("status"=>'ok', "mensaje"=>"Se ha insertado el abono al banco".$row->ID);
+            	$mensaje = array("status"=>'ok', "mensaje"=>"Se ha insertado el abono al banco".$ridp->ID);
 	            $this->query="UPDATE XML_DATA SET IDPAGO = $ridp->ID WHERE UUID = '$uuid'";
 	            $this->queryActualiza();
             }

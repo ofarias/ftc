@@ -191,12 +191,14 @@ class controller_coi{
 		}
 	}
 
-	function polizaFinal($uuid, $tipo, $idp){
+	function polizaFinal($uuid, $tipo, $idp, $tipoXML){
 		if($_SESSION['user']){
 			$data = new pegaso;
 			$data_coi= new CoiDAO;
+			$impuestos2=$data->impuestosPolizaFinal($uuid);
 			$infoPoliza=$data->traePago($idp, $tipo);
-			$res=$data_coi->polizaFinal($uuid, $tipo, $idp, $infoPoliza);
+			$pol = $data->cabeceraDocumento($uuid);
+			$res=$data_coi->polizaFinal($uuid, $tipo, $idp, $infoPoliza, $impuestos2, $tipoXML, $pol);
 			if($res['status'] == 'ok'){
 				$xmlPol=$data->actXml($uuid, $tipo=$res['tipo'], $res);
 			}

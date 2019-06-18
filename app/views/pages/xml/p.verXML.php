@@ -11,6 +11,7 @@
 ?>
 <div >
     <input type="button" name="grabaP" onclick="grabaParam('<?php echo $ide?>')" class="btn btn-info" value="Guarda Parametros">
+    <input type="hidden" name="tipoxml" id="tipoxml" value="<?php echo substr($ide, 0, -1)?>">
 <br/><br/>
     <?php if(empty($polizas)){?>
         <input type="button" name="grabaP" onclick="crearPolizas('<?php echo $ide?>')" class="btn btn-success" value="Crear Polizas">
@@ -121,11 +122,11 @@
                                             <td><?php echo '$ '.number_format($key->IEPS_RET,2);?></td>
                                             <td><?php echo '$ '.number_format($key->ISR_RET,2)?></td>
                                             <td><?php echo '$ '.number_format($key->DESCUENTO,2)?></td>
-                                            <td><?php echo '$ '.number_format($key->IMPORTE,2);?> </td>
+                                            <td><?php echo '$ '.number_format($key->IMPORTEXML,2);?> </td>
                                         </tr>
                                         <tr style="background-color:#DFCFF1">
                                             <input type="hidden" name="cpv" value="<?php echo '('.$key->RFCE.') '.$key->EMISOR?>" id='clpv'>
-                                            <input type="hidden" name="mont" value="<?php echo number_format($key->IMPORTE,2)?>" id="monto">
+                                            <input type="hidden" name="mont" value="<?php echo number_format($key->IMPORTEXML,2)?>" id="monto">
                                             <td colspan="14">
                                                 <b><?php echo 'Cuenta Actual: '.$cccliente?></b>
                                                 <select id="cClie" >
@@ -203,7 +204,6 @@
                                             <td><?php echo '$ '.number_format($key->IVA_R,2).'<br/>'.$key->FACT_IVA_R.'<br/>'.$key->TASA_IVA_R.'<br/><b>Base:'.number_format($key->B_IVA_R,2)?></td>
                                             <td><?php echo '$ '.number_format($key->IEPS,2).'<br/>'.$key->FACT_IEPS.'<br/>'.$key->TASA_IEPS.'<br/><b>Base:'.number_format($key->B_IEPS,2)?></td>
                                             <td><?php echo '$ '.number_format($key->IEPS_R,2).'<br/>'.$key->FACT_IEPS_R.'<br/>'.$key->TASA_IEPS_R.'<br/><b>Base:'.number_format($key->B_IEPS_R,2)?></td>
-                                            </td>
                                             <tr style="background-color:#DFCFF1">
                                                 <td colspan="14">
                                                     <?php echo '<b>Cuenta Actual: '.$ccp.'#### Cambiar Cuenta --><b>'?>
@@ -263,7 +263,7 @@
         var prov = document.getElementById('clpv').value
         var monto = document.getElementById('monto').value
         var uuid = document.getElementById('uuid').value
-        alert(ide)
+        //alert(ide)
         if(ide == 'Recibidos'){
            $.confirm({
             columnClass: 'col-md-8',
@@ -398,7 +398,7 @@
                             success:function(data){
                                 if(data.status == 'ok'){
                                     //document.getElementById('l_'+doc).classList.add('hide');
-                                    alert(data.mensaje);   
+                                    //alert(data.mensaje);   
                                     location.reload(true);
                                 }else if(data.status == 'no'){
                                     alert(data.mensaje);
@@ -503,6 +503,7 @@
     }
 
     function polizaFinal(uuid, tipo, idp){
+        var tipoxml = document.getElementById('tipoxml').value;
         $.ajax({
             url:'index.php',
             type:'post',
@@ -533,7 +534,7 @@
                                     url:'index.coi.php',
                                     type:'post',
                                     dataType:'json',
-                                    data:{polizaFinal:1, uuid, tipo, idp},
+                                    data:{polizaFinal:1, uuid, tipo, idp, tipoxml},
                                     success:function(data){
                                         $.alert('Listo, se creo la Poliza de ' + tipo )
                                         location.reload(true)
