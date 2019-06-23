@@ -1378,11 +1378,9 @@ class CoiDAO extends DataBaseCOI {
             // Si no hay impuestos, no hace nada. 
             }   
         }
-
         //$pol=array("importe"=>$montoP, "serie"=>$serie, "folio"=>$folio, "rfce"=>$rfce, "cliente"=>$cliente, "fecha"=>$fecha, "tc"=>$tc, "moneda"=>$moneda);
-        
         $this->insertaUUIDFinal($tipo=$subTipo, $uuid, $cabecera , $folio=$row->NUM_POLIZ, $ejercicio, $periodo, $infoPoliza);
-
+        $this->insIntAdiPar($tipo=$subTipo,$uuid, $cabecera, $folio=$row->NUM_POLIZ, $ejercicio, $periodo, $infoPoliza);
         return array("status"=>'ok', "mensaje"=>'Se genero la poliza: '.$row->NUM_POLIZ, "tipo"=>$subTipo, "numero"=>$row->NUM_POLIZ, "periodo"=>$periodo, "ejercicio"=>$ejercicio);
     }
 
@@ -1423,8 +1421,40 @@ class CoiDAO extends DataBaseCOI {
        return;
     }
 
-    function insInfAdiPar($uuid){
-        $this->query="INSERT INTO ";
+    function insIntAdiPar($tipo,$uuid, $pol, $folio, $ejercicio, $periodo, $infoPoliza){
+        $data=array();
+        $eje= substr($ejercicio,-2);
+        print_r($infoPoliza); // Info Poliza es la informacion de la cuenta de Banco, monto de deposito etc..
+        $this->query="SELECT * FROM AUXILIAR$eje a left join cuentas$eje c on c.num_cta = a.num_cta where c.CAPTURACHEQUE=1 and a.NUM_POLIZ='$folio' and a.periodo = $periodo and ejercicio = $ejercicio and TIPO_POLI = '$tipo'"; /// Anexar al ultima condicion.
+        $res=$this->EjecutaQuerySimple();
+        //echo $this->query;
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        //echo 'Valor del count de data: '.count($data);
+        if(count($data) > 0){
+            //echo '<br/> Encontro Datos e intenta la insercion:<br/>';
+            foreach ($data as $a) {
+                $seried =$pol[0]->SERIE;
+                $foliod =$pol[0]->FOLIO;
+                $cliente = $pol[0]->CLIENTE;
+                $monto = $pol[0]->IMPORTE;
+                $tc = $pol[0]->TIPOCAMBIO;
+                $moneda = $pol[0]->MONEDA;
+                $rfce = $pol[0]->RFCE;
+                $fecha = $pol[0]->FECHA;
+
+            $this->query="INSERT INTO INFADIPAR (NUMREG, FRMPAGO, NUMCHEQUE, BANCO, CTAORIG, FECHA, MONTO, BENEF, RFC, BANCODEST, CTADEST, BANCOORIGEXT, BANCODESTEXT, IDFISCAL) VALUES ( (SELECT CTINFADIPAR FROM CONTROL) + 1,'', '', 0, '', current_timestamp, 0, '','', 0,'','','','')";
+            $r=$this->grabaBD();
+                if($r == 1 ){
+                    $this->query="UPDATE CONTROL SET CTINFADIPAR = CTINFADIPAR + 1";
+                    $this->queryActualiza();
+                    $this->query="UPDATE AUXILIAR$eje a set a.IDUUID = (SELECT CTINFADIPAR FROM CONTROL) where a.NUM_POLIZ='$folio' and a.periodo = $periodo and a.ejercicio = $ejercicio and a.NUM_PART = $a->NUM_PART";
+                    $this->queryActualiza();
+                }
+            }
+        }
+        return;
     } 
 }      
 ?>
