@@ -20054,7 +20054,7 @@ function ImprimeFacturaPegaso($factura, $destino){
     	}
     }
 
-    function verXMLSP($mes, $anio, $ide){
+    function verXMLSP($mes, $anio, $ide, $doc){
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$pagina = $this->load_template();
@@ -20062,7 +20062,7 @@ function ImprimeFacturaPegaso($factura, $destino){
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
   			$uuid =false;
-    		$info=$data->verXMLSP($mes, $anio, $ide, $uuid);
+    		$info=$data->verXMLSP($mes, $anio, $ide, $uuid, $doc);
     		include 'app/views/pages/xml/p.verXMLSP.php';
   			$table = ob_get_clean();
   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
@@ -20094,7 +20094,7 @@ function ImprimeFacturaPegaso($factura, $destino){
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
   			//$actualiza=$coi->
-  			$infoCabecera=$data->verXMLSP($mes=false, $anio= false, $ide, $uuid);
+  			$infoCabecera=$data->verXMLSP($mes=false, $anio= false, $ide, $uuid, $doc=false);
     		$info=$data->verXML($uuid, $ide);
     		$cccliente=$coi->traeCuentaCliente($infoCabecera, $ide);
     		$ccC=$coi->traeCatalogoCuentas($tipo='V', $ide);

@@ -1140,6 +1140,7 @@ class CoiDAO extends DataBaseCOI {
             $tbPol= 'POLIZAS'.$eje; 
             $tbAux= 'AUXILIAR'.$eje;
             $campo = 'FOLIO'.str_pad($periodo, 2, '0', STR_PAD_LEFT);
+            $ie=$cb->TIPO;
         }
         ///creamos el nuevo folio de la poliza y actualizamos para apartarlo
         $this->query="SELECT $campo FROM FOLIOS where tippol='$tipo' and Ejercicio=$ejercicio";
@@ -1151,17 +1152,18 @@ class CoiDAO extends DataBaseCOI {
         $this->query="UPDATE FOLIOS SET $campo = $folion where tippol='$tipo' and Ejercicio=$ejercicio";
         $this->queryActualiza();
 
-        if($cb->CLIENTE == $_SESSION['rfc']){
-            $nat0='H';
-            $nat1='D';
+        if($cb->CLIENTE == $_SESSION['rfc']){    
+            $nat0= $ie=='I'? 'H':'D';
+            $nat1=$ie=='I'? 'D':'H';
             $con = 'Gasto / Compra';
             $tipoXML='Recibido';
         }else{
-            $nat0='D';
-            $nat1='H';
+            $nat0=$ie=='I'? 'D':'H';
+            $nat1=$ie=='I'? 'H':'D';
             $con = 'Venta ';
             $tipoXML='Emitido';
         }
+
         foreach($cabecera as $pol){
             $concepto = substr($con.', '.$pol->DOCUMENTO.', '.$pol->NOMBRE, 0, 120);
             $cuenta = $pol->CUENTA_CONTABLE;
@@ -1419,6 +1421,10 @@ class CoiDAO extends DataBaseCOI {
             }
         }
        return;
-    }   
+    }
+
+    function insInfAdiPar($uuid){
+        $this->query="INSERT INTO ";
+    } 
 }      
 ?>

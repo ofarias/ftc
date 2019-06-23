@@ -24380,18 +24380,18 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	return $response;
     }
 
-    function verXMLSP($mes, $anio, $ide, $uuid){
+    function verXMLSP($mes, $anio, $ide, $uuid, $doc){
     	$data=array();
     	if(!empty($uuid)){
     		$uuid = "and uuid = '".$uuid."'"; 
     	}elseif ($mes == 0 and $ide == 'Emitidos') {
-    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and x.cliente != '".$_SESSION['rfc']."'";
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and x.cliente != '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
     	}elseif ($mes == 0 and $ide == 'Recibidos') {
-    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and cliente = '".$_SESSION['rfc']."'";
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and cliente = '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
     	}elseif($ide == 'Emitidos'){
-    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and x.cliente != '".$_SESSION['rfc']."'";
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and x.cliente != '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
     	}elseif($ide == 'Recibidos'){
-    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente = '".$_SESSION['rfc']."'";
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente = '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
     	}
     	if($ide== 'Emitidos'){
 					$this->query="SELECT x.importe  as importexml, x.* , cr.*, 

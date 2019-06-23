@@ -32,11 +32,13 @@
                     </div>
                 </h3>
             </div>
+
+
             <?php if($te == 0){?>
                 <div class="col-md-4">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h4><i class="fa fa-list-alt">&nbsp;&nbsp;<?php echo 'Notas de Credito'?></i></h4>
+                            <h4><i class="fa fa-list-alt">&nbsp;&nbsp;<?php echo $tipot.'Notas de Credito'?></i></h4>
                         </div>
                         <div class="panel-body">
                             <p><FONT size="4pxs"> <b>&nbsp;&nbsp;<font color='red'>TOTAL EJERCICIO <?php echo $at->ANIO?></font><b/></FONT></p>
@@ -44,7 +46,7 @@
                             <p>Monto Anual: 0.00</p>
                             <p>Sub Total: <?php echo '$ '.number_format(0,2)?></p>
                             <p>Total: <?php echo '$ '.number_format(0,2)?></p>
-                            <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>" class="btn btn-info">Ver</a></center>
+                            <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=E" class="btn btn-info">Ver</a></center>
                         </div>
                     </div>
                 </div>
@@ -80,7 +82,7 @@
                         <p>Monto Anual: </p>
                         <p>Sub Total: <?php echo '$ '.number_format($a->EGRESOSS,2)?></p>
                         <p>Total: <?php echo '$ '.number_format($a->EGRESOST,2)?></p>
-                        <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>" class="btn btn-info">Ver</a></center>
+                        <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $a->TIPO?>" class="btn btn-info">Ver</a></center>
                     </div>
                 </div>
             </div>                 
@@ -97,7 +99,7 @@
                             <p>Monto Anual: 0.00</p>
                             <p>Sub Total: <?php echo '$ '.number_format(0,2)?></p>
                             <p>Total: <?php echo '$ '.number_format(0,2)?></p>
-                            <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>" class="btn btn-info">Ver</a></center>
+                            <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=P" class="btn btn-info">Ver</a></center>
                         </div>
                     </div>
                 </div>
@@ -151,7 +153,7 @@
                         <p><font color="blue">XMLs </font><b><?php echo $key->XMLS?></b><font color="blue"> Sin procesar: <?php echo $key->FALTANTES?></font></p>
                         <p>Sub Total: <?php echo '$ '.number_format($key->EGRESOSS,2)?></p>
                         <p>Total: <?php echo '$ '.number_format($key->EGRESOST,2)?></p>
-                        <center><a href="index.php?action=verXMLSP&mes=<?php echo $key->MES?>&anio=<?php echo $key->ANIO?>&ide=<?php echo $ide?>" class="btn btn-info">Ver</a></center>
+                        <center><a href="index.php?action=verXMLSP&mes=<?php echo $key->MES?>&anio=<?php echo $key->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $key->TIPO?>" class="btn btn-info">Ver</a></center>
                     </div>
                 </div>
             </div>

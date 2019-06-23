@@ -4180,7 +4180,7 @@ exit();
 			$controller->calcularImpuestos();
 			break;
 		case 'verXMLSP':
-			$controller->verXMLSP($_GET['mes'], $_GET['anio'], $_GET['ide']);
+			$controller->verXMLSP($_GET['mes'], $_GET['anio'], $_GET['ide'], $_GET['doc']);
 			break;
 		case 'imprimeXML':
 			$uuid=isset($_GET['uuid'])? $_GET['uuid']:'';
