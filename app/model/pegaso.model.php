@@ -10574,36 +10574,55 @@ function Pagos() {
 	    	$anio = substr($fecha, 6,4);
 	    	$val=$this->validaEdoCta($banco, $cuenta, $mes, $anio);
 	    	if($val == 'ok'){
-	    		$banco = $banco.' - '.$cuenta;
-		    	if(trim(substr($banco, 0,8))=='Banamex'){
-		    		$folio_1 = 'BNMX';
-		    	}elseif (trim(substr($banco, 0,8))=='BBVA BAN'){
-		    		$folio_1='BBVA';
-		    	}elseif (trim(substr($banco, 0,8))=='Multiva'){
-		    		$folio_1='MTVA';
-		    	}elseif (trim(substr($banco, 0,8))=='Inbursa'){
-		    		$folio_1='INBU';
-		    	}elseif(trim(substr($banco, 0,8))=='Banco Az'){
-		    		$folio_1='BAZT';
-		    	}
-		    	$this->query="SELECT MAX(cast(substring(FOLIO_X_BANCO from 6 for 6) as int)) as ULTIMO
-		    			FROM CARGA_PAGOS
-		    			WHERE FOLIO_X_BANCO STARTING WITH '$folio_1'";
-		    	$rs=$this->	QueryObtieneDatosN();
-		    	$row=ibase_fetch_object($rs);
-		    	if($row){
-		    		$folio = $row->ULTIMO + 1;
-		    	}else{
-		    		$folio = 1;
-		    	}
-		    	$this->query="SELECT SUM(SALDOFINAL) as SALDO, (select sum(saldo) from carga_pagos where cliente = '$maestro' and status <> 'C' and seleccionado > 0 and guardado > 0) as acreedores FROM FACTURAS_PENDIENTES WHERE CLAVE_MAESTRO = (SELECT CLAVE FROM MAESTROS WHERE ID = $maestro)";
+	    		
+		    	$this->query="SELECT * FROM PG_BANCOS WHERE NUM_CUENTA = '$cuenta' and BANCO = '$banco'";
+		    	//echo $this->query;
+				$rs=$this->EjecutaQuerySimple();
+				$row=ibase_fetch_object($rs);
+				$sb=$row->SERIE;
+				$sbl=0;
+				$banco = $banco.' - '.$cuenta;
+				if(!empty($sb)){
+					$sbl=strlen($sb)+2;
+				}
+				$cuentaCompleta=$row->BANCO.' - '.$row->NUM_CUENTA;
+				$this->query="SELECT coalesce( MAX(cast(substring(FOLIO_X_BANCO from $sbl) as int)), 0) as ULTIMO FROM CARGA_PAGOS	WHERE FOLIO_X_BANCO STARTING WITH '$sb'";
+			    $rs=$this->	QueryObtieneDatosN();
+			    //echo $this->query;
+			    $row=ibase_fetch_object($rs);
+			    if($row){
+			    	$folio=$sb.'-'.($row->ULTIMO+1);
+			    }
+		    	//if(trim(substr($banco, 0,8))=='Banamex'){
+		    	//	$folio_1 = 'BNMX';
+		    	//}elseif (trim(substr($banco, 0,8))=='BBVA BAN'){
+		    	//	$folio_1='BBVA';
+		    	//}elseif (trim(substr($banco, 0,8))=='Multiva'){
+		    	//	$folio_1='MTVA';
+		    	//}elseif (trim(substr($banco, 0,8))=='Inbursa'){
+		    	//	$folio_1='INBU';
+		    	//}elseif(trim(substr($banco, 0,8))=='Banco Az'){
+		    	//	$folio_1='BAZT';
+		    	//}
+		    	//$this->query="SELECT MAX(cast(substring(FOLIO_X_BANCO from 6 for 6) as int)) as ULTIMO
+		    	//		FROM CARGA_PAGOS
+		    	//		WHERE FOLIO_X_BANCO STARTING WITH '$folio_1'";
+		    	//$rs=$this->	QueryObtieneDatosN();
+		    	//$row=ibase_fetch_object($rs);
+		    	//if($row){
+		    	//	$folio = $row->ULTIMO + 1;
+		    	//}else{
+		    	//	$folio = 1;
+		    	//}
+
+		    	$this->query="SELECT coalesce(SUM(SALDOFINAL),0) as SALDO, coalesce((select sum(saldo) from carga_pagos where cliente = '$maestro' and status <> 'C' and seleccionado > 0 and guardado > 0), 0) as acreedores FROM FACTURAS_PENDIENTES WHERE CLAVE_MAESTRO = (SELECT CLAVE FROM MAESTROS WHERE ID = $maestro)";
 		    	$res =$this->EjecutaQuerySimple();
 		    	$valsaldo=ibase_fetch_object($res);
 			    $val = $valsaldo->SALDO;
 			    $acreedores = $valsaldo->ACREEDORES;
 			    $monto1 = $monto + $acreedores;
 			    
-			    $this->query="SELECT SUM(SALDOFINAL) as SALDO FROM FACTURAS_PENDIENTES_FP WHERE CLAVE_MAESTRO = (SELECT CLAVE FROM MAESTROS WHERE ID = $maestro)";
+			    $this->query="SELECT coalesce(SUM(SALDOFINAL),0) as SALDO FROM FACTURAS_PENDIENTES_FP WHERE CLAVE_MAESTRO = (SELECT CLAVE FROM MAESTROS WHERE ID = $maestro)";
 		    	$res2 =$this->EjecutaQuerySimple();
 		    	$valsaldo2=ibase_fetch_object($res2);
 			    $val2 = $valsaldo2->SALDO;
@@ -10623,7 +10642,7 @@ function Pagos() {
 			    //exit('Val'.$val.' maestro '.$maestro.' tipo: '.$tipo.' Campo'.$campo.' valor '.$valor);
 			    if( ($val+10000000) >= $monto1 ){
 			    	$this->query="INSERT INTO CARGA_PAGOS (FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO $campo, OBS)
-			    					VALUES (current_timestamp, $monto, $monto, '$usuario', '$banco', '$fecha', ('$folio_1'||'-'||'$folio') $valor, '$obs')";
+			    					VALUES (current_timestamp, $monto, $monto, '$usuario', '$banco', '$fecha', '$folio' $valor, '$obs')";
 			    	$rs=$this->EjecutaQuerySimple();
 				    	if($um == 'b'){
 				    		$this->query="UPDATE MAESTROS SET ACREEDOR = ACREEDOR + $monto where id = $maestro";
