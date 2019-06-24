@@ -10553,16 +10553,15 @@ function imprimirFacturasAcuse(){
     	}			
     }
 
-    function listaCuentas_docs(){
-    	
+    function listaCuentas_docs(){    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
-        	$html = $this->load_page('app/views/pages/p.listadocuentas_docs.php');
+        	$html = $this->load_page('app/views/pages/Clientes/p.listadocuentas_docs.php');
         	ob_start();
         	$exec=$data->listarCuentasBancarias();
         	if (count($exec)){
-            	include 'app/views/pages/p.listadocuentas_docs.php';
+            	include 'app/views/pages/Clientes/p.listadocuentas_docs.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
@@ -10575,7 +10574,6 @@ function imprimirFacturasAcuse(){
         	exit;
     	}			
     }
-
 
     function selectBanco(){
     	if (isset($_SESSION['user'])) {
@@ -10629,7 +10627,6 @@ function imprimirFacturasAcuse(){
 
 
       function estado_de_cuenta_docs($banco, $cuenta){
-    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	

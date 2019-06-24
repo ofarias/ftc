@@ -10574,10 +10574,8 @@ function Pagos() {
 	    	$anio = substr($fecha, 6,4);
 	    	$val=$this->validaEdoCta($banco, $cuenta, $mes, $anio);
 	    	if($val == 'ok'){
-	    		
 		    	$this->query="SELECT * FROM PG_BANCOS WHERE NUM_CUENTA = '$cuenta' and BANCO = '$banco'";
-		    	//echo $this->query;
-				$rs=$this->EjecutaQuerySimple();
+		    	$rs=$this->EjecutaQuerySimple();
 				$row=ibase_fetch_object($rs);
 				$sb=$row->SERIE;
 				$sbl=0;
@@ -10588,7 +10586,6 @@ function Pagos() {
 				$cuentaCompleta=$row->BANCO.' - '.$row->NUM_CUENTA;
 				$this->query="SELECT coalesce( MAX(cast(substring(FOLIO_X_BANCO from $sbl) as int)), 0) as ULTIMO FROM CARGA_PAGOS	WHERE FOLIO_X_BANCO STARTING WITH '$sb'";
 			    $rs=$this->	QueryObtieneDatosN();
-			    //echo $this->query;
 			    $row=ibase_fetch_object($rs);
 			    if($row){
 			    	$folio=$sb.'-'.($row->ULTIMO+1);
@@ -10639,7 +10636,6 @@ function Pagos() {
 			    	$campo = ' ,cliente';
 			    	$valor = ",'".$maestro."'";
 			    }
-			    //exit('Val'.$val.' maestro '.$maestro.' tipo: '.$tipo.' Campo'.$campo.' valor '.$valor);
 			    if( ($val+10000000) >= $monto1 ){
 			    	$this->query="INSERT INTO CARGA_PAGOS (FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO $campo, OBS)
 			    					VALUES (current_timestamp, $monto, $monto, '$usuario', '$banco', '$fecha', '$folio' $valor, '$obs')";
@@ -11807,6 +11803,7 @@ function Pagos() {
     function infoPago($idp){
   		$data=array();
   		$this->query="SELECT (c.monto + c.monto_cf) as monto, C.*, M.NOMBRE AS MAESTRO, M.CLAVE AS CLAVE_MAESTRO FROM carga_pagos C LEFT JOIN MAESTROS M ON cast(M.ID as varchar(20)) = C.CLIENTE where C.id = $idp";
+  		//echo $this->query;
   		$rs = $this->QueryObtieneDatosN();
   		while($tsArray=ibase_fetch_object($rs)){
   			$data[]=$tsArray;
@@ -26248,9 +26245,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	}
 
 	 function facturasMaestro($pago){
+	 	//echo '<br/> Pago: '.print_r($pago);
     	foreach ($pago as $k) {
     		$maestro = $k->CLAVE_MAESTRO;
     	}
+    	///echo '<br/> Maestro '.$maestro.'<br/>';
 		$data=array();
 		$this->query="SELECT F.*, (SELECT NOMBRE FROM CLIE01 C WHERE C.CLAVE=F.CVE_CLPV) AS CLIENTE FROM FACTURAS_PENDIENTES F WHERE F.CLAVE_MAESTRO = '$maestro'";
 		$res=$this->EjecutaQuerySimple();
@@ -26262,7 +26261,15 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
 		}
+		if(empty($maestro)){
+			$rfc = $_SESSION['rfc'];
+			$this->query="SELECT X.*, IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.DOCUMENTO = X.DOCUMENTO),0) as saldofinal, x.documento as cve_doc, x.fecha as fechaelab, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE X.CLIENTE = XC.RFC AND XC.TIPO = 'Cliente') AS NOMBRE  FROM XML_DATA X WHERE TIPO = 'I' AND (IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.DOCUMENTO = X.DOCUMENTO),0) )> 1 AND RFCE ='$rfc' ";
 
+			$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		}
 		return $data;
     }
 
