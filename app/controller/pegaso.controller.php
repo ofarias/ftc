@@ -20528,9 +20528,9 @@ function ImprimeFacturaPegaso($factura, $destino){
 		return $res;
 	}
 
-	function ctaXML($uuid, $cta, $t, $obs, $fecha){
+	function ctaXML($uuid, $cta, $t, $obs, $fecha, $tpago){
 		$data= new pegaso;
-		$res = $data->ctaXML($uuid, $cta, $t, $obs, $fecha);
+		$res = $data->ctaXML($uuid, $cta, $t, $obs, $fecha, $tpago);
 		return $res;
 	}
 

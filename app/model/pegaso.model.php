@@ -51,7 +51,6 @@ class pegaso extends database{
 		return;
 	}
 
-	
 	function registroLogin(){
 		$usuario =$_SESSION['user']->USER_LOGIN;
 		$nombre = $_SESSION['user']->NOMBRE;
@@ -26435,7 +26434,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $data;
 	}
 
-	function ctaXML($uuid, $cta, $t, $obs, $fecha){
+	function ctaXML($uuid, $cta, $t, $obs, $fecha, $tpago){
 		$usuario = $_SESSION['user']->NOMBRE;
 		if($t != 'venta' and $t !='otroIngreso'){
 			$this->query="SELECT * FROM XML_DATA WHERE UUID= '$uuid'";
@@ -26472,7 +26471,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			}
 		//	$mensaje = "El estado de cuenta se encuentra cerrado, no se pueden insetar gastos";
 		}else{
-
 			$this->query="SELECT * FROM PG_BANCOS WHERE ID = $cta";
 			$rs=$this->EjecutaQuerySimple();
 			$row=ibase_fetch_object($rs);
@@ -26495,17 +26493,23 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
                  		, 'xml_'||(SELECT IDCLIENTE FROM XML_CLIENTES WHERE tipo='Cliente' and rfc = (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid'))
                  		, current_timestamp
                  		, (SELECT IMPORTE FROM XML_DATA WHERE uuid = '$uuid')
-                 		, (SELECT IMPORTE FROM XML_DATA WHERE uuid = '$uuid')
+                 		, 0
                  		, '$usuario', '$cuentaCompleta', '$fecha', '$fecha' 
                  		, '$folio'
                  		, (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid')
-                 		, 0, 0, 0, null, '0', NULL, '', 0, 0, 0, NULL, NULL, NULL, NULL, 0, 0, '$uuid', 0,'', '$obs') RETURNING ID";
+                 		, 0, 0, 0, null, '0', '$tpago', '', 0, 0, 0, NULL, NULL, NULL, NULL, 0, 0, '$uuid', 0,''
+                 		, (SELECT SERIE||FOLIO FROM XML_DATA WHERE UUID = '$uuid')||' -- '||'$obs')
+                 		 RETURNING ID";
             $res=$this->grabaBD();
             $ridp=ibase_fetch_object($res);
             if($ridp->ID > 0 ){
             	$mensaje = array("status"=>'ok', "mensaje"=>"Se ha insertado el abono al banco".$ridp->ID);
 	            $this->query="UPDATE XML_DATA SET IDPAGO = $ridp->ID WHERE UUID = '$uuid'";
-	            $this->queryActualiza();
+	            $res = $this->queryActualiza();
+	            if($res == 1){
+	            	$this->query="INSERT INTO APLICACIONES (ID, FECHA, IDPAGO, DOCUMENTO, MONTO_APLICADO, SALDO_DOC, SALDO_PAGO, USUARIO, STATUS, RFC, FORMA_PAGO, CANCELADO, PROCESADO, CIERRE_CC, REC_CONTA, FECHA_CIERRE_CC, USUARIO_CIERRE_CC, FECHA_REC_CONTA, FOLIO_REC_CONTA, USUARIO_REC_CONTA, OBSERVACIONES, CONTABILIZADO, TIPO, POLIZA_INGRESO) VALUES (NULL, CURRENT_TIMESTAMP, $ridp->ID, (SELECT SERIE||FOLIO FROM XML_DATA WHERE UUID = '$uuid'), (SELECT IMPORTE FROM XML_DATA WHERE uuid = '$uuid'), 0, 0, '$usuario', 'E', (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid'), '$tpago', 0, 1, 0, 0, null, null, null, 0,null, null, null,null,null)";
+	            	$this->grabaBD();
+	            }
             }
 		}
 		return $mensaje;

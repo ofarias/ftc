@@ -2663,7 +2663,7 @@ exit();
 	echo json_encode($res);
 	exit();
 }elseif(isset($_POST['ctaXML'])){
-	$res=$controller->ctaXML($_POST['uuid'], $_POST['cta'], $_POST['t'], $_POST['obs'], $_POST['fecha']);
+	$res=$controller->ctaXML($_POST['uuid'], $_POST['cta'], $_POST['t'], $_POST['obs'], $_POST['fecha'], $_POST['tpago']);
 	echo json_encode($res);
 	exit();
 }elseif (isset($_POST['traePago'])){

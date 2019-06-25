@@ -288,6 +288,14 @@
             '<option value="compra">Compra de Material</option>'+
             '<option value="otro">Otro</option>'+
             '</select><br/>'+
+            'Metodo de pago: <br/>'+
+            '<select class="fp" name="tpago">'+
+            '<option value="">Seleccione un Metodo de Pago</option>'+
+            '<option value="TNS">Transferencia</option>'+
+            '<option value="CHQ">Cheque</option>'+
+            '<option value="EFE">Efectivo</option>'+
+            '<option value="TNSDC">Transferencia x Devolucion de Compra</option>'+
+            '</select><br/>'+
             'Fecha en el Estado de cuenta (Fecha de Pago): <br/><input type="date" class="fecha" name="fecha" required ><br/>'+
             '</div><br/><br/>'+
             '</form>',
@@ -299,6 +307,7 @@
                     var cta = this.$content.find('.ban').val();
                     var obs = this.$content.find('.obs').val();
                     var t = this.$content.find('.t').val();
+                    var tpago =this.$content.find('.fp').val();
                     var fecha = this.$content.find('.fecha').val();
                     //var maestr = this.$content.find('mae').val();
                     if(cta == ''){
@@ -310,13 +319,16 @@
                     }else if (fecha === ''){
                         $.alert('Seleccione una fecha por favor...');
                         return false;
+                    }else if (tpago === ''){
+                        $.alert('Seleccione un Metodo de pago por favor...');
+                        return false;    
                     }else{
                         $.alert('Se registrara el cargo en el estado de cuenta con la fecha ' + fecha )
                         $.ajax({
                             url:'index.php',
                             type: 'post',
                             dataType: 'json',
-                            data:{ctaXML:1, uuid, cta, obs, t, fecha},
+                            data:{ctaXML:1, uuid, cta, obs, t, fecha, tpago},
                             success:function(data){
                                 if(data.status == 'ok'){
                                     //document.getElementById('l_'+doc).classList.add('hide');
@@ -366,6 +378,14 @@
             //'<option value="compra">Compra de Material</option>'+
             '<option value="otroIngreso">Otro</option>'+
             '</select><br/>'+
+            'Forma de Pago: <br/>'+
+            '<select class="fp" name="tpago">'+
+            '<option value="">Seleccione un Metodo de Pago</option>'+
+            '<option value="TNS">Transferencia</option>'+
+            '<option value="CHQ">Cheque</option>'+
+            '<option value="EFE">Efectivo</option>'+
+            '<option value="TNSDC">Transferencia x Devolucion de Compra</option>'+
+            '</select><br/>'+
             'Fecha en el Estado de cuenta (Fecha de Pago): <br/><input type="date" class="fecha" name="fecha" required ><br/>'+
             '</div><br/><br/>'+
             '</form>',
@@ -377,6 +397,7 @@
                     var cta = this.$content.find('.ban').val();
                     var obs = this.$content.find('.obs').val();
                     var t = this.$content.find('.t').val();
+                    var tpago =this.$content.find('.fp').val();
                     var fecha = this.$content.find('.fecha').val();
                     //var maestr = this.$content.find('mae').val();
                     if(cta == ''){
@@ -388,13 +409,16 @@
                     }else if (fecha === ''){
                         $.alert('Seleccione una fecha por favor...');
                         return false;
+                    }else if (tpago === ''){
+                        $.alert('Seleccione un Metodo de pago por favor...');
+                        return false;    
                     }else{
                         $.alert('Se registrara el Abono en el estado de cuenta con la fecha ' + fecha )
                         $.ajax({
                             url:'index.php',
                             type: 'post',
                             dataType: 'json',
-                            data:{ctaXML:1, uuid, cta, obs, t, fecha},
+                            data:{ctaXML:1, uuid, cta, obs, t, fecha, tpago},
                             success:function(data){
                                 if(data.status == 'ok'){
                                     //document.getElementById('l_'+doc).classList.add('hide');
