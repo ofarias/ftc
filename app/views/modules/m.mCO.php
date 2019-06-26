@@ -139,7 +139,7 @@
               </div>
               <div class="panel-body">
                   <p>Abonos Edo Cuenta</p>
-                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img src="app/views/images/Cobranza/dinero_v1.jpg"></a></center>
+                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img src="app/views/images/Cobranza/dinero_v1.jpg"  width="89" height="69"></a></center>
               </div>
           </div>
         </div>
@@ -150,7 +150,7 @@
                     </div>
                     <div class="panel-body">
                         <p>Imprimir aplicaciones de Pago</p>
-                        <center><a href="index.php?action=verAplicaciones" class="btn btn-default"><img src="app/views/images/dollar-collection-icon.png"></a></center>
+                        <center><a href="index.php?action=verAplicaciones" class="btn btn-default"><img src="app/views/images/dollar-collection-icon.png" width="89" height="69"></a></center>
                     </div>
                 </div>
             </div>
@@ -161,11 +161,21 @@
                     </div>
                     <div class="panel-body">
                         <p>Captura de Abonos</p>
-                        <center><a href="index.php?action=selectBanco" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                        <center><a href="index.php?action=selectBanco" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png" width="89" height="69"></a></center>
                     </div>
                 </div>
             </div>
-        
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i>Cancelacion de Pagos</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p></p>   
+                        <center><a href="index.php?action=buscaPagos" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png" width="89" height="69"></a></center>
+                    </div>
+                </div>
+            </div>
 <form action="index.php" method="post" id="migrar">
     <input type="hidden" name="docf" id="doc" value="<?php echo $docf?>">
     <input type="hidden" name="refacturarFecha" value="">

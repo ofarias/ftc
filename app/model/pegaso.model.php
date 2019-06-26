@@ -85,7 +85,6 @@ class pegaso extends database{
 		if(count($data)>0){
 			$controller_coi = new controller_coi;
 			foreach($data as $k){
-
 				$tcont = $_SESSION['empresa']['rfc'] == $k->CLIENTE? 'rfce':'cliente';
 				$tip=$_SESSION['empresa']['rfc'] == $k->CLIENTE? 'Proveedor':'Cliente';
 				$this->query="SELECT xd.*, xpa.cuenta_Contable as pcc, xc.cuenta_Contable as ccc FROM XML_DATA XD LEFT JOIN XML_PARTIDAS XPA ON XPA.UUID = XD.UUID left join xml_clientes xc on xd.$tcont = xc.rfc and xc.tipo = '$tip' where xd.uuid='$k->UUID'";
@@ -24555,10 +24554,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    	$this->queryActualiza();
 	    	foreach ($partidas as $key){
 	    		$key=explode(":", $key);
+	    		$par = $key[0];
 	    		$cve_sat = $key[1];
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
-	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat'";
+	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat' and PARTIDA = $par";
 	    		$this->queryActualiza();
 	      	}
     	}else{
@@ -24566,10 +24566,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    	$this->queryActualiza();	
 	    	foreach ($partidas as $key){
 	    		$key=explode(":", $key);
+	    		$par = $key[0];
 	    		$cve_sat = $key[1];
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
-	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and (select rfce from xml_data where uuid = '$uuid') = '$rfc' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat'";
+	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and (select rfce from xml_data where uuid = '$uuid') = '$rfc' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat' and PARTIDA = $par";
 	    		$this->queryActualiza();
 	      	}	
     	}
