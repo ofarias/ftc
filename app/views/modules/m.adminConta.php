@@ -1,5 +1,5 @@
 
-           <div class="container">
+           <div class="container-emp">
         <!-- Marketing Icons Section -->
         <div class="row">
             <div class="col-lg-12">
@@ -8,19 +8,19 @@
                 </h3>
             </div>
             <div>
-                <label> Bienvenido : <?php echo $u?></label>
+                <label class="titulo-emp"> Bienvenido : <?php echo $u?></label>
             </div>
             <br/>
             <?php foreach($usuario as $key):?>
-            <div class="col-md-3">
+            <div class="col-md-3-emp">
                 <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i><?php echo $key['nombre']?></h4>
+                    <div class="panel-heading-emp">
+                        <h4 class="titulo-empresa"><?php echo $key['nombre']?></h4>
                     </div>
-                    <div class="panel-body">
+                    <div class="panel-body-emp">
                         
-                        <center><a href="index.php?action=loginC&empresa=<?php echo $key['ide'].':'.$key['nombre']?>" class="btn btn-default">
-                            <img src="app/views/images/Logos/<?php echo $key['logo']?>" width="89" heigth="69"></a></center>
+                        <center class="caja-logo"><a href="index.php?action=loginC&empresa=<?php echo $key['ide'].':'.$key['nombre']?>" class="btn btn-default">
+                            <img class="logos-empresas" src="app/views/images/Logos/<?php echo $key['logo']?>" width="100%" heigth="100%"></a></center>
                     </div>
                 </div>
             </div>

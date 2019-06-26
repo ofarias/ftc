@@ -5,8 +5,8 @@
                 <h3 class="page-header">
                 </h3>
             </div>
-            <div>
-                <p><label> Bienvenido: <?php echo $usuario?></label></p>
+            <div >
+                <p class="nombre-bien"><label> Bienvenido: <?php echo $usuario?></label></p>
                 <p><label><?php echo $_SESSION['empresa']['nombre'].'<br/>'.$_SESSION['rfc']?></label></p>
             </div>
             <br/>
