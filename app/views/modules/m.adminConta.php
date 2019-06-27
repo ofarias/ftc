@@ -2,24 +2,24 @@
            <div class="container-emp">
         <!-- Marketing Icons Section -->
         <div class="row">
-            <div class="col-lg-12">
+            <div class="col-gl-12">
                 <h3 class="page-header">
                     <!--<img src="app/views/images/logob.jpg">-->
                 </h3>
             </div>
             <div>
-                <label class="titulo-emp"> Bienvenido : <?php echo $u?></label>
+                <label class="titulo-emp"> Bienvenido  <br><?php echo $u?></label>
             </div>
             <br/>
             <?php foreach($usuario as $key):?>
-            <div class="col-md-3-emp">
-                <div class="panel panel-default">
+            <div class="col-md-3 emp-tam">
+                <div class="panel panel-default cuerpo-caja">
                     <div class="panel-heading-emp">
                         <h4 class="titulo-empresa"><?php echo $key['nombre']?></h4>
                     </div>
                     <div class="panel-body-emp">
                         
-                        <center class="caja-logo"><a href="index.php?action=loginC&empresa=<?php echo $key['ide'].':'.$key['nombre']?>" class="btn btn-default">
+                        <center class="caja-logo"><a href="index.php?action=loginC&empresa=<?php echo $key['ide'].':'.$key['nombre']?>" class="btn btn-default boton-empre">
                             <img class="logos-empresas" src="app/views/images/Logos/<?php echo $key['logo']?>" width="100%" heigth="100%"></a></center>
                     </div>
                 </div>
