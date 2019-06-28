@@ -28,7 +28,6 @@ class ftc extends ftcws {
 
     function loginMysql($user, $password){
         $data=array();
-        //$contra=md5($password);
         $contra = $password;
         $this->query="SELECT * FROM ftc_usuarios where usuario = '$user' and contrasenia = '$contra' and status= 'Activo'";
         $res=$this->EjecutaQuerySimple();
@@ -36,18 +35,30 @@ class ftc extends ftcws {
             $data[]=$tsArray;
         }
         $ln = 0;
+        $_SESSION['user']=$data;
         foreach ($data as $key) {
             $usuario = $key['usuario'];
             $ln++;
             $idu = $key['id'];
+            $_SESSION['iduFTC']= $idu;
         }
+        $equipo=php_uname();
+        $ip= $_SERVER['REMOTE_ADDR'];
+        $p=session_id();
+        $pn=$_SERVER['HTTP_USER_AGENT'];
         if(isset($idu)){
             $empresas = $this->traeEmpresasUsuario($idu);
+            $this->query="INSERT INTO FTC_LOGIN (id, USUARIO, IP, FECHA, EXITO, PHP_SESSION, CIERRE_SESSION,  EQUIPO, NAVEGADOR, SISTEMA) 
+                                               VALUES (null, '$user', '$ip', current_timestamp, 'Si', '$p','No', '$equipo', '$pn', 'conta')";
+            $this->EjecutaQuerySimple();
             return $empresas;    
         }else{
-            exit('No se encontro el usuario');
+            $this->query="INSERT INTO FTC_LOGIN (USUARIO, IP, FECHA, EXITO, PHP_SESSION, CIERRE_SESSION, FECHA_CIERRE, EQUIPO, NAVEGADOR, SISTEMA) 
+                                               VALUES ('$user', '$ip', current_timestamp, 'No', '$p','Si',current_timestamp, '$equipo', '$pn', 'conta')";
+            $this->EjecutaQuerySimple();
+            exit('No se encontro el usuario, favor de revisar la información');
         }
-        
+        return;
     }
 
     function traeEmpresasUsuario($idu){
@@ -88,10 +99,24 @@ class ftc extends ftcws {
     }
 
     function cambioSenia($nuevaSenia, $usuario){
+        $nuevaSenia = md5($nuevaSenia);
+        $data=array();
+        $x = array("status"=>'s',"empresas"=>$data);
         $this->query="UPDATE ftc_usuarios SET contrasenia = '$nuevaSenia' where usuario = '$usuario'";
         $this->queryActualiza();
-        return;
+        $this->query="SELECT feu.*, (SELECT ruta_bd FROM ftc_empresas fe where feu.ide = fe.ide) as rutaBD FROM ftc_empresas_usuarios feu WHERE idu = (select id from ftc_usuarios where usuario='$usuario')";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=mysqli_fetch_array($res)){
+            $data[]=$tsArray;
+        }
+        if(count($data) > 1){
+            /// si tiene mas de una empresa asignada, tenemos que cambiarle la contraseña a todas. 
+            $x=array("status"=>'m',"empresas"=>$data);
+        }
+        return $x;
     }
+
+    
 
 }      
 ?>

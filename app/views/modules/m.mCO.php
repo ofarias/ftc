@@ -6,7 +6,9 @@
             <div>
                 <label> Bienvenido: <?php echo $usuario?></label>
             </div>
-        
+            <?php if($_SESSION['user']->LETRA == 'G'){?>
+            <p><input type="text" name="enviaNC" placeholder="Enviar Caja a NC" onchange="cajaNC(this.value)"></p>
+            <?php }?>
         <div class="col-md-3">    
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -86,6 +88,17 @@
                 </div>   
             </div>
             <div class="col-md-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4><i class="fa fa-list-alt"></i>Recepci&oacute;n de pagos</h4>
+                </div>
+                <div class="panel-body">
+                    <p>Recibir pagos</p>
+                    <center><a href="index.php?action=listadoXrecibir" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                </div>
+            </div>
+        </div>
+            <div class="col-md-3">
                  <div class="panel panel-default">
                     <div class="panel-heading">
                     <h4>Carga Cargos</h4>
@@ -119,7 +132,50 @@
                     </div>
                 </div>
         </div>
-        
+                <div class="col-md-3">
+          <div class="panel panel-default">
+              <div class="panel-heading">
+                  <h4><i class="fa fa-list-alt"></i>Ver Abonos de Estado de Cuenta</h4>
+              </div>
+              <div class="panel-body">
+                  <p>Abonos Edo Cuenta</p>
+                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img src="app/views/images/Cobranza/dinero_v1.jpg"  width="89" height="69"></a></center>
+              </div>
+          </div>
+        </div>
+        <div class="col-xs-12 col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> Imprimir Aplicaciones</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p>Imprimir aplicaciones de Pago</p>
+                        <center><a href="index.php?action=verAplicaciones" class="btn btn-default"><img src="app/views/images/dollar-collection-icon.png" width="89" height="69"></a></center>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> CAPTURA DE ABONOS</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p>Captura de Abonos</p>
+                        <center><a href="index.php?action=selectBanco" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png" width="89" height="69"></a></center>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i>Cancelacion de Pagos</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p></p>   
+                        <center><a href="index.php?action=buscaPagos" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png" width="89" height="69"></a></center>
+                    </div>
+                </div>
+            </div>
 <form action="index.php" method="post" id="migrar">
     <input type="hidden" name="docf" id="doc" value="<?php echo $docf?>">
     <input type="hidden" name="refacturarFecha" value="">

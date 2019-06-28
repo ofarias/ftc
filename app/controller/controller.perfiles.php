@@ -125,7 +125,7 @@
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}
 	}
-		}
+	
 	function MenuRevision(){
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'revision'){
 			$pagina = $this->load_template('Menu Admin');

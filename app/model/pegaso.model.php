@@ -4,9 +4,10 @@ require_once 'app/model/model.ftc.php';
 require_once 'app/model/class.ctrid.php';
 require_once 'app/model/verificaID.php';
 require_once 'app/model/pegaso.model.reparto.php';
-require_once('app/views/unit/commonts/numbertoletter.php');
-require_once('app/model/facturacion.php');
-require_once('app/controller/controller.coi.php');
+require_once 'app/views/unit/commonts/numbertoletter.php';
+require_once 'app/model/facturacion.php';
+require_once 'app/controller/controller.coi.php';
+require_once 'app/simplexlsx-master/src/SimpleXLSX.php';
 
 class pegaso extends database{
 	/*Comprueba datos de login*/
@@ -50,7 +51,6 @@ class pegaso extends database{
 		return;
 	}
 
-	
 	function registroLogin(){
 		$usuario =$_SESSION['user']->USER_LOGIN;
 		$nombre = $_SESSION['user']->NOMBRE;
@@ -62,7 +62,7 @@ class pegaso extends database{
 		$this->query="INSERT INTO FTC_INICIO_LOGS (ID, USR_LOGIN, USR_NOMBRE, USR_EQUIPO, FECHA, STATUS, IP, PHP, navegador)
 							VALUES (null, '$usuario', '$nombre', '$equipo',current_timestamp, 'I','$ip', '$p', '$pn')";
 		$this->grabaBD();
-		if($usuario == 'ofarias'){
+		if($usuario == 'ofarias' and $_SESSION['empresa']['auto']== 'si'){
 			$this->revisaParametros($uuid = false);
 		}
 		return;
@@ -71,12 +71,13 @@ class pegaso extends database{
 	function revisaParametros($uuid){
 		$data=array();
 		$data2=array();
+		$fi = $_SESSION['empresa']['fecha_inicio'];
 		if(!empty($uuid)){
 			$this->query="SELECT * FROM XML_DATA XD LEFT JOIN XML_POLIZAS XP ON XP.UUID = XD.UUID WHERE XD.UUID = '$uuid'";
 		}else{
-			$this->query="SELECT * FROM XML_DATA XD LEFT JOIN XML_POLIZAS XP ON XP.UUID = XD.UUID WHERE XD.STATUS = 'P' and XD.TIPO = 'I'";
+			$this->query="SELECT * FROM XML_DATA XD LEFT JOIN XML_POLIZAS XP ON XP.UUID = XD.UUID WHERE XD.STATUS = 'P' and XD.TIPO = 'I' and xd.fecha >= '$fi' ";
 		}
-		
+
 		$rs=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($rs)) {
 			$data[]=$tsArray;
@@ -84,7 +85,6 @@ class pegaso extends database{
 		if(count($data)>0){
 			$controller_coi = new controller_coi;
 			foreach($data as $k){
-
 				$tcont = $_SESSION['empresa']['rfc'] == $k->CLIENTE? 'rfce':'cliente';
 				$tip=$_SESSION['empresa']['rfc'] == $k->CLIENTE? 'Proveedor':'Cliente';
 				$this->query="SELECT xd.*, xpa.cuenta_Contable as pcc, xc.cuenta_Contable as ccc FROM XML_DATA XD LEFT JOIN XML_PARTIDAS XPA ON XPA.UUID = XD.UUID left join xml_clientes xc on xd.$tcont = xc.rfc and xc.tipo = '$tip' where xd.uuid='$k->UUID'";
@@ -154,6 +154,19 @@ class pegaso extends database{
 		}
 		return $a;
 	}
+
+	function cambioMultiple($nuevaSenia, $actual, $usuario, $data){
+        $o = $_SESSION['bd'];
+       	$nuevaSenia=md5($nuevaSenia);
+        foreach($data as $emp){
+        	$_SESSION['bd']=$emp['rutaBD'];
+			$this->query="UPDATE PG_USERS SET user_pass = '$nuevaSenia' where id = (SELECT ID FROM PG_USERS WHERE USER_LOGIN = '$usuario')";
+			$this->EjecutaQuerySimple();
+			$a=array("status"=>'ok', "mensaje"=>'Cambio la contraseña');
+			$_SESSION['bd']=$o;
+        }
+        return;
+    }
 ///// Lista los pedidos PENDIENTES.
 	function LPedidos(){
 		$l = $_SESSION['user']->LETRA;
@@ -5698,11 +5711,7 @@ $this->query="SELECT ftcpocd.cve_doc as cve_ftcpoc,ftcpocd.status_log2, ftcpocd.
 		/*Modificado por GDELEON 3/Ago/2016*/
         function traeProveedoresGastos(){
         	$data=array();
-            $this->query = "SELECT p.CLAVE, p.NOMBRE
-                            FROM PROV01 p 
-                            LEFT JOIN PROV_CLIB01 pcl 
-                            	ON p.CLAVE = pcl.CVE_PROV
-                            WHERE (UPPER(pcl.CAMPLIB2) starting with UPPER('G'))";
+            $this->query = "SELECT p.CLAVE, p.NOMBRE FROM PROV01 p WHERE p.fax = 'Servicio' or p.fax = 'Mixto'";
             $resultado = $this->QueryObtieneDatosN();
             while($tsArray = ibase_fetch_object($resultado)){
                 $data[] = $tsArray;
@@ -9366,12 +9375,13 @@ function VerCobranzaC($cc){
     	$montonc = $rowM->TOTAL;
 
     	//echo '<br/>'.substr($factura, 0,3 == 'FAA').'<br/>';
-
     	if(substr($factura, 0,3) == 'FAA' or (substr($factura, 0,2) == 'RF' and substr($factura, 0,3) != 'RFP')){
     	$this->query="UPDATE FACTF01 SET NC_APLICADAS = iif(NC_APLICADAS='','$docNCD', NC_APLICADAS||','||'$docNCD'), IMPORTE_NC= IMPORTE_NC + $montonc, saldofinal = saldofinal - $montonc where CVE_DOC = '$factura'"; 	
     	}else{
+
     	$this->query="UPDATE FTC_FACTURAS SET NOTAS_CREDITO = iif(NOTAS_CREDITO='','$docNCD', NOTAS_CREDITO||','||'$docNCD'), MONTO_NC= MONTO_NC + $montonc, saldo_final = saldo_final - $montonc where documento = '$factura'";
     	}
+    	
     	$rs=$this->queryActualiza();
     	if($rs == 1){
 	    	return array("status"=>"ok","devolucion"=>$folsig, "idcaja"=>$idc, "docf"=>$docf);
@@ -9802,8 +9812,6 @@ function VerCobranzaC($cc){
         return $data;
 	}
 
-	
-
 	function verPedidosPendientes(){
 		$a="SELECT * FROM PEDIDO ";
 		$this->query=$a;
@@ -9820,8 +9828,9 @@ function VerCobranzaC($cc){
 		return $result;
 	}
 
-	 function listadoGastos(){
-        $this->query = " SELECT A.ID,
+	function listadoGastos(){
+		$data = array();
+        $this->query = "SELECT A.ID,
         A.STATUS,
         A.CVE_CATGASTOS,
         B.CONCEPTO,
@@ -9832,13 +9841,14 @@ function VerCobranzaC($cc){
         B.PRESUPUESTO,
         A.FECHA_CREACION,
         A.CLASIFICACION,
-        C.DESCRIPCION
+        C.DESCRIPCION, 
+        (SELECT NOMBRE FROM PROV01 WHERE CLAVE = A.CVE_PROV) AS PROV
         FROM GASTOS A
         left JOIN CAT_GASTOS B ON A.CVE_CATGASTOS = B.ID
         left JOIN CLA_GASTOS C ON C.ID = A.CLASIFICACION
         WHERE A.STATUS = 'E'
         and (AUTORIZACION ='' or AUTORIZACION = '1')";
-        $result = $this->QueryObtieneDatosN();
+        $result = $this->EjecutaQuerySimple();
         while ($tsArray = ibase_fetch_object($result)) {
             $data[] = $tsArray;
         }
@@ -9846,14 +9856,13 @@ function VerCobranzaC($cc){
     }
     
 	function PagosGastos($identificador) {
-        $this->query = "SELECT a.ID, d.CONCEPTO, d.PROVEEDOR, a.MONTO_PAGO, a.FECHA_CREACION, a.SALDO, a.TIPO_PAGO, a.CLASIFICACION, c.DESCRIPCION 
+        $this->query = "SELECT a.ID, d.CONCEPTO, d.PROVEEDOR, a.MONTO_PAGO, a.FECHA_CREACION, a.SALDO, a.TIPO_PAGO, a.CLASIFICACION, c.DESCRIPCION, (SELECT NOMBRE FROM PROV01 WHERE CLAVE = a.CVE_PROV) AS PROV 
                         from GASTOS a 
                         left JOIN CLA_GASTOS c ON a.clasificacion = c.id
                         left JOIN CAT_GASTOS d ON a.CVE_CATGASTOS = d.ID 
                         where a.status <> 'C' and FECHA_CREACION > '03/14/2016' AND d.ACTIVO = 'S' AND AUTORIZACION = '1' 
                         AND a.ID = '$identificador'
                         ORDER BY a.FECHA_CREACION asc ";
-        //echo 'Esta es la consulta:'.var_dump($this);
         $result = $this->QueryObtieneDatosN();
         while ($tsArray = ibase_fetch_object($result)) {
             $data[] = $tsArray;
@@ -10563,36 +10572,52 @@ function Pagos() {
 	    	$anio = substr($fecha, 6,4);
 	    	$val=$this->validaEdoCta($banco, $cuenta, $mes, $anio);
 	    	if($val == 'ok'){
-	    		$banco = $banco.' - '.$cuenta;
-		    	if(trim(substr($banco, 0,8))=='Banamex'){
-		    		$folio_1 = 'BNMX';
-		    	}elseif (trim(substr($banco, 0,8))=='BBVA BAN'){
-		    		$folio_1='BBVA';
-		    	}elseif (trim(substr($banco, 0,8))=='Multiva'){
-		    		$folio_1='MTVA';
-		    	}elseif (trim(substr($banco, 0,8))=='Inbursa'){
-		    		$folio_1='INBU';
-		    	}elseif(trim(substr($banco, 0,8))=='Banco Az'){
-		    		$folio_1='BAZT';
-		    	}
-		    	$this->query="SELECT MAX(cast(substring(FOLIO_X_BANCO from 6 for 6) as int)) as ULTIMO
-		    			FROM CARGA_PAGOS
-		    			WHERE FOLIO_X_BANCO STARTING WITH '$folio_1'";
-		    	$rs=$this->	QueryObtieneDatosN();
-		    	$row=ibase_fetch_object($rs);
-		    	if($row){
-		    		$folio = $row->ULTIMO + 1;
-		    	}else{
-		    		$folio = 1;
-		    	}
-		    	$this->query="SELECT SUM(SALDOFINAL) as SALDO, (select sum(saldo) from carga_pagos where cliente = '$maestro' and status <> 'C' and seleccionado > 0 and guardado > 0) as acreedores FROM FACTURAS_PENDIENTES WHERE CLAVE_MAESTRO = (SELECT CLAVE FROM MAESTROS WHERE ID = $maestro)";
+		    	$this->query="SELECT * FROM PG_BANCOS WHERE NUM_CUENTA = '$cuenta' and BANCO = '$banco'";
+		    	$rs=$this->EjecutaQuerySimple();
+				$row=ibase_fetch_object($rs);
+				$sb=$row->SERIE;
+				$sbl=0;
+				$banco = $banco.' - '.$cuenta;
+				if(!empty($sb)){
+					$sbl=strlen($sb)+2;
+				}
+				$cuentaCompleta=$row->BANCO.' - '.$row->NUM_CUENTA;
+				$this->query="SELECT coalesce( MAX(cast(substring(FOLIO_X_BANCO from $sbl) as int)), 0) as ULTIMO FROM CARGA_PAGOS	WHERE FOLIO_X_BANCO STARTING WITH '$sb'";
+			    $rs=$this->	QueryObtieneDatosN();
+			    $row=ibase_fetch_object($rs);
+			    if($row){
+			    	$folio=$sb.'-'.($row->ULTIMO+1);
+			    }
+		    	//if(trim(substr($banco, 0,8))=='Banamex'){
+		    	//	$folio_1 = 'BNMX';
+		    	//}elseif (trim(substr($banco, 0,8))=='BBVA BAN'){
+		    	//	$folio_1='BBVA';
+		    	//}elseif (trim(substr($banco, 0,8))=='Multiva'){
+		    	//	$folio_1='MTVA';
+		    	//}elseif (trim(substr($banco, 0,8))=='Inbursa'){
+		    	//	$folio_1='INBU';
+		    	//}elseif(trim(substr($banco, 0,8))=='Banco Az'){
+		    	//	$folio_1='BAZT';
+		    	//}
+		    	//$this->query="SELECT MAX(cast(substring(FOLIO_X_BANCO from 6 for 6) as int)) as ULTIMO
+		    	//		FROM CARGA_PAGOS
+		    	//		WHERE FOLIO_X_BANCO STARTING WITH '$folio_1'";
+		    	//$rs=$this->	QueryObtieneDatosN();
+		    	//$row=ibase_fetch_object($rs);
+		    	//if($row){
+		    	//	$folio = $row->ULTIMO + 1;
+		    	//}else{
+		    	//	$folio = 1;
+		    	//}
+
+		    	$this->query="SELECT coalesce(SUM(SALDOFINAL),0) as SALDO, coalesce((select sum(saldo) from carga_pagos where cliente = '$maestro' and status <> 'C' and seleccionado > 0 and guardado > 0), 0) as acreedores FROM FACTURAS_PENDIENTES WHERE CLAVE_MAESTRO = (SELECT CLAVE FROM MAESTROS WHERE ID = $maestro)";
 		    	$res =$this->EjecutaQuerySimple();
 		    	$valsaldo=ibase_fetch_object($res);
 			    $val = $valsaldo->SALDO;
 			    $acreedores = $valsaldo->ACREEDORES;
 			    $monto1 = $monto + $acreedores;
 			    
-			    $this->query="SELECT SUM(SALDOFINAL) as SALDO FROM FACTURAS_PENDIENTES_FP WHERE CLAVE_MAESTRO = (SELECT CLAVE FROM MAESTROS WHERE ID = $maestro)";
+			    $this->query="SELECT coalesce(SUM(SALDOFINAL),0) as SALDO FROM FACTURAS_PENDIENTES_FP WHERE CLAVE_MAESTRO = (SELECT CLAVE FROM MAESTROS WHERE ID = $maestro)";
 		    	$res2 =$this->EjecutaQuerySimple();
 		    	$valsaldo2=ibase_fetch_object($res2);
 			    $val2 = $valsaldo2->SALDO;
@@ -10609,10 +10634,9 @@ function Pagos() {
 			    	$campo = ' ,cliente';
 			    	$valor = ",'".$maestro."'";
 			    }
-			    //exit('Val'.$val.' maestro '.$maestro.' tipo: '.$tipo.' Campo'.$campo.' valor '.$valor);
 			    if( ($val+10000000) >= $monto1 ){
 			    	$this->query="INSERT INTO CARGA_PAGOS (FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO $campo, OBS)
-			    					VALUES (current_timestamp, $monto, $monto, '$usuario', '$banco', '$fecha', ('$folio_1'||'-'||'$folio') $valor, '$obs')";
+			    					VALUES (current_timestamp, $monto, $monto, '$usuario', '$banco', '$fecha', '$folio' $valor, '$obs')";
 			    	$rs=$this->EjecutaQuerySimple();
 				    	if($um == 'b'){
 				    		$this->query="UPDATE MAESTROS SET ACREEDOR = ACREEDOR + $monto where id = $maestro";
@@ -10836,7 +10860,11 @@ function Pagos() {
 			$bn=ibase_fetch_object($res);
 			$corte = $bn->DIA_CORTE;
 			$fechaIni=$corte.'.'.$mes.'.'.$anio;
-			$fechafin=($corte-1).'.'.($mes+1).'.'.$anio;
+			if($corte == 1){
+				$fechafin=($corte).'.'.($mes+1).'.'.$anio;
+			}else{
+				$fechafin=($corte-1).'.'.($mes+1).'.'.$anio;
+			}
 		###########################################################
 
 		$this->query="SELECT 1 as s, FECHA_RECEP AS sort, 'Venta' AS TIPO,  iif(FOLIO_X_BANCO = 'TR', (FOLIO_X_BANCO||id), FOLIO_X_BANCO) AS CONSECUTIVO, FECHA_RECEP AS FECHAMOV, MONTO AS ABONO, 0 AS CARGO, SALDO AS SALDO, BANCO AS BANCO, USUARIO AS USUARIO, tipo_pago as TP, id as identificador, registro as registro, folio_acreedor as FA , fecha_recep as fe, '' as comprobado, contabilizado, seleccionado, '' as tp_tes, CEP, ARCHIVO_CEP, obs 
@@ -11773,6 +11801,7 @@ function Pagos() {
     function infoPago($idp){
   		$data=array();
   		$this->query="SELECT (c.monto + c.monto_cf) as monto, C.*, M.NOMBRE AS MAESTRO, M.CLAVE AS CLAVE_MAESTRO FROM carga_pagos C LEFT JOIN MAESTROS M ON cast(M.ID as varchar(20)) = C.CLIENTE where C.id = $idp";
+  		//echo $this->query;
   		$rs = $this->QueryObtieneDatosN();
   		while($tsArray=ibase_fetch_object($rs)){
   			$data[]=$tsArray;
@@ -12437,10 +12466,8 @@ function Pagos() {
    		return $mensaje;
    	}
 
-
-
-
    	function asociaCF(){
+   		$data = array();
    		$this->query="SELECT cf.*, (select max(nombre) from clie01 c where c.rfc = cf.rfc) as cliente 
    						from CARGO_FINANCIERO cf 
    						where cf.saldo > 0";
@@ -12969,6 +12996,7 @@ function Pagos() {
     }
 
     function verPagoSolicitudes(){
+    	$data=array();
     	$this->query = "SELECT s.*, p.nombre as nom_prov 
     				FROM SOLICITUD_PAGO s
     				left join prov01 p on p.clave = s.proveedor
@@ -13885,6 +13913,7 @@ function Pagos() {
     }
 
      function verProveedores(){
+    	$data = array();
     	$this->query="SELECT p.*, b.banco as bancosat FROM PROV01 p left join bancos_sat b on b.clave = p.banco where STATUS = 'A'";
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
@@ -14266,9 +14295,8 @@ function Pagos() {
     	if(count($cc)){
     		$cc = implode(",",$cc);	
     	}*/
-
     	$this->query ="SELECT max(CLAVE) as CLAVE FROM MAESTROS WHERE upper(SUBSTRING(CLAVE FROM 1 FOR 3)) = upper(SUBSTRING('$nombre' from 1 for 3))";
-    	echo $this->query;
+    	//echo $this->query;
     	$rs=$this->QueryObtieneDatosN();
     	$row= ibase_fetch_object($rs);
 
@@ -15167,6 +15195,7 @@ function Pagos() {
 
 
       function verSolProdVentas(){
+      	$data = array();
     	$user=$_SESSION['user']->NOMBRE;
     	$aux =$_SESSION['user']->AUX_COMP;
     	//echo 'Valida si es auxiliar o no: '.$aux;
@@ -15383,7 +15412,7 @@ function Pagos() {
     }
     
     function catalogoProductosFTC($descripcion){
-
+    	$data = array();
     	if(!empty($descripcion)){
     		$id= strpos($descripcion,':');
     		if($id === false){
@@ -15670,24 +15699,19 @@ function Pagos() {
     	return $data;
     }
 
-    function editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3){
-    	
+    function editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3, $serv){
     	$user=$_SESSION['user']->NOMBRE;
     	$this->query="SELECT * FROM PROV01 WHERE trim(CLAVE) = TRIM('$idprov')";
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
     	$cer = $row->CERTIFICADO;
-
     	if($cer == 'Si' and $certificado == 'Si'){
-    		$this->query="UPDATE PROV01 SET urgencia ='$urgencia', envio= '$envio', recoleccion='$recoleccion', tp_efectivo = '$tp_efe', tp_credito = '$tp_cr', tp_transferencia= '$tp_tr', tp_cheque='$tp_ch', certificado = '$certificado', nom_banco='$banco', cuenta='$cuenta', beneficiario = '$beneficiario', resp_compra='$responsable', diascred = $plazo, emailpred = '$email1', email2 = '$email2', email3 = '$email3' WHERE CLAVE = '$idprov'";
+    		$this->query="UPDATE PROV01 SET urgencia ='$urgencia', envio= '$envio', recoleccion='$recoleccion', tp_efectivo = '$tp_efe', tp_credito = '$tp_cr', tp_transferencia= '$tp_tr', tp_cheque='$tp_ch', certificado = '$certificado', nom_banco='$banco', cuenta='$cuenta', beneficiario = '$beneficiario', resp_compra='$responsable', diascred = $plazo, emailpred = '$email1', email2 = '$email2', email3 = '$email3', fax= '$serv' WHERE CLAVE = '$idprov'";
 	    	$rs=$this->EjecutaQuerySimple();
     	}elseif (empty($cer) or $cer == 'No'  ){
-    		$this->query="UPDATE PROV01 SET urgencia ='$urgencia', envio= '$envio', recoleccion='$recoleccion', tp_efectivo = '$tp_efe', tp_credito = '$tp_cr', tp_transferencia= '$tp_tr', tp_cheque='$tp_ch', certificado = '$certificado', nom_banco='$banco', cuenta='$cuenta', beneficiario = '$beneficiario', resp_compra='$responsable', fecha_cert = current_timestamp, usr_cert = '$user', num_cert= iif(num_cert is null, 1, num_cert + 1), diascred = $plazo , emailpred = '$email1', email2 = '$email2', email3 = '$email3' WHERE CLAVE = '$idprov'";
+    		$this->query="UPDATE PROV01 SET urgencia ='$urgencia', envio= '$envio', recoleccion='$recoleccion', tp_efectivo = '$tp_efe', tp_credito = '$tp_cr', tp_transferencia= '$tp_tr', tp_cheque='$tp_ch', certificado = '$certificado', nom_banco='$banco', cuenta='$cuenta', beneficiario = '$beneficiario', resp_compra='$responsable', fecha_cert = current_timestamp, usr_cert = '$user', num_cert= iif(num_cert is null, 1, num_cert + 1), diascred = $plazo , emailpred = '$email1', email2 = '$email2', email3 = '$email3', fax= '$serv' WHERE CLAVE = '$idprov'";
 	    	$rs=$this->EjecutaQuerySimple();
     	}
-    	
-    	//echo $this->query;
-    	//break;
     	return;
     }
 
@@ -20849,53 +20873,9 @@ function invAunaFecha($fecha, $tipo){
     		$this->query="UPDATE REFACTURACION SET STATUS_SOLICITUD = 2 WHERE ID = $idsol";
     		$res=$this->queryActualiza();	
     		if($res == 1 ){
-             		if(substr(trim($row->FACT_ORIGINAL),0,1) == '0' ){    
-             		}elseif( substr(trim($row->FACT_ORIGINAL),0,3) == 'FAA' or (substr(trim($row->FACT_ORIGINAL),0,2)=='RF' and substr(trim($row->FACT_ORIGINAL),0,3)<> 'RFP')){
-    					$row2=$this->crearFoliosRefact($usuario);
-		              	$folioF=$row2['folioF'];
-	    				$serieF=$row2['serieF'];
-	    				$folioRFP=$row2['folioRFP']; 
-	    				$folioNC=$row2['folioNC']; 
-	    				$serieN=$row2['serieN']; 
-	    				$folioNCRP=$row2['folioNCRP'];
-		                $this->query="EXECUTE PROCEDURE SP_GENERA_NV('$row->NUEVA_FECHA','$row->FACT_ORIGINAL','$row->NC', '$cliente',$idsol, '$folioF', '$serieF', $folioRFP, '$usuario')";
-		    			$result=$this->EjecutaQuerySimple();
-		    			$respuesta = ibase_fetch_object($result);
-		    			$valPar = $respuesta->VAL;
-		    			$nfact = $respuesta;
-		                //echo 'Validacion de la creacion de la factuar'.$valPar;
-		                if($valPar==1){
-		                $this->query="SELECT MAX(NUM_PAR) AS PARTIDAS FROM PAR_FACTF01 WHERE CVE_DOC='$row->FACT_ORIGINAL'";
-		    			$r=$this->EjecutaQuerySimple();
-		    			$row3=ibase_fetch_object($r);
-		    			$partidas = $row3->PARTIDAS;
-		                $facturan = $respuesta->FACTURA_NUEVA;
-		   			        for ($i=1; $i<=$partidas ; $i++) {
-		   			        	//echo 'parametros:'.$i.', Fact Or: '.$row->FACT_ORIGINAL.', NC: '.$row->NC.', Cliente '.$row->FACT_ORIGINAL.'<br/>';
-		   			            $this->query="EXECUTE PROCEDURE SP_COPIA_NV_PARTIDAS($i,'$row->FACT_ORIGINAL','$facturan',$i,'$row->NC', $idsol, '$folioF', '$usuario' )";
-		   			            $res=$this->EjecutaQuerySimple();
-		   			            $resPartida = ibase_fetch_object($res);
-		   			        }
-		   			    $this->query="EXECUTE PROCEDURE SP_GENERA_NC_PEGASO($idsol, '$folioNC', '$serieN', $folioNCRP, '$usuario')";
-						$res=$this->EjecutaQuerySimple();
-						//exit($this->query);
-
-						$this->query="EXECUTE PROCEDURE SP_GENERA_DET_NC_PEGASO($idsol, '$folioNC', '$usuario')";
-						$res=$this->EjecutaQuerySimple();
-		                }
-
-		                $actDocs=$this->actualizaFiscales($folioF, $folioNC, $idsol);
-		                $timbradoF = $fact->timbraFact($folioF, $idc);
-    					$timbradoNC = $fact->timbraNc($folioNC, $idc);
-		                $mF = $this->moverFactura($folioF,$rfc=$timbradoF);
-	    				$mNC = $this->moverNC($folioNC, $rfc=$timbradoNC);
-	    				$timbrado = $timbradoF;
-		            	//exit('Revisar las facturas Generadas');
-  					}elseif(substr(trim($row->FACT_ORIGINAL),0,2) == 'FP' or substr(trim($row->FACT_ORIGINAL),0,3) =='RFP' ){
-    	  				$row2=$this->crearFoliosRefact($usuario);
+  						$row2=$this->crearFoliosRefact($usuario);
     	  				$folioF=$row2['folioF'];
-    	  				$folioN=$row2['folioNC'];
-    	  				
+    	  				$folioN=$row2['folioNC'];				
 	    				$docs=$this->creaDocumentosRefact($idsol, $folioF,
 	    					$serieF=$row2['serieF'], 
 	    					$folioRFP=$row2['folioRFP'], 
@@ -20907,8 +20887,7 @@ function invAunaFecha($fecha, $tipo){
     					$timbradoNC = $fact->timbraNc($docf=$folioNC, $idc);
 	    				$mF = $this->moverFactura($folioF,$rfc=$timbradoF );
 	    				$mNC = $this->moverNC($folioNC, $rfc=$timbradoNC);
-    				}    
-       		}
+    		}
        		$NC= $row2['folioNC'];
        		$facturan=$row2['folioF'];
        		/// este codigo se corre al finalizar por lo que debemos de enviar las variables;
@@ -20920,47 +20899,9 @@ function invAunaFecha($fecha, $tipo){
             $this->query="UPDATE REFACTURACION SET STATUS_SOLICITUD = 2 WHERE ID = $idsol";
     		$res=$this->queryActualiza();
     		if($res == 1 ){
-                 if(substr(trim($row->FACT_ORIGINAL),0,1) == '0' ){
+                 if(substr(trim($row->FACT_ORIGINAL),0,1) == '0'){
     				echo 'Es remsion'.$row->FACT_ORIGINAL.'<br/>';
-    			}elseif(substr(trim($row->FACT_ORIGINAL),0,3) == 'FAA' or (substr(trim($row->FACT_ORIGINAL),0,2)=='RF' and substr(trim($row->FACT_ORIGINAL),0,3)<> 'RFP')){
-	                $row2=$this->crearFoliosRefact($usuario);
-	              	$folioF=$row2['folioF'];
-    				$serieF=$row2['serieF'];
-    				$folioRFP=$row2['folioRFP']; 
-    				$folioNC=$row2['folioNC']; 
-    				$serieN=$row2['serieN']; 
-    				$folioNCRP=$row2['folioNCRP'];
-    				$NC = $row->NC;
-	                $this->query="EXECUTE PROCEDURE SP_GENERA_NV('$row->NUEVA_FECHA','$row->FACT_ORIGINAL','$row->NC', '$cliente',$idsol, '$folioF', '$serieF', $folioRFP, '$usuario')";
-	    			$result=$this->EjecutaQuerySimple();
-	    			$respuesta = ibase_fetch_object($result);
-	    			$valPar = $respuesta->VAL;
-	    			$nfact = $respuesta;
-	                //echo 'Validacion de la creacion de la factuar'.$valPar;
-	                if($valPar==1){
-	                $this->query="SELECT MAX(NUM_PAR) AS PARTIDAS FROM PAR_FACTF01 WHERE CVE_DOC='$row->FACT_ORIGINAL'";
-	    			$r=$this->EjecutaQuerySimple();
-	    			$row3=ibase_fetch_object($r);
-	    			$partidas = $row3->PARTIDAS;
-	                $facturan = $respuesta->FACTURA_NUEVA;
-	   			        for ($i=1; $i<=$partidas ; $i++) {
-	   			        	//echo 'parametros:'.$i.', Fact Or: '.$row->FACT_ORIGINAL.', NC: '.$row->NC.', Cliente '.$row->FACT_ORIGINAL.'<br/>';
-	   			            $this->query="EXECUTE PROCEDURE SP_COPIA_NV_PARTIDAS($i,'$row->FACT_ORIGINAL','$facturan',$i,'$row->NC', $idsol, '$folioF', '$usuario' )";
-	   			            $res=$this->EjecutaQuerySimple();
-	   			            $resPartida = ibase_fetch_object($res);
-	   			        }
-	   			    $this->query="EXECUTE PROCEDURE SP_GENERA_NC_PEGASO($idsol, '$folioNC', '$serieN', $folioNCRP, '$usuario')";
-					$res=$this->EjecutaQuerySimple();
-					$this->query="EXECUTE PROCEDURE SP_GENERA_DET_NC_PEGASO($idsol, '$folioNC', '$usuario')";
-					$res=$this->EjecutaQuerySimple();
-	                }
-
-	                $actDocs=$this->actualizaFiscales($folioF, $folioNC,$idsol);
-	                $timbradoF = $fact->timbraFact($docf=$row['folioF'], $idc);
-    				$timbradoNC = $fact->timbraNc($docf=$row['folioNC'], $idc);
-	                $mF = $this->moverFactura($folioF,$rfc=$timbradoF );
-    				$mNC = $this->moverNC($folioNC, $rfc=$timbradoNC);		
-	            }elseif(substr(trim($row->FACT_ORIGINAL),0,2) == 'FP' or substr(trim($row->FACT_ORIGINAL),0,3) == 'RFP'){
+    			}else{
 	            	$row=$this->crearFoliosRefact($usuario);
     				$docs=$this->creaDocumentosRefact($idsol, $folioF=$row['folioF'],
     					$serieF=$row['serieF'], 
@@ -20984,8 +20925,7 @@ function invAunaFecha($fecha, $tipo){
     		$this->query="UPDATE REFACTURACION SET STATUS_SOLICITUD = 2 WHERE ID = $idsol";
     		$res = 1;
     		if($res == 1){
-	    		    if(substr($row->FACT_ORIGINAL,0,2) == 'FP' OR substr($row->FACT_ORIGINAL, 0,3) == 'RFP'){
-		    			//exit($row->FACT_ORIGINAL);
+	    		    	//exit($row->FACT_ORIGINAL);
 		    			//// Creamos el nuevo folio;
 		    			$this->query="SELECT FOLIO, SERIE FROM FTC_CTRL_FACTURAS WHERE IDFF = 2";
 		    			$rs=$this->EjecutaQuerySimple();
@@ -21027,61 +20967,9 @@ function invAunaFecha($fecha, $tipo){
     					$mNC = $this->moverNC($folioNC, $rfc=$timbradoNC);
 						//// Obtenemos el XML de la nueva factura para cargarla:
 						///// Finaliza la Carga de Facturas;
-	    			}elseif(substr($row->FACT_ORIGINAL,0,3) == 'FAA' or substr($row->FACT_ORIGINAL,0,2) == 'RF'){
-	    				$row2=$this->crearFoliosRefact($usuario);
-	    				$folioF=$row2['folioF'];
-	    				$serieF=$row2['serieF'];
-	    				$folioRFP=$row2['folioRFP']; 
-	    				$folioNC=$row2['folioNC']; 
-	    				$serieN=$row2['serieN']; 
-	    				$folioNCRP=$row2['folioNCRP'];
-		                $this->query="EXECUTE PROCEDURE SP_GENERA_NV('$row->NUEVA_FECHA','$row->FACT_ORIGINAL','$row->NC', '$cliente',$idsol, '$folioF', '$serieF', $folioRFP, '$usuario')";
-		    			//echo $this->query.'<br/>';
-		    			$result=$this->EjecutaQuerySimple();
-		    			$respuesta = ibase_fetch_object($result);
-		    			$valPar = $respuesta->VAL;
-		    			$nfact = $respuesta;
-		                //echo 'Validacion de la creacion de la factuar'.$valPar;
-		                if($valPar==1){
-		                $this->query="SELECT MAX(NUM_PAR) AS PARTIDAS FROM PAR_FACTF01 WHERE CVE_DOC='$row->FACT_ORIGINAL'";
-		    			$r=$this->EjecutaQuerySimple();
-		    			$row3=ibase_fetch_object($r);
-		    			$partidas = $row3->PARTIDAS;
-		                $facturan = $respuesta->FACTURA_NUEVA;
-		   			        for ($i=1; $i<=$partidas ; $i++) {
-		   			        	//echo 'parametros:'.$i.', Fact Or: '.$row->FACT_ORIGINAL.', NC: '.$row->NC.', Cliente '.$row->FACT_ORIGINAL.'<br/>';
-		   			            $this->query="EXECUTE PROCEDURE SP_COPIA_NV_PARTIDAS($i,'$row->FACT_ORIGINAL','$facturan',$i,'$row->NC', $idsol, '$folioF', '$usuario' )";
-		   			            $res=$this->EjecutaQuerySimple();
-		   			            $resPartida = ibase_fetch_object($res);
-		   			        }
-		   			    $this->query="EXECUTE PROCEDURE SP_GENERA_NC_PEGASO($idsol, '$folioNC', '$serieN', $folioNCRP, '$usuario')";
-						$res=$this->EjecutaQuerySimple();
-						$this->query="EXECUTE PROCEDURE SP_GENERA_DET_NC_PEGASO($idsol, '$folioNC', '$usuario')";
-						$res=$this->EjecutaQuerySimple();
-		                }
-		                $this->query="UPDATE FTC_FACTURAS SET 
-		                					FORMADEPAGOSAT=(SELECT SAT_FP_NUEVO FROM REFACTURACION_DETALLE WHERE ID_REFAC=$idsol),
-		                					METODO_PAGO=(SELECT SAT_MP_NUEVO FROM REFACTURACION_DETALLE WHERE ID_REFAC=$idsol),
-		                					USO_CFDI=(SELECT SAT_USO_NUEVO FROM REFACTURACION_DETALLE WHERE ID_REFAC=$idsol),
-		                					CLIENTE = TRIM(CLIENTE)
-		                					WHERE DOCUMENTO='$folioF'";
-		                
-		                $this->queryActualiza();
-		                $this->query="UPDATE FTC_NC SET 
-		                					FORMADEPAGOSAT=(SELECT SAT_FP_NUEVO FROM REFACTURACION_DETALLE WHERE ID_REFAC=$idsol),
-		                					METODO_PAGO=(SELECT SAT_MP_NUEVO FROM REFACTURACION_DETALLE WHERE ID_REFAC=$idsol),
-		                					USO_CFDI=(SELECT SAT_USO_NUEVO FROM REFACTURACION_DETALLE WHERE ID_REFAC=$idsol),
-		                					CLIENTE = TRIM(CLIENTE)
-		                					WHERE DOCUMENTO='$folioNC'";
-		                
-		                $this->queryActualiza();
-	                	$timbradoF = $fact->timbraFact($docf=$folioF, $idc);
-    					$timbradoNC = $fact->timbraNc($docf=$folioNC, $idc);
-	                	$mF = $this->moverFactura($folioF,$rfc=$timbradoF);
-    					$mNC = $this->moverNC($folioNC, $rfc=$timbradoNC);
-	    			}
+	    			
 	    			//return $documentos = array("status"=>'ok',"factura"=>$folioF, "nc"=>$folioNC,"rfc"=>$rfc=$timbradoNC); 
-	    	}
+	    	
 	    }elseif($val == 1 and $opcion == 4){ /// Cambios de precios.
 
 	    	$this->query="UPDATE REFACTURACION SET STATUS_SOLICITUD = 2 WHERE ID = $idsol";
@@ -21160,8 +21048,10 @@ function invAunaFecha($fecha, $tipo){
 	    echo '<b>Se refactura la :'.$facto.', nueva Factura: '.$folioF .'.</b><br/>';
 		echo '<b>Con la Nota de credito:'.$folioNC.'</b><br/>';
 		echo '<a href="#" onclick="javascritp:window.self.close();" class="btn btn-info">Cerrar ventana</a>';				
-	   return $documentos = array("status"=>'ok',"factura"=>$folioF, "nc"=>$folioNC,"rfc"=>$timbradoF);
-    }
+	   	return $documentos = array("status"=>'ok',"factura"=>$folioF, "nc"=>$folioNC,"rfc"=>$timbradoF);
+    	}
+	}
+
 
     function crearFoliosRefact(){
     	$this->query="SELECT FOLIO, SERIE FROM FTC_CTRL_FACTURAS WHERE IDFF = 2";
@@ -23776,6 +23666,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			}
 		}
 		$rfcEmpresa = $_SESSION['rfc'];
+		//echo '<br/>'.utf8_decode($nombre_recep);
 		if($rfcEmpresa != $rfce and $rfcEmpresa!=$rfc){
 			echo ('<br/><font color="red">El RFC NO CORRESPONDE A LA EMPRESA SELECCIONADA, SOLO SE PUEDEN SUBIR RFC DE LA EMPRESA SELECCIONA....'. $uuid.'</font><br/>');
 			$tipo = 'falso';
@@ -23847,7 +23738,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             $xml->registerXPathNamespace('c', $ns['cfdi']);
             $xml->registerXPathNamespace('t', $ns['tfd']);
             @$xml->registerXPathNamespace('impl', $ns['implocal']);
-
             foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
             	  $version = $cfdiComprobante['version'];
 				  if($version == ''){
@@ -23959,10 +23849,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 			            if($rfc == $rfcEmpresa){
 			            	$tipoC = 'Proveedor';
-							$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfce'";
+							$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfce' and tipo ='$tipoC'";
 			            	$res=$this->EjecutaQuerySimple();
 			            	$row=ibase_fetch_object($res);
-			            	$nombreE=htmlentities($nombreE, ENT_QUOTES);
+			            	$nombreE=$nombreE;
 			            	if(empty($row)){
 			            		$this->query="INSERT INTO XML_CLIENTES (IDcliente, RFC, NOMBRE, CALLE, EXTERIOR, INTERIOR, COLONIA, MUNICIPIO, ESTADO, PAIS, CP, TIPO)
 			            				  VALUES (NULL, '$rfce', '$nombreE', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";
@@ -23973,10 +23863,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            	}			            	
 			            }else{
 			            	$tipoC = 'Cliente';
-			            	$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfc'";
+			            	$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfc' and tipo ='$tipoC'";
 			            	$res=$this->EjecutaQuerySimple();
 			            	$row=ibase_fetch_object($res);
-			            	$nombre_recep=htmlentities($nombre_recep, ENT_QUOTES);
+			            	$nombre_recep=$nombre_recep;
 			            	if(empty($row)){
 			            		$this->query="INSERT INTO XML_CLIENTES (IDcliente, RFC, NOMBRE, CALLE, EXTERIOR, INTERIOR, COLONIA, MUNICIPIO, ESTADO, PAIS, CP, TIPO)
 			            					  VALUES (NULL, '$rfc', '$nombre_recep', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '	$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";	
@@ -24422,7 +24312,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			$result=$this->queryActualiza();
     			//print_r($result);
     			if($result < 1){
-    				echo '<br/>Error al guardar: <br/>'.$this->query;
+    				echo '<br/>Error al guardar Impuesto: <br/>'.$this->query;
     				$this->query="INSERT INTO XML_EXCEPCION (ID, UUID, TIPO) VALUES (NULL, '$key->UUID', 'IMP')";
     				if($this->grabaBD()){
     	
@@ -24504,41 +24394,45 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	return $response;
     }
 
-    function verXMLSP($mes, $anio, $ide, $uuid){
+    function verXMLSP($mes, $anio, $ide, $uuid, $doc){
     	$data=array();
     	if(!empty($uuid)){
     		$uuid = "and uuid = '".$uuid."'"; 
     	}elseif ($mes == 0 and $ide == 'Emitidos') {
-    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and cliente != '".$_SESSION['rfc']."'";
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and x.cliente != '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
     	}elseif ($mes == 0 and $ide == 'Recibidos') {
-    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and cliente = '".$_SESSION['rfc']."'";
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and cliente = '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
     	}elseif($ide == 'Emitidos'){
-    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente != '".$_SESSION['rfc']."'";
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and x.cliente != '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
     	}elseif($ide == 'Recibidos'){
-    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente = '".$_SESSION['rfc']."'";
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente = '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
     	}
-
     	if($ide== 'Emitidos'){
-					$this->query="SELECT x.* , cr.*, 
+					$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
-    					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
+    					(select first 1 nombre from xml_clientes xc where xc.rfc = x.cliente) as nombre, 
     					(SELECT first 1 RAZON_SOCIAL FROM FTC_EMPRESAS WHERE rfc = rfce) as emisor,
-    					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = cliente and tipo = 'Cliente') as cuenta_Contable,
+    					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = x.cliente and tipo = 'Cliente') as cuenta_Contable,
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid) AS VARCHAR(100)),'') as poliza
-						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E') $uuid";
+    					,'' as tp_tes
+    					, fecha_recep as fecha_edo_cta
+						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F') $uuid";
     	}else{
-    				$this->query="SELECT x.* , cr.*, 
+    				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
     					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
     					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = rfce) as emisor,
-    					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = rfce) as cuenta_Contable,
+    					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = rfce and tipo = 'Proveedor') as cuenta_Contable,
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid) AS VARCHAR(100)),'') as poliza
-						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E') $uuid";
+						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
+						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F') $uuid";
     	}
+    	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while($tsArray = ibase_fetch_object($res)){
     		$data[]=$tsArray;
     	}
+
     	return ($data);
     }
 
@@ -24623,7 +24517,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     						(select TASA from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as TASA_IEPS,
      						(select TIPOFACTOR from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as FACT_ISR,
     						(select TIPOFACTOR from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as FACT_IVA, 
-    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as FACT_IEPS,
+    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado')  as FACT_IEPS,
     						(select BASE from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as B_ISR,
     						(select BASE from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as B_IVA, 
     						(select BASE from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as B_IEPS,
@@ -24639,7 +24533,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     						(select BASE from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as B_ISR_R,
     						(select BASE from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as B_IVA_R, 
     						(select BASE from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as B_IEPS_R
-     						FROM  XML_PARTIDAS x where uuid = '$uuid';";
+     						FROM  XML_PARTIDAS x where uuid = '$uuid'";
     	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while ($tsArray=ibase_fetch_object($res)) {
@@ -24656,25 +24550,27 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$rfcr = $cliente[0];
     	$uuid = $cliente[2];
     	if($ide == 'Emitidos'){
-			$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfcr'";
+			$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfcr' and tipo = 'Cliente'";
 	    	$this->queryActualiza();
 	    	foreach ($partidas as $key){
 	    		$key=explode(":", $key);
+	    		$par = $key[0];
 	    		$cve_sat = $key[1];
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
-	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat'";
+	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat' and PARTIDA = $par";
 	    		$this->queryActualiza();
 	      	}
     	}else{
-    		$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfc'";
+    		$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfc' and tipo = 'Proveedor'";
 	    	$this->queryActualiza();	
 	    	foreach ($partidas as $key){
 	    		$key=explode(":", $key);
+	    		$par = $key[0];
 	    		$cve_sat = $key[1];
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
-	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and (select rfce from xml_data where uuid = '$uuid') = '$rfc' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat'";
+	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and (select rfce from xml_data where uuid = '$uuid') = '$rfc' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat' and PARTIDA = $par";
 	    		$this->queryActualiza();
 	      	}	
     	}
@@ -26010,7 +25906,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$this->query="SELECT cast(LIST(CLAVE||'-->'||NOMBRE) as varchar(100)) AS ENTIDAD FROM $tabla WHERE upper(RFC) containing(upper('$rfc'))";
 		$res=$this->EjecutaQuerySimple();
 		$row=ibase_fetch_object($res);
-		if($row){
+		if(!empty($row->ENTIDAD)){
 			$mensaje=array("status"=>'no', "aviso"=>"El RFC existe en el ".$tipo.' -->'.$row->ENTIDAD);
 		}else{
 			$mensaje=array("status"=>'ok', "aviso"=>"No existe el RFC eb la BD");
@@ -26224,7 +26120,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						  	and extract(year from fecha) = $anio 
 							$condicion
 					group by extract(month from fecha),extract(year from fecha), tipo";
-		echo $this->query;
+		//echo $this->query;
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data []=$tsArray;
@@ -26302,17 +26198,32 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $data;	
 	}
 
+	function impuestosPolizaFinal($uuid){
+		$data = array();
+		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) AS MONTO, SUM(BASE) AS BASE  FROM XML_IMPUESTOS WHERE UUID = '$uuid' group by impuesto, tasa, tipofactor, Tipo";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		return $data;	
+	}
+
 	function actXml($uuid, $tipo, $crea){
 		$poliza = str_pad($crea['numero'], 5, ' ', STR_PAD_LEFT);
 		$periodo = $crea['periodo'];
 		$ejercicio = $crea['ejercicio'];
 		$usuario =$_SESSION['user']->NOMBRE; 
-		$this->query="UPDATE XML_DATA set STATUS='D' where uuid='$uuid'";
+		$status = 'D';
+		if($tipo == 'Ig'){
+			$status='I';	
+		}elseif($tipo == 'Eg'){
+			$status='E';	
+		}
+		$this->query="UPDATE XML_DATA set STATUS='$status' where uuid='$uuid'";
 		$this->EjecutaQuerySimple();
 		$this->query="INSERT INTO XML_POLIZAS (ID, UUID, STATUS, POLIZA, TIPO, PERIODO, EJERCICIO, USUARIO, FECHA) 
 							VALUES (NULL, '$uuid', 'A', '$poliza', '$tipo', $periodo, $ejercicio, '$usuario', current_timestamp)";
 		$this->grabaBD();
-		//echo $this->query;
 		return;
 	}
 
@@ -26334,9 +26245,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	}
 
 	 function facturasMaestro($pago){
+	 	//echo '<br/> Pago: '.print_r($pago);
     	foreach ($pago as $k) {
     		$maestro = $k->CLAVE_MAESTRO;
     	}
+    	///echo '<br/> Maestro '.$maestro.'<br/>';
 		$data=array();
 		$this->query="SELECT F.*, (SELECT NOMBRE FROM CLIE01 C WHERE C.CLAVE=F.CVE_CLPV) AS CLIENTE FROM FACTURAS_PENDIENTES F WHERE F.CLAVE_MAESTRO = '$maestro'";
 		$res=$this->EjecutaQuerySimple();
@@ -26348,7 +26261,15 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
 		}
+		if(empty($maestro)){
+			$rfc = $_SESSION['rfc'];
+			$this->query="SELECT X.*, IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.DOCUMENTO = X.DOCUMENTO),0) as saldofinal, x.documento as cve_doc, x.fecha as fechaelab, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE X.CLIENTE = XC.RFC AND XC.TIPO = 'Cliente') AS NOMBRE  FROM XML_DATA X WHERE TIPO = 'I' AND (IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.DOCUMENTO = X.DOCUMENTO),0) )> 1 AND RFCE ='$rfc' ";
 
+			$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		}
 		return $data;
     }
 
@@ -26514,7 +26435,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $data;
 	}
 
-	function ctaXML($uuid, $cta, $t, $obs, $fecha){
+	function ctaXML($uuid, $cta, $t, $obs, $fecha, $tpago){
 		$usuario = $_SESSION['user']->NOMBRE;
 		if($t != 'venta' and $t !='otroIngreso'){
 			$this->query="SELECT * FROM XML_DATA WHERE UUID= '$uuid'";
@@ -26536,6 +26457,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	   								'$t',
 	   								9999,
 	   								'$usuario') RETURNING id";
+	   			//echo $this->query;
 		  		$rs=$this->EjecutaQuerySimple();
 		  		$row = ibase_fetch_object($rs);
 		  		if($row->ID > 0){
@@ -26550,38 +26472,45 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			}
 		//	$mensaje = "El estado de cuenta se encuentra cerrado, no se pueden insetar gastos";
 		}else{
-
 			$this->query="SELECT * FROM PG_BANCOS WHERE ID = $cta";
 			$rs=$this->EjecutaQuerySimple();
 			$row=ibase_fetch_object($rs);
 			$sb=$row->SERIE;
-			$sbl=strlen($sb) + 1;
+			$sbl=0;
+			if(!empty($sb)){
+				$sbl=strlen($sb)+2;
+			}
 			$cuentaCompleta=$row->BANCO.' - '.$row->NUM_CUENTA;
-			$this->query="SELECT MAX(cast(substring(FOLIO_X_BANCO from 6 for 6) as int)) as ULTIMO
-		    			FROM CARGA_PAGOS
-		    			WHERE FOLIO_X_BANCO STARTING WITH '$sb'";
+			$this->query="SELECT coalesce( MAX(cast(substring(FOLIO_X_BANCO from $sbl) as int)), 0) as ULTIMO FROM CARGA_PAGOS	WHERE FOLIO_X_BANCO STARTING WITH '$sb'";
 		    $rs=$this->	QueryObtieneDatosN();
+		    //echo $this->query;
 		    $row=ibase_fetch_object($rs);
 		    if($row){
-		    	$folio=$sb.'-'.$row->ULTIMO+1;
-		    }else{
-		    	$folio=$sb.'-1';
+		    	$folio=$sb.'-'.($row->ULTIMO+1);
 		    }
+
 			$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_APLI, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, CF, FOLIO_ACREEDOR, TIPO_PAGO, REGISTRO, CONTABILIZADO, POLIZA_INGRESO, APLICACIONES, MONTO_ACREEDOR, MONTO_CF, CVE_MAESTRO, CIERRE_CONTA, USUARIO_CONTA, FECHA_CONTA, SELECCIONADO, GUARDADO, ARCHIVO, CEP, ARCHIVO_CEP, OBS)
                  VALUES (null
                  		, 'xml_'||(SELECT IDCLIENTE FROM XML_CLIENTES WHERE tipo='Cliente' and rfc = (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid'))
                  		, current_timestamp
                  		, (SELECT IMPORTE FROM XML_DATA WHERE uuid = '$uuid')
-                 		, (SELECT IMPORTE FROM XML_DATA WHERE uuid = '$uuid')
+                 		, 0
                  		, '$usuario', '$cuentaCompleta', '$fecha', '$fecha' 
                  		, '$folio'
                  		, (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid')
-                 		, 0, 0, 0, null, '0', NULL, '', 0, 0, 0, NULL, NULL, NULL, NULL, 0, 0, '$uuid', 0,'', '$obs') RETURNING ID";
+                 		, 0, 0, 0, null, '0', '$tpago', '', 0, 0, 0, NULL, NULL, NULL, NULL, 0, 0, '$uuid', 0,''
+                 		, (SELECT SERIE||FOLIO FROM XML_DATA WHERE UUID = '$uuid')||' -- '||'$obs')
+                 		 RETURNING ID";
             $res=$this->grabaBD();
             $ridp=ibase_fetch_object($res);
             if($ridp->ID > 0 ){
+            	$mensaje = array("status"=>'ok', "mensaje"=>"Se ha insertado el abono al banco".$ridp->ID);
 	            $this->query="UPDATE XML_DATA SET IDPAGO = $ridp->ID WHERE UUID = '$uuid'";
-	            $this->queryActualiza();
+	            $res = $this->queryActualiza();
+	            if($res == 1){
+	            	$this->query="INSERT INTO APLICACIONES (ID, FECHA, IDPAGO, DOCUMENTO, MONTO_APLICADO, SALDO_DOC, SALDO_PAGO, USUARIO, STATUS, RFC, FORMA_PAGO, CANCELADO, PROCESADO, CIERRE_CC, REC_CONTA, FECHA_CIERRE_CC, USUARIO_CIERRE_CC, FECHA_REC_CONTA, FOLIO_REC_CONTA, USUARIO_REC_CONTA, OBSERVACIONES, CONTABILIZADO, TIPO, POLIZA_INGRESO) VALUES (NULL, CURRENT_TIMESTAMP, $ridp->ID, (SELECT SERIE||FOLIO FROM XML_DATA WHERE UUID = '$uuid'), (SELECT IMPORTE FROM XML_DATA WHERE uuid = '$uuid'), 0, 0, '$usuario', 'E', (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid'), '$tpago', 0, 1, 0, 0, null, null, null, 0,null, null, null,null,null)";
+	            	$this->grabaBD();
+	            }
             }
 		}
 		return $mensaje;
@@ -26594,7 +26523,29 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$row=ibase_fetch_object($res);
 			return array("status"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->IMPORTE, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "proveedor"=>$row->NOM_PROV,"monto"=>"$ ".number_format($row->IMPORTE,2), "ctaProvCoi"=>$row->CTACOIPROV, "fecha_edo"=>$row->FECHA_EDO_CTA, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->FACTURA, "importe"=>$row->IMPORTE);
 		}elseif($t = 'Ingreso'){
-			return array("statsu"=>'ok', "info"=>"Esto es un abono");
+			$this->query="SELECT C.*, 
+               				(select CTA_CONTAB
+               				 from PG_BANCOS B
+               				 where B.BANCO || ' - ' || B.NUM_CUENTA = C.BANCO) as CCOI,
+               				 (select BANCO
+               				 from PG_BANCOS B
+               				 where B.BANCO || ' - ' || B.NUM_CUENTA = C.BANCO) as BBANCO,
+               				 (select NUM_CUENTA
+               				 from PG_BANCOS B
+               				 where B.BANCO || ' - ' || B.NUM_CUENTA = C.BANCO) as CUENTA,
+               				(select NOMBRE
+               				 from XML_CLIENTES
+               				 where IDCLIENTE = substring(C.CLIENTE from 5 )) as NOM_PROV,
+               				(select CUENTA_CONTABLE
+               				 from XML_CLIENTES
+               				 where IDCLIENTE = substring(C.CLIENTE from 5 )) as CTACOIPROV, extract(month from C.FECHA_RECEP) as PERIODO,
+               				extract(year from C.FECHA_RECEP) as EJERCICIO
+        		from CARGA_PAGOS c where C.ID = $idp";
+			//echo $this->query;
+			$res=$this->EjecutaQuerySimple();
+			$row=ibase_fetch_object($res);
+
+			return array("statsu"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->MONTO, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "proveedor"=>$row->NOM_PROV,"monto"=>"$ ".number_format($row->MONTO,2), "ctaProvCoi"=>$row->CTACOIPROV, "fecha_edo"=>$row->FECHA_RECEP, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->OBS, "importe"=>$row->MONTO);
 		}
 	}
 
@@ -26614,4 +26565,82 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $data;
 	}
 
+	function revisaXLSX($target_file, $datos){
+		$data=array();
+		if($xlsx = SimpleXLSX::parse($target_file)){
+			echo "<h2>$target_file</h2>";
+			echo '<pre>';
+			//print_r( $xlsx->rows() );
+			echo '</pre>';
+			$i=0;
+			$l=1;
+			$e=0;
+			foreach ($xlsx->rows() as $key) {
+				if($i > 0 ){
+					$clave = $key[0];
+					$fecha = $key[1];
+					$desc = $key[2];
+					$abono = empty($key[3])? 0:$key[3];
+					$cargo = empty($key[4])? 0:$key[4];
+					$tipo = $key[6];
+					$uuid = $key[7];
+					if($cargo <> 0 and $abono <> 0 ){
+						$e++;
+						echo $clave.' <font color="red">No Inserta la linea por que el valor cargo y valor de abono son mayores a 0.00 .</font><br/>';
+					}else{
+						if((gettype($abono) == 'integer' or gettype($abono) =='double') and (gettype($cargo) == 'integer' or gettype($cargo)=='double')){
+							if(($abono + $cargo) > 0 and !empty($tipo) and ($tipo == 'EFE' or $tipo == 'CHQ' or $tipo =='TNS' or $tipo == 'TDC')){
+								$ca = ($abono>0)? 'a':'c';
+								$monto = ($abono>0)? $abono:$cargo;
+								//echo $clave.' <b>Inserta el '.$ca.' con la informacion</b> de tipo : '.$tipo.'<br/>';
+							}else{
+								$e++;
+								echo $clave.' <font color="red">No Inserta la linea por que no tiene Valor o no contiene tipo valido.</font><br/>';
+							}
+						}else{
+							$e++;
+							echo $clave.' <font color="red">error valor de abono '.gettype($abono).' Valor de Cargo '.gettype($cargo).'</font><br/>';
+						}
+					}
+					if(!empty($fecha)){
+						$fecha = substr($fecha,0,10);
+						$val=explode('-', $fecha);
+						if(count($val) == 3 and checkdate($val[1], $val[2],$val[0])){
+						}else{	
+							$e++;
+							echo 'No se encontro una fecha valida, la celda B2 debe de tener el formato de fecha dd/mm/yyyy';
+						}
+					}else{
+						$e++;
+					}
+					if($e == 0){
+						$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid);
+					}
+				}		
+				$i++;
+				$l++;
+			}
+		} else {
+			echo SimpleXLSX::parseError();
+		}
+
+		if($e >0 ){
+			exit();
+			return array("status"=>'No');
+		}else{
+			return array("status"=>'ok', "data"=>$data);
+		}
+	}
+
+	function cargaXLSX($datos, $data){
+		foreach ($data as $key) {
+			//echo '<br/>'.print_r($key);
+			if($key['ca']=='a'){
+				echo '<br/>Inserta un abono';
+			}elseif($key['ca']=='c'){
+				echo '<br/>Inserta un Cargo';
+			}
+		}
+		exit();
+	}
 }?>

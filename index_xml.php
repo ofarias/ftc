@@ -10,7 +10,7 @@ switch (empty($_GET['tipo']) ? null : $_GET['tipo']) {
 	case 'ciecc':
 	default:
 		$tipo = 'ciecc';
-		require dirname(dirname(dirname(__FILE__))).DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.'DescargaMasivaCfdi.php';
+		require dirname(dirname(dirname(__FILE__))).DIRECTORY_SEPARATOR.'htdocs\ftc\app\Classes\lib'.DIRECTORY_SEPARATOR.'DescargaMasivaCfdi.php';
 		$descargaCfdi = new DescargaMasivaCfdi;
 		break;
 	

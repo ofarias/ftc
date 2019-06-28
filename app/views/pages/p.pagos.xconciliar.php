@@ -33,7 +33,7 @@
                                         <td><?php echo $data->IDENTIFICADOR; ?></td>
                                         <td><?php echo $data->NOMBRE; ?></td>
                                         <td><?php echo $data->FECHA_PAGO; ?></td>
-                                        <!-- <td><?ph echo $data->CUENTA;?></td> -->                                             	 
+                                        <!-- <td><?php echo $data->CUENTA;?></td> -->                                             	 
                                         <td><?php echo "$ " . number_format($data->MONTO, 2, '.', ','); ?></td>
                                         <td><input type="button" onclick="conciliar('<?php echo $data->TIPO; ?>', '<?php echo $data->IDENTIFICADOR; ?>')" name="FORM_ACTION_PAGOS_RECIBIR" value="Conciliar" /></td>
                                     </tr>

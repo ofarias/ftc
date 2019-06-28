@@ -361,7 +361,10 @@ class pegaso_controller{
 			ob_start();
 			$cambio=$data->cambioSenia($nuevaSenia, $actual, $usuario);
 			if($cambio['status']=='ok'){
-				$cambio=$data2->cambioSenia($nuevaSenia, $usuario);
+				$cambio2=$data2->cambioSenia($nuevaSenia, $usuario);
+				if($cambio2['status']== 'm'){
+					$cambioM=$data->cambioMultiple($nuevaSenia, $actual, $usuario, $cambio2['empresas']);
+				}
 			}
 			$this->CerrarVentana();
 		}else{
@@ -656,7 +659,7 @@ class pegaso_controller{
 			$rechazos = $data->verRechazo();
 			$usuario=$_SESSION['user']->NOMBRE;
 			$letra = $_SESSION['user']->LETRA;
-				$table= ob_get_clean();
+			$table= ob_get_clean();
 				include 'app/views/modules/m.mV.php';
 				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
 			$this-> view_page($pagina);
@@ -1500,7 +1503,7 @@ class pegaso_controller{
 	}
 
 	/*Header para los popup?*/
-	function load_template_popup($title='Ferretera Pegaso'){
+	function load_template_popup($title='sat2app'){
 		$pagina = $this->load_page('app/views/master.php');
 		$header = $this->load_page('app/views/sections/s.header2.php');
 		$pagina = $this->replace_content('/\#HEADER\#/ms' ,$header , $pagina);
@@ -2060,7 +2063,10 @@ class pegaso_controller{
 			ob_start(); 
 			$exec = $data->ActualizaUsr($mail, $usuario, $contrasena, $email, $rol, $estatus);
 			if($exec['status'] == 'ok'){
-				$cambio=$data2->cambioSenia($contrasena = $exec['contra'], $usuario);
+				$cambio=$data2->cambioSenia($contrasena, $usuario);
+				if($cambio['status']=='m'){
+					$cambioM=$data->cambioMultiple($contrasena, $actual= 'md5', $usuario , $cambio['empresas']);
+				}
 			}
 			$pagina=$this->load_template('Pedidos');
 			$html=$this->load_page('app/views/pages/p.redirectform.php');
@@ -6251,29 +6257,25 @@ function liberaPendientes($doco, $id_preoc, $pxr, $par){
 
 	}
 
-
 	function liberaPendientes2($doco, $id_preoc, $pxr, $par){
-		
 		if(isset($_SESSION['user'])){
 			$data = new pegaso;	
 			ob_start();
 			$liberar=$data->LiberarPartidasNoRecibidas($doco, $id_preoc, $pxr, $par);
-			}
-			
+		}
 	}
 
     function FormCapturaGasto(){
-            
             if(isset($_SESSION['user'])){
             $data = new pegaso;	
             $pagina=$this->load_template('PXR');				
-            $html = $this->load_page('app/views/pages/p.formnuevogasto.php');
+            $html = $this->load_page('app/views/pages/Tesoreria/p.formnuevogasto.php');
             ob_start();
             $exec = $data->traeConceptoGastos();
             $prov = $data->traeProveedoresGastos();
             $clasificacion = $data->traeClasificacionGastos();
             if($exec != ''){
-            	include 'app/views/pages/p.formnuevogasto.php';
+            	include 'app/views/pages/Tesoreria/p.formnuevogasto.php';
 		$table = ob_get_clean();
 		$pagina = $this->replace_content('/\#CONTENIDO\#/ms' , $table, $pagina);
             }else{
@@ -6962,12 +6964,12 @@ function liberaPendientes($doco, $id_preoc, $pxr, $par){
             $html=$this->load_page('app/views/pages/Clientes/p.catalogo_documentosxcliente.php'); 
             ob_start();
             $exec=$data->traeClientesParaDocs(); 
+            include 'app/views/pages/Clientes/p.catalogo_documentosxcliente.php';
+            $table = ob_get_clean();     
             if (count($exec)){
-                include 'app/views/pages/Clientes/p.catalogo_documentosxcliente.php';
-                $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
             }else{
-                $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
+                $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
                     }
                 $this->view_page($pagina);
         }else{
@@ -9808,14 +9810,14 @@ function imprimirFacturasAcuse(){
         	$html = $this->load_page('app/views/pages/Tesoreria/p.pagos.listado.php');
         	ob_start();
         	$exec = $data->Pagos();
+        	$gastos = $data->listadoGastos();
            	$table = ob_get_clean();
-        	if (count($exec) > 0) {
-            	include 'app/views/pages/Tesoreria/p.pagos.listado.php';
+        	include 'app/views/pages/Tesoreria/p.pagos.listado.php';
+        	if(count($exec) > 0 and count($gastos) > 0) {
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	}else{	
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table . '<div class="alert-danger"><center><h2>No existen datos para mostrar. </h2><center></div>', $pagina);
-            	include 'app/views/pages/Tesoreria/p.pagos.listado.php';
-        	}
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table . '<div class="alert-danger"><center><h2>No existen Pagos o gastos pendientes. </h2><center></div>', $pagina);
+          	}
         	$this->view_page($pagina);
     	} else {
         	$e = "Favor de Iniciar Sesión";
@@ -9828,11 +9830,11 @@ function imprimirFacturasAcuse(){
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');
-        	$html = $this->load_page('app/views/pages/p.pagos.gastos.listado.php');
+        	$html = $this->load_page('app/views/pages/Tesoreria/p.pagos.gastos.listado.php');
         	ob_start();
         	$exec = $data->listadoGastos();
         	if (count($exec) > 0) {
-            	include 'app/views/pages/p.pagos.gastos.listado.php';
+            	include 'app/views/pages/Tesoreria/p.pagos.gastos.listado.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
@@ -9846,17 +9848,16 @@ function imprimirFacturasAcuse(){
     	}
 	}
     
-	function pagoGasto($identificador) {
-    	
+	function pagoGasto($identificador) {	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');
-        	$html = $this->load_page('app/views/pages/p.pago.gasto.php');
+        	$html = $this->load_page('app/views/pages/Tesoreria/p.pago.gasto.php');
         	ob_start();
         	$cuentaBancarias = $data->CuentasBancos();
         	$exec = $data->PagosGastos($identificador);
         	if (count($exec) > 0) {
-            	include 'app/views/pages/p.pago.gasto.php';
+            	include 'app/views/pages/Tesoreria/p.pago.gasto.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
@@ -9921,33 +9922,22 @@ function imprimirFacturasAcuse(){
 	}
     
 	function PagoGastoCorrecto($cuentabanco, $documento, $tipopago, $monto, $proveedor, $claveProveedor, $fechadocumento) {
-    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
-
         	$pagina = $this->load_template('Pagos');
-        	// $html = $this->load_page('app/views/pages/p.pagoc.php'); cafaray 3/sep/2016
-        	$html = $this->load_page('app/views/pages/p.pagos.gastos.listado.php');
+        	$html = $this->load_page('app/views/pages/Tesoreria/p.pagos.gastos.listado.php');
         	ob_start();
-        	//generamos consultas
-       	 
-        	//$guarda = $data->GuardaPagoCorrecto($docu, $tipop, $monto, $entregadoa);
         	$guarda = $data->GuardaPagoGastoCorrecto($cuentabanco, $documento, $tipopago, $monto, $proveedor, $claveProveedor, $fechadocumento);
         	if($guarda!=null){
             	$error = "Datos guardados correctamente";
         	} else {
             	$error = "Hubieron errores al registrar el pago. Revise la bitacora de operación.";
         	}
-        	$exec = $data->listadoGastos();
-        	if (count($guarda) > 0) {
-            	include 'app/views/pages/p.pagos.gastos.listado.php';
-            	$table = ob_get_clean();
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-            	$pagina.="<script>alert('$error');</script>";
-        	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-        	}
-        	$this->view_page($pagina);
+        	$redireccionar = 'pago_gastos';
+        	$pagina=$this->load_template('Pedidos');
+        	$html = $this->load_page('app/views/pages/p.redirectform.php');
+            include 'app/views/pages/p.redirectform.php';
+        	$this->view_page($pagina);        	
     	} else {
         	$e = "Favor de Iniciar Sesión";
         	header('Location: index.php?action=login&e=' . urlencode($e));
@@ -9955,8 +9945,7 @@ function imprimirFacturasAcuse(){
     	}
 	}
 
-function verXautorizar(){
-    	
+	function verXautorizar(){	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pedidos');
@@ -10564,16 +10553,15 @@ function verXautorizar(){
     	}			
     }
 
-    function listaCuentas_docs(){
-    	
+    function listaCuentas_docs(){    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
-        	$html = $this->load_page('app/views/pages/p.listadocuentas_docs.php');
+        	$html = $this->load_page('app/views/pages/Clientes/p.listadocuentas_docs.php');
         	ob_start();
         	$exec=$data->listarCuentasBancarias();
         	if (count($exec)){
-            	include 'app/views/pages/p.listadocuentas_docs.php';
+            	include 'app/views/pages/Clientes/p.listadocuentas_docs.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
@@ -10586,7 +10574,6 @@ function verXautorizar(){
         	exit;
     	}			
     }
-
 
     function selectBanco(){
     	if (isset($_SESSION['user'])) {
@@ -10640,7 +10627,6 @@ function verXautorizar(){
 
 
       function estado_de_cuenta_docs($banco, $cuenta){
-    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -12072,15 +12058,15 @@ function fallarOC($doco){
 
      function regCargosFinancieros($mensaje){
      	if (isset($_SESSION['user'])) {            
-             $data = new pegaso;
-             $pagina = $this->load_template('Pagos');        	            
-             ob_start();            
-             $cuentaBancarias = $data->CuentasBancos();
-             $cf = $data->asociaCF();
-                 include 'app/views/pages/p.regCargoFinanciero.php';
-                 $table = ob_get_clean();
-                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-             $this->view_page($pagina);
+            $data = new pegaso;
+            $pagina = $this->load_template('Pagos');        	            
+            ob_start();            
+            $cuentaBancarias = $data->CuentasBancos();
+            $cf = $data->asociaCF();
+            include 'app/views/pages/p.regCargoFinanciero.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this->view_page($pagina);
      	} else {
              $e = "Favor de Iniciar Sesión";
              header('Location: index.php?action=login&e=' . urlencode($e));
@@ -12432,19 +12418,18 @@ function fallarOC($doco){
     }
 
     function asociaCF(){
-    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
             $html = $this->load_page('app/views/pages/p.verCargosFinancieros.php');
             ob_start();
             $cf=$data->asociaCF();
+            include 'app/views/pages/p.verCargosFinancieros.php';
+            $table = ob_get_clean();    
             if (count($cf)>0) {
-                include 'app/views/pages/p.verCargosFinancieros.php';
-                $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             } else {
-                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRARON CARGOS FINANCIEROS PENDIENTES DE APLICAR</h2><center></div>', $pagina);
+                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table . '<div class="alert-danger"><center><h2>NO SE ENCONTRARON CARGOS FINANCIEROS PENDIENTES DE APLICAR</h2><center></div>', $pagina);
             }
             $this->view_page($pagina);
         } else {
@@ -13035,19 +13020,18 @@ function ImpSolicitud2($idsol){
 	}
 
 	function verPagoSolicitudes(){
-		
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
             $html = $this->load_page('app/views/pages/p.ver.solicitudes.pagadas.php');
             ob_start();
             $solicitudes=$data->verPagoSolicitudes();
+            include 'app/views/pages/p.ver.solicitudes.pagadas.php';
+            $table = ob_get_clean();    
             if (count($solicitudes)>0){
-                include 'app/views/pages/p.ver.solicitudes.pagadas.php';
-                $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             } else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRARON
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table.'<div class="alert-danger"><center><h2>NO SE ENCONTRARON
                 	 SOLICITUDES PENDIENTES DE IMPRESIÓN</h2><center></div>', $pagina);
             }
             $this->view_page($pagina);
@@ -13732,12 +13716,12 @@ function ImpSolicitud2($idsol){
             ob_start();
             $maestros = $data->verMaestros($cartera);
             //$saldoAcumulado=$data->saldoAcumulado();
+            include 'app/views/pages/p.verMaestros.php';
+            $table = ob_get_clean();    
             if (count($maestros)>0){
-                include 'app/views/pages/p.verMaestros.php';
-                $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
             } else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION.</h2><center></div>', $pagina);
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION.</h2><center></div>', $pagina);
             }
             $this->view_page($pagina);
         	} else {
@@ -14376,12 +14360,12 @@ function ImpSolicitud2($idsol){
         $html=$this->load_page('app/views/pages/compras/p.verSolProd.php');
         ob_start();
         $verSolicitudes = $data->verSolProdVentas();
+        include 'app/views/pages/compras/p.verSolProd.php';
+        $table = ob_get_clean();    
         if (count($verSolicitudes)>0){
-            include 'app/views/pages/compras/p.verSolProd.php';
-            $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
         }else{
-            $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
                 }
             $this->view_page($pagina);
             }else{
@@ -14459,21 +14443,20 @@ function ImpSolicitud2($idsol){
     }
 
     function verCategorias(){
-    	
     	if($_SESSION['user']){
     		$data= new pegaso;
     		$datav= new pegaso_ventas;
     		$pagina=$this->load_template('Pedidos');
         	$html=$this->load_page('app/views/pages/ventas/p.verCategorias.php');
-        ob_start();
+        	ob_start();
         	$categorias = $datav->traeCategorias();
         	$categoriasT = $datav->traeCategoriasT();
+            include 'app/views/pages/ventas/p.verCategorias.php';
+	        $table = ob_get_clean();    
             if (count($categorias)>0){
-	            include 'app/views/pages/ventas/p.verCategorias.php';
-	            $table = ob_get_clean();
 	            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
 	        }else{
-	            $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
+	            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
 	                }
 	    $this->view_page($pagina);
         }else{
@@ -14484,22 +14467,20 @@ function ImpSolicitud2($idsol){
 
 
     function catalogoProductosFTC($marca, $categoria, $desc1, $generico, $unidadmedida, $prov1, $desc2, $descripcion){
-    	
     	if($_SESSION['user']){
     		$user=$_SESSION['user']->USER_LOGIN;
     		$data= new pegaso;
     		$datav= new pegaso_ventas;
     		$pagina=$this->load_template('Pedidos');
         	$html=$this->load_page('app/views/pages/ventas/p.verCatalogoProductosFTC.php');
-        ob_start();
-        		$catProductos = $data->catalogoProductosFTC($descripcion);
-        	
+        	ob_start();
+        	$catProductos = $data->catalogoProductosFTC($descripcion);
+	        include 'app/views/pages/ventas/p.verCatalogoProductosFTC.php';
+	        $table = ob_get_clean();
             if (count($catProductos)>0){
-	            include 'app/views/pages/ventas/p.verCatalogoProductosFTC.php';
-	            $table = ob_get_clean();
 	            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
 	        }else{
-	            $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
+	            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
 	                }
 	    $this->view_page($pagina);
         }else{
@@ -14879,16 +14860,15 @@ function ImpSolicitud2($idsol){
     	}
     }
 
-    function editaProveedor($idprov){
-    	
+    function editaProveedor($idprov){   	
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$pagina=$this->load_template('Pedidos');
-    		$html = $this->load_page('app/views/pages/p.editaProveedor.php');
+    		$html = $this->load_page('app/views/pages/Proveedores/p.editaProveedor.php');
     		ob_start();
     		$responsables=$data->traeResponsablesProve();
     		$proveedor=$data->editaProveedor($idprov);
-    		include 'app/views/pages/p.editaProveedor.php';
+    		include 'app/views/pages/Proveedores/p.editaProveedor.php';
     		$table = ob_get_clean();
     		$pagina= $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
     		$this->view_page($pagina); 
@@ -14899,12 +14879,11 @@ function ImpSolicitud2($idsol){
     	}	
     }
 
-    function editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3){
-    	
+    function editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3, $serv){
     	if($_SESSION['user']){
     		$data =  new pegaso;
     		ob_start();
-    		$edita = $data->editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3);
+    		$edita = $data->editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3, $serv);
     		$this->editaProveedor($idprov);
     		
     	}
@@ -17036,7 +17015,7 @@ function ImpSolicitud2($idsol){
     		if (count($solicitudes)> 0 ){
     			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
     		}else{
-    			$pagina = $this->replace_content('/\CONTENIDO\#/ms',$table.'<div class="alert-success"><center><h2>Felicidades no hay pendientes por cambiar de proveedor...</h2><center></div>', $pagina);
+    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-success"><center><h2>Felicidades no hay pendientes por cambiar de proveedor...</h2><center></div>', $pagina);
     		}
     			$this->view_page($pagina);
     	}else{
@@ -18990,7 +18969,7 @@ function ImprimeFacturaPegaso($factura, $destino){
         $genqr=$qr->QRFactura($Cabecera, $fiscal);
         $pdf=new FPDF('P','mm','Letter');
        	$pdf->AddPage();
-        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],5,1);
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],5,1, 60, 30);
         if(substr($factura,0,3)=='NCR' or substr($factura,0,3)=='NCS' or substr($factura,0,3)=='NCD' or substr($factura,0,3)=='NCB'){
         	$tipoComp = 'E (EGRESO)';
         	$tipoDoc = 'Nota de Credito';
@@ -19020,15 +18999,15 @@ function ImprimeFacturaPegaso($factura, $destino){
 
         $pdf->SetFont('Courier','B', 6);
         $pdf->SetXY(75, 1);
+  		$pdf->Write(10,$DF->RAZON_SOCIAL);
+        $pdf->SetXY(75, 5);
   		$pdf->Write(10,'Domicilio Fiscal: '.$DF->CALLE.', '.$DF->EXTERNO.', '.$DF->INTERNO);
-  		$pdf->SetXY(75, 5);
-  		$pdf->Write(10,'Col:'.$DF->COLONIA.', CP: '.$DF->CP);
   		$pdf->SetXY(75, 9);
+  		$pdf->Write(10,'Col:'.$DF->COLONIA.', CP: '.$DF->CP);
+  		$pdf->SetXY(75, 13);
   		$pdf->Write(10, $DF->DELEGACION.', '.$DF->ESTADO);
-        $pdf->SetXY(75, 13);
-  		$pdf->Write(10,'RFC:'.$DF->RFC.'Regimen Fiscal:'.$DF->REGIMEN_FISCAL);
         $pdf->SetXY(75, 17);
-  		$pdf->Write(10,'');
+  		$pdf->Write(10,'RFC:'.$DF->RFC.'Regimen Fiscal:'.$DF->REGIMEN_FISCAL);
         $pdf->SetXY(75, 21);
         $pdf->Write(10,'LUGAR DE EXPEDICION: '.$lugar);
         $pdf->SetXY(140, 1);
@@ -20072,7 +20051,7 @@ function ImprimeFacturaPegaso($factura, $destino){
     	}
     }
 
-    function verXMLSP($mes, $anio, $ide){
+    function verXMLSP($mes, $anio, $ide, $doc){
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$pagina = $this->load_template();
@@ -20080,7 +20059,7 @@ function ImprimeFacturaPegaso($factura, $destino){
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
   			$uuid =false;
-    		$info=$data->verXMLSP($mes, $anio, $ide, $uuid);
+    		$info=$data->verXMLSP($mes, $anio, $ide, $uuid, $doc);
     		include 'app/views/pages/xml/p.verXMLSP.php';
   			$table = ob_get_clean();
   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
@@ -20107,12 +20086,12 @@ function ImprimeFacturaPegaso($factura, $destino){
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$coi = new CoiDAO;
-    		$pagina = $this->load_template();
+    		$pagina = $this->load_template_popup();
   			$html=$this->load_page('app/views/pages/xml/p.verXML.php');
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
   			//$actualiza=$coi->
-  			$infoCabecera=$data->verXMLSP($mes=false, $anio= false, $ide, $uuid);
+  			$infoCabecera=$data->verXMLSP($mes=false, $anio= false, $ide, $uuid, $doc=false);
     		$info=$data->verXML($uuid, $ide);
     		$cccliente=$coi->traeCuentaCliente($infoCabecera, $ide);
     		$ccC=$coi->traeCatalogoCuentas($tipo='V', $ide);
@@ -20549,9 +20528,9 @@ function ImprimeFacturaPegaso($factura, $destino){
 		return $res;
 	}
 
-	function ctaXML($uuid, $cta, $t, $obs, $fecha){
+	function ctaXML($uuid, $cta, $t, $obs, $fecha, $tpago){
 		$data= new pegaso;
-		$res = $data->ctaXML($uuid, $cta, $t, $obs, $fecha);
+		$res = $data->ctaXML($uuid, $cta, $t, $obs, $fecha, $tpago);
 		return $res;
 	}
 
@@ -20561,5 +20540,22 @@ function ImprimeFacturaPegaso($factura, $destino){
 		return $res;
 	}
 
+	function cargaEdoCtaXLS($target_file, $datos, $banco, $cuenta){
+		if($_SESSION['user']){
+			$data = new pegaso;
+			$pagina = $this->load_template('Pagos');        	
+        	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta.php');
+        	$res= $data->revisaXLSX($target_file, $datos);
+			if($res['status']== 'ok'){
+				$carga=$data->cargaXLSX($datos, $res['data']);
+			}
+			$html = $this->load_page('app/views/pages/p.redirectform.php');
+			$redireccionar="estado_de_cuenta&banco={$banco}&cuenta={$cuenta}";
+			$pagina=$this->load_template('Pedidos');
+            $html = $this->load_page('app/views/pages/p.redirectform.php');
+            include 'app/views/pages/p.redirectform.php';
+            //$this->view_page($pagina);    
+		}
+	}
 }?>
 

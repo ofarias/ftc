@@ -183,6 +183,18 @@
                 </div>
             </div>
 
+        <div class="col-md-3">
+          <div class="panel panel-default">
+              <div class="panel-heading">
+                  <h4><i class="fa fa-list-alt"></i>Ver Pagos Estado de Cuenta</h4>
+              </div>
+              <div class="panel-body">
+                  <p>Pagos Edo Cuenta</p>
+                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img src="app/views/images/dinero_v1.jpg"></a></center>
+              </div>
+          </div>
+        </div>
+
         </div>
     </div>
     

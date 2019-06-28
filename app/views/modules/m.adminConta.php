@@ -8,7 +8,7 @@
                 </h3>
             </div>
             <div>
-                <label> Bienvenido: <?php echo $u?></label>
+                <label> Bienvenido : <?php echo $u?></label>
             </div>
             <br/>
             <?php foreach($usuario as $key):?>
@@ -20,7 +20,7 @@
                     <div class="panel-body">
                         
                         <center><a href="index.php?action=loginC&empresa=<?php echo $key['ide'].':'.$key['nombre']?>" class="btn btn-default">
-                            <img src="app/views/images/Logos/<?php echo $key['logo']?>"></a></center>
+                            <img src="app/views/images/Logos/<?php echo $key['logo']?>" width="89" heigth="69"></a></center>
                     </div>
                 </div>
             </div>

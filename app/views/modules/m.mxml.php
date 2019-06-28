@@ -13,7 +13,8 @@
                 </div>
                 <div class="panel-body">
                     <p>Configuracion</p>
-                    <center><a href="index.coi.php?action=cuentasImp" class="btn btn-default">Cuentas Impuestos</a></center>
+                    <center><a href="index.coi.php?action=cuentasImp" class="btn btn-default">Cuentas Impuestos</a>
+                    </center>
                 </div>
             </div>
         </div>    
@@ -24,24 +25,28 @@
                 </div>
                 <div class="panel-body">
                     <center>Recibidos &nbsp;&nbsp;
+                            <select id="per">
                             <?php foreach ($periodos as $key): ?>
-                                <?php if ($key->T == 'r'): ?>
-                                <select id="per">
-                                    <option value="<?php echo $key->EJERCICIO?>"><?php echo $key->EJERCICIO?></option>>
-                                </select>
-                                <input type="button" name="anio" id="per" onclick="ejecuta('R','per')" value="Ir" class="btn btn-success"></center>
-                                <?php endif ?>
+                                <?php if ($key->T == 'r'){ ?>
+                                    <option value="<?php echo $key->EJERCICIO?>"><?php echo $key->EJERCICIO?></option>
+                                <?php }elseif($key->T != 'r' and $key->T != 'e'){ ?>
+                                    <option value="">No se Encontro Infomacion.</option>
+                                <?php }?>
                             <?php endforeach ?>
+                            </select>                                
+                            <input type="button" name="anio" id="per" onclick="ejecuta('R','per')" value="Ir" class="btn btn-success"></center>
                     <br/>
                     <center>Emitidos&nbsp;&nbsp;&nbsp;
-                        <?php foreach ($periodos as $key): ?>
-                            <?php if ($key->T == 'e'): ?>
-                                <select id="peri">
-                                        <option value="<?php echo $key->EJERCICIO?>"><?php echo $key->EJERCICIO?></option>>
-                                </select>
-                                <input type="button" name="anio" onclick="ejecuta('E','peri')" value="Ir" class="btn btn-success"></center>
-                            <?php endif ?>
-                        <?php endforeach ?>
+                            <select id="peri">
+                            <?php foreach ($periodos as $key): ?>
+                                <?php if ($key->T == 'e'){ ?>
+                                    <option value="<?php echo $key->EJERCICIO?>"><?php echo $key->EJERCICIO?></option>
+                                <?php }elseif($key->T != 'r' and $key->T != 'e'){ ?>
+                                    <option value="">No se Encontro Infomacion.</option>
+                                <?php }?>
+                            <?php endforeach ?>
+                            </select>
+                            <input type="button" name="anio" onclick="ejecuta('E','peri')" value="Ir" class="btn btn-success"></center>
                 </div>
             </div>
         </div>
@@ -52,7 +57,10 @@
                 </div>
                 <div class="panel-body">
                     <p>Carga de XML</p>
-                    <center><a href="index.php?action=facturaUploadFile&tipo=F" ><img src="app/views/images/Xml/CargaXML.png" width="90" height="70"></a></center>
+                    <center><a href="index.php?action=facturaUploadFile&tipo=F" >
+                        <img src="app/views/images/Xml/CargaXML.png" width="90" height="70">
+                        <!--<img src="app/views/images/Xml/CargaXML.png" onMouseOver="this.src='app/views/images/Xml/XML_1.jpg'" onMouseOut="this.src='app/views/images/Xml/CargaXML.png'" style="cursor:pointer;" width="90" height="70">-->
+                        </a></center>
                 </div>
             </div>
         </div>
@@ -91,6 +99,8 @@
                 </div>
             </div>
         </div>
+    -->
+    <?php if($_SESSION['user']->USER_LOGIN == 'ofarias'){?>
          <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -102,6 +112,8 @@
                 </div>
             </div>
         </div>
+    <?php }?>
+        <!--
          <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -127,7 +139,7 @@
         
         function ejecuta(tipo, anio){
             var anio = document.getElementById(anio).value
-            window.open("index.php?action=mXMLSP&tipo="+tipo+"&anio="+anio, "popup");
+            window.open("index.php?action=mXMLSP&tipo="+tipo+"&anio="+anio, "self");
             return false;
 
         }

@@ -34,7 +34,7 @@
                                         <td><?php echo $data->IDENTIFICADOR; ?></td>
                                         <td><?php echo $data->NOMBRE; ?></td>
                                         <td><?php echo $data->FECHA_PAGO; ?></td>
-                                        <!-- <td><?ph echo $data->CUENTA;?></td> -->                                             	 
+                                        <!-- <td><?php echo $data->CUENTA;?></td> -->                                             	 
                                         <td><?php echo "$ " . number_format($data->MONTO, 2, '.', ','); ?></td>
                                         <td><input type="button" onclick="recibir('<?php echo $data->TIPO; ?>', '<?php echo $data->IDENTIFICADOR; ?>', '<?php echo $data->FECHA_PAGO; ?>', '<?php echo $data->BANCO;?>', '<?php echo $data->MONTO; ?>')" name="FORM_ACTION_PAGOS_RECIBIR" value="Recibir" /></td>
                                     </tr>

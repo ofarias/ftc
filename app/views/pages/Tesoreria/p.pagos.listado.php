@@ -6,9 +6,11 @@
             <div class="panel-heading">
                 Confirmar Pagos
             </div>
+<?php if(count($gastos) > 0){?>
+<a href="index.php?action=pago_gastos">Ver gastos para pago</a>
+<?php }?>
 <?php if(count($exec)>0){?>
             <div class="panel-body">
-                <a href="index.php?action=pago_gastos">Ver gastos para pago</a>
                 <div class="table-responsive">  
                     <span>Solicitud de pago</span>
                     <table class="table table-striped table-bordered table-hover" >

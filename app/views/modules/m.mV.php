@@ -71,6 +71,19 @@
                     </div>
                 </div>
             </div>
+            <?php if($letra == 'G'){?>
+                <div class="col-xs-12 col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> Realizar Notas de Credito</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p>Notas de Credito y Refacturaciones </p>
+                        <center><a href="index.php?action=buscaFacturaNC" class="btn btn-default"><img src="app/views/images/Clipboard-Paste-icon.png"></a></center>
+                    </div>
+                </div>
+            </div> 
+            <?php }?>
         </div>
     </div>
     

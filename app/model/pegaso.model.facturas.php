@@ -8,18 +8,27 @@ require_once('app/views/unit/commonts/numbertoletter.php');
 
 class pegaso_controller_facturacion{
 
-	function verificaDatos($pedido){//// Obtenemos los datos de la factura y los veridficamos.
+	function verificaDatos($pedido) {//// Obtenemos los datos de la factura y los veridficamos.
 
 		$cliente = array("clave"=>$clave, "nombre"=>$nombre, "direccion"=>$direccion, "rfc"=>$rfc, "cp"=>$cp, "edo"=>$edo, "municipio"=>$municipio, "telefono"=>$telefono, "ubicacionMaps"=>$ubicacionMaps, "usoCFDISat"=>$usoCFDISat,"formaPagoSat"=>$formaPagoSat, "metodoPagoSat"=>$metodoPagoSat);
+		$pegaso = array("clave"=>$clave, "nombre"=>$nombre, "direccion"=>$direccion, "rfc"=>$rfc, "cp"=>$cp, "edo"=>$edo, "municipio"=>$municipio, "telefono"=>$telefono, "ubicacionMaps"=>$ubicacionMaps, "usoCFDISat"=>$usoCFDISat,"formaPagoSat"=>$formaPagoSat, "metodoPagoSat"=>$metodoPagoSat);
 
-		$pegaso = array("clave"=>$clave, "nombre"=>$nombre, "direccion"=>$direccion, "rfc"=>$rfc, "cp"=>$cp, "edo"=>$edo, "municipio"=>$municipio, "telefono"=>$telefono, "ubicacionMaps"=>$ubicacionMaps, "usoCFDISat"=>$usoCFDISat,"formaPagoSat"=>$formaPagoSat, "metodoPagoSat"=>$metodoPagoSat)
-
-		foreach ($par as $key) {
-
+		foreach ($par as $key){
 			$impuestos=array("Base"=>$base, "Impuesto"=>$impuesto,"TipoFactor"=>$tipoFactor, "TasaOCuota"=>$tasaOCuota, "Importe"=>$importe);
-			$partida=array("noIdentificacion"=>$clave, "ClaveProdServ"=>$claveSat, "unidad"=>$um, "ClaveUnidad"=>$umSat, "partida"=>$partida, "Cantidad"=>$cantidad , "descripcion"=>$descripcion,"ValorUnitario"=>,$precio, "descuento"=>$descuento,"iva"=>$iva, "tasa"=>$tasa, "Importe"=>$importe, "Impuestos"=>$impuestos);
-
-		
+			$partida=array(
+				"noIdentificacion"=>$clave, 
+				"ClaveProdServ"=>$claveSat, 
+				"unidad"=>$um, 
+				"ClaveUnidad"=>$umSat, 
+				"partida"=>$partida, 
+				"Cantidad"=>$cantidad , 
+				"descripcion"=>$descripcion,
+				"ValorUnitario"=>$precio, 
+				"descuento"=>$descuento,
+				"iva"=>$iva,
+				"tasa"=>$tasa,
+				"Importe"=>$importe,
+				"Impuestos"=>$impuestos);
 		}
 	
 		/*
@@ -62,7 +71,7 @@ class pegaso_controller_facturacion{
 
 	}
 
-	function crearFactura($partidas, $cliente,){ ////  Si la factura esta ok, armamos la factura y la eniamos a Timbrar.
+	function crearFactura($partidas, $cliente){ ////  Si la factura esta ok, armamos la factura y la eniamos a Timbrar.
 
 	}
 

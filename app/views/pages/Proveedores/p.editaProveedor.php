@@ -101,6 +101,14 @@
                                     <label><?php echo empty($data->USR_CERT)? '':"Usuario que certifica $data->USR_CERT";?> <?php echo empty($data->FECHA_ULT_CERT)? "el $data->FECHA_CERT":"el $data->FECHA_ULT_CERT"?> </label> 
                                 </div>
                             </div>
+                            <div class="form-group">
+                                <label for="categoria" class="col-lg-2 control-label">Proveedor de Servicio?</label>
+                                <div class="col-lg-10">
+                                    <br/>
+                                    <input type="checkbox" name="serv" value="Servicio" <?php echo ($data->FAX == 'Servicio')? "checked='checked'":"";?> > Servicio <br/>
+                                    
+                                </div>
+                            </div>
 
                              <div class="form-group">
                                 <label for="categoria" class="col-lg-2 control-label"> Seleccionar Responsable de Compra </label>

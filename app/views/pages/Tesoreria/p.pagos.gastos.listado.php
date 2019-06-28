@@ -21,12 +21,12 @@
                                 <th>CLASIFICACI&Oacute;N</th>
                             </tr>
                         </thead>   
-                        <tfoot>
+                        <!--<tfoot>
                             <tr>
-                                <th colspan="11" style="text-align:right">Total:</th>
+                                <th colspan="4" style="text-align:right">Total:</th>
                                 <th></th>
                             </tr>
-                        </tfoot>
+                        </tfoot>-->
                         <tbody>
                             <?php
                             foreach ($exec as $data):
@@ -37,7 +37,7 @@
                                     onclick="seleccionaPago('<?php echo $data->ID; ?>');">
                                     <td><a href="index.php?action=documentodet&doc=<?php echo $data->ID ?>"><?php echo $data->ID; ?></a></td>
                                     <td><?php echo $data->CONCEPTO; ?></td>
-                                    <td><?php echo $data->PROVEEDOR; ?></td>
+                                    <td><?php echo $data->PROV; ?></td>
                                     <td><?php echo $data->FECHA_CREACION; ?></td>
                                     <td><?php echo "$ " . number_format($data->MONTO_PAGO, 2, '.', ','); ?></td>
                                     <td><?php echo "$ " . number_format($data->PRESUPUESTO, 2, '.', ','); ?></td>
@@ -46,7 +46,6 @@
                             <?php endforeach; ?>
                         </tbody>
                     </table>
-                    <!-- /.table-responsive -->
                 </div>
             </div>
         </div>
@@ -57,14 +56,11 @@
     <input name="fecha" id="fechadoc" type="hidden" value=""/>
     <input name="FORM_NAME_GASTO" type="hidden" value="FORM_ACTION_PAGO_GASTO"/>
 </form>
-
 <script language="javascript">
     function seleccionaPago(documento, proveedor, claveProveedor, importe, fecha) {
-        
             document.getElementById("documento").value = documento;
             document.getElementById("fechadoc").value = fecha;
             var form = document.getElementById("FORM_ACTION_PAGO_GASTO");
             form.submit();
-       
     }
 </script>

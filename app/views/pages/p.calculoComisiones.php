@@ -1,4 +1,4 @@
-<br>
+<br />
 <div class="row">
 <div class="container">
 <div class="form-horizontal">
@@ -125,7 +125,7 @@
                                         <?php endforeach; ?>
                                  </tbody>
                                  <label>Se muestra el mes: <?php echo $mes?> del año <?php echo $anio?> </label><br/>
-                                 <label>Comisiones para el Vendedor: <?phpe echo $vendedor?></label><br/>
+                                 <label>Comisiones para el Vendedor: <?php echo $vendedor;?></label><br/>
                                  <label>Total Ventas (Sin IVA): <?php echo '$ '.number_format($totalFacturas,2)?></label><br/>
                                  <label>Total Notas de Credrito (Sin IVA): <?php echo '$ '.number_format($totalNC,2)?></label><br/>
                                  <label><font color="blue"><b>Total de Venta : <?php echo '$ '.number_format($totalFacturas-$totalNC,2) ?></b></font></label><br/>

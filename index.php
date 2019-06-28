@@ -10,7 +10,7 @@ $controller_cxc = new pegaso_controller_cobranza;
 $controller_v = new pegaso_controller_ventas;
 $controllerxml = new xml;
 if(isset($_GET['action'])){
-$action = $_GET['action'];
+	$action = $_GET['action'];
 }else{
 	$action = '';
 }
@@ -1799,10 +1799,15 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	if(!empty($_POST['email3'])){
 		$email3=$_POST['email3'];
 	}
+	if(isset($_POST['serv'])){
+		$serv=$_POST['serv'];
+	}else{
+		$serv='';
+	}
 	//echo $tp_ch.'<p>';
 	//echo $beneficiario.'<p>';
 	//break;
-	$controller->editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3);
+	$controller->editarProveedor($idprov, $urgencia, $envio, $recoleccion, $tp_efe, $tp_ch, $tp_cr, $tp_tr, $certificado, $banco, $cuenta, $beneficiario, $responsable, $plazo, $email1, $email2, $email3, $serv);
 }elseif (isset($_POST['bajaFTCArticualo'])){
 	$ids = $_POST['ids'];
 	//$controller->bajaFTCArticualo($ids);
@@ -2658,15 +2663,15 @@ exit();
 	echo json_encode($res);
 	exit();
 }elseif(isset($_POST['ctaXML'])){
-	$res=$controller->ctaXML($_POST['uuid'], $_POST['cta'], $_POST['t'], $_POST['obs'], $_POST['fecha']);
+	$res=$controller->ctaXML($_POST['uuid'], $_POST['cta'], $_POST['t'], $_POST['obs'], $_POST['fecha'], $_POST['tpago']);
 	echo json_encode($res);
 	exit();
 }elseif (isset($_POST['traePago'])){
 	$res=$controller->traePago($_POST['idp'], $_POST['t']);
 	echo json_encode($res);
 	exit();
-}
-else{switch ($_GET['action']){
+}else{
+	switch ($_GET['action']){
 	//case 'inicio':
 	//	$controller->Login();
 	//	break;
@@ -4175,7 +4180,7 @@ else{switch ($_GET['action']){
 			$controller->calcularImpuestos();
 			break;
 		case 'verXMLSP':
-			$controller->verXMLSP($_GET['mes'], $_GET['anio'], $_GET['ide']);
+			$controller->verXMLSP($_GET['mes'], $_GET['anio'], $_GET['ide'], $_GET['doc']);
 			break;
 		case 'imprimeXML':
 			$uuid=isset($_GET['uuid'])? $_GET['uuid']:'';
@@ -4290,7 +4295,12 @@ else{switch ($_GET['action']){
 			break;
 		case 'imprimeUUID':
 			$controller->imprimeUUID($_GET['uuid']);
-			break;	
+			break;
+		case 'estado_de_cuenta':
+			$banco = $_GET['banco'];
+			$cuenta = $_GET['cuenta'];
+			$controller->estado_de_cuenta($banco, $cuenta);			
+			break;
 		default: 
 		header('Location: index.php?action=login');
 		break;

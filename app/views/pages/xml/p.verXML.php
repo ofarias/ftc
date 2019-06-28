@@ -11,29 +11,33 @@
 ?>
 <div >
     <input type="button" name="grabaP" onclick="grabaParam('<?php echo $ide?>')" class="btn btn-info" value="Guarda Parametros">
+    <input type="hidden" name="tipoxml" id="tipoxml" value="<?php echo substr($ide, 0, -1)?>">
 <br/><br/>
     <?php if(empty($polizas)){?>
         <input type="button" name="grabaP" onclick="crearPolizas('<?php echo $ide?>')" class="btn btn-success" value="Crear Polizas">
     <?php }else{?>
-        <?php echo $polizas?>
+        <b><?php echo $polizas?></b><br/>
     <?php }?>
     <?php if(empty($pol->IDPAGO)){?>
         <input type="button" name="banco" onclick="banco('<?php echo $ide?>')" class="btn btn-info" value="Registro Edo Cta" >
     <?php }else{?>
         <label><?php echo strtoupper($pol->TP_TES).' registrado en '.$pol->BANCO .', fecha: &nbsp;&nbsp;&nbsp;'.substr($pol->FECHA_EDO_CTA,0,10)?></label>
-        <button onclick="polizaFinal('<?php echo $pol->UUID?>', '<?php echo $tipo?>', <?php echo $pol->IDPAGO?>)" class="btn btn-success">
-        Poliza de <?php echo $tipo?>
-        </button>
+        <?php if($pol->STATUS == 'D' ){?>
+            <button onclick="polizaFinal('<?php echo $pol->UUID?>', '<?php echo $tipo?>', <?php echo $pol->IDPAGO?>)" class="btn btn-success">
+            Poliza de <?php echo $tipo?>
+            </button>
+        <?php }?>
         <br/>
         <br/>
     <?php }?>
 </div>
+<!--
 <div style="float: left; width: 400px;" >
     <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cuenta de IVA : &nbsp;&nbsp;&nbsp; <?php echo '<b>'.$cimpuestos['iva'].'</b>' ?></p>
     <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cuenta de IEPS : &nbsp; <?php echo '<b>'.$cimpuestos['ieps'].'</b>'?></p>
     <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cuenta de ISR : &nbsp;&nbsp;&nbsp;<?php echo '<b>'.$cimpuestos['isr'].'</b>'?> </p>
 </div>
-
+-->
 <br/><br/>
  <?php foreach ($infoCabecera as $key0){ 
         $rfcEmpresa = $_SESSION['rfc'];
@@ -118,11 +122,11 @@
                                             <td><?php echo '$ '.number_format($key->IEPS_RET,2);?></td>
                                             <td><?php echo '$ '.number_format($key->ISR_RET,2)?></td>
                                             <td><?php echo '$ '.number_format($key->DESCUENTO,2)?></td>
-                                            <td><?php echo '$ '.number_format($key->IMPORTE,2);?> </td>
+                                            <td><?php echo '$ '.number_format($key->IMPORTEXML,2);?> </td>
                                         </tr>
                                         <tr style="background-color:#DFCFF1">
                                             <input type="hidden" name="cpv" value="<?php echo '('.$key->RFCE.') '.$key->EMISOR?>" id='clpv'>
-                                            <input type="hidden" name="mont" value="<?php echo number_format($key->IMPORTE,2)?>" id="monto">
+                                            <input type="hidden" name="mont" value="<?php echo number_format($key->IMPORTEXML,2)?>" id="monto">
                                             <td colspan="14">
                                                 <b><?php echo 'Cuenta Actual: '.$cccliente?></b>
                                                 <select id="cClie" >
@@ -177,14 +181,19 @@
                                                 $color='';
                                                 $ln++;
                                                 $ccp='Sin Cuenta Definida';
+                                                $valor2=$key->PARTIDA.':'.$key->CLAVE_SAT.':'.$key->UNIDAD_SAT.':';  
                                                 foreach($ccpartidas as $key0){
                                                     $cuenta = $key0->NUM_CTA;
-                                                    if($key->CUENTA_CONTABLE ==$cuenta){
-                                                        $ccp=$key0->NUM_CTA.'-->'.$key0->NOMBRE;
+                                                    $valor='';
+                                                    if($key->CUENTA_CONTABLE == $cuenta){
+                                                        $ccp= $key0->NUM_CTA.'-->'.$key0->NOMBRE;
+                                                        $valor= $key->PARTIDA.':'.$key->CLAVE_SAT.':'.$key->UNIDAD_SAT.':'.$key->CUENTA_CONTABLE.':'.$rfce;
+                                                        break;
                                                     }
                                                 }
                                         ?>
                                         <tr class="odd gradeX" <?php echo $color ?> >
+
                                            <td><?php echo $key->PARTIDA?></td>
                                             <td> <?php echo $key->DOCUMENTO ?> </td>
                                             <td><?php echo $key->UNIDAD;?> </td>
@@ -200,12 +209,11 @@
                                             <td><?php echo '$ '.number_format($key->IVA_R,2).'<br/>'.$key->FACT_IVA_R.'<br/>'.$key->TASA_IVA_R.'<br/><b>Base:'.number_format($key->B_IVA_R,2)?></td>
                                             <td><?php echo '$ '.number_format($key->IEPS,2).'<br/>'.$key->FACT_IEPS.'<br/>'.$key->TASA_IEPS.'<br/><b>Base:'.number_format($key->B_IEPS,2)?></td>
                                             <td><?php echo '$ '.number_format($key->IEPS_R,2).'<br/>'.$key->FACT_IEPS_R.'<br/>'.$key->TASA_IEPS_R.'<br/><b>Base:'.number_format($key->B_IEPS_R,2)?></td>
-                                            </td>
                                             <tr style="background-color:#DFCFF1">
                                                 <td colspan="14">
                                                     <?php echo '<b>Cuenta Actual: '.$ccp.'#### Cambiar Cuenta --><b>'?>
                                                     <input type="text" name="cuenta" placeholder="Cuenta Contable" class="cuencont" size="120" id="cPP_<?php echo $key->PARTIDA?>" 
-                                                    valor="<?php echo $key->PARTIDA.':'.$key->CLAVE_SAT.':'.$key->UNIDAD_SAT.':'?>" rfc="<?php echo ':'.$rfce?>" >
+                                                    valor="<?php echo $valor?>" rfc="<?php echo ':'.$rfce?>" x="<?php echo $valor2?>" >
                                                 </td>    
                                             </tr>
                                         </tr>
@@ -260,7 +268,7 @@
         var prov = document.getElementById('clpv').value
         var monto = document.getElementById('monto').value
         var uuid = document.getElementById('uuid').value
-        alert(ide)
+        //alert(ide)
         if(ide == 'Recibidos'){
            $.confirm({
             columnClass: 'col-md-8',
@@ -285,6 +293,14 @@
             '<option value="compra">Compra de Material</option>'+
             '<option value="otro">Otro</option>'+
             '</select><br/>'+
+            'Metodo de pago: <br/>'+
+            '<select class="fp" name="tpago">'+
+            '<option value="">Seleccione un Metodo de Pago</option>'+
+            '<option value="TNS">Transferencia</option>'+
+            '<option value="CHQ">Cheque</option>'+
+            '<option value="EFE">Efectivo</option>'+
+            '<option value="TNSDC">Transferencia x Devolucion de Compra</option>'+
+            '</select><br/>'+
             'Fecha en el Estado de cuenta (Fecha de Pago): <br/><input type="date" class="fecha" name="fecha" required ><br/>'+
             '</div><br/><br/>'+
             '</form>',
@@ -296,6 +312,7 @@
                     var cta = this.$content.find('.ban').val();
                     var obs = this.$content.find('.obs').val();
                     var t = this.$content.find('.t').val();
+                    var tpago =this.$content.find('.fp').val();
                     var fecha = this.$content.find('.fecha').val();
                     //var maestr = this.$content.find('mae').val();
                     if(cta == ''){
@@ -307,17 +324,20 @@
                     }else if (fecha === ''){
                         $.alert('Seleccione una fecha por favor...');
                         return false;
+                    }else if (tpago === ''){
+                        $.alert('Seleccione un Metodo de pago por favor...');
+                        return false;    
                     }else{
                         $.alert('Se registrara el cargo en el estado de cuenta con la fecha ' + fecha )
                         $.ajax({
                             url:'index.php',
                             type: 'post',
                             dataType: 'json',
-                            data:{ctaXML:1, uuid, cta, obs, t, fecha},
+                            data:{ctaXML:1, uuid, cta, obs, t, fecha, tpago},
                             success:function(data){
                                 if(data.status == 'ok'){
                                     //document.getElementById('l_'+doc).classList.add('hide');
-                                    alert(data.mensaje);   
+                                    //alert(data.mensaje);   
                                     location.reload(true);
                                 }else if(data.status == 'no'){
                                     alert(data.mensaje);
@@ -363,6 +383,14 @@
             //'<option value="compra">Compra de Material</option>'+
             '<option value="otroIngreso">Otro</option>'+
             '</select><br/>'+
+            'Forma de Pago: <br/>'+
+            '<select class="fp" name="tpago">'+
+            '<option value="">Seleccione un Metodo de Pago</option>'+
+            '<option value="TNS">Transferencia</option>'+
+            '<option value="CHQ">Cheque</option>'+
+            '<option value="EFE">Efectivo</option>'+
+            '<option value="TNSDC">Transferencia x Devolucion de Compra</option>'+
+            '</select><br/>'+
             'Fecha en el Estado de cuenta (Fecha de Pago): <br/><input type="date" class="fecha" name="fecha" required ><br/>'+
             '</div><br/><br/>'+
             '</form>',
@@ -374,6 +402,7 @@
                     var cta = this.$content.find('.ban').val();
                     var obs = this.$content.find('.obs').val();
                     var t = this.$content.find('.t').val();
+                    var tpago =this.$content.find('.fp').val();
                     var fecha = this.$content.find('.fecha').val();
                     //var maestr = this.$content.find('mae').val();
                     if(cta == ''){
@@ -385,17 +414,20 @@
                     }else if (fecha === ''){
                         $.alert('Seleccione una fecha por favor...');
                         return false;
+                    }else if (tpago === ''){
+                        $.alert('Seleccione un Metodo de pago por favor...');
+                        return false;    
                     }else{
                         $.alert('Se registrara el Abono en el estado de cuenta con la fecha ' + fecha )
                         $.ajax({
                             url:'index.php',
                             type: 'post',
                             dataType: 'json',
-                            data:{ctaXML:1, uuid, cta, obs, t, fecha},
+                            data:{ctaXML:1, uuid, cta, obs, t, fecha, tpago},
                             success:function(data){
                                 if(data.status == 'ok'){
                                     //document.getElementById('l_'+doc).classList.add('hide');
-                                    alert(data.mensaje);   
+                                    //alert(data.mensaje);   
                                     location.reload(true);
                                 }else if(data.status == 'no'){
                                     alert(data.mensaje);
@@ -428,12 +460,23 @@
         for (var i = part; i >= 1; i--) {
             //alert('Partida: '+ i);
             //var valPar = document.getElementById("cP_"+i).value;
+            var valPar = ''
             Par = document.getElementById("cPP_"+i).getAttribute('valor');
+            x = document.getElementById("cPP_"+i).getAttribute('x')
             var rfc = document.getElementById("cPP_"+i).getAttribute('rfc');
-            var cuentaNueva = document.getElementById("cPP_"+i).value
-            var t = cuentaNueva.split(":")
-            cuenta = t[7]
-            valPar = Par+cuenta+rfc
+            var cuentaNueva = document.getElementById("cPP_"+i).value 
+            if(cuentaNueva != '' && Par == ''){ ///Aqui no habia valor y es una cuenta nueva.
+                var t = cuentaNueva.split(":")
+                cuenta = t[7]
+                valPar = x+cuenta+rfc
+            }else if(cuentaNueva != '' && Par != ''){ /// Aqui va haber un cambio en la cuenta.
+                var t = cuentaNueva.split(":")
+                cuenta = t[7]
+                valPar = x+cuenta+rfc
+                //alert('entro al cambio')
+            }else if(Par != ''){
+                valPar = Par
+            }
             if(valPar == ''){
                 var ln = parseFloat(i) + 0;
                 alert ('Revise por favor la partida ' + ln + ' ya que no cuenta con un valor, gracias...');
@@ -443,6 +486,7 @@
             }
         }
         partidas = partidas.substring(3);
+        //alert(partidas)
         var cclie = document.getElementById("cClie").value;
         if(cclie == ''){
             alert ('El proveedor debe de tener un valor en el catalogo de cuentas, favor de revisar la informacion.');
@@ -467,7 +511,6 @@
     }
 
     function impFact(factura){
-        alert('Proximamente');
             $.ajax({
                 url:'index.php',
                 type:'post',
@@ -501,6 +544,7 @@
     }
 
     function polizaFinal(uuid, tipo, idp){
+        var tipoxml = document.getElementById('tipoxml').value;
         $.ajax({
             url:'index.php',
             type:'post',
@@ -531,12 +575,14 @@
                                     url:'index.coi.php',
                                     type:'post',
                                     dataType:'json',
-                                    data:{polizaFinal:1, uuid, tipo, idp},
+                                    data:{polizaFinal:1, uuid, tipo, idp, tipoxml},
                                     success:function(data){
                                         $.alert('Listo, se creo la Poliza de ' + tipo )
+                                        location.reload(true)
                                     },
                                     error:function(){
                                         $.alert('No se pudo crear la poliza de ' + tipo + ' favor de revisar la informacion')
+                                        location.reload(true)
                                     }
                                 })
                             }
@@ -555,9 +601,7 @@
                 alert('No se encontro la informacion del pago, favor de reportar a sistemas')
                 return false;
             }
-        })
-
-        
+        })        
     }
         
 </script>

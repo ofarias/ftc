@@ -62,29 +62,35 @@
                                                 $color2= "brown";
                                             }
                                             $rfcEmpresa=$_SESSION['rfc'];
-                                            $test= 'npend';
+                                            $test= 'Pago';
                                             if($key->STATUS == 'P'){
-                                                $descSta = 'Pendiente';
-                                                $test= 'pend';
+                                                $descSta = 'P';
+                                                $test= 'Pendiente';
                                             }elseif($key->STATUS== 'D'){
                                                 $descSta = 'Poliza de Dr para ver la poliza del documento da click en el UUID';
                                                 $color = 'style="background-color:#f9fbae"';
+                                                $test = 'Poliza Dr';
+                                                $color2= "#f9fbae";
                                             }elseif($key->STATUS=='I'){
                                                 $descSta = 'Con Poliza de Ingreso para ver las polizas del documento da click en el UUID';
                                                 $color = 'style="background-color:#a0ecfb"';
+                                                $test = 'Poliza Ig';
+                                                $color2= "#a0ecfb";
                                             }elseif($key->STATUS=='E'){
                                                 $descSta = 'Con Poliza de Egreso para ver las polizas del documento da click en el UUID';
                                                 $color = 'style="background-color:#bcffe9"';
+                                                $test = 'Poliza Eg';
+                                                $color2= "#bcffe9";
                                             }
                                         ?>
                                         <tr class="<?php echo $test?> odd gradeX " <?php echo $color ?> title="<?php echo $descSta?>" id="ln_<?php echo $ln?>" >
                                             <td><?php echo $ln?></td>
-                                            <td><?php echo $descSta.'<br/><font color="blue">'.$key->POLIZA.'</font>'?></td>
+                                            <td><?php echo $test.'<br/><font color="blue">'.$key->POLIZA.'</font>'?></td>
                                             <td><a href="index.coi.php?action=verPolizas&uuid=<?php echo $key->UUID ?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=1320'); return false"> <?php echo $key->UUID ?></a> </td>
                                             <td><?php echo $tipo?></td>
                                             <td><?php echo $key->SERIE.$key->FOLIO?></td>
                                             <td><?php echo $key->FECHA;?> </td>
-                                            <td><?php echo '('.$key->CLIENTE.')  <br/><b>'.$key->NOMBRE.'<b/>';?></td>
+                                            <td><?php echo '('.$key->CLIENTE.')  <br/><b>'.utf8_encode($key->NOMBRE).'<b/>';?></td>
                                             <td><?php echo '('.$key->RFCE.')  <br/><b>'.$key->EMISOR.'<b/>'?></td>
                                             <td><?php echo '$ '.number_format($key->SUBTOTAL,2);?></td>
                                             <td><?php echo '$ '.number_format($key->IVA,2);?></td>
@@ -103,9 +109,16 @@
                                             <form action="index.php" method="POST">
                                                     <input type="hidden" name="factura" value="<?php echo $key->SERIE.$key->FOLIO?>">
                                                 <td>
-                                                    <a href="/uploads/xml/<?php echo $rfcEmpresa.'/Recibidos/'.$key->RFCE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" 
-                                                        download="<?php echo $key->RFCE.'-'.substr($key->FECHA, 0, 10).'-'.number_format($key->IMPORTE,2).'-'.$key->UUID.'.xml'?>"
-                                                        >  <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>&nbsp;&nbsp;
+                                                    <?php if($ide == 'Recibidos'){?>
+                                                        <a href="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->RFCE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" 
+                                                        download="<?php echo $key->RFCE.'-'.substr($key->FECHA, 0, 10).'-'.number_format($key->IMPORTE,2).'-'.$key->UUID.'.xml'?>">  
+                                                        <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>
+                                                    <?php }else{?>
+                                                        <a href="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->CLIENTE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" 
+                                                            download="<?php echo $key->RFCE.'-'.substr($key->FECHA, 0, 10).'-'.number_format($key->IMPORTE,2).'-'.$key->UUID.'.xml'?>">  
+                                                        <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>
+                                                    <?php }?>
+                                                    &nbsp;&nbsp;
                                                     <a href="index.php?action=imprimeUUID&uuid=<?php echo $key->UUID?>" onclick="alert('Se ha descargar tu factura, revisa en tu directorio de descargas')"><img border='0' src='app/views/images/pdf.jpg' width='25' height='30'></a>
                                                 </td>
                                             </form>
@@ -128,16 +141,13 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
-
      function marcar(ln, t){
         var renglon = document.getElementById("ln_"+ln)
         var chek = document.getElementById(ln)
         var color = chek.getAttribute("color")
         if(t == 'c'){
             renglon.style.background="#F08080";         
-            return;
-        }
-        if(chek.checked){
+        }else if(chek.checked){
             renglon.style.background="#F08080";         
         }else{
             renglon.style.background=color;

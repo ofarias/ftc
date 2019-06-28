@@ -684,15 +684,15 @@ class pegaso_controller_ventas{
             $datav= new pegaso_ventas;
             $pagina=$this->load_template('Pedidos');
             $html=$this->load_page('app/views/pages/ventas/p.verMarcas.php');
-        ob_start();
+            ob_start();
             $marcas = $datav->traeMarcas();
             $marcasT = $datav->traeMarcasT();
+            include 'app/views/pages/ventas/p.verMarcas.php';
+            $table = ob_get_clean();    
             if (count($marcas)>0){
-                include 'app/views/pages/ventas/p.verMarcas.php';
-                $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
             }else{
-                $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
+                $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
                     }
         $this->view_page($pagina);
         }else{

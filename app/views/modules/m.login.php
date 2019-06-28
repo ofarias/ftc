@@ -2,7 +2,7 @@
     <div class="col-md-4 col-md-offset-4">
         <div class="login-panel panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">Inicie sesión con su cuenta</h3>
+                <h3 class="panel-title">Inicie sesi&oacte;n con su cuenta</h3>
             </div>
             <div class="panel-body">
                 <form role="form" method="post" action="index.php" id="formIni">
