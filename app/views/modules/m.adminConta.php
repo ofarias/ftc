@@ -1,18 +1,22 @@
-
-           <div class="container-emp">
+<div class="container-emp">
         <!-- Marketing Icons Section -->
-        <div class="row">
+        <div class="row marg-emp">
             <div class="col-gl-12">
                 <h3 class="page-header">
                     <!--<img src="app/views/images/logob.jpg">-->
                 </h3>
             </div>
-            <div>
-                <label class="titulo-emp"> Bienvenido  <br><?php echo $u?></label>
+             <div class="card">
+                <img src="https://materiell.com/wp-content/uploads/2015/03/doug_full1.png" alt="" />
+                <h1>Bienvenido</h1>
+                <p><?php echo $u?></p>
             </div>
+            <!--<div>
+                <label class="titulo-emp"> Bienvenido  <br><?php echo $u?></label>
+            </div>-->
             <br/>
             <?php foreach($usuario as $key):?>
-            <div class="col-md-3 emp-tam">
+            <div class="col-md-11 emp-tam">
                 <div class="panel panel-default cuerpo-caja">
                     <div class="panel-heading-emp">
                         <h4 class="titulo-empresa"><?php echo $key['nombre']?></h4>
@@ -29,4 +33,5 @@
         </div>
     </div>
 </div>
+
     
