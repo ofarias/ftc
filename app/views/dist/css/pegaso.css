@@ -353,6 +353,20 @@ a {
     box-shadow: none;
  }
 
+ /*Modulo Clientes*/
+
+ .cu-panel-clie{
+  height: 220px;
+  width: 150px;
+  float: left;
+  margin: 0 8% 1.8em 0;
+ }
+ .img-ico{
+  height: 50px;
+  width: 70px;
+  margin: 0 0 1em 0;
+ }
+
 /* ------------------------------- */
 
 /* Dashboard Chat */

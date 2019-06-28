@@ -13,7 +13,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i>Prveedores y Productos</h4>
+                        <h4>Proveedores y Productos</h4>
                     </div>
                     <div class="panel-body">
                         <p>Proveedores y Productos</p>
@@ -24,7 +24,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> C L I E N T E S </h4>
+                        <h4>C L I E N T E S </h4>
                     </div>
                     <div class="panel-body">
                         <p>Clientes y Maestros</p>
@@ -35,7 +35,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> V E N T A S </h4>
+                        <h4>V E N T A S </h4>
                     </div>
                     <div class="panel-body">
                         <p>Ventas</p>
@@ -46,7 +46,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> S U M I N I S T R O S</h4>
+                        <h4>S U M I N I S T R O S</h4>
                     </div>
                     <div class="panel-body">
                         <p>Suministros</p>
@@ -57,7 +57,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> T E S O R E R I A </h4>
+                        <h4>T E S O R E R I A </h4>
                     </div>
                     <div class="panel-body">
                         <p>Tesoreria</p>
@@ -68,7 +68,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> L O G I S T I C A </h4>
+                        <h4>L O G I S T I C A </h4>
                     </div>
                     <div class="panel-body">
                         <p><b>Recoleccion</b></p>
@@ -79,7 +79,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> B O D E G A </h4>
+                        <h4>B O D E G A </h4>
                     </div>
                     <div class="panel-body">
                         <p><b>Recibo</b></p>
@@ -90,7 +90,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> E M P A Q U E </h4>
+                        <h4>E M P A Q U E </h4>
                     </div>
                     <div class="panel-body">
                         <p><b>Empaque</b></p>
@@ -101,7 +101,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> L O G I S T I C A </h4>
+                        <h4>L O G I S T I C A </h4>
                     </div>
                     <div class="panel-body">
                         <p><b>Entrega</b></p>
@@ -112,7 +112,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> R E V I S I O N </h4>
+                        <h4>R E V I S I O N </h4>
                     </div>
                     <div class="panel-body">
                         <p><b>Facturas a Revision</b></p>
@@ -123,7 +123,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> C O N T A B I L I D A D </h4>
+                        <h4>C O N T A B I L I D A D </h4>
                     </div>
                     <div class="panel-body">
                         <p><b>Contabilidad</b></p>
@@ -134,7 +134,7 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> XML </h4>
+                        <h4>XML </h4>
                     </div>
                     <div class="panel-body">
                         <p>Bodega</p>
@@ -145,7 +145,7 @@
              <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Administración de Usuarios</h4>
+                        <h4>Administración de Usuarios</h4>
                     </div>
                     <div class="panel-body">
                         <p>Usuarios.</p>

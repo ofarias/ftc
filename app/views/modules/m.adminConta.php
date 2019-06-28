@@ -16,7 +16,7 @@
             </div>-->
             <br/>
             <?php foreach($usuario as $key):?>
-            <div class="col-md-11 emp-tam">
+            <div class="col-md-2 emp-tam">
                 <div class="panel panel-default cuerpo-caja">
                     <div class="panel-heading-emp">
                         <h4 class="titulo-empresa"><?php echo $key['nombre']?></h4>
