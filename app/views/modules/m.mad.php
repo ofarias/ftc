@@ -72,7 +72,7 @@
                     </div>
                     <div class="panel-body">
                         <p><b>Recoleccion</b></p>
-                        <center><a href="index.php?action=menuLR" class="btn btn-default" > <img src="app/views/images/Logistica Recoleccion/logistica.png" width="80" height="90"></a></center>
+                        <center><a href="index.php?action=menuLR" class="btn btn-default" > <img src="app/views/images/LogisticaRecoleccion/logistica.png" width="80" height="90"></a></center>
                     </div>
                 </div>
             </div>
