@@ -73,12 +73,14 @@
                                             $rfcEmp =$_SESSION['rfc'];
                                             $cliente = '';
                                             $proveedor = '';
-                                            if($rfc==$key->CLIENTE){
+                                            if($rfc==$key->CLIENTE and count($polizas)>0){
                                                 $proveedor=$key->NOMBRE;
-                                                $t='Egreso';
-                                            }else{
+                                                $t='si';
+                                            }elseif($rfc!=$key->CLIENTE and count($polizas)>0){
                                                 $cliente=$key->NOMBRE;
-                                                $t='Ingreso';
+                                                $t='si';
+                                            }else{
+                                                $t='no';
                                             }
                                         ?>
                                         <tr class="odd gradeX" <?php echo $color ?> >
@@ -135,10 +137,9 @@
                                                 }elseif($key->DEBE_HABER == 'H'){
                                                     $haber = $key->MONTOMOV;
                                                 }
-
+                                                $pol=$key->TIPO_POLI.$key->NUM_POLIZ;
                                         ?>
                                         <tr class="odd gradeX" <?php echo $color ?> >
-                                         <!--<tr class="odd gradeX" style='background-color:yellow;' >-->
                                             <td><?php echo $key->TIPO_POLI.$key->NUM_POLIZ?></td>
                                             <td> <?php echo $key->FECHA_POL ?> </td>
                                             <td><?php echo $key->NUM_PART;?> </td>
@@ -149,6 +150,7 @@
                                         </tr>
                                         <?php endforeach; ?>
                                         <input type="hidden" name="partidas" id="partidas" value="<?php echo $ln?>">
+                                        <input type="hidden" name="pol" id="numpol" value="<?php echo $pol?>">
                                  </tbody>
                                 </table>
                             </div>
@@ -167,9 +169,10 @@
    
     $(document).ready(function(){
         var boton = document.getElementById('pol');
-        //alert('Entro al ready function y cargo el id pol');
         var tipo = document.getElementById('t').value;
-        boton.innerHTML='<input type="button" value ="Crea Poliza de '+tipo+'" class="btn btn-success" onclick="crearPolizas()">';
+        if(tipo == 'si'){
+            boton.innerHTML='<input type="button" value ="Eliminar Poliza"  class="btn btn-success" onclick="eliminarPoliza()">';
+        }
     });
 
     function impFact(factura){
@@ -185,18 +188,18 @@
             })
         }
 
-    function crearPolizas(){
+    function eliminarPoliza(){
         var ent= document.getElementById('uuid');
         var uuid = ent.value;
         var docu = ent.getAttribute('doc'); 
         var tipo = document.getElementById('t').value;
-
-        if(confirm('Desea Realizar la poliza de '+tipo+' de Documento '+ docu + '')){
+        var pol = document.getElementById('numpol').value
+        if(confirm('Desea eliminar la poliza '+ pol)){
             $.ajax({
                 url:'index.coi.php',
                 type:'post',
                 dataType:'json',
-                data:{creaPoliza:tipo,uuid},
+                data:{sadPol:tipo,uuid},
                 success:function(data){
                     alert(data.mensaje + ': ' + data.poliza + ' en el  Periodo ' + data.periodo + ' del Ejercicio ' + data.ejercicio + 'Favor de revisar en COI ');
                 }

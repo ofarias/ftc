@@ -60,11 +60,9 @@ if (isset($_POST['usuario'])){
 	$controller->AsignaComp($componentes, $nombre, $desc);
 }	
 elseif(isset($_POST['INSRTORCOM']) ){
-
 if(!empty($_POST['tiempoEntrega'])){
 	echo 'Lleva partida con tiempo de entrega';
 }
-
 if(!empty($_POST['seleccion'])) {
 	$consecutivo2=0001;
 	$proveedorPrevio = '';

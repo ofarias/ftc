@@ -171,6 +171,7 @@ class CoiDAO extends DataBaseCOI {
 
    
     function traePoliza($documento){
+        $data=array();
         foreach ($documento as $key) {
             $eje=substr($key->EJERCICIO,2);
             $periodo = $key->PERIODO;
@@ -1456,5 +1457,18 @@ class CoiDAO extends DataBaseCOI {
         }
         return;
     } 
+
+    function sadPol($uuid, $tipo){
+        $this->query="SELECT * FROM POLIZAS19 WHERE UUID ='$uuid' and tipo= '$tipo'";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($res);
+        if(!empty($row->NUM_POLIZ)){
+            $pol=$row->NUM_POLIZ;
+            $per = $row->PERIODO;
+            $tipo = $row->TIPO_POLI;
+            $this->query="execute procedure SP_BORRA_POLIZA_INDIVIDUAL('$pol', '$per', '$tipo')";
+            $this->EjecutaQuerySimple();
+        } 
+    }
 }      
 ?>

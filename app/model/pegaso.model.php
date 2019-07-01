@@ -23619,9 +23619,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	}
 
 	function leeXML($archivo){
-    	$myFile = fopen("$archivo", "r") or die("No se ha logrado abrir el archivo ($file)!");
+    	$myFile = fopen("$archivo", "r") or die ("No se ha logrado abrir el archivo ($file)!");
 		$myXMLData = fread($myFile, filesize($archivo));
-        $xml = @simplexml_load_string($myXMLData) or die("Error: No se ha logrado crear el objeto XML ($file)");
+        $xml = @simplexml_load_string($myXMLData) or die ("Error: No se ha logrado crear el objeto XML ($file)");
         $ns = $xml->getNamespaces(true);
         $xml->registerXPathNamespace('c', $ns['cfdi']);
         $xml->registerXPathNamespace('t', $ns['tfd']);   

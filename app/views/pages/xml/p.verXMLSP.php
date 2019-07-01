@@ -8,6 +8,7 @@
                         <p><?php echo 'RFC seleccionado: '.$_SESSION['rfc']?></p>
                         <p><?php echo 'Empresa Seleccionada: <b>'.$_SESSION['empresa']['nombre']."</b>"?></p>  
                         <p><?php echo 'Se muestran los XML '.$ide." del mes ".$mes." del ".$anio?></p>
+                        <p>Ver impuestos &nbsp;&nbsp;Si: <input type="radio" name="verImp" id="verImp" class="imp" value="si"> &nbsp;&nbsp;No: <input type="radio" name="verImp" id="NoverImp" class="imp" value="no"></p>
                     </div>
                         </div>
                         <div class="panel-body">
@@ -24,11 +25,11 @@
                                             <th>RFC RECEPTOR</th>
                                             <th>RFC EMISOR</th>
                                             <th>SUBTOTAL</th>
-                                            <th>IVA</th>
-                                            <th>RETENCION <br/>IVA</th>
-                                            <th>IEPS</th>
-                                            <th>RETENCION <br/>IEPS</th>
-                                            <th>RETENCION ISR</th>
+                                            <th class="impDet">IVA</th>
+                                            <th class="impDet">RETENCION <br/>IVA</th>
+                                            <th class="impDet">IEPS</th>
+                                            <th class="impDet">RETENCION <br/>IEPS</th>
+                                            <th class="impDet">RETENCION ISR</th>
                                             <th>DESCUENTO</th>
                                             <th>TOTAL</th>
                                             <th>MON</th>
@@ -93,11 +94,11 @@
                                             <td><?php echo '('.$key->CLIENTE.')  <br/><b>'.utf8_encode($key->NOMBRE).'<b/>';?></td>
                                             <td><?php echo '('.$key->RFCE.')  <br/><b>'.$key->EMISOR.'<b/>'?></td>
                                             <td><?php echo '$ '.number_format($key->SUBTOTAL,2);?></td>
-                                            <td><?php echo '$ '.number_format($key->IVA,2);?></td>
-                                            <td><?php echo '$ '.number_format($key->IVA_RET,2);?></td>
-                                            <td><?php echo '$ '.number_format($key->IEPS,2);?></td>
-                                            <td><?php echo '$ '.number_format($key->IEPS_RET,2);?></td>
-                                            <td><?php echo '$ '.number_format($key->ISR_RET,2);?></td>
+                                            <td class="impDet"><?php echo '$ '.number_format($key->IVA,2);?></td>
+                                            <td class="impDet"><?php echo '$ '.number_format($key->IVA_RET,2);?></td>
+                                            <td class="impDet"><?php echo '$ '.number_format($key->IEPS,2);?></td>
+                                            <td class="impDet"><?php echo '$ '.number_format($key->IEPS_RET,2);?></td>
+                                            <td class="impDet"><?php echo '$ '.number_format($key->ISR_RET,2);?></td>
                                             <td><?php echo '$ '.number_format($key->DESCUENTO,2);?></td>
                                             <td><?php echo '$ '.number_format($key->IMPORTE,2);?> </td>
                                             <td><?php echo '<b>'.$key->MONEDA.'<b/>';?> </td>
@@ -152,8 +153,16 @@
         }else{
             renglon.style.background=color;
         }
-
     }
+
+    $(".imp").click(function(){
+        var x = $(this).val()
+        if(x == 'no'){
+            $(".impDet").hide()
+        }else{
+            $(".impDet").show()
+        }
+    })
 
 
 </script>

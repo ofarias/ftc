@@ -19971,24 +19971,24 @@ function ImprimeFacturaPegaso($factura, $destino){
             $data = new pegaso;
             $valid_formats = array("xml", "XML");
             $max_file_size = 1024 * 1000; //1000 kb
-            //$target_dir = "C:\\Temp\\uploads\\xml\\";
-            
             if($tipo == 'F'){
-            	$target_dir="C:/xampp/htdocs/uploads/xml/emitidos/";	
+            	$target_dir="C:/xampp/htdocs/uploads/xml/emitidos/";
             }elseif($tipo == 'C'){
             	$target_dir = "C:/xampp/htdocs/uploads/xml/cancelados/";	
             }elseif($tipo == 'R'){
             	$target_dir = "C:/xampp/htdocs/uploads/xml/recibidos/";
             }
+            if(!file_exists($target_dir)){
+            	mkdir($target_dir, 0777, true);
+            }
             $count = 0;
             $respuesta = 0;
-			// Loop $_FILES to exeicute all files
 			foreach ($_FILES['files']['name'] as $f => $name) {	
                 if ($_FILES['files']['error'][$f] == 4) {
-                    continue; // Skip file if any error found
+                    continue;
                 }
                 if ($_FILES['files']['error'][$f] == 0){
-                    if ($_FILES['files']['size'][$f] > $max_file_size) {
+                    if ($_FILES['files']['size'][$f] > $max_file_size or $_FILES['files']['size'][$f] == 0){
                         $message[] = "$name es demasiado grande para subirlo.";
                         continue; // Skip large files
                     }elseif(!in_array(pathinfo($name, PATHINFO_EXTENSION), $valid_formats)){
@@ -20000,7 +20000,7 @@ function ImprimeFacturaPegaso($factura, $destino){
                         $a=$data->leeXML($_FILES['files']['tmp_name'][$f]);
                         if($a['tcf'] == 'falso'){
                     }else{
-                        $exec = $data->seleccionarArchivoXMLCargado($archivo, $a['uuid']); /// Cuando se selecciona el archivo para su alamcenamiento.
+                        $exec=$data->seleccionarArchivoXMLCargado($archivo, $a['uuid']); 
                         	if($exec==null){
                         	    if (move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name)){
                         	        $count++; // Number of successfully uploaded file

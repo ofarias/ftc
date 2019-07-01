@@ -206,5 +206,13 @@ class controller_coi{
 		}
 	}
 
+	function sadPol($uuid, $tipo){
+		if($_SESSION['user']){
+			$data= new CoiDAO;
+			$res=$data->sadPol($uuid, $tipo);
+			return $res;
+		}
+	}
+
 }?>
 
