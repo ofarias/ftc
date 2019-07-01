@@ -67,7 +67,7 @@
                 <label> Bienvenido: <?php echo $usuario?></label>
             </div>
 <div class="row">
-    <div class="col-lg-16">
+    <div class="col-lg-12">
          <div class="col-xs-16 col-md-6">
             <br/><br/>
             <label>&nbsp;&nbsp;Ubicar Factura O Pefactura:</label>&nbsp;&nbsp;<input type="text" name="idp" value="" placeholder="Colocar Documento " id="docv">&nbsp;&nbsp;<input type="button" name="buscar" value="Buscar" class="btn btn-info" id="buscar" style="text-transform:uppercase;">
@@ -79,7 +79,7 @@
         </div>
     </div>
 <div class="row">
-    <div class="col-lg-16">
+    <div class="col-lg-12">
         <div class="col-xs-16 col-md-6">
             <label>Buscar Factura: </label><br/>
             Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactura" style="text-transform:uppercase;">
@@ -95,10 +95,10 @@
                     <!--<img src="app/views/images/logob.jpg">-->
                 </h3>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                <div class="panel panel-default">
                    <div class="panel-heading"> 
-                       <h4><i class="fa fa-list-alt"></i> Recepcion de Logistica </h4>
+                       <h4>Recepcion de Logistica </h4>
                    </div>
                    <div class="panel-body">
                        <p>Total de Documento pendientes <?php echo $total?></p>
@@ -110,21 +110,10 @@
                    </div>
                </div>
             </div>
-            <div class="col-xs-12 col-md-4">
+              <div class="col-md-6">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> FOLIOS DE FACTURACION </h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>Logistica / Bodega / CxC </p>
-                        <center><a href="index.php?action=seguimientoCajas" class="btn btn-default" target="popup" onclick="window.open(this.href, this.target, 'width=800, height=800')"><img src="app/views/images/Clipboard-Paste-icon.png"></a></center>
-                    </div>
-                </div>
-            </div>
-           <div class="col-xs-12 col-md-3">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Docs Recibidos Sin Contrarecibo</h4>
+                        <h4>Docs Recibidos Sin Contrarecibo</h4>
                     </div>
                     <div class="panel-body">
                         <p>Recibir Documentos</p>
@@ -132,20 +121,29 @@
                         <?php if(isset($status5)){?>
                             <p><?php echo 'Finalizados Logistica: <font color="red" size="3.pxs">'.$cantidad5.'</font>'?></p>
                         <?php }?>
-
                         <p><?php echo 'Pendientes de Recibir: <font color="red" size="3.pxs">'.$cantidad6.'</font>'?></p>
                         <p><?php echo 'Total Sin Avanzar: <font color="red" size="3.pxs">'.$sinAvanzar.'</font>'?></p>
-                        <center><a href="index.cobranza.php?action=seguimientoCajasRecibir&tipo=6" class="btn btn-default"><img src="app/views/images/folder-invoices-icon.png"></a></center>
+                        <center><a href="index.cobranza.php?action=seguimientoCajasRecibir&tipo=6" class="btn btn-default"><img class="img-ico" src="app/views/images/folder-invoices-icon.png"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-xs-12 col-md-3">
+            <div class="col-md-2">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Documentos Con Contarrecibo</h4>
+                        <h4>Logistica / Bodega / CxC </h4>
+                    </div>
+                    <br><br>
+                    <div class="panel-body">
+                        <center><a href="index.php?action=seguimientoCajas" class="btn btn-default" target="popup" onclick="window.open(this.href, this.target, 'width=800, height=800')"><img src="app/views/images/Clipboard-Paste-icon.png"></a></center>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4>Documentos Con Contarrecibo</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Documentos con Contrarecibo</p>
                         <p>Cantidad: <font color="red"><?php echo $cantidad7?></font> </p>
                         <center><a href="index.cobranza.php?action=seguimientoCajasRecibir&tipo=7" class="btn btn-default"><img src="app/views/images/User-Files-icon.png"></a></center>
                     </div>
