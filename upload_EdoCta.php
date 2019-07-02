@@ -4,7 +4,7 @@ session_start();
 require_once('app/controller/pegaso.controller.php');
 $controller = new pegaso_controller;
 $target_dir = "C:\\xampp\\htdocs\\uploads\\edocta\\";
-$target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
+$target_file = $target_dir . date('d_m_Y_Hiu').basename($_FILES["fileToUpload"]["name"]);
 $uploadOk = 0;
 $fileType = pathinfo($target_file,PATHINFO_EXTENSION);
 $datos = explode(":",$_POST['datos']);

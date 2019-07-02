@@ -13300,7 +13300,6 @@ function ImpSolicitud2($idsol){
 	}
 
 	function enviarConta($folios, $cuentaBancaria, $medio, $importe){
-		        
      	if (isset($_SESSION['user'])) {            
              $dao = new pegaso;
              $misFolios = explode(",",$folios);
@@ -20547,7 +20546,7 @@ function ImprimeFacturaPegaso($factura, $destino){
         	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta.php');
         	$res= $data->revisaXLSX($target_file, $datos);
 			if($res['status']== 'ok'){
-				$carga=$data->cargaXLSX($datos, $res['data']);
+				$carga=$data->cargaXLSX($datos, $res['data'], $banco, $cuenta);
 			}
 			$html = $this->load_page('app/views/pages/p.redirectform.php');
 			$redireccionar="estado_de_cuenta&banco={$banco}&cuenta={$cuenta}";
@@ -20555,6 +20554,39 @@ function ImprimeFacturaPegaso($factura, $destino){
             $html = $this->load_page('app/views/pages/p.redirectform.php');
             include 'app/views/pages/p.redirectform.php';
             //$this->view_page($pagina);    
+		}
+	}
+
+	function detalleGasto($idg){
+		if($_SESSION['user']){
+			$data= new pegaso;
+			$datos = $data->detalleGasto($idg);
+			$aplicaciones =$data->aplicacionesGasto($idg);
+			$facturas = $data->facturasProvPendientes($uuid = false);
+			$pagina = $this->load_template_popup();
+  			$html=$this->load_page('app/views/pages/Contabilidad/p.detalleGasto.php');
+  			ob_start();
+  			$usuario=$_SESSION['user']->NOMBRE;
+  			include 'app/views/pages/Contabilidad/p.detalleGasto.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);	
+		}
+	}
+
+	function aplicaGasto($idp, $uuid, $valor){
+		if($_SESSION['user']){
+			$data = new pegaso;
+			$res=$data->aplicaGasto($idp, $uuid, $valor);
+			return $res;
+		}
+	}
+
+	function canapl($idp, $ida, $valor, $uuid){
+		if($_SESSION['user']){
+			$data = new pegaso;
+			$res=$data->canapl($idp, $ida, $valor, $uuid);
+			return $res;
 		}
 	}
 }?>

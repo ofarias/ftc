@@ -26584,18 +26584,22 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					$cargo = empty($key[4])? 0:$key[4];
 					$tipo = $key[6];
 					$uuid = $key[7];
+					$obs = substr(utf8_encode($key[8]),0,255);
 					if($cargo <> 0 and $abono <> 0 ){
 						$e++;
 						echo $clave.' <font color="red">No Inserta la linea por que el valor cargo y valor de abono son mayores a 0.00 .</font><br/>';
 					}else{
 						if((gettype($abono) == 'integer' or gettype($abono) =='double') and (gettype($cargo) == 'integer' or gettype($cargo)=='double')){
+							//echo '<br/>'.$e.' Abono: '.$abono.'-->'.$tipo;
+							//echo '<br/>Cargo: '.$cargo;
+							//echo '<br/>Monto de la transaccion: '.($abono + $cargo);
 							if(($abono + $cargo) > 0 and !empty($tipo) and ($tipo == 'EFE' or $tipo == 'CHQ' or $tipo =='TNS' or $tipo == 'TDC')){
 								$ca = ($abono>0)? 'a':'c';
 								$monto = ($abono>0)? $abono:$cargo;
-								//echo $clave.' <b>Inserta el '.$ca.' con la informacion</b> de tipo : '.$tipo.'<br/>';
+								echo $clave.' <b>Inserta el '.$ca.' con la informacion</b> de tipo : '.$tipo.'<br/>';
 							}else{
 								$e++;
-								echo $clave.' <font color="red">No Inserta la linea por que no tiene Valor o no contiene tipo valido.</font><br/>';
+								echo ($i+1)." <font color='red'>No Inserta la linea por que no tiene Valor o no contiene tipo valido.</font><br/>".$tipo;
 							}
 						}else{
 							$e++;
@@ -26608,13 +26612,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						if(count($val) == 3 and checkdate($val[1], $val[2],$val[0])){
 						}else{	
 							$e++;
-							echo 'No se encontro una fecha valida, la celda B2 debe de tener el formato de fecha dd/mm/yyyy';
+							echo $clave.'No se encontro una fecha valida, la celda B2 debe de tener el formato de fecha dd/mm/yyyy';
 						}
 					}else{
 						$e++;
 					}
 					if($e == 0){
-						$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid);
+						$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid, "obs"=>$obs);
 					}
 				}		
 				$i++;
@@ -26623,7 +26627,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		} else {
 			echo SimpleXLSX::parseError();
 		}
-
 		if($e >0 ){
 			exit();
 			return array("status"=>'No');
@@ -26632,15 +26635,134 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		}
 	}
 
-	function cargaXLSX($datos, $data){
+	function cargaXLSX($datos, $data, $banco, $cuenta){
+		$usuario = $_SESSION['user']->NOMBRE;
 		foreach ($data as $key) {
-			//echo '<br/>'.print_r($key);
+			$monto = $key['monto'];
+			$fecha = $key['fecha'];
+			$uuid=$key['uuid'];
+			$tipo = $key['tipo'];
+			$obs=$key['obs'];	
 			if($key['ca']=='a'){
-				echo '<br/>Inserta un abono';
+				$folio=$this->folioBanco($banco, $cuenta);
+				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs' ) ";
+				$this->grabaBD();
 			}elseif($key['ca']=='c'){
-				echo '<br/>Inserta un Cargo';
+				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta) VALUES (NULL, 'E', 1, '', '', '', 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha') RETURNING ID";
+				$foliog=$this->grabaBD();
+				$row=ibase_fetch_object($foliog);
+				switch ($tipo) {
+				 	case 'TNS':
+				 		$tipo = 'TR';
+				 		break;
+					default:
+						$tipo = $tipo;
+				 		break;
+				 }
+				$tipo = substr($tipo,0,2);
+				//exit($tipo.$row->ID);
+				$folio=$this->generaFolio($tipo);
+				$folio=$folio[0]->FOLIO;
+				$this->query="INSERT INTO PAGO_GASTO (ID, IDGASTO, CUENTA_BANCARIA, MONTO, FECHA_REGISTRO, USUARIO_REGISTRA, FECHA_PAGO, CONCILIADO, FOLIO_PAGO) VALUES ((select coalesce(max(ID),0)+1 FROM PAGO_GASTO), '$row->ID','$banco'||' - '||'$cuenta', $monto, current_timestamp, '$usuario', '$fecha', 0, '$folio')";
+				//echo '<br/>'.$this->query;
+				$this->grabaBD();
 			}
 		}
 		exit();
 	}
+
+	function folioBanco($banco, $cuenta){
+		$this->query="SELECT * FROM PG_BANCOS WHERE BANCO = '$banco' and NUM_CUENTA = '$cuenta'";
+			$rs=$this->EjecutaQuerySimple();
+			$row=ibase_fetch_object($rs);
+			$sb=$row->SERIE;
+			$sbl=0;
+			if(!empty($sb)){
+				$sbl=strlen($sb)+2;
+			}
+			$cuentaCompleta=$row->BANCO.' - '.$row->NUM_CUENTA;
+			$this->query="SELECT coalesce( MAX(cast(substring(FOLIO_X_BANCO from $sbl) as int)), 0) as ULTIMO FROM CARGA_PAGOS	WHERE FOLIO_X_BANCO STARTING WITH '$sb'";
+		    $rs=$this->	QueryObtieneDatosN();
+		    //echo $this->query;
+		    $row=ibase_fetch_object($rs);
+		    if($row){
+		    	$folio=$sb.'-'.($row->ULTIMO+1);
+		    }
+		return $folio;
+	}
+
+	function detalleGasto($idg){
+		$data = array();
+		$this->query="SELECT G.*, COALESCE((SELECT NOMBRE FROM XML_CLIENTES XC WHERE G.CVE_PROV = ('xml_'||XC.IDCLIENTE)),'Sin Proveedor') AS PROV , (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE AG.IDG = G.ID AND AG.STATUS = 0) AS APLICADO FROM GASTOS G WHERE ID = $idg";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function facturasProvPendientes($uuid){
+		$data=array();
+		$rfc = $_SESSION['rfc'];
+		$a = '';
+		if($uuid){
+			$a =" and X.UUID = '".$uuid."'";
+		}
+		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov FROM XML_DATA X WHERE X.RFCE != '$rfc' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) $a";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function aplicacionesGasto($idg){
+		$data=array();
+		$this->query="SELECT AP.*, g.*, (SELECT xc.NOMBRE FROM XML_CLIENTES xc WHERE xc.RFC=(SELECT x.RFCE FROM XML_DATA x WHERE x.uuid = ap.uuid) and tipo ='Proveedor') as PROV FROM APLICACIONES_GASTOS AP left join gastos g on g.id = AP.IDG WHERE AP.IDG = $idg ";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function aplicaGasto($idp , $uuid, $valor){
+		$usuario=$_SESSION['user']->NOMBRE;
+		$valFact=$this->facturasProvPendientes($uuid);
+		if( ($valFact[0]->IMPORTE - $valFact[0]->APLICADO) > 0 and  (($valFact[0]->IMPORTE - $valFact[0]->APLICADO) - $valor >= 0)){ // Validacion de la factura
+			$this->query="SELECT * FROM gastos where id = $idp";
+			$res=$this->EjecutaQuerySimple();
+			$row = ibase_fetch_object($res);
+			if($row->SALDO >= $valor){ // Valida que el saldo sea mayor a lo que se va a aplicar.
+				$this->query="UPDATE GASTOS SET SALDO = SALDO - $valor where id = $idp";
+				$res=$this->queryActualiza();
+				if($res == 1){
+					$this->query="INSERT INTO APLICACIONES_GASTOS (ID, IDG, UUID, DOCUMENTO, APLICADO, FECHA, USUARIO, STATUS) VALUES (NULL, $idp, '$uuid', (SELECT DOCUMENTO FROM XML_DATA WHERE UUID = '$uuid'), $valor, current_timestamp, '$usuario', 0) RETURNING id";
+					$res=$this->grabaBD();
+					$g=ibase_fetch_object($res);
+					if($g->ID > 0 ){
+						$this->query="UPDATE XML_DATA SET idpago = $g->ID WHERE uuid = '$uuid'";
+						$ru=$this->queryActualiza();
+						if($ru==1){
+							$mensaje = array("status"=>'ok', "mensajse"=>'Se ejecuto correctamente el pago');
+						}
+					}
+				}
+			}	
+		}else{
+			$mensaje= array("status"=>'no', "mensaje"=>'Fallo la validacion del documento');
+		}
+		return $mensaje;
+	}
+
+	function canapl($idp, $ida, $valor, $uuid){
+		$this->query="UPDATE APLICACIONES_GASTOS SET STATUS = 9 WHERE uuid='$uuid' and id =$ida and idg = $idp";
+		$this->queryActualiza();
+		$this->query="UPDATE GASTOS G SET SALDO = MONTO_PAGO - (SELECT COALESCE(SUM(APLICADO),0) FROM APLICACIONES_GASTOS AG WHERE AG.IDG = G.ID AND STATUS = 0) where id = $idp";
+		$this->queryActualiza();
+		$mensaje=array("status"=>'ok', "mensaje"=>'Se elimino correctamente la aplicacion al documento');
+		return $mensaje;
+	}
+
+
 }?>

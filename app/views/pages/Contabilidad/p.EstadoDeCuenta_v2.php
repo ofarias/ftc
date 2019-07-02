@@ -262,7 +262,7 @@
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                          Pagos Registrados en <?php echo $mesactual->NOMBRE.'
+                          Movimientos Registrados en <?php echo $mesactual->NOMBRE.'
                           durante el periodo del '.$mesactual->FECHA_INI.' al '.$mesactual->FECHA_FIN;?>.
                         </div>
                            <div class="panel-body">
@@ -279,7 +279,7 @@
                                             <th>TIPO PAGO</th>
                                             <th>REGISTRAR</th>
                                             <th>USUARIO QUE REGISTRO</th>
-                                            <th>Contabilizado?</th>
+                                            <th>TIPO</th>
                                            
                                         </tr>
                                     </thead>
@@ -328,8 +328,15 @@
                                             <td align="right"><?php echo '$ '.number_format($datos->CARGO,2);?></td>
                                             <td align="right"><?php echo '$ '.number_format($datos->SALDO,2);?></td>
                                             <td>
+                                              <?php if($desc == "Pago de Factura"){?>
                                               <a href="index.php?action=pagoFacturas&idp=<?php echo $datos->IDENTIFICADOR?>" target="_blank"?> <?php echo $desc;?> </a>
+                                            <?php }elseif($datos->TIPO == 'Gasto'){?>
+                                              <a href="index.php?action=detalleGasto&idg=<?php echo $datos->CONSECUTIVO?>" target="_blank">Detalle</a>
+                                              <?php }else{?>
+                                              <?php echo $desc;?> 
+                                              <?php }?>
                                             </td>
+
                                             <form action = "index.php" method="post">
                                             <td>
                                               <input type="hidden" name="anio" value = "<?php echo $anio?>"/>
