@@ -26606,13 +26606,14 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							echo $clave.' <font color="red">error valor de abono '.gettype($abono).' Valor de Cargo '.gettype($cargo).'</font><br/>';
 						}
 					}
+
 					if(!empty($fecha)){
 						$fecha = substr($fecha,0,10);
-						$val=explode('-', $fecha);
+						$val=explode('/', $fecha);
 						if(count($val) == 3 and checkdate($val[1], $val[2],$val[0])){
 						}else{	
 							$e++;
-							echo $clave.'No se encontro una fecha valida, la celda B2 debe de tener el formato de fecha dd/mm/yyyy';
+							echo $clave.'<br/>No se encontro una fecha valida, la celda B2 debe de tener el formato de fecha dd/mm/yyyy';
 						}
 					}else{
 						$e++;
