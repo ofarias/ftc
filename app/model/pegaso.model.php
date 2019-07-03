@@ -26608,7 +26608,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					}
 
 					if(!empty($fecha)){
-						$fecha = substr($fecha,0,10);
+						$fecha = substr($fecha,0,11);
 						$val=explode('/', $fecha);
 						if(count($val) == 3 and checkdate($val[1], $val[2],$val[0])){
 						}else{	
