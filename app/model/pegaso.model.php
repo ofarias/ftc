@@ -26596,7 +26596,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							if(($abono + $cargo) > 0 and !empty($tipo) and ($tipo == 'EFE' or $tipo == 'CHQ' or $tipo =='TNS' or $tipo == 'TDC')){
 								$ca = ($abono>0)? 'a':'c';
 								$monto = ($abono>0)? $abono:$cargo;
-								echo $clave.' <b>Inserta el '.$ca.' con la informacion</b> de tipo : '.$tipo.'<br/>';
+								//echo $clave.' <b>Inserta el '.$ca.' con la informacion</b> de tipo : '.$tipo.'<br/>';
 							}else{
 								$e++;
 								echo ($i+1)." <font color='red'>No Inserta la linea por que no tiene Valor o no contiene tipo valido.</font><br/>".$tipo;
@@ -26608,12 +26608,20 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					}
 
 					if(!empty($fecha)){
-						$fecha = substr($fecha,0,11);
-						$val=explode('/', $fecha);
-						if(count($val) == 3 and checkdate($val[1], $val[2],$val[0])){
+						$fecha = substr(trim($fecha),0,10);						
+						if(strpos($fecha, "-")){
+							$val= explode('-', $fecha);
+						}else{
+							$val= explode('/', $fecha);	
+						} 
+						//echo '<br/>'.print_r($val).' --'.count($val);
+						echo '<br/>Anio'.$val[0];
+						echo 'mes'.$val[1];
+						echo 'Dia'.$val[2].'<br/>';
+						if(checkdate($val[1], $val[2],$val[0])){
 						}else{	
 							$e++;
-							echo $clave.'<br/>No se encontro una fecha valida, la celda B2 debe de tener el formato de fecha dd/mm/yyyy';
+							echo $clave.'<br/>No se encontro una fecha valida en '.$fecha.', la celda B2 debe de tener el formato de fecha dd/mm/yyyy';
 						}
 					}else{
 						$e++;
