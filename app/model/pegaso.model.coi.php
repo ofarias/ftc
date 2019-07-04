@@ -1156,7 +1156,7 @@ class CoiDAO extends DataBaseCOI {
         if($cb->CLIENTE == $_SESSION['rfc']){    
             $nat0= $ie=='I'? 'H':'D';
             $nat1=$ie=='I'? 'D':'H';
-            $con = 'Gasto / Compra';
+            $con = '';
             $tipoXML='Recibido';
         }else{
             $nat0=$ie=='I'? 'D':'H';
@@ -1166,26 +1166,37 @@ class CoiDAO extends DataBaseCOI {
         }
 
         foreach($cabecera as $pol){
-            $concepto = substr($con.', '.$pol->DOCUMENTO.', '.$pol->NOMBRE, 0, 120);
+            $concepto = substr($con.', '.$pol->DOCUMENTO.', '.$pol->NOMBRE, 0, 110);
             $cuenta = $pol->CUENTA_CONTABLE;
             $this->query="INSERT INTO $tbPol(TIPO_POLI, NUM_POLIZ, PERIODO, EJERCICIO, FECHA_POL, CONCEP_PO, NUM_PART, LOGAUDITA, CONTABILIZ, NUMPARCUA, TIENEDOCUMENTOS, PROCCONTAB, ORIGEN, UUID, ESPOLIZAPRIVADA, UUIDOP) 
                                 values ('$tipo','$folio', $periodo, $ejercicio, '$pol->FECHA', '$concepto', 0, '', 'N', 0, 1, 0, substring('PHP $usuario' from 1 for 15),'$uuid', 0, '')";
-            $this->EjecutaQuerySimple();
+            $this->grabaBD();
             //echo '<br/>Inserta Poliza:'.$this->query.'<br/>';
             $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$pol->FECHA', '$concepto', '$nat0' , $pol->IMPORTE, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
-            $this->EjecutaQuerySimple();  
+            $this->grabaBD();  
             //echo '<br/> Inserta Primer Partida'.$this->query.'<br/>';
             /// Validacion para la insercion de UUID.
         }
         $partida = 1;
         foreach ($detalle as $aux) {
+            if($partida == 1){
+                if( substr($aux->CUENTA_CONTABLE, 0,1) == '6'){
+                    $con = 'Gasto';
+                }else{
+                    $con = 'Compra';
+                }
+                $this->query="UPDATE $tbAux SET CONCEP_PO = '$con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
+                $this->queryActualiza();
+                $this->query="UPDATE $tbPol SET CONCEP_PO = '$con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
+                $this->queryActualiza();
+            }
             $cuenta = '';
             $partida++;
             $partAux=$aux->PARTIDA;
             $cuenta = $aux->CUENTA_CONTABLE;
             $documento = $aux->DOCUMENTO;
-            $concepto = substr($aux->DESCRIPCION.', '.$documento.', '.$proveedor, 0, 120); 
+            $concepto = substr($aux->DESCRIPCION.', '.$documento.', '.$proveedor, 0, 120);
                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $aux->IMPORTE - $aux->DESCUENTO, 0, $tc, 0, $partida, 0,0, null, null)";
                 $this->EjecutaQuerySimple();   
@@ -1215,7 +1226,7 @@ class CoiDAO extends DataBaseCOI {
                             $cuenta = $rowImp->CUENTA_CONTABLE;
                             $nom_1 = $rowImp->NOMBRE; 
                             $nat1= $rowImp->NAT==1? 'H':$nat1;
-                            
+
                                 $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
                                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                                 values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
