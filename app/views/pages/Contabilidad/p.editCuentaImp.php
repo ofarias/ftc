@@ -8,7 +8,7 @@
                         <!-- /.panel-heading -->
                            <div class="panel-body">
                             <div class="table-responsive">                            
-                                <table class="table table-striped table-bordered table-hover">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-impuestos">
                                     <thead>
                                             <th>Ln</th>
                                             <th>Impuesto</th>
@@ -19,6 +19,7 @@
                                             <th>Nombre</th>
                                             <th>Factor</th>
                                             <th>Tipo de Poliza</th>
+                                            <th>Aplica a XML:</th>
                                     </thead>
                                   <tbody>
                                         <?php
@@ -36,6 +37,7 @@
                                             <td><?php echo $data->NOMBRE;?></td>
                                             <td><?php echo $data->POLIZA?></td>
                                             <td><?php echo $data->FACTOR;?></td>
+                                            <td><?php echo $data->TIPO_XML?></td>
                                         </tr>
                                         <?php endforeach; ?>
                                  </tbody>

@@ -75,7 +75,7 @@ class pegaso extends database{
 		if(!empty($uuid)){
 			$this->query="SELECT * FROM XML_DATA XD LEFT JOIN XML_POLIZAS XP ON XP.UUID = XD.UUID WHERE XD.UUID = '$uuid'";
 		}else{
-			$this->query="SELECT * FROM XML_DATA XD LEFT JOIN XML_POLIZAS XP ON XP.UUID = XD.UUID WHERE XD.STATUS = 'P' and XD.TIPO = 'I' and xd.fecha >= '$fi' ";
+			$this->query="SELECT * FROM XML_DATA XD LEFT JOIN XML_POLIZAS XP ON XP.UUID = XD.UUID WHERE XD.STATUS = 'P' and (XD.TIPO = 'I' or XD.TIPO = 'E') and xd.fecha >= '$fi' ";
 		}
 
 		$rs=$this->EjecutaQuerySimple();
@@ -219,8 +219,6 @@ class pegaso extends database{
 		}	
 	return 0;
 	}
-
-	
 
 	function get_client_ip_env() {
 	    $ipaddress = '';
@@ -26657,7 +26655,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs' ) ";
 				$this->grabaBD();
 			}elseif($key['ca']=='c'){
-				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta) VALUES (NULL, 'E', 1, '', '', '', 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha') RETURNING ID";
+				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta) VALUES (NULL, 'V', 1, '', '', '', 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha') RETURNING ID";
 				$foliog=$this->grabaBD();
 				$row=ibase_fetch_object($foliog);
 				switch ($tipo) {

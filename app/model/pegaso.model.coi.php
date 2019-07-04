@@ -1215,6 +1215,7 @@ class CoiDAO extends DataBaseCOI {
                             $cuenta = $rowImp->CUENTA_CONTABLE;
                             $nom_1 = $rowImp->NOMBRE; 
                             $nat1= $rowImp->NAT==1? 'H':$nat1;
+                            
                                 $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
                                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                                 values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
