@@ -13,7 +13,7 @@
         <div class="col-md-2">    
             <div class="panel panel-default cu-panel-clie">
                 <div class="panel-heading">
-                  <center><h4>Catalogo de Bancos</h4></center>
+                  <center><a class="icoPre" title="BancosAyuda" href="app/views/DocsAyuda/ManualBancos.pdf" target="_blank"><img src="app/views/images/cuestion.png" alt="BancosAyuda" width="30" height="30"></a><h4>Catalogo de Bancos</h4></center>
                 </div>
             <div class="panel-body">
                   <center><a href="index.coi.php?action=verBancos" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/Bancos.png" width="50" height="70"></a></center>

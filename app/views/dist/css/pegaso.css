@@ -13,7 +13,6 @@ body {
         justify-content: center;
     }
 }
-
 .navbar-default {
   position: fixed;
   background: #0489B1;
@@ -278,7 +277,7 @@ a {
     position: relative;
     display: block;
 }*/ 
-.page-header{
+.cabeza-pagina{
     border:none;
 }
 .panel-heading-emp{
@@ -323,6 +322,7 @@ a {
     position: relative;
     display: block;
 }
+
 .panel-body-emp{
     padding-bottom: 15px;
     position: relative;
@@ -353,6 +353,59 @@ a {
     box-shadow: none;
  }
 
+ @media(max-width: 480px){
+  .emp-tam{
+    width: 100%;
+    margin-right: 0 auto;
+  }
+  .caja-logo{
+    width: 100%;
+  }
+  .panel-body{
+    width: 100%;
+  }
+  .panel-heading-emp{
+    width: 100%;
+  }
+  .card{
+    width: 100%;
+    margin-right:auto;
+    margin-left: auto;
+  }
+}
+
+ @media(max-width: 1000px) and (min-width: 481px){
+  .emp-tam{
+    width: 50%;
+    margin-right:auto;
+    margin-left: auto;
+    display: block;
+  }
+  .caja-logo{
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+  .panel-body{
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+  .panel-heading-emp{
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+  }
+  .card{
+    width: 100%;
+    margin-right:auto;
+    margin-left: auto;
+  }
+}
+
  /*Modulo Clientes*/
 
  .cu-panel-clie{
@@ -360,6 +413,7 @@ a {
   width: 150px;
   float: left;
   margin: 0 8% 1.8em 0;
+  border-radius: 20px 10px 40px 10px;
  }
  .img-ico{
   height: 50px;
@@ -367,7 +421,24 @@ a {
   margin: 0 0 1em 0;
  }
 
+ .panel-default >.panel-heading{
+    background: #0489B1;
+    border-radius: 10px 10px 10px 10px;
+ }
+
+ h4{
+  font-size: 14px;
+  text-align: center;
+  color: white;
+ }
+
 /* ------------------------------- */
+/* Icono de Preguntas*/
+.icoPre{
+    float: right;
+    cursor: pointer;
+    margin-top: -2%;
+  } 
 
 /* Dashboard Chat */
 

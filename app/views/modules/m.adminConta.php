@@ -1,8 +1,8 @@
-<div class="container-emp">
+<div class="container container-emp">
         <!-- Marketing Icons Section -->
         <div class="row marg-emp">
             <div class="col-gl-12">
-                <h3 class="page-header">
+                <h3 class="page-header cabeza-pagina">
                     <!--<img src="app/views/images/logob.jpg">-->
                 </h3>
             </div>

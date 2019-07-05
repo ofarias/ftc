@@ -13,10 +13,10 @@
             <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4>Proveedores y Productos</h4>
+                        <h4>PROVEEDORES Y PRODUCTOS</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Proveedores y Productos</p>
+                        <p><b>Proveedores y Productos</b></p>
                         <center><a href="index.php?action=menuPP" class="btn btn-default" > <img src="app/views/images/Proveedores y Productos/Proveedores y productos ico.png" width="80" height="90"></a></center>
                     </div>
                 </div>
@@ -27,7 +27,7 @@
                         <h4>C L I E N T E S </h4>
                     </div>
                     <div class="panel-body">
-                        <p>Clientes y Maestros</p>
+                        <p><b>Clientes y Maestros</b></p>
                         <center><a href="index.php?action=menuCM" class="btn btn-default" > <img src="app/views/images/Clientes/clientes.png" width="80" height="90"></a></center>
                     </div>
                 </div>
@@ -38,7 +38,7 @@
                         <h4>V E N T A S </h4>
                     </div>
                     <div class="panel-body">
-                        <p>Ventas</p>
+                        <p><b>Ventas</b></p>
                         <center><a href="index.php?action=menuV" class="btn btn-default" > <img src="app/views/images/Ventas/ventas.png" width="80" height="90"></a></center>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
                         <h4>S U M I N I S T R O S</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Suministros</p>
+                        <p><b>Suministros</b></p>
                         <center><a href="index.php?action=menuS" class="btn btn-default" > <img src="app/views/images/Suministros/Suministros.png" width="80" height="90"></a></center>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                         <h4>T E S O R E R I A </h4>
                     </div>
                     <div class="panel-body">
-                        <p>Tesoreria</p>
+                        <p><b>Tesoreria</b></p>
                         <center><a href="index.php?action=menuT" class="btn btn-default" > <img src="app/views/images/Tesoreria/Tesoreria.png" width="80" height="90"></a></center>
                     </div>
                 </div>
@@ -137,7 +137,7 @@
                         <h4>XML </h4>
                     </div>
                     <div class="panel-body">
-                        <p>Bodega</p>
+                        <p><b>XML</b></p>
                         <center><a href="index.php?action=menuXML" class="btn btn-default" > <img src="app/views/images/Xml/Xml.png" width="80" height="90"></a></center>
                     </div>
                 </div>
@@ -145,10 +145,10 @@
              <div class="col-md-3">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4>Administración de Usuarios</h4>
+                        <h4>ADMINISTRACION DE USUARIOS</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Usuarios.</p>
+                        <p><b>Usuarios</b></p>
                         <center><a href="index.php?action=ausers" class="btn btn-default"> <img src="app/views/images/AdminUsuarios/AdminUsr.png" width="58" height="60"></a></center>
                     </div>
                 </div>
