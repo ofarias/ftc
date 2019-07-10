@@ -26454,7 +26454,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	   								'$t',
 	   								9999,
 	   								'$usuario') RETURNING id";
-	   			//echo $this->query;
+	   			echo $this->query;
 		  		$rs=$this->EjecutaQuerySimple();
 		  		$row = ibase_fetch_object($rs);
 		  		if($row->ID > 0){
