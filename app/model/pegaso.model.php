@@ -18954,36 +18954,36 @@ function cerrarRecepcion($doco){
     	if($umc == 0 or $mes == ($umc + 1)){
     		//// carga_Pagos
 		    	$this->query="UPDATE CARGA_PAGOS SET FECHA_RECEP = '$nuevaFecha' WHERE extract(month from fecha_recep) = $mes and extract(year from fecha_recep) = $anio and (seleccionado = 0 or seleccionado is null) and BANCO = ('$banco'||' - '||'$cuenta') ";
-		    	$this->EjecutaQuerySimple();
+		    	$this->queryActualiza();
 		    	/// compo01 
 		    	$this->query="UPDATE COMPO01 SET edocta_fecha = '$nuevaFecha' where extract(month from edocta_fecha) = $mes and extract(year from edocta_fecha) = $anio and (seleccionado = 0 or seleccionado is null) and BANCO = ('$banco'||' - '||'$cuenta')";
-		    	$this->EjecutaQuerySimple();
+		    	$this->queryActualiza();
+		    	/// ftc_poc
+		    	$this->query="UPDATE FTC_POC SET EDOCTA_FECHA = '$nuevaFecha' where extract(month from EDOCTA_FECHA) = $mes and extract(year from EDOCTA_FECHA) = $anio and (seleccionado = 0 or seleccionado is null) and BANCO = ('$banco'||' - '||'$cuenta')";
+		    	$this->queryActualiza();
 		    	/// Gastos 
-				$this->query="UPDATE GASTOS SET FECHA_EDO_CTA = '$nuevaFecha' where iif(extract(month from fecha_edo_cta) is null, extract(month from fecha_doc), extract(month from fecha_edo_cta))  = $mes and iif(extract(year from fecha_edo_cta) is null, extract(year from fecha_doc), extract(year from fecha_edo_cta))  = $anio and (seleccionado = 0 or seleccionado is null)";
-		    	$this->EjecutaQuerySimple();
-
+				$this->query="UPDATE GASTOS SET FECHA_EDO_CTA = '$nuevaFecha' where coalesce(extract(month from fecha_edo_cta), extract(month from fecha_doc)) = $mes and coalesce(extract(year from fecha_edo_cta), extract(year from fecha_doc)) = $anio	and (seleccionado = 0 or seleccionado is null) and status = 'V'";
+		    	$this->queryActualiza();
+		    		//iif(extract(month from fecha_edo_cta) is null, extract(month from fecha_doc), extract(month from fecha_edo_cta)) = $mes 
+					//iif(extract(year from fecha_edo_cta) is null, extract(year from fecha_doc), extract(year from fecha_edo_cta))  = $anio 
 		    	/// CR_DIRECTO
-
 		    	$this->query="UPDATE CR_DIRECTO SET FECHA_EDO_CTA = '$nuevaFecha' where extract(month from fecha_edo_cta) = $mes and extract(year from fecha_edo_cta) = $anio and (seleccionado = 0 or seleccionado is null) and BANCO = '$banco' and cuenta = '$cuenta'";
-
-		    	$this->EjecutaQuerySimple();
+		    	$this->queryActualiza();
 				//// Deudores
-
 		    	$this->query="UPDATE DEUDORES SET FECHAEDO_CTA = '$nuevaFecha' where extract(month from fechaedo_cta) = $mes and extract(year from fechaedo_cta) = $anio and (seleccionado = 0 or seleccionado is null) and banco=('$banco'||' - '||'$cuenta') ";
-		    	$this->EjecutaQuerySimple();
+		    	$this->queryActualiza();
 				//// SOLICITUD_PAGO
 		    	$this->query="UPDATE SOLICITUD_PAGO SET FECHA_EDO_CTA = '$nuevaFecha' 
 		    		where iif(fecha_edo_cta is null, extract(month from fecha_reg_pago_final), extract(month from FECHA_EDO_CTA)) = $mes
 		    		 and iif(fecha_edo_cta is null, extract(year from fecha_reg_pago_final), extract(year from FECHA_EDO_CTA)) = $anio
 		    		 and (seleccionado = 0 or seleccionado is null) 
 		    		 and banco_final=('$banco'||' - '||'$cuenta')  ";
-		    	$this->EjecutaQuerySimple();
-			    	
+		    	$this->queryActualiza();
+
 			    $inicial = str_replace(',', '', $inicial);
 			    $abonos = str_replace(',', '',$abonos);
 			    $cargos = str_replace(',', '',$cargos);
 			    $final = str_replace(',', '',$final);
-
 			    /*
 		    	$this->query = "INSERT INTO CIERRE_MENSUAL (MES, ANIO, CUENTA, BANCO, INICIAL, ABONOS, CARGOS, FINAL, fecha_cierre, usuario_cierre, tipo )
 		    							VALUES( '$mes', '$anio', '$cuenta', '$banco', $inicial, $abonos, $cargos, $final, current_timestamp, '$usuario', 'banco') ";
@@ -18998,7 +18998,6 @@ function cerrarRecepcion($doco){
 		    	$this->grabaBD();
 		    	//exit($this->query);
 		    	/*$mes = $mes+ 1; 
-
 		    	if(strlen($mes) == 1){
 		    		$mesr = '0'.$mes;
 		    	}
