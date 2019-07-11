@@ -1,9 +1,9 @@
 <div class="container">
         <!-- Marketing Icons Section -->
         <div class="row">
-            <div class="col-lg-12">
+            <div class="col-md-12">
                 <h3 class="page-header">
-                    <!--<img src="app/views/images/logob.jpg">-->
+                    <!--<img class="img-ico" src="app/views/images/logob.jpg">-->
                 </h3>
             </div>
             <div>
@@ -11,9 +11,9 @@
             </div>
             <br/>
         <div class="row">
-            <div class="col-lg-12">
+            <div class="col-md-12">
                 <h3 class="page-header">
-                    <!--<img src="app/views/images/logob.jpg">-->
+                    <!--<img class="img-ico" src="app/views/images/logob.jpg">-->
                 </h3>
             </div>
 
@@ -36,22 +36,10 @@
 //$info=array("oc"=>$oc, "pago"=>$ocsp,"ruta"=>$ocruta, "recolectadas"=>$ocrec, "cTotal"=>$occant, "cPar"=>$occanp, "reen"=>$ocreen);
                 
             ?>
-
-             <div class="col-md-3">
+            <div class="col-md-6">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Control de Ordenes de Compra</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>Ordenes de compra x Mes</p>
-                        <center><a href="index.php?action=verOCmes" class="btn btn-default"><img src="app/views/images/OrdenCompra.png"></a></center>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Ordenes del dia Anterior</h4>
+                        <h4> Ordenes del dia Anterior</h4>
                     </div>
                     <div class="panel-body">
                         <?php $hoy=date("d.m.Y"); $ayer=strtotime('-1 day',strtotime($hoy)); $ayer = date('d.m.Y', $ayer);?>
@@ -70,10 +58,10 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Ordenes del dia </h4>
+                        <h4> Ordenes del dia </h4>
                     </div>
                    <div class="panel-body">
                         <?php $hoy=date("d.m.Y"); $ayer=strtotime('-1 day',strtotime($hoy)); $ayer = date('d.m.Y', $ayer);?>
@@ -92,84 +80,88 @@
                     </div>
                 </div>
             </div>
-              <div class="col-md-4">
+             <div class="col-md-2 cu-panel-clie">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Status Orden</h4>
+                        <h4>Ordenes compra x Mes</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Alta de Unidades</p>
-                        <center><a href="index.php?action=buscaOC2" class="btn btn-default"><img src="app/views/images/File-warning-icon.png"></a></center>
+                        <p></p>
+                        <center><a href="index.php?action=verOCmes" class="btn btn-default"><img class="img-ico" src="app/views/images/LogisticaRecoleccion/ControlOC.png" width="50" height="70"></a></center>
+                    </div>
+                </div>
+            </div>
+              <div class="col-md-2 cu-panel-clie">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4>Alta de Unidades</h4>
+                    </div>
+                    <div class="panel-body">
+                        <center><a href="index.php?action=buscaOC2" class="btn btn-default"><img class="img-ico" src="app/views/images/LogisticaRecoleccion/EstatusOrden.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
              
-            <div class="col-md-4">
+            <div class="col-md-2 cu-panel-clie">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Unidades</h4>
+                        <h4>Alta de Unidades</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Alta de Unidades</p>
-                        <center><a href="index.php?action=funidades" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mymovingreviews/3d-movers/64/truck-green-icon.png"></a></center>
+                        <center><a href="index.php?action=funidades" class="btn btn-default"><img class="img-ico" src="app/views/images/LogisticaRecoleccion/Unidades.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2 cu-panel-clie">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Asignacion Unidad</h4>
+                        <h4>Asignacion Unidad</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Asignacion de Unidad</p>
-                        <center><a href="index.php?action=aruta" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
+                        <center><a href="index.php?action=aruta" class="btn btn-default"><img class="img-ico" src="app/views/images/LogisticaRecoleccion/AsignaUnidad.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
     
-            <div class="col-md-4">
+            <div class="col-md-2 cu-panel-clie">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Pre-Ruta</h4>
+                        <h4>Documentos en Preruta</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Documentos en Preruta</p>
-                        <center><a href="index.php?action=submenusec" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                        <center><a href="index.php?action=submenusec" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/Catalogodeclientes.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2 cu-panel-clie">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i>Administracion de Rutas </h4>
+                        <h4>Administracion Reenrutadas</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Administracion de Ruta</p>
-                        <center><a href="index.php?action=adminruta&tipo=admon" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                        <center><a href="index.php?action=adminruta&tipo=admon" class="btn btn-default"><img class="img-ico" src="app/views/images/LogisticaRecoleccion/AdminRuta.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2 cu-panel-clie">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i>Finalizar Rutas </h4>
+                        <h4>Finalizar Rutas</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Finalizar Rutas</p>
-                        <center><a href="index.php?action=adminruta&tipo=total" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                        <center><a href="index.php?action=adminruta&tipo=total" class="btn btn-default"><img class="img-ico" src="app/views/images/LogisticaRecoleccion/FinalizarRuta.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
 
            
-            <div class="col-md-4">
+            <div class="col-md-2 cu-panel-clie">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Seguimiento de operadores</h4>
+                        <h4>Seguimiento de operadores</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Busqueda de operadores</p>
-                        <center><a href="index.php?action=RegistroOperadores&formro=1" class="btn btn-default"><img src="app/views/images/Truck-icon.png"></a></center>
+                        <center><a href="index.php?action=RegistroOperadores&formro=1" class="btn btn-default"><img class="img-ico" src="app/views/images/LogisticaRecoleccion/SeguimientoOperadores.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>

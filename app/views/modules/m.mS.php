@@ -33,21 +33,11 @@
                 $hocreen =empty($infohoy['reen'])? 0:$infohoy['reen'];
 //$info=array("oc"=>$oc, "pago"=>$ocsp,"ruta"=>$ocruta, "recolectadas"=>$ocrec, "cTotal"=>$occant, "cPar"=>$occanp, "reen"=>$ocreen);
             ?>
-           <div class="col-md-3">
+          
+            <div class="col-md-6">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Control de Ordenes de Compra</h4>
-                    </div>
-                    <div class="panel-body">
-                        <p>Ordenes de compra x Mes</p>
-                        <center><a href="index.php?action=verOCmes" class="btn btn-default"><img src="app/views/images/OrdenCompra.png"></a></center>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Ordenes del dia Anterior</h4>
+                        <h4>Ordenes del dia Anterior</h4>
                     </div>
                     <div class="panel-body">
                         <?php $hoy=date("d.m.Y"); $ayer=strtotime('-1 day',strtotime($hoy)); $ayer = date('d.m.Y', $ayer);?>
@@ -66,10 +56,10 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Ordenes del dia </h4>
+                        <h4>Ordenes del dia </h4>
                     </div>
                    <div class="panel-body">
                         <?php $hoy=date("d.m.Y"); $ayer=strtotime('-1 day',strtotime($hoy)); $ayer = date('d.m.Y', $ayer);?>
@@ -88,22 +78,31 @@
                     </div>
                 </div>
             </div>
-              <div class="col-md-3">
-                <div class="panel panel-default">
+             <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Status Orden</h4>
+                        <h4>Ordenes de compra x Mes</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Alta de Unidades</p>
-                        <center><a href="index.php?action=buscaOC2" class="btn btn-default"><img src="app/views/images/File-warning-icon.png"></a></center>
+                        <center><a href="index.php?action=verOCmes" class="btn btn-default"><img src="app/views/images/Suministros/OrdenesAnterior.png" width="50" height="70"></a></center>
+                    </div>
+                </div>
+            </div>
+              <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
+                    <div class="panel-heading">
+                        <h4>Alta de Unidades</h4>
+                    </div>
+                    <div class="panel-body">
+                        <center><a href="index.php?action=buscaOC2" class="btn btn-default"><img src="app/views/images/Suministros/ControlCompra.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
             <?php if(count($fallidas)>0){?>
-           <div class="col-md-3">
-                <div class="panel panel-default">
+           <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Ordenes Fallidas </h4>
+                        <h4>Ordenes Fallidas </h4>
                     </div>
                     <div class="panel-body">
                         <p>Ordenes Fallidas: <?php echo count($fallidas)?></p>
@@ -111,56 +110,52 @@
                     </div>
                 </div>
             </div>
-               <div class="col-md-3">
-                <div class="panel panel-default">
+               <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Recuperar Pagos a Proveedores </h4>
+                        <h4>Recuperar Pagos a Proveedores</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Recuperar Pagos </p>
                         <center><a href="index.php?action=verOrdenesFallidas" class="btn btn-default"><img src="app/views/images/Shopping-basket-full-icon.png"></a></center>
                     </div>
                 </div>
             </div>
             <?php }else{?>
-             <div class="col-md-3">
-                <div class="panel panel-default">
+             <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Cestas Agrupadas </h4>
+                        <h4>Cestas Agrupadas</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Por Cestas</p>
-                        <center><a href="index.php?action=verCestas" class="btn btn-default"><img src="app/views/images/Shopping-basket-full-icon.png"></a></center>
+                        <center><a href="index.php?action=verCestas" class="btn btn-default"><img src="app/views/images/Suministros/CestasAgrupadas.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Preordenes de Compra. </h4>
+                        <h4>Preordenes de Compra Ver/Imprimir</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Ver / Imprimir PreOC </p>
-                        <center><a href="index.php?action=verPreOC" class="btn btn-default"><img src="app/views/images/Shopping-basket-full-icon.png"></a></center>
+                        <center><a href="index.php?action=verPreOC" class="btn btn-default"><img src="app/views/images/Suministros/PreOrdenCompra.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>        
-          <div class="col-md-3">
-                <div class="panel panel-default">
+          <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Recuperar Pagos a Proveedores </h4>
+                        <h4>Recuperar Pagos a Proveedores</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Recuperar Pagos </p>
-                        <center><a href="index.php?action=verOrdenesFallidas" class="btn btn-default"><img src="app/views/images/Shopping-basket-full-icon.png"></a></center>
+                        <center><a href="index.php?action=verOrdenesFallidas" class="btn btn-default"><img src="app/views/images/Suministros/RecuperarPagos.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
             <!--<div class="col-md-4">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Catalogo de Inventarios</h4>
+                        <h4>Catalogo de Inventarios</h4>
                     </div>
                     <div class="panel-body">
                         <p>Inventario Almacen 9.</p>
@@ -169,9 +164,9 @@
                 </div>
 
             <div class="col-md-4">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Crear Ordenes de Compra</h4>
+                        <h4>Crear Ordenes de Compra</h4>
                     </div>
                     <div class="panel-body">
                         <p>TODAS LAS CATEGORIAS.</p>
@@ -181,35 +176,34 @@
             </div>
             </div>-->
 
-            <div class="col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Ver Ordenes de Compra</h4>
+                        <h4>Ordenes de Compra</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Ordenes de Compra.</p>
-                        <center><a href="index.php?action=verOrdenesCompra" class="btn btn-default"><img src="app/views/images/order.png"></a></center>
+                        <center><a href="index.php?action=verOrdenesCompra" class="btn btn-default"><img src="app/views/images/Suministros/OrdenesDia.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>     
             <?php }?>
             <?php if(count($Solicitudes)>0){?>
-             <div class="col-md-3">
-                <div class="panel panel-default">
+             <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Ver Solicitudes de Bodega Automaticos</h4>
+                        <h4>Ver Solicitudes de Bodega Automaticos</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Solicitudes a Bodega. <font color="red"><?php echo count($Solicitudes)?></font></p>
-                        <center><a href="index.php?action=verSolBodega" class="btn btn-default"><img src="app/views/images/order.png"></a></center>
+                        <p>Solicitudes a Bodega:<font color="red"><?php echo count($Solicitudes)?></font></p>
+                        <center><a href="index.php?action=verSolBodega" class="btn btn-default"><img src="app/views/images/Suministros/VerOrdenesCompra.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>             
             <?php }?>
            <!-- <div class="col-md-4">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Estado de Pedidos</h4>
+                        <h4>Estado de Pedidos</h4>
                     </div>
                     <div class="panel-body">
                         <p></p>
@@ -218,9 +212,9 @@
                 </div>
                 </div>          
             <div class="col-md-4">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Lista de Pedidos</h4>
+                        <h4>Lista de Pedidos</h4>
                     </div>
                     <div class="panel-body">
                         <p>TODOS LOS PEDIDOS.</p>
@@ -229,9 +223,9 @@
                 </div>
             </div> 
             <div class="col-md-4">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i>  Ordenes por Categorias:</h4>
+                        <h4> Ordenes por Categorias:</h4>
                     </div>
                     <div class="panel-body">
                         <p>JARCERIA Y SEGURIDAD INDUSTRIAL / ACEROS Y PERFILES.</p>
@@ -241,9 +235,9 @@
             </div>  
 
             <div class="col-md-4">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i>  Ordenes por Categorias:</h4>
+                        <h4> Ordenes por Categorias:</h4>
                     </div>
                     <div class="panel-body">
                         <p>PLOMERIA / FERRETERIA / H. MANUAL.</p>
@@ -253,9 +247,9 @@
             </div>
 
             <div class="col-md-4">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i>  Ordenes por Categorias:</h4>
+                        <h4> Ordenes por Categorias:</h4>
                     </div>
                     <div class="panel-body">
                         <p>ADHESIVOS / CERRAJERIA Y HERRAJES / MEDICION.</p>
@@ -265,9 +259,9 @@
             </div>  
             
             <div class="col-md-4">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i>  Ordenes por Categorias:</h4>
+                        <h4> Ordenes por Categorias:</h4>
                     </div>
                     <div class="panel-body">
                         <p>CONSTRUCCION Y PINTURAS / FIJACION Y SOPORTE.</p>
@@ -277,9 +271,9 @@
             </div>
 
             <div class="col-md-4">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Ordenes por Categorias:</h4>
+                        <h4>Ordenes por Categorias:</h4>
                     </div>
                     <div class="panel-body">
                         <p>HERRAMIENTA ELECTRICA / ACCESORIOS Y CONSTRUCCION DE HERRAMIENTA / ELECTRICO.</p>

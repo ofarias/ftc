@@ -9,7 +9,7 @@
         <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h4>Cuentas Impuestos</h4>
+                    <center><a class="icoPre" title="ImpuestosAyuda" href="app/views/DocsAyuda/ManualImpuestos.pdf" target="_blank"><img src="app/views/images/cuestion.png" alt="ImpuestosAyuda" width="30" height="30"></a><h4>Cuentas Impuestos</h4></center>
                 </div>
                 <div class="panel-body">
                     <p>Configuracion</p>

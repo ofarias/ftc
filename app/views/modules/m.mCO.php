@@ -9,126 +9,118 @@
             <?php if($_SESSION['user']->LETRA == 'G'){?>
             <p><input type="text" name="enviaNC" placeholder="Enviar Caja a NC" onchange="cajaNC(this.value)"></p>
             <?php }?>
-        <div class="col-md-3">    
-            <div class="panel panel-default">
+            <br>
+        <div class="col-md-2">    
+            <div class="panel panel-default cu-panel-clie">
                 <div class="panel-heading">
-                  <center><h4>Bancos</h4></center>
+                  <center><a class="icoPre" title="BancosAyuda" href="app/views/DocsAyuda/ManualBancos.pdf" target="_blank"><img src="app/views/images/cuestion.png" alt="BancosAyuda" width="30" height="30"></a><h4>Catalogo de Bancos</h4></center>
                 </div>
             <div class="panel-body">
-                  <center><p><b>Catalogo de Bancos</b></p></center>
-                  <center><a href="index.coi.php?action=verBancos" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                  <center><a href="index.coi.php?action=verBancos" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/Bancos.png" width="50" height="70"></a></center>
             </div>
             </div>
         </div>   
         
-        <div class="col-md-3">    
-            <div class="panel panel-default">
+        <div class="col-md-2">    
+            <div class="panel panel-default cu-panel-clie">
                 <div class="panel-heading">
-                  <h4>C O N C I  L I A C I O N </h4>
+                  <h4>Conciliacion</h4>
                 </div> 
             <div class="panel-body">
-                  <center><p><b>Estado de Cuenta</b></p></center>
-                  <center><a href="index.php?action=edoCta" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                <br>
+                  <center><a href="index.php?action=edoCta" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/Consiliacion.png" width="50" height="70"></a></center>
             </div>
             </div>
         </div>   
-        <div class="col-md-3">
-        <div class="panel panel-default">
+        <div class="col-md-2">
+        <div class="panel panel-default cu-panel-clie">
               <div class="panel-heading">
-                  <h4><center>C O N C I L  I A D O</center> </h4>
+                  <h4><center>Estado de Cuenta Conciliado</center> </h4>
               </div>
               <div class="panel-body">
-                  <center><p><b>Estado de Cuenta Conciliado</b></p></center>
-                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img src="app/views/images/Contabilidad/banco_2_1.png"></a></center>
+                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/EdoConciliado.png" width="50" height="70"></a></center>
               </div>
         </div>
         </div>
-        <div class="col-md-3">
-                <div class="panel panel-default">
+        <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
                         <h4> Catalogo de gastos</h4>
                     </div>
                     <div class="panel-body">
-                        <p><br/></p>
-                        <center><a href="index.php?action=Catalogo_Gastos" class="btn btn-default"><img src="app/views/images/Balance-icon.png"></a></center>
+                        <center><a href="index.php?action=Catalogo_Gastos" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/CatalogoGastos.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4> Clasificación de gastos</h4>
+                        <h4>Clasificación de gastos</h4>
                     </div>
                     <div class="panel-body">
-                        <p><br/></p>
-                        <center><a href="index.php?action=clasificacion_gastos" class="btn btn-default"><img src="app/views/images/Documents-icon.png"></a></center>
+                        <center><a href="index.php?action=clasificacion_gastos" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/ClasifGastos.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4> Gastos</h4>
+                        <h4>Captura de gastos</h4>
                     </div>
                     <div class="panel-body">
-                        <p> Captura de gastos</p>
-                        <center><a href="index.php?action=form_capturagastos" class="btn btn-default"><img src="app/views/images/wallet-icon.png"></a></center>
+                        <center><a href="index.php?action=form_capturagastos" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/Gastos.png" ></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
                         <h4>Consecutivo de Compras</h4>
                     </div>
                     <div class="panel-body">
                         <p></p>
-                        <center><a href="index.php?action=verCompras" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                        <center><a href="index.php?action=verCompras" class="btn btn-default"><img class="img-ico" src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
                     </div>
                 </div>   
             </div>
-            <div class="col-md-3">
-            <div class="panel panel-default">
+            <div class="col-md-2">
+            <div class="panel panel-default cu-panel-clie">
                 <div class="panel-heading">
-                    <h4><i class="fa fa-list-alt"></i>Recepci&oacute;n de pagos</h4>
+                    <h4>Recepci&oacute;n de pagos</h4>
                 </div>
                 <div class="panel-body">
-                    <p>Recibir pagos</p>
-                    <center><a href="index.php?action=listadoXrecibir" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                    <center><a href="index.php?action=listadoXrecibir" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/RePagos.png" width="50" height="70"></a></center>
                 </div>
             </div>
         </div>
-            <div class="col-md-3">
-                 <div class="panel panel-default">
+            <div class="col-md-2">
+                 <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                    <h4>Carga Cargos</h4>
+                    <h4>Carga Cargos/Reg Directo Edo Cuenta</h4>
                     </div>
                 <div class="panel-body">
-                    <p>Registro Directo al Edo Cta</p>
-                   <center><a href="index.php?action=form_capruracrdirecto" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
+                   <center><a href="index.php?action=form_capruracrdirecto" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/CargaGastos.png" width="50" height="70"></a></center>
                 </div>
                 </div>
             </div>
 
-         <div class="col-md-3">
-                <div class="panel panel-default">
+         <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
                         <h4>Transferencias y Prestamos</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Transferencias y Prestamos.</p>   
-                        <center><a href="index.php?action=transfer" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                        <center><a href="index.php?action=transfer" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/TransyPrest.png" width="50" height="70"></a></center>
                     </div>
                 </div>
         </div>
-        <div class="col-md-3">
-                <div class="panel panel-default">
+        <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4>CARGA DE DEUDORES</h4>
+                        <h4>Carga de deudores</h4>
                     </div>
-                    <div class="panel-body">
-                        <p></p>   
-                        <center><a href="index.php?action=deudores" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                    <div class="panel-body">  
+                        <center><a href="index.php?action=deudores" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/CargaDeudores.png" width="50" height="70"></a></center>
                     </div>
                 </div>
         </div>
