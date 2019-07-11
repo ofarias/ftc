@@ -13343,12 +13343,9 @@ function Pagos() {
     	return $totalAplicado;
     }
 
-
-   
-     function totalCompras($mes, $banco, $anio, $cuenta){
+    function totalCompras($mes, $banco, $anio, $cuenta){
     	$this->query = "SELECT iif(SUM(iif(monto_final = 0, importe, monto_final)) is null, 0, SUM(iif(monto_final = 0, importe, monto_final))) as totCompras from compo01 
     		where 
-    		--fecha_edo_cta_ok = '1' and 
     		extract(month from edocta_fecha) = $mes 
     		and extract(year from edocta_fecha) = $anio
     		and banco = ('$banco'||' - ' ||'$cuenta')
@@ -13356,8 +13353,6 @@ function Pagos() {
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
    		$totc=$row->TOTCOMPRAS;
-   		//var_dump($data);
-
    		$this->query = "SELECT sum(pago_tes) as totCompras from ftc_poc 
     		where 
     		extract(month from edocta_fecha) = $mes 
@@ -13367,9 +13362,7 @@ function Pagos() {
     	$rs=$this->QueryObtieneDatosN();
     	$row2=ibase_fetch_object($rs);
    		$totcn=$row2->TOTCOMPRAS;
-   		
    		$totc = $totc + $totcn;
-
    		return $totc;
     }
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
@@ -13379,47 +13372,28 @@ function Pagos() {
     					left join PAGO_GASTO pg on pg.idgasto = g.id and pg.cuenta_bancaria =('$banco'||' - '||'$cuenta')
     					where 
     					pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') and iif(fecha_edo_cta is null,extract(month from g.FECHA_DOC), extract(month from fecha_edo_cta)) = $mes and iif(fecha_edo_cta is null, extract(year from g.FECHA_DOC), extract(year from fecha_edo_cta)) = $anio and g.status = 'V'  and (seleccionado = 1 or seleccionado = 2) and guardado = 1";
-
-    					/*
-    					iif(fecha_edo_cta is null,extract(month from g.FECHA_DOC), extract(month from fecha_edo_cta)) = $mes
-					    and iif(fecha_edo_cta is null, extract(year from g.FECHA_DOC), extract(year from fecha_edo_cta)) = $anio
-					    and g.status = 'V'
-					    and (seleccionado = 1 or seleccionado = 2) and guardado = 1
-    					--and fecha_edo_cta_ok = '1'
-    					";*/
-    					/*
-							SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort, 'Gasto' AS TIPO, pg.ID AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, 0 AS SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO
-    			FROM GASTOS g
-    			left join pago_gasto pg on pg.idgasto = g.id
-    			WHERE pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') and iif(fecha_edo_cta is null,extract(month from g.FECHA_DOC), extract(month from fecha_edo_cta)) = $mes and iif(fecha_edo_cta is null, extract(year from g.FECHA_DOC), extract(year from fecha_edo_cta)) = $anio and g.status = 'V'  and (seleccionado = 2 )
-    					*/
-    		//echo $this->query;
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
     	$totg=$row->TOTGASTO;
-    	//echo $this->query;
     	$this->query="SELECT iif(SUM(IMPORTE) IS NULL, 0 , SUM(IMPORTE)) as GastoDirecto
     				  FROM CR_DIRECTO 
     				  WHERE extract(month from fecha_edo_cta) = $mes
     				  and extract(year from fecha_edo_cta) = $anio
-    				  and banco = '$banco' 
-    				  and (seleccionado = 1 or seleccionado = 2) and guardado = 1
-    				  --and fecha_edo_cta_ok='1'
-    				  ";
+    				  and banco = '$banco'
+    				  and cuenta = '$cuenta' 
+    				  and (seleccionado = 1 or seleccionado = 2) and guardado = 1";
 		$rs= $this->QueryObtieneDatosN();
-		//echo $this->query;
+		echo $this->query;
 		$row=ibase_fetch_object($rs);
 		$totgd = $row->GASTODIRECTO;
 		$totg =$totg + $totgd; 
     	return $totg;
     }
 
-
     function totalDeudores($mes, $banco, $anio, $cuenta){
     	$this->query="SELECT iif(SUM(importe)is null, 0, Sum(importe)) as TOTALDEUDORES 
     			FROM DEUDORES 
     			WHERE extract(month from FECHAEDO_CTA)= $mes and extract(year from fechaedo_cta)= $anio 
-    			--and fecha_edo_cta_ok ='1'
     			and banco = ('$banco'||' - '||'$cuenta')
     			and (seleccionado = 1 or seleccionado = 2)  and guardado = 1";
     	$rs=$this->QueryObtieneDatosN();
@@ -13432,13 +13406,11 @@ function Pagos() {
     	$this->query="SELECT iif(sum(monto_final) is null,0, sum(monto_final)) as totalcredito from SOLICITUD_PAGO 
     				where extract(month from fecha_edo_cta) = $mes 
     				and extract(year from fecha_edo_cta) = $anio
-    				--and fecha_edo_cta_ok = '1'
     				and banco_final = ('$banco'||' - '||'$cuenta')
     				and (seleccionado = 1 or seleccionado = 2) and guardado = 1";
     	$rs=$this->QueryObtieneDatosN();
     	$row = ibase_fetch_object($rs);
     	$totCr = $row->TOTALCREDITO;
-
     	return $totCr; 
     }
 
@@ -13452,9 +13424,7 @@ function Pagos() {
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
-
     	return @$data;
-
     }
 
     function obtenerFolio($identificador){
@@ -24111,7 +24081,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$unitario=$data[4];
 				            	$cvesat = $data[5];
 				            	$unisat = $data[6];
-				            	$descp = $data[7];
+				            	$descp = empty($data[7])? 0:$data[7];
 				            	$this->query = "INSERT INTO XML_PARTIDAS (id, unidad, importe, cantidad, partida, descripcion, unitario, uuid, documento, cliente_SAE, rfc, fecha, descuento, cve_art, cve_clpv, unitario_original, CLAVE_SAT, UNIDAD_SAT) values (null, '$unidad', $importe, $cantidad, $i, '$descripcion', $unitario, '$uuid', ('$serie'||'-'||'$folio'), '', '$rfc', '$fecha', $descp, '', '', $unitario, '$cvesat','$unisat')";
 				            	if($rs=$this->grabaBD() === false){
 				            		echo 'Falla al insertar la partida:<br/>';
