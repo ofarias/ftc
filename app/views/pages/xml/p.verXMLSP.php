@@ -106,6 +106,8 @@
                                             <td>
                                                 <a href="index.php?action=verXML&uuid=<?php echo $key->UUID?>&ide=<?php echo $ide?>" class="btn btn-info" target="popup" onclick="marcar(<?php echo $ln?>, 'c'); window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar </a>
                                                 <center><input type="checkbox" name="revision" id="<?php echo $ln?>" value="<?php echo $ln?>" color="<?php echo $color2?>" onclick="marcar(this.value, 'cb')" ></center>
+                                                <br/>
+                                                
                                             </td>
                                             <form action="index.php" method="POST">
                                                     <input type="hidden" name="factura" value="<?php echo $key->SERIE.$key->FOLIO?>">
@@ -114,6 +116,7 @@
                                                         <a href="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->RFCE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" 
                                                         download="<?php echo $key->RFCE.'-'.substr($key->FECHA, 0, 10).'-'.number_format($key->IMPORTE,2).'-'.$key->UUID.'.xml'?>">  
                                                         <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>
+
                                                     <?php }else{?>
                                                         <a href="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->CLIENTE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" 
                                                             download="<?php echo $key->RFCE.'-'.substr($key->FECHA, 0, 10).'-'.number_format($key->IMPORTE,2).'-'.$key->UUID.'.xml'?>">  
@@ -121,6 +124,7 @@
                                                     <?php }?>
                                                     &nbsp;&nbsp;
                                                     <a href="index.php?action=imprimeUUID&uuid=<?php echo $key->UUID?>" onclick="alert('Se ha descargar tu factura, revisa en tu directorio de descargas')"><img border='0' src='app/views/images/pdf.jpg' width='25' height='30'></a>
+                                                    <!--<input type="button" value="" class="btn-sm btn-info cargaSAE" doc="<?php echo $key->SERIE.$key->FOLIO?>" ruta="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->CLIENTE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" serie="<?php echo $key->SERIE?>" folio ="<?php echo $key->FOLIO?>" uuid="<?php echo $key->UUID?>" rfcr="<?php echo $key->CLIENTE?>" ln="<?php echo $ln?>">-->
                                                 </td>
                                             </form>
                                         </tr>
@@ -133,7 +137,6 @@
             </div>
         </div>
 </div>
-
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
@@ -142,7 +145,7 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
-     function marcar(ln, t){
+    function marcar(ln, t){
         var renglon = document.getElementById("ln_"+ln)
         var chek = document.getElementById(ln)
         var color = chek.getAttribute("color")
@@ -162,6 +165,31 @@
         }else{
             $(".impDet").show()
         }
+    })
+
+    $(".cargaSAE").click(function(){
+        var doc = $(this).attr('doc')
+        var serie = $(this).attr('serie')
+        var folio = $(this).attr('folio')
+        var uuid = $(this).attr('uuid')
+        var ruta = $(this).attr('ruta')
+        var rfcr = $(this).attr('rfcr')
+        var ln = $(this).attr('ln')
+
+        $.ajax({
+            url:'index.v.php',
+            type:'post',
+            dataType:'json',
+            data:{cargaSae:1, doc, serie, folio, uuid, ruta, rfcr},
+            success:function(data){
+                if(data.status == 'ok'){
+                   marcar(ln, 'c')
+                }
+            },
+            error:function(){
+                alert('No se inserto :(')
+            }
+        })
     })
 
 

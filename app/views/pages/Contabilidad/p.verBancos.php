@@ -97,7 +97,7 @@
                 '<img src="app/views/images/flow.png" onMouseOver="this.src=' + "'app/views/images/cancel.jpg', width='500', height='800' " +'" onMouseOut="this.src='+"'app/views/images/flow.png', width='45', height='30'"+ '"style="cursor:pointer;">'+
             '<br/>'+
             
-            'Serie: <br/><input name="motivo" type="text" placeholder="Serie de los folios" size ="100" class="obs"> <br/>' +
+            'Serie: <br/><input name="motivo" type="text" placeholder="Serie de los folios" size ="100" maxlength="5" class="obs"> <br/>' +
 
             '</div><br/><br/>'+
             '</form>',

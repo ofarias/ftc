@@ -6148,7 +6148,7 @@ function ReEnrutar($id_preoc, $pxr, $doco){
 			left join clie01 e on b.cve_clpv = e.clave
 			WHERE a.STATUS_LOG = 'NC'
 			and status_recepcion >= 5
-			and a.fecha_secuencia >= '15.01.2018' 
+			and (a.fecha_secuencia >= '15.01.2018' or a.fecha_secuencia is null)
 			";
 			//or a.status_log = 'Reenviar' or a.status_log = 'recibido'
 		$this->query=$a;
@@ -10758,7 +10758,7 @@ function Pagos() {
     		$data[]=$tsArray;
     	}
     	
-    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort, 'Gasto' AS TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, 0 AS SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, TIPO_PAGO as tp_tes, REFERENCIA as obs
+    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort, 'Gasto' AS TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, TIPO_PAGO as tp_tes, REFERENCIA as obs
     			FROM GASTOS g
     			left join pago_gasto pg on pg.idgasto = g.id
     			WHERE pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') 
@@ -23846,6 +23846,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            //echo $this->query;			            
 			            $parIT=0;
 			            $partidaImp=array();
+			          	$parte_partida=array();
+			          	$parInfoAduana=array();
 			           	foreach($xml->xpath('//cfdi:Comprobante//cfdi:Conceptos//cfdi:Concepto') as $Concepto){
 			            	$parIT++;
 			            	if($version ==  '3.2'){
@@ -23921,8 +23923,49 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			           		}else{
 			           			//echo 'La partida '.$parIT.' no Tiene impuestos<br/>';
 			           		}
+			            
+			           		if($Concepto->xpath('cfdi:InformacionAduanera')){
+			          			foreach ($Concepto->xpath('cfdi:InformacionAduanera') as $infoAdu) {
+			          				if($version == '3.2'){
+			          					$numPed = $infoAdu['NumeroPedimento'];
+			          					$fechaPed = isset($infoAdu['fechaPedimento'])? $infoAdu['fechaPedimento']:'01.01.1909';
+			          					$parInfoAduana[]=array($numPed, $parIT, $fechaPed, $cantiPed, $descripcion);
+			          				}elseif($version == '3.3'){
+			          					$numPed = $infoAdu['NumeroPedimento'];
+			          					$fechaPed = isset($infoAdu['fechaPedimento'])? $infoAdu['fechaPedimento']:'01.01.1909';
+			          					$cantiPed = isset($infoAdu['cantidad'])? $infoAdu['cantidad']:$cantidad; 
+			          					$parInfoAduana[]=array($numPed, $parIT, $fechaPed, $cantiPed, $descripcion);
+			          				}
+			          			}
+			          		}
+			          		if($Concepto->xpath('cfdi:Parte')){
+			          			foreach ($Concepto->xpath('cfdi:Parte') as $parte){
+			          				if($version == '3.2'){
+			          					$parte_unidad = $Concepto['unidad'];
+				            			$parte_importe = $Concepto['importe'];
+				            			$parte_cantidad = $Concepto['cantidad'];
+				            			$parte_descripcion = htmlentities($Concepto['descripcion']);
+				            			$parte_valor = $Concepto['valorUnitario'];
+				            			$parte_claveSat='';
+				            			$parte_claveUni='';
+				            			$parte_partida[] =array($parte_unidad, $parte_importe, $parte_cantidad, $parte_descripcion, $parte_valor,$parte_claveSat, $parte_claveUni, $parIT);
+			          				}elseif($version == '3.3'){
+			          					$parte_unidad = $Concepto['Unidad'];
+				            			$parte_importe = $Concepto['Importe'];
+				            			$parte_cantidad = $Concepto['Cantidad'];
+				            			$parte_descripcion = htmlentities($Concepto['Descripcion']);
+				            			$parte_valor = $Concepto['ValorUnitario'];
+				            			$parte_claveSat=$Concepto['ClaveProdServ'];
+				            			$parte_claveUni=$Concepto['ClaveUnidad'];
+				            			$parte_descp = isset($Concepto['Descuento'])? $Concepto['Descuento']:0;
+				            			$parte_partida[]=array($parte_unidad, $parte_importe, $parte_cantidad, $parte_descripcion, $parte_valor, $parte_claveSat, $parte_claveUni, $parte_descp, $parIT); 
+			            			}
+			          			}
+			          		}
+
 			            }
-			          
+			          	
+			     
 			            //// Obtenemos las retenciones de los impuestos:
 			            foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos') as $Timp){	
 			            	if($version == '3.2'){
@@ -23935,8 +23978,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            //var_dump($Traslado);   	
 			               //$impuesto = $Traslado['impuesto']; 
 			            }
-
-
 
 			            //HASTA AQUI TODA LA INFORMACION ES LEIDA E IMPRESA CORRECTAMENTE
 			            //ESTA ULTIMA PARTE ES LA QUE GENERA ERROR, AL PARECER NO ENCUENTRA EL NODO
@@ -23997,24 +24038,24 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							}
 							/// creamos el folder para el movimiento de las facturas a nuestro sistema. 
 				            if($rfce == 'FPE980326GH9'){
-                                    copy($archivo, "C:\\xampp\\htdocs\\Facturas\\facturaPegaso\\".$serie.$folio.".xml");    
+                                copy($archivo, "C:\\xampp\\htdocs\\Facturas\\facturaPegaso\\".$serie.$folio.".xml");    
                             }else{
-                            		if($rfce == $rfcEmpresa){
-                            			$carpeta = 'Emitidos';
-                            			$carpeta2= $rfc;
-                            		}else{
-                            			$carpeta = 'Recibidos';
-                            			$carpeta2= $rfce;
-                            		}
-                            		$path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\'.$carpeta.'\\'.$carpeta2;
-                            		//echo '<br/>'.$path.'<br/>';
-                            		if(is_dir($path)){
-                            			//echo '<br/> El directorio existe<br/>';
-                            		}else{
-                            			//echo '<br/> El Direcotirio no existe y se debe de crear<br/>';
-                            			mkdir($path,0777, true);
-                            		}
-                                    copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serie).utf8_encode($folio).'-'.$uuid.".xml");
+                            	if($rfce == $rfcEmpresa){
+                            		$carpeta = 'Emitidos';
+                            		$carpeta2= $rfc;
+                            	}else{
+                            		$carpeta = 'Recibidos';
+                            		$carpeta2= $rfce;
+                            	}
+                            	$path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\'.$carpeta.'\\'.$carpeta2;
+                            	//echo '<br/>'.$path.'<br/>';
+                            	if(is_dir($path)){
+                            		//echo '<br/> El directorio existe<br/>';
+                            	}else{
+                            		//echo '<br/> El Direcotirio no existe y se debe de crear<br/>';
+                            		mkdir($path,0777, true);
+                            	}
+                                   copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serie).utf8_encode($folio).'-'.$uuid.".xml");
                             }
 
                             /// Insertamos en la tabla de CFIDsss
@@ -24027,7 +24068,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							if(count($partidaImp)<0){
 								//echo $uuid.' --- '.$tipo.'  ---<br/>';
 							}else{
-
 								foreach ($partidaImp as $key){
 									$base = empty($key[0])? 0:$key[0];;
 					            	$nombre = $key[1];
@@ -24063,21 +24103,21 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					            	}
 			            		}	
 							}
-							
 				            //echo 'Valor del arrego partida'.var_dump($partida);
 				            $i=1;
 				            foreach ($partida as $data){
 				            	$unidad = $data[0];
 				            	$importe = $data[1];
 				            	$cantidad = $data[2];
-				            	$descripcion = str_replace(array("\\", "¨", "º", "-", "~",
-								             "#", "@", "|", "!", "\"",
-								             "·", "$", "%", "&", "/",
-								             "(", ")", "?", "'", "¡",
-								             "¿", "[", "^", "<code>", "]",
-								             "+", "}", "{", "¨", "´",
-								             ">", "< ", ";", ",", ":",
-								             ".", " "),' ',$data[3]);
+				            	//$descripcion = str_replace(array("\\", "¨", "º", "-", "~",
+								//             "#", "@", "|", "!", "\"",
+								//             "·", "$", "%", "&", "/",
+								//             "(", ")", "?", "'", "¡",
+								//             "¿", "[", "^", "<code>", "]",
+								//             "+", "}", "{", "¨", "´",
+								//             ">", "< ", ";", ",", ":",
+								//             ".", " "),' ',$data[3]);
+				            	$descripcion = str_replace(array("'", "<code>"),' ',$data[3]);
 				            	$unitario=$data[4];
 				            	$cvesat = $data[5];
 				            	$unisat = $data[6];
@@ -24089,8 +24129,51 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	}          
 				            	$i=$i+1;
 			            	}
-			            	$this->calcularImpuestos($uuid);
 
+			            	if(count($parte_partida) > 0){
+			            		foreach ($parte_partida as $pp ){
+			            			$parte_unidad = $pp[0];
+					            	$parte_importe = $pp[1];
+					            	$parte_cantidad = $pp[2];
+					            	//$descripcion = str_replace(array("\\", "¨", "º", "-", "~",
+									//             "#", "@", "|", "!", "\"",
+									//             "·", "$", "%", "&", "/",
+									//             "(", ")", "?", "'", "¡",
+									//             "¿", "[", "^", "<code>", "]",
+									//             "+", "}", "{", "¨", "´",
+									//             ">", "< ", ";", ",", ":",
+									//             ".", " "),' ',$pp[3]);
+					            	$parte_descripcion = str_replace(array("'", "<code>"),' ',$pp[3]);
+					            	$parte_unitario=$pp[4];
+					            	$parte_cvesat = $pp[5];
+					            	$parte_unisat = $pp[6];
+					            	$parte_descp = empty($pp[7])? 0:$pp[7];
+					            	$parte_pi= $pp[8];
+					            	//var_dump($parte_partida);
+					            	$this->query = "INSERT INTO XML_PARTIDAS_PARTE (id, unidad, importe, cantidad, partida, descripcion, unitario, uuid, documento, cliente_SAE, rfc, fecha, descuento, cve_art, cve_clpv, unitario_original, CLAVE_SAT, UNIDAD_SAT) values (null, '$parte_unidad', $parte_importe, $parte_cantidad, $parte_pi, '$parte_descripcion', $parte_unitario, '$uuid', ('$serie'||'-'||'$folio'), '', '$rfc', '$fecha', $parte_descp, '', '', $parte_unitario, '$parte_cvesat','$parte_unisat')";
+					            	if($rs=$this->grabaBD() === false){
+					            		echo 'Falla al insertar la partida informacion de parte:<br/>';
+					            		echo $this->query.'<br/>';
+					            	}   	
+			            		}       
+			            	}
+
+			            	if(count($parInfoAduana)>0){
+			            		foreach ($parInfoAduana as $pia){
+			            			$pia_pedimento = $pia[0];
+			            			$pia_par=$pia[1];
+			            			$pia_fecha = $pia[2];
+			            			$pia_cantidad = $pia[3];
+			            			$pia_descripcion = str_replace(array("'", "<code>"),' ',$pia[4]);
+			            			$this->query="INSERT INTO XML_PARTIDA_INFO_ADUANA (ID, UUID, PARTIDA, PEDIMENTO, FECHA_PEDIMENTO, LOTE, FECHA_LOTE, CANTIDAD, DESCRIPCION) VALUES (NULL, '$uuid', $pia_par, '$pia_pedimento','$pia_fecha', '', null, $pia_cantidad, '$pia_descripcion' )";
+			            			if($rs=$this->grabaBD() === false){
+					            		echo 'Falla al insertar la partida informacion Aduanera :<br/>';
+					            		echo $this->query.'<br/>';
+					            	}
+			            		}
+			            	}
+
+			            	$this->calcularImpuestos($uuid);
 			            }elseif($tipo2 == 'C'){
 			            	$this->query = "INSERT INTO XML_DATA_CANCELADOS (UUID, CLIENTE, SUBTOTAL, IMPORTE, FOLIO, SERIE, FECHA, RFCE, DESCUENTO, STATUS, TIPO, FILE )";
 				            $this->query.= "VALUES ('$uuid', '$rfc', '$subtotal', '$total', '$folio', '$serie', '$fecha', '$rfce', $descuento, 'C', '$tipo2', '$archivo')";
@@ -26669,7 +26752,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function detalleGasto($idg){
 		$data = array();
-		$this->query="SELECT G.*, COALESCE((SELECT NOMBRE FROM XML_CLIENTES XC WHERE G.CVE_PROV = ('xml_'||XC.IDCLIENTE)),'Sin Proveedor') AS PROV , (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE AG.IDG = G.ID AND AG.STATUS = 0) AS APLICADO FROM GASTOS G WHERE ID = $idg";
+		$this->query="SELECT G.*, Pg.CUENTA_BANCARIA, pg.FOLIO_PAGO, (select CTA_CONTAB FROM PG_BANCOS PB WHERE PB.BANCO||' - '||PB.NUM_CUENTA = pg.cuenta_bancaria ) as cta_banco, COALESCE((SELECT NOMBRE FROM XML_CLIENTES XC WHERE G.CVE_PROV = ('xml_'||XC.IDCLIENTE)),'Sin Proveedor') AS PROV , (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE AG.IDG = G.ID AND AG.STATUS = 0) AS APLICADO FROM GASTOS G left join PAGO_GASTO PG on pg.idgasto = g.id WHERE g.ID = $idg";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
@@ -26740,5 +26823,35 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $mensaje;
 	}
 
+	function insertaLTPD(){
+		$data= array();
+		$data2 = array();
+		$this->query="SELECT X.*, (SELECT FIRST 1 CVE_ART FROM INVE01 I WHERE I.DESCR = X.DESCRIPCION) FROM XML_PARTIDA_INFO_ADUANA X WHERE FECHA_LOTE IS NULL ORDER BY ID";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		$i = 0;
+		foreach ($data as $key){
+			/// Obtenemos el numero de pedimento descriminando la cantidad y 
+			$i++;
+			$this->query="SELECT FIRST 1 * FROM LTPD01 WHERE PEDIMENTOSAT='$key->PEDIMENTO' AND CVE_ART = '$key->CVE_ART' and cantidad > 0 ";
+			$rs=$this->EjecutaQuerySimple();
+			while ($tsArray2 = ibase_fetch_object($rs)){
+				$data2[]=$tsArray2;
+			}
+			
+			foreach($data2 as $d2){
+					echo 'Del producto'.$key->CVE_ART.'Cantidad a descontar'.$key->CANTIDAD.' de '.$d2->CANTIDAD.' al registro de lote '.$d2->REG_LTPD.'<br>';
+			}
+
+			if($i == 10){
+				break;
+			}
+			$data2=array();
+		}
+
+		exit();
+	}
 
 }?>

@@ -214,5 +214,16 @@ class controller_coi{
 		}
 	}
 
+	function contabiliza($tipo , $idp){
+		if($_SESSION['user']){
+			$data= new pegaso;
+			$data_coi = new CoiDAO;
+			$cabecera = $data->detalleGasto($idp);
+			$detalle = $data->aplicacionesGasto($idp);
+			$crear = $data_coi->creaPolizaGasto($cabecera , $detalle, $tipo);
+			exit();
+		}
+	}
+
 }?>
 

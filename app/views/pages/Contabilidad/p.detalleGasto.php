@@ -19,7 +19,7 @@
                                             <th>Aplicado</th>
                                             <th style="background-color:'#ccffe6'">Saldo</th>
                                             <th>Cancelar </th>
-                                            <th>Referencia <br/> Aplicaciones</th> 
+                                            <th>Contabilizar</th> 
                                            
                                        </tr>
                                     </thead>                                   
@@ -42,22 +42,14 @@
                                             <td><input type="button" class="btn btn-danger" name="can" value="Cancelar" d="<?php echo $key->ID?>">
                                                 <input type="hidden" name="saldoPago" value="<?php echo $key->SALDO?>" id="sp">
                                             </td>
-                                            <td></td>
+                                            <td>
+                                                <input type="button" class="btn btn-success conta" value="Contabilizar" idp = "<?php echo $key->ID?>" >
+                                            </td>
                                         </tr>
                                         </form>
                                         <?php endforeach; ?>
                                  </tbody>
-                                 <tfoot>
-                                     <td></td>
-                                     <td></td>
-                                     <td></td>
-                                     <td></td>
-                                     <td></td>
-                                     <td></td>
-                                     <td></td>
-                                     <td align="left" style="font-size: 20px"></td>
-                                     <td align="right" style="font-size: 20px; color:blue"></td>
-                                 </tfoot>
+                                 
                                 </table>
                             </div>
                       </div>
@@ -140,8 +132,6 @@
         <button name="FORM_ACTION_PAGO_FACTURAS_NUEVO" type="submit" value="enviar" class = "btn btn-info"> Buscar </button>    
     </form>
 </div>
-
-
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
@@ -167,6 +157,9 @@
                                   <tbody>
                                         <?php foreach ($facturas as $f): 
                                             $color='';
+                                            if($key->SALDO == $f->IMPORTE){
+                                                $color="style='background-color:green;'";
+                                            }
                                             $saldo = $f->IMPORTE - $f->APLICADO;
                                         ?>
                                         <tr class="odd gradeX" <?php echo $color ?> >
@@ -195,7 +188,6 @@
             </div>
         </div>
 </div>
-
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
@@ -203,7 +195,6 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
-
     $(".canapl").click(function(){
         alert('Cancela la Aplicacion')
         var valor = $(this).attr('val')
@@ -269,12 +260,44 @@
         var uuid = $(this).attr('u')
         document.getElementById('val_'+uuid).value= saldo
         var saldoIns = saldoPago - saldo  
-        if(saldoIns > 0){
+        if(saldoIns >= 0){
             $("#"+uuid).prop('disabled',false)
         }
         document.getElementById('sp_'+uuid).innerHTML=saldoIns
     })
 
+
+    $(".conta").click(function(){
+        alert('Contabiliza el Gasto')
+        var tipo ='gasto'
+        var idp =  $(this).attr('idp')
+        $.confirm({
+            title: 'Contabilizar Pago',
+            content:function(){
+                var self = this
+                self.setContent('Contabiliza Gasto')
+                return $.ajax({
+                    url:'index.coi.php',
+                    type:'post', 
+                    dataType:'json', 
+                    data:{contabiliza:1, tipo, idp}
+                }).done(function(response){
+                    self.setContentAppend('<div>Done</div>')
+                }).fail(function(){
+                    self.setContentAppend('<div>Fail</div>')
+                }).always(function(){
+                    self.setContentAppend('<div>Always</div>')
+                    location.reload(true)
+                })
+            }, 
+            contentLoaded:function(data, status, xhr){
+                self.setContentAppend('<div>Content loaded!</div>');
+            },
+            onContentReady:function(){
+                this.setContentAppend('<div>Content Listo</div>')
+            }   
+        })
+    });
 
 </script>
 
