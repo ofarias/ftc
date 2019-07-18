@@ -181,14 +181,19 @@
                                                 $color='';
                                                 $ln++;
                                                 $ccp='Sin Cuenta Definida';
+                                                $valor2=$key->PARTIDA.':'.$key->CLAVE_SAT.':'.$key->UNIDAD_SAT.':';  
                                                 foreach($ccpartidas as $key0){
                                                     $cuenta = $key0->NUM_CTA;
-                                                    if($key->CUENTA_CONTABLE ==$cuenta){
-                                                        $ccp=$key0->NUM_CTA.'-->'.$key0->NOMBRE;
+                                                    $valor='';
+                                                    if($key->CUENTA_CONTABLE == $cuenta){
+                                                        $ccp= $key0->NUM_CTA.'-->'.$key0->NOMBRE;
+                                                        $valor= $key->PARTIDA.':'.$key->CLAVE_SAT.':'.$key->UNIDAD_SAT.':'.$key->CUENTA_CONTABLE.':'.$rfce;
+                                                        break;
                                                     }
                                                 }
                                         ?>
                                         <tr class="odd gradeX" <?php echo $color ?> >
+
                                            <td><?php echo $key->PARTIDA?></td>
                                             <td> <?php echo $key->DOCUMENTO ?> </td>
                                             <td><?php echo $key->UNIDAD;?> </td>
@@ -208,7 +213,7 @@
                                                 <td colspan="14">
                                                     <?php echo '<b>Cuenta Actual: '.$ccp.'#### Cambiar Cuenta --><b>'?>
                                                     <input type="text" name="cuenta" placeholder="Cuenta Contable" class="cuencont" size="120" id="cPP_<?php echo $key->PARTIDA?>" 
-                                                    valor="<?php echo $key->PARTIDA.':'.$key->CLAVE_SAT.':'.$key->UNIDAD_SAT.':'?>" rfc="<?php echo ':'.$rfce?>" >
+                                                    valor="<?php echo $valor?>" rfc="<?php echo ':'.$rfce?>" x="<?php echo $valor2?>" >
                                                 </td>    
                                             </tr>
                                         </tr>
@@ -288,6 +293,14 @@
             '<option value="compra">Compra de Material</option>'+
             '<option value="otro">Otro</option>'+
             '</select><br/>'+
+            'Metodo de pago: <br/>'+
+            '<select class="fp" name="tpago">'+
+            '<option value="">Seleccione un Metodo de Pago</option>'+
+            '<option value="TNS">Transferencia</option>'+
+            '<option value="CHQ">Cheque</option>'+
+            '<option value="EFE">Efectivo</option>'+
+            '<option value="TNSDC">Transferencia x Devolucion de Compra</option>'+
+            '</select><br/>'+
             'Fecha en el Estado de cuenta (Fecha de Pago): <br/><input type="date" class="fecha" name="fecha" required ><br/>'+
             '</div><br/><br/>'+
             '</form>',
@@ -299,6 +312,7 @@
                     var cta = this.$content.find('.ban').val();
                     var obs = this.$content.find('.obs').val();
                     var t = this.$content.find('.t').val();
+                    var tpago =this.$content.find('.fp').val();
                     var fecha = this.$content.find('.fecha').val();
                     //var maestr = this.$content.find('mae').val();
                     if(cta == ''){
@@ -310,13 +324,16 @@
                     }else if (fecha === ''){
                         $.alert('Seleccione una fecha por favor...');
                         return false;
+                    }else if (tpago === ''){
+                        $.alert('Seleccione un Metodo de pago por favor...');
+                        return false;    
                     }else{
                         $.alert('Se registrara el cargo en el estado de cuenta con la fecha ' + fecha )
                         $.ajax({
                             url:'index.php',
                             type: 'post',
                             dataType: 'json',
-                            data:{ctaXML:1, uuid, cta, obs, t, fecha},
+                            data:{ctaXML:1, uuid, cta, obs, t, fecha, tpago},
                             success:function(data){
                                 if(data.status == 'ok'){
                                     //document.getElementById('l_'+doc).classList.add('hide');
@@ -366,6 +383,14 @@
             //'<option value="compra">Compra de Material</option>'+
             '<option value="otroIngreso">Otro</option>'+
             '</select><br/>'+
+            'Forma de Pago: <br/>'+
+            '<select class="fp" name="tpago">'+
+            '<option value="">Seleccione un Metodo de Pago</option>'+
+            '<option value="TNS">Transferencia</option>'+
+            '<option value="CHQ">Cheque</option>'+
+            '<option value="EFE">Efectivo</option>'+
+            '<option value="TNSDC">Transferencia x Devolucion de Compra</option>'+
+            '</select><br/>'+
             'Fecha en el Estado de cuenta (Fecha de Pago): <br/><input type="date" class="fecha" name="fecha" required ><br/>'+
             '</div><br/><br/>'+
             '</form>',
@@ -377,6 +402,7 @@
                     var cta = this.$content.find('.ban').val();
                     var obs = this.$content.find('.obs').val();
                     var t = this.$content.find('.t').val();
+                    var tpago =this.$content.find('.fp').val();
                     var fecha = this.$content.find('.fecha').val();
                     //var maestr = this.$content.find('mae').val();
                     if(cta == ''){
@@ -388,13 +414,16 @@
                     }else if (fecha === ''){
                         $.alert('Seleccione una fecha por favor...');
                         return false;
+                    }else if (tpago === ''){
+                        $.alert('Seleccione un Metodo de pago por favor...');
+                        return false;    
                     }else{
                         $.alert('Se registrara el Abono en el estado de cuenta con la fecha ' + fecha )
                         $.ajax({
                             url:'index.php',
                             type: 'post',
                             dataType: 'json',
-                            data:{ctaXML:1, uuid, cta, obs, t, fecha},
+                            data:{ctaXML:1, uuid, cta, obs, t, fecha, tpago},
                             success:function(data){
                                 if(data.status == 'ok'){
                                     //document.getElementById('l_'+doc).classList.add('hide');
@@ -431,12 +460,23 @@
         for (var i = part; i >= 1; i--) {
             //alert('Partida: '+ i);
             //var valPar = document.getElementById("cP_"+i).value;
+            var valPar = ''
             Par = document.getElementById("cPP_"+i).getAttribute('valor');
+            x = document.getElementById("cPP_"+i).getAttribute('x')
             var rfc = document.getElementById("cPP_"+i).getAttribute('rfc');
-            var cuentaNueva = document.getElementById("cPP_"+i).value
-            var t = cuentaNueva.split(":")
-            cuenta = t[7]
-            valPar = Par+cuenta+rfc
+            var cuentaNueva = document.getElementById("cPP_"+i).value 
+            if(cuentaNueva != '' && Par == ''){ ///Aqui no habia valor y es una cuenta nueva.
+                var t = cuentaNueva.split(":")
+                cuenta = t[7]
+                valPar = x+cuenta+rfc
+            }else if(cuentaNueva != '' && Par != ''){ /// Aqui va haber un cambio en la cuenta.
+                var t = cuentaNueva.split(":")
+                cuenta = t[7]
+                valPar = x+cuenta+rfc
+                //alert('entro al cambio')
+            }else if(Par != ''){
+                valPar = Par
+            }
             if(valPar == ''){
                 var ln = parseFloat(i) + 0;
                 alert ('Revise por favor la partida ' + ln + ' ya que no cuenta con un valor, gracias...');
@@ -446,6 +486,7 @@
             }
         }
         partidas = partidas.substring(3);
+        //alert(partidas)
         var cclie = document.getElementById("cClie").value;
         if(cclie == ''){
             alert ('El proveedor debe de tener un valor en el catalogo de cuentas, favor de revisar la informacion.');

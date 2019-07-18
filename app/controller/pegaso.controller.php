@@ -10553,16 +10553,15 @@ function imprimirFacturasAcuse(){
     	}			
     }
 
-    function listaCuentas_docs(){
-    	
+    function listaCuentas_docs(){    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
-        	$html = $this->load_page('app/views/pages/p.listadocuentas_docs.php');
+        	$html = $this->load_page('app/views/pages/Clientes/p.listadocuentas_docs.php');
         	ob_start();
         	$exec=$data->listarCuentasBancarias();
         	if (count($exec)){
-            	include 'app/views/pages/p.listadocuentas_docs.php';
+            	include 'app/views/pages/Clientes/p.listadocuentas_docs.php';
             	$table = ob_get_clean();
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	} else {
@@ -10575,7 +10574,6 @@ function imprimirFacturasAcuse(){
         	exit;
     	}			
     }
-
 
     function selectBanco(){
     	if (isset($_SESSION['user'])) {
@@ -10629,7 +10627,6 @@ function imprimirFacturasAcuse(){
 
 
       function estado_de_cuenta_docs($banco, $cuenta){
-    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -13303,7 +13300,6 @@ function ImpSolicitud2($idsol){
 	}
 
 	function enviarConta($folios, $cuentaBancaria, $medio, $importe){
-		        
      	if (isset($_SESSION['user'])) {            
              $dao = new pegaso;
              $misFolios = explode(",",$folios);
@@ -19974,24 +19970,24 @@ function ImprimeFacturaPegaso($factura, $destino){
             $data = new pegaso;
             $valid_formats = array("xml", "XML");
             $max_file_size = 1024 * 1000; //1000 kb
-            //$target_dir = "C:\\Temp\\uploads\\xml\\";
-            
             if($tipo == 'F'){
-            	$target_dir="C:/xampp/htdocs/uploads/xml/emitidos/";	
+            	$target_dir="C:/xampp/htdocs/uploads/xml/emitidos/";
             }elseif($tipo == 'C'){
             	$target_dir = "C:/xampp/htdocs/uploads/xml/cancelados/";	
             }elseif($tipo == 'R'){
             	$target_dir = "C:/xampp/htdocs/uploads/xml/recibidos/";
             }
+            if(!file_exists($target_dir)){
+            	mkdir($target_dir, 0777, true);
+            }
             $count = 0;
             $respuesta = 0;
-			// Loop $_FILES to exeicute all files
 			foreach ($_FILES['files']['name'] as $f => $name) {	
                 if ($_FILES['files']['error'][$f] == 4) {
-                    continue; // Skip file if any error found
+                    continue;
                 }
                 if ($_FILES['files']['error'][$f] == 0){
-                    if ($_FILES['files']['size'][$f] > $max_file_size) {
+                    if ($_FILES['files']['size'][$f] > $max_file_size or $_FILES['files']['size'][$f] == 0){
                         $message[] = "$name es demasiado grande para subirlo.";
                         continue; // Skip large files
                     }elseif(!in_array(pathinfo($name, PATHINFO_EXTENSION), $valid_formats)){
@@ -20003,7 +19999,7 @@ function ImprimeFacturaPegaso($factura, $destino){
                         $a=$data->leeXML($_FILES['files']['tmp_name'][$f]);
                         if($a['tcf'] == 'falso'){
                     }else{
-                        $exec = $data->seleccionarArchivoXMLCargado($archivo, $a['uuid']); /// Cuando se selecciona el archivo para su alamcenamiento.
+                        $exec=$data->seleccionarArchivoXMLCargado($archivo, $a['uuid']); 
                         	if($exec==null){
                         	    if (move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name)){
                         	        $count++; // Number of successfully uploaded file
@@ -20054,7 +20050,7 @@ function ImprimeFacturaPegaso($factura, $destino){
     	}
     }
 
-    function verXMLSP($mes, $anio, $ide){
+    function verXMLSP($mes, $anio, $ide, $doc){
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$pagina = $this->load_template();
@@ -20062,7 +20058,7 @@ function ImprimeFacturaPegaso($factura, $destino){
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
   			$uuid =false;
-    		$info=$data->verXMLSP($mes, $anio, $ide, $uuid);
+    		$info=$data->verXMLSP($mes, $anio, $ide, $uuid, $doc);
     		include 'app/views/pages/xml/p.verXMLSP.php';
   			$table = ob_get_clean();
   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
@@ -20094,7 +20090,7 @@ function ImprimeFacturaPegaso($factura, $destino){
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
   			//$actualiza=$coi->
-  			$infoCabecera=$data->verXMLSP($mes=false, $anio= false, $ide, $uuid);
+  			$infoCabecera=$data->verXMLSP($mes=false, $anio= false, $ide, $uuid, $doc=false);
     		$info=$data->verXML($uuid, $ide);
     		$cccliente=$coi->traeCuentaCliente($infoCabecera, $ide);
     		$ccC=$coi->traeCatalogoCuentas($tipo='V', $ide);
@@ -20531,9 +20527,9 @@ function ImprimeFacturaPegaso($factura, $destino){
 		return $res;
 	}
 
-	function ctaXML($uuid, $cta, $t, $obs, $fecha){
+	function ctaXML($uuid, $cta, $t, $obs, $fecha, $tpago){
 		$data= new pegaso;
-		$res = $data->ctaXML($uuid, $cta, $t, $obs, $fecha);
+		$res = $data->ctaXML($uuid, $cta, $t, $obs, $fecha, $tpago);
 		return $res;
 	}
 
@@ -20550,7 +20546,7 @@ function ImprimeFacturaPegaso($factura, $destino){
         	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta.php');
         	$res= $data->revisaXLSX($target_file, $datos);
 			if($res['status']== 'ok'){
-				$carga=$data->cargaXLSX($datos, $res['data']);
+				$carga=$data->cargaXLSX($datos, $res['data'], $banco, $cuenta);
 			}
 			$html = $this->load_page('app/views/pages/p.redirectform.php');
 			$redireccionar="estado_de_cuenta&banco={$banco}&cuenta={$cuenta}";
@@ -20558,6 +20554,39 @@ function ImprimeFacturaPegaso($factura, $destino){
             $html = $this->load_page('app/views/pages/p.redirectform.php');
             include 'app/views/pages/p.redirectform.php';
             //$this->view_page($pagina);    
+		}
+	}
+
+	function detalleGasto($idg){
+		if($_SESSION['user']){
+			$data= new pegaso;
+			$datos = $data->detalleGasto($idg);
+			$aplicaciones =$data->aplicacionesGasto($idg);
+			$facturas = $data->facturasProvPendientes($uuid = false);
+			$pagina = $this->load_template_popup();
+  			$html=$this->load_page('app/views/pages/Contabilidad/p.detalleGasto.php');
+  			ob_start();
+  			$usuario=$_SESSION['user']->NOMBRE;
+  			include 'app/views/pages/Contabilidad/p.detalleGasto.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);	
+		}
+	}
+
+	function aplicaGasto($idp, $uuid, $valor){
+		if($_SESSION['user']){
+			$data = new pegaso;
+			$res=$data->aplicaGasto($idp, $uuid, $valor);
+			return $res;
+		}
+	}
+
+	function canapl($idp, $ida, $valor, $uuid){
+		if($_SESSION['user']){
+			$data = new pegaso;
+			$res=$data->canapl($idp, $ida, $valor, $uuid);
+			return $res;
 		}
 	}
 }?>

@@ -60,11 +60,9 @@ if (isset($_POST['usuario'])){
 	$controller->AsignaComp($componentes, $nombre, $desc);
 }	
 elseif(isset($_POST['INSRTORCOM']) ){
-
 if(!empty($_POST['tiempoEntrega'])){
 	echo 'Lleva partida con tiempo de entrega';
 }
-
 if(!empty($_POST['seleccion'])) {
 	$consecutivo2=0001;
 	$proveedorPrevio = '';
@@ -2663,14 +2661,23 @@ exit();
 	echo json_encode($res);
 	exit();
 }elseif(isset($_POST['ctaXML'])){
-	$res=$controller->ctaXML($_POST['uuid'], $_POST['cta'], $_POST['t'], $_POST['obs'], $_POST['fecha']);
+	$res=$controller->ctaXML($_POST['uuid'], $_POST['cta'], $_POST['t'], $_POST['obs'], $_POST['fecha'], $_POST['tpago']);
 	echo json_encode($res);
 	exit();
 }elseif (isset($_POST['traePago'])){
 	$res=$controller->traePago($_POST['idp'], $_POST['t']);
 	echo json_encode($res);
 	exit();
-}else{
+}elseif (isset($_POST['aplicaGasto'])) {
+	$res=$controller->aplicaGasto($idp=$_POST['idp'],$uuid=$_POST['uuid'],$valor=$_POST['valor']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['canapl'])) {
+	$res=$controller->canapl($_POST['idp'], $_POST['ida'], $_POST['valor'], $_POST['uuid']);
+	echo json_encode($res);
+	exit();
+}
+else{
 	switch ($_GET['action']){
 	//case 'inicio':
 	//	$controller->Login();
@@ -4180,7 +4187,7 @@ exit();
 			$controller->calcularImpuestos();
 			break;
 		case 'verXMLSP':
-			$controller->verXMLSP($_GET['mes'], $_GET['anio'], $_GET['ide']);
+			$controller->verXMLSP($_GET['mes'], $_GET['anio'], $_GET['ide'], $_GET['doc']);
 			break;
 		case 'imprimeXML':
 			$uuid=isset($_GET['uuid'])? $_GET['uuid']:'';
@@ -4300,6 +4307,10 @@ exit();
 			$banco = $_GET['banco'];
 			$cuenta = $_GET['cuenta'];
 			$controller->estado_de_cuenta($banco, $cuenta);			
+			break;
+		case 'detalleGasto':
+			$idg=$_GET['idg'];
+			$controller->detalleGasto($idg);
 			break;
 		default: 
 		header('Location: index.php?action=login');

@@ -91,5 +91,10 @@ class controller_xml{
         }	
 	}
 
+	function verMetaDatos(){
+		$data = new pegaso;
+		$res= $data->insertaLTPD();
+	}
+
 }?>
 
