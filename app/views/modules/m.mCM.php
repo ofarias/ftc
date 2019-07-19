@@ -176,14 +176,13 @@
                 </div>
             </div>
 
-        <div class="col-md-3">
-          <div class="panel panel-default">
+        <div class="col-md-2">
+          <div class="panel panel-default cu-panel-clie">
               <div class="panel-heading">
-                  <h4><i class="fa fa-list-alt"></i>Ver Pagos Estado de Cuenta</h4>
+                  <h4>Pagos Estado de Cuenta</h4>
               </div>
               <div class="panel-body">
-                  <p>Pagos Edo Cuenta</p>
-                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img src="app/views/images/dinero_v1.jpg"></a></center>
+                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/PagosCuenta.png" width="50" height="70"></a></center>
               </div>
           </div>
         </div>

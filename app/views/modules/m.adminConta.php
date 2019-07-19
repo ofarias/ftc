@@ -8,7 +8,7 @@
             </div>
              <div class="card">
                 <img src="https://materiell.com/wp-content/uploads/2015/03/doug_full1.png" alt="" />
-                <h1>Bienvenido</h1>
+                <p><strong>Bienvenido</strong></p>
                 <p><?php echo $u?></p>
             </div>
             <!--<div>

@@ -124,47 +124,43 @@
                     </div>
                 </div>
         </div>
-                <div class="col-md-3">
-          <div class="panel panel-default">
+                <div class="col-md-2">
+          <div class="panel panel-default cu-panel-clie">
               <div class="panel-heading">
-                  <h4><i class="fa fa-list-alt"></i>Ver Abonos de Estado de Cuenta</h4>
+                  <h4>Ver Abonos de Estado de Cuenta</h4>
               </div>
               <div class="panel-body">
-                  <p>Abonos Edo Cuenta</p>
-                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img src="app/views/images/Cobranza/dinero_v1.jpg"  width="89" height="69"></a></center>
+                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/verAbonos.png" width="50" height="70"></a></center>
               </div>
           </div>
         </div>
-        <div class="col-xs-12 col-md-3">
-                <div class="panel panel-default">
+        <div class="col-xs-12 col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Imprimir Aplicaciones</h4>
+                        <h4>Imprimir Aplicaciones de Pago</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Imprimir aplicaciones de Pago</p>
-                        <center><a href="index.php?action=verAplicaciones" class="btn btn-default"><img src="app/views/images/dollar-collection-icon.png" width="89" height="69"></a></center>
+                        <center><a href="index.php?action=verAplicaciones" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/Multipagos.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> CAPTURA DE ABONOS</h4>
+                        <h4>Captura de Abonos</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Captura de Abonos</p>
-                        <center><a href="index.php?action=selectBanco" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png" width="89" height="69"></a></center>
+                        <center><a href="index.php?action=selectBanco" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/CapturaAbonos.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i>Cancelacion de Pagos</h4>
+                        <h4>Cancelacion de Pagos</h4>
                     </div>
-                    <div class="panel-body">
-                        <p></p>   
-                        <center><a href="index.php?action=buscaPagos" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png" width="89" height="69"></a></center>
+                    <div class="panel-body"> 
+                        <center><a href="index.php?action=buscaPagos" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/PagosRechazados.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
