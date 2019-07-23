@@ -24106,7 +24106,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            //echo 'Valor del arrego partida'.var_dump($partida);
 				            $i=1;
 				            foreach ($partida as $data){
-				            	$unidad = $data[0];
+				            	$unidad = str_replace(array("'", "<code>"),' ',$data[0]);
 				            	$importe = $data[1];
 				            	$cantidad = $data[2];
 				            	//$descripcion = str_replace(array("\\", "¨", "º", "-", "~",
@@ -26255,8 +26255,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
 		}	
-		print_r($data);
-		exit();
+		//print_r($data);
+		//exit();
 		return $data;	
 	}
 
