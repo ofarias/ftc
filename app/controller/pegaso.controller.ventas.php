@@ -1397,10 +1397,10 @@ class pegaso_controller_ventas{
         }    
     }
 
-    function cargaSae($doc, $folio, $serie, $uuid, $ruta, $rfcr){
+    function cargaSae($doc, $folio, $serie, $uuid, $ruta, $rfcr, $tipo){
         if($_SESSION['user']){
             $datav = new pegaso_ventas;
-            $ins=$datav->cargaSae($doc, $folio, $serie, $uuid, $ruta, $rfcr);
+            $ins=$datav->cargaSae($doc, $folio, $serie, $uuid, $ruta, $rfcr, $tipo);
             return $ins;
         }
     }

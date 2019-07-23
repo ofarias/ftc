@@ -316,10 +316,10 @@
                     var fecha = this.$content.find('.fecha').val();
                     //var maestr = this.$content.find('mae').val();
                     if(cta == ''){
-                        $.alert('Dede de colocar una cuenta Bancaria...');
+                        $.alert('Debe de colocar una cuenta Bancaria...');
                         return false;
                     }else if(t ==''){
-                        $.alert('Dede seleccionar un tipo de Egreso...');
+                        $.alert('Debe seleccionar un tipo de Egreso...');
                         return false;
                     }else if (fecha === ''){
                         $.alert('Seleccione una fecha por favor...');

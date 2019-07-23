@@ -497,7 +497,7 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	echo json_encode($res);
 	exit();
 }elseif (isset($_POST['cargaSae'])) {
-	$res=$controller_v->cargaSae($_POST['doc'], $_POST['folio'], $_POST['serie'], $_POST['uuid'], $_POST['ruta'], $_POST['rfcr']);
+	$res=$controller_v->cargaSae($_POST['doc'], $_POST['folio'], $_POST['serie'], $_POST['uuid'], $_POST['ruta'], $_POST['rfcr'], $_POST['tipo']);
 	echo json_encode($res);
 	exit();
 }

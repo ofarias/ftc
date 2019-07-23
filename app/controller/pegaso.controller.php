@@ -10531,7 +10531,6 @@ function imprimirFacturasAcuse(){
     }
 
     function listaCuentas(){
-    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -20561,7 +20560,7 @@ function ImprimeFacturaPegaso($factura, $destino){
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$datos = $data->detalleGasto($idg);
-			$aplicaciones =$data->aplicacionesGasto($idg);
+			$aplicaciones =$data->aplicacionesGasto($idg, $tipo=false);
 			$facturas = $data->facturasProvPendientes($uuid = false);
 			$pagina = $this->load_template_popup();
   			$html=$this->load_page('app/views/pages/Contabilidad/p.detalleGasto.php');

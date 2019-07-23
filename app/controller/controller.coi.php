@@ -219,9 +219,24 @@ class controller_coi{
 			$data= new pegaso;
 			$data_coi = new CoiDAO;
 			$cabecera = $data->detalleGasto($idp);
-			$detalle = $data->aplicacionesGasto($idp);
-			$crear = $data_coi->creaPolizaGasto($cabecera , $detalle, $tipo);
+			$detalle = $data->aplicacionesGasto($idp, $t='c');
+			$impuestos2=$data->impuestosPolizaFinal($uuid=$detalle['uuid']);
+			$crear = $data_coi->creaPolizaGasto($cabecera , $detalle=$detalle['datos'], $tipo, $impuestos2);
 			exit();
+		}
+	}
+
+	function consolidaPolizas($mes, $anio, $ide, $doc){
+		if($_SESSION['user']){
+			$data= new pegaso;
+			$datacoi = new CoiDAO;
+			$polizas=$datacoi->traePolizas($mes, $anio, $ide);
+			$consolida = $data->consolidaPolizas($mes, $anio, $ide, $polizas);
+			// Obtenermos la informacion de las polizas por fecha de la tabla de xml_polizas basados en la fecha y tipo
+			//$this->query="SELECT * FROM XML_POLIZAS WHERE PERIODO = $mes and EJERCICIO = $anio and status = 'A'";
+
+			return $consolida;
+
 		}
 	}
 

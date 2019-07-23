@@ -10252,9 +10252,9 @@ function Pagos() {
 	}
 
        function listarCuentasBancarias(){
-            $this->query = "SELECT ID, BANCO, NUM_CUENTA, B.DESCR FROM PG_BANCOS A INNER JOIN MONED01 B ON A.MONEDA = B.NUM_MONED;";
+            $this->query = "SELECT ID, BANCO, NUM_CUENTA, B.DESCR FROM PG_BANCOS A INNER JOIN MONED01 B ON A.MONEDA = B.NUM_MONED";
             $result = $this->QueryObtieneDatosN();
-            $data = null;
+            $data = array();
             while ($tsArray = (ibase_fetch_object($result))) {
                     $data[] = $tsArray;
             }
@@ -13383,7 +13383,7 @@ function Pagos() {
     				  and cuenta = '$cuenta' 
     				  and (seleccionado = 1 or seleccionado = 2) and guardado = 1";
 		$rs= $this->QueryObtieneDatosN();
-		echo $this->query;
+		//echo $this->query;
 		$row=ibase_fetch_object($rs);
 		$totgd = $row->GASTODIRECTO;
 		$totg =$totg + $totgd; 
@@ -24463,7 +24463,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(select first 1 nombre from xml_clientes xc where xc.rfc = x.cliente) as nombre, 
     					(SELECT first 1 RAZON_SOCIAL FROM FTC_EMPRESAS WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = x.cliente and tipo = 'Cliente') as cuenta_Contable,
-    					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid) AS VARCHAR(100)),'') as poliza
+    					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(100)),'') as poliza
     					,'' as tp_tes
     					, fecha_recep as fecha_edo_cta
 						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F') $uuid";
@@ -24473,7 +24473,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
     					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = rfce and tipo = 'Proveedor') as cuenta_Contable,
-    					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid) AS VARCHAR(100)),'') as poliza
+    					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(100)),'') as poliza
 						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
 						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F') $uuid";
     	}
@@ -26249,12 +26249,14 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	}
 
 	function impuestosPolizaFinal($uuid){
-		$data = array();
-		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) AS MONTO, SUM(BASE) AS BASE  FROM XML_IMPUESTOS WHERE UUID = '$uuid' group by impuesto, tasa, tipofactor, Tipo";
+		$data = array();	
+		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) AS MONTO, SUM(BASE) AS BASE  FROM XML_IMPUESTOS WHERE UUID in ('$uuid') group by impuesto, tasa, tipofactor, Tipo";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
-		}
+		}	
+		print_r($data);
+		exit();
 		return $data;	
 	}
 
@@ -26507,7 +26509,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	   								'$t',
 	   								9999,
 	   								'$usuario') RETURNING id";
-	   			echo $this->query;
+	   			//echo $this->query;
 		  		$rs=$this->EjecutaQuerySimple();
 		  		$row = ibase_fetch_object($rs);
 		  		if($row->ID > 0){
@@ -26656,7 +26658,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							echo $clave.' <font color="red">error valor de abono '.gettype($abono).' Valor de Cargo '.gettype($cargo).'</font><br/>';
 						}
 					}
-
 					if(!empty($fecha)){
 						$fecha = substr(trim($fecha),0,10);						
 						if(strpos($fecha, "-")){
@@ -26701,13 +26702,14 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$fecha = $key['fecha'];
 			$uuid=$key['uuid'];
 			$tipo = $key['tipo'];
+			$desc = $key['desc'];
 			$obs=$key['obs'];	
 			if($key['ca']=='a'){
 				$folio=$this->folioBanco($banco, $cuenta);
 				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs' ) ";
 				$this->grabaBD();
 			}elseif($key['ca']=='c'){
-				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta) VALUES (NULL, 'V', 1, '', '', '', 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha') RETURNING ID";
+				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha') RETURNING ID";
 				$foliog=$this->grabaBD();
 				$row=ibase_fetch_object($foliog);
 				switch ($tipo) {
@@ -26767,20 +26769,55 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		if($uuid){
 			$a =" and X.UUID = '".$uuid."'";
 		}
-		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov FROM XML_DATA X WHERE X.RFCE != '$rfc' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) $a";
+		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') FROM XML_DATA X WHERE X.RFCE != '$rfc' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) $a";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
 		}
+		if($uuid){
+			foreach ($data as $vc) {
+				if(empty($vc->CUENTA_CONTABLE)){
+					return array("status"=>'no', "mensaje"=>'El Proveedor '.$vc->PROV.' no tiene cuenta contable');
+				}elseif($vc->STATUS == 'P'){
+					return array("status"=>'no', "mensaje"=>'Aun no se crea la poliza de Dr del Documento '.$vc->DOCUMENTO);
+				}
+			}	
+		}
+		return $data;
+	}
+	
+	function valContable($uuid){
+		$this->query="SELECT * FROM XML_PARTIDAS WHERE UUID = '$uuid'";
+		$rs=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($rs)){
+			$data[]=$tsArray;
+		}
+		foreach ($data as $pc) {
+			if(empty($pc->CUENTA_CONTABLE)){
+				return array("status"=>'no', "mensaje"=>'La partida '.$pc->PARTIDA.' no tiene cuenta contable');
+			}
+		}
 		return $data;
 	}
 
-	function aplicacionesGasto($idg){
+	function aplicacionesGasto($idg, $tipo){
 		$data=array();
-		$this->query="SELECT AP.*, g.*, (SELECT xc.NOMBRE FROM XML_CLIENTES xc WHERE xc.RFC=(SELECT x.RFCE FROM XML_DATA x WHERE x.uuid = ap.uuid) and tipo ='Proveedor') as PROV FROM APLICACIONES_GASTOS AP left join gastos g on g.id = AP.IDG WHERE AP.IDG = $idg ";
+		$a='';
+		if($tipo == 'c'){
+			$a = 'and ap.status = 0';
+		}
+		$this->query="SELECT AP.*, g.*, x.*,(SELECT xc.NOMBRE FROM XML_CLIENTES xc WHERE xc.RFC=(SELECT x.RFCE FROM XML_DATA x WHERE x.uuid = ap.uuid) and tipo ='Proveedor') as PROV, (SELECT xc.CUENTA_CONTABLE FROM XML_CLIENTES xc WHERE xc.RFC=(SELECT x.RFCE FROM XML_DATA x WHERE x.uuid = ap.uuid) and tipo ='Proveedor'), AP.DOCUMENTO AS DESCRIPCION FROM APLICACIONES_GASTOS AP left join gastos g on g.id = AP.IDG left join xml_data x on x.uuid = ap.uuid WHERE AP.IDG = $idg  $a";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
+		}
+		if($tipo == 'c'){
+			$uuid= '';
+			foreach ($data as $key){
+				$uuid .= $key->UUID.',';
+			}
+			$uuid=substr($uuid,0, strlen($uuid)-1);
+			return array("datos"=>$data,"uuid"=>$uuid);
 		}
 		return $data;
 	}
@@ -26788,7 +26825,15 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	function aplicaGasto($idp , $uuid, $valor){
 		$usuario=$_SESSION['user']->NOMBRE;
 		$valFact=$this->facturasProvPendientes($uuid);
-		if( ($valFact[0]->IMPORTE - $valFact[0]->APLICADO) > 0 and  (($valFact[0]->IMPORTE - $valFact[0]->APLICADO) - $valor >= 0)){ // Validacion de la factura
+		$valConta = $this->valContable($uuid);
+		if(isset($valFact['status'])){
+			return $valFact;
+		}elseif(isset($valConta['status'])){
+			return $valConta;
+		}
+		//echo 'res1: '.($valFact[0]->IMPORTE - $valFact[0]->APLICADO); 
+		//echo '<br/>Res2: '.(($valFact[0]->IMPORTE - $valFact[0]->APLICADO)- $valor);
+		if( ($valFact[0]->IMPORTE - $valFact[0]->APLICADO) > 0 and  ((($valFact[0]->IMPORTE - $valFact[0]->APLICADO) - $valor) >= (-0.01)) and $valor > 0){ // Validacion de la factura
 			$this->query="SELECT * FROM gastos where id = $idp";
 			$res=$this->EjecutaQuerySimple();
 			$row = ibase_fetch_object($res);
@@ -26796,20 +26841,33 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$this->query="UPDATE GASTOS SET SALDO = SALDO - $valor where id = $idp";
 				$res=$this->queryActualiza();
 				if($res == 1){
-					$this->query="INSERT INTO APLICACIONES_GASTOS (ID, IDG, UUID, DOCUMENTO, APLICADO, FECHA, USUARIO, STATUS) VALUES (NULL, $idp, '$uuid', (SELECT DOCUMENTO FROM XML_DATA WHERE UUID = '$uuid'), $valor, current_timestamp, '$usuario', 0) RETURNING id";
-					$res=$this->grabaBD();
-					$g=ibase_fetch_object($res);
-					if($g->ID > 0 ){
-						$this->query="UPDATE XML_DATA SET idpago = $g->ID WHERE uuid = '$uuid'";
-						$ru=$this->queryActualiza();
-						if($ru==1){
-							$mensaje = array("status"=>'ok', "mensajse"=>'Se ejecuto correctamente el pago');
+					$this->query="SELECT * FROM APLICACIONES_GASTOS WHERE IDG = $idp and status = 0 and uuid = '$uuid'";
+					$res=$this->EjecutaQuerySimple();
+					$row=ibase_fetch_object($res);
+					if($row){
+						$this->query="UPDATE APLICACIONES_GASTOS SET APLICADO = APLICADO + $valor where idg=$idp and status = 0 and uuid='$uuid'";
+						$this->queryActualiza();
+						$mensaje = array("status"=>'ok', "mensajse"=>'Se actualizo la aplicacion del pago');
+					}else{
+						$this->query="INSERT INTO APLICACIONES_GASTOS (ID, IDG, UUID, DOCUMENTO, APLICADO, FECHA, USUARIO, STATUS) VALUES (NULL, $idp, '$uuid', (SELECT DOCUMENTO FROM XML_DATA WHERE UUID = '$uuid'), $valor, current_timestamp, '$usuario', 0) RETURNING id";
+						$res=$this->grabaBD();
+						$g=ibase_fetch_object($res);
+						if($g->ID > 0 ){
+							$this->query="UPDATE XML_DATA SET idpago = $g->ID WHERE uuid = '$uuid'";
+							$ru=$this->queryActualiza();
+							if($ru==1){
+								$mensaje = array("status"=>'ok', "mensajse"=>'Se ejecuto correctamente el pago');
+							}
 						}
 					}
 				}
 			}	
 		}else{
-			$mensaje= array("status"=>'no', "mensaje"=>'Fallo la validacion del documento');
+			if($valor == 0){
+				$mensaje= array("status"=>'no',"mensaje"=>'No se puede aplicar 0.00 al documento');
+			}else{
+				$mensaje= array("status"=>'no', "mensaje"=>'Fallo la validacion del documento');
+			}
 		}
 		return $mensaje;
 	}
@@ -26850,8 +26908,59 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			}
 			$data2=array();
 		}
-
 		exit();
 	}
 
+	function consolidaPolizas($mes, $anio, $ide, $polizas){
+		$mensaje='a';
+		$this->query="SELECT * FROM XML_POLIZAS WHERE PERIODO = $mes AND  EJERCICIO = $anio and status = 'A'";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[] = $tsArray;
+		}
+		$ps=count($data);
+		$ln=0;
+		foreach ($polizas as $pc){
+			$this->query="SELECT ID FROM XML_POLIZAS WHERE POLIZA = '$pc->NUM_POLIZ' and tipo = '$pc->TIPO_POLI' AND PERIODO = $pc->PERIODO AND  EJERCICIO = $pc->EJERCICIO AND uuid = '$pc->UUID' AND STATUS = 'A'";
+			$res=$this->EjecutaQuerySimple();
+			$row=ibase_fetch_object($res);
+			if($row){
+				$ln++;
+			}
+			unset($row);
+		}
+		//echo '<br/> Total Polizas: '.count($polizas).' Total con informacion '.$ln. ' total de polizas en el sistemna '.$ps;
+		if(count($data)>0){
+			$ok= 0;
+			foreach($data as $ps){
+				$in=0;
+				foreach ($polizas as $pcc){
+					if($ps->POLIZA == $pcc->NUM_POLIZ and $ps->EJERCICIO == $pcc->EJERCICIO and $ps->TIPO == $pcc->TIPO_POLI and $ps->PERIODO == $pcc->PERIODO and $ps->UUID == $pcc->UUID){
+						$ok++;
+						$in++;
+						if($in > 1){
+							$mensaje .= '-->Poliza duplicada '.$ps->POLIZA.'<--';
+							exit();
+						}
+					}
+				}
+				if($in == 0){
+					$mensaje.= '--> No se encontro la poliza '.$ps->POLIZA.'<--';
+					$this->query="UPDATE XML_POLIZAS SET status = 'C' where UUID = '$ps->UUID' and tipo = '$ps->TIPO' AND periodo = $ps->PERIODO and ejercicio = $ps->EJERCICIO and status = 'A'";
+					$ra=$this->queryActualiza();
+					if($ra == 1 and $ps->TIPO == 'Dr'){
+						$this->query="UPDATE XML_DATA SET STATUS = 'P' WHERE UUID = '$ps->UUID'";
+						$r=$this->queryActualiza();
+						if($r==1){
+							$mensaje.=' --> Se actualizo correctamente el xml y se marco como Pendiente <--';
+						}
+					}
+				}
+			}
+			//echo 'Total polizas con coincidencia: '.$ok.'<br/>';
+		}else{
+			exit('Nada que consolidar');
+		}
+		return array("status"=>'C', "mensaje"=>$mensaje);
+	}
 }?>
