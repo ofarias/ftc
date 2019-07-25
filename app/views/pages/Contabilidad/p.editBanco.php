@@ -75,7 +75,7 @@
                     <div class="form-group">
                         <label for="add_usuario" class="col-lg-2 control-label">Cuenta Contable: </label>
                             <div class="col-lg-8" title="Esta Informacion se colocara en las polizas de Ingresos y Egresos">
-                                <input type="text" name="cc" class="cuencont form-control" placeholder="<?php echo isset($b->CTA_CONTAB)? $b->CTA_CONTAB:'Cuenta Contable';?>" orig="<?php echo $b->CTA_CONTAB?>" id="<?php echo $b->ID?>">
+                                <input type="text" name="cc" class="cuencont form-control" placeholder="<?php echo isset($b->CTA_CONTAB)? $b->CTA_CONTAB:'Cuenta Contable';?>" orig="<?php echo $b->CTA_CONTAB?>" id="<?php echo $b->ID?>" value="<?php echo $b->CTA_CONTAB?>">
                                <br>
                             </div>
                     </div>             

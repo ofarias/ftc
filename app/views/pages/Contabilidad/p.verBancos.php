@@ -19,22 +19,33 @@
                                 <th>RFC</th>
                                 <th>Nombre Fiscal</th>
                                 <th>Nombre Comercial</th>
-                                <th>Clave</th>
+                                <th>Clave SAT</th>
+                                <th>Cuenta Contable</th>
                                 <th>Editar</th>
                                 
                             </tr>
                         </thead>
                         <tbody>
-                            <?php $ln=0; foreach($info as $row): $ln++;?>
-                            <tr>
+                            <?php $ln=0; foreach($info as $row):
+                             $ln++;
+                             $color='';
+                             $aviso='';
+                             if(empty($row->CTA_CONTAB)){
+                                $color = "style='background-color:#FFA07A';";
+                                $aviso = "title='Falta la cuenta contable del banco, Sin la cuenta contable no podra realizar polizas de Egreso o Ingreso'";
+                                //$color="style='background-color:brown;'";
+                             }
+                            ?>
+                            <tr class="odd gradeX" <?php echo $color?> <?php echo $aviso?>>
                                 <td><?php echo $ln;?></td>
                                 <td><?php echo $row->BANCO;?></td>
                                 <td><?php echo $row->NUM_CUENTA;?></td>
                                 <td align="center"><b><?php echo $row->DIA_CORTE?></b></td>
                                 <td><?php echo $row->RFC;?></td>
-                                <td><?php echo $row->FISCAL;?></td>
+                                <td><?php echo utf8_encode($row->FISCAL);?></td>
                                 <td><?php echo $row->COMERCIAL;?></td>
                                 <td><?php echo $row->CLAVE;?></td>
+                                <td><?php echo $row->CTA_CONTAB?></td>
                                 <td><input type="button" name="editar" onclick="editar(<?php echo $row->ID?>)" value="Editar" class="btn btn-info"></td>
                             </tr>
                             <?php endforeach ?>
@@ -54,7 +65,6 @@
 <script type="text/javascript">
 
     function editar(idb){
-        alert('Id del Banco' + idb)
         window.open('index.coi.php?action=editBanco&idb='+idb, 'popup', 'width=800,height=600')
         return false
     }

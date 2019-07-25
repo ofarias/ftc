@@ -557,6 +557,10 @@
                     var clpv = data.proveedor
                     var ctaclpv =data.ctaProvCoi
                     var monto = data.monto
+                    if(ctacoi === null ){
+                        $.alert('El Banco ' + banco + ' con la cuenta '+ cta +' no tiene cuenta contable, favor de revisar')
+                        return false;
+                    }
                     $.confirm({
                         columnClass: 'col-md-8',
                         title: 'Registro de Poliza de ' + tipo,
@@ -566,7 +570,7 @@
                         '<br/><b>Monto: ' + monto + '</b>' 
                         ,
                         buttons: {
-                            formSubmit: {
+                            formSubmit:{
                             text: 'Registrar',
                             btnClass: 'btn-blue', 
                             action:function(){
