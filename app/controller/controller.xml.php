@@ -37,6 +37,51 @@ class controller_xml{
 	return preg_replace($in, $out, $pagina);	 	
 	}
 
+	function nombreMes($mes){
+		switch ($mes) {
+			case 1:
+				$nombre = 'Enero';
+				break;
+			case 2:
+				$nombre = 'Febrero';
+				break;
+			case 3:
+				$nombre = 'Marzo';
+				break;
+			case 4:
+				$nombre = 'Abril';
+				break;
+			case 5:
+				$nombre = 'Mayo';
+				break;
+			case 6:
+				$nombre = 'Junio';
+				break;
+			case 7:
+				$nombre = 'Julio';
+				break;
+			case 8:
+				$nombre = 'Agosto';
+				break;
+			case 9:
+				$nombre = 'Septiembre';
+				break;
+			case 10:
+				$nombre = 'Octubre';
+				break;
+			case 11:
+				$nombre = 'Noviembre';
+				break;
+			case 12:
+				$nombre = 'Diciembre';
+				break;
+			default:
+				$nombre ='Desconocido';
+				break;
+		}
+		return $nombre;
+	}
+
 	function cargaMetaDatos(){
 		if($_SESSION['user']){
 			$pagina =$this->load_template2('Pedidos');
@@ -98,10 +143,11 @@ class controller_xml{
 	}
 
 	function xmlExcel($mes, $anio, $ide, $doc, $t){
-
-
 		if($_SESSION['user']){
-	    	
+	        if($t == 'z'){
+	        	$conta=$this->contabilizacion($mes, $anio, $ide, $doc, $t);
+	        	return $conta;
+	        }
 	        $data = new pegaso();
 			$res=$data->verXMLSP($mes, $anio, $ide, $uuid=false, $doc);
 			if($t == 'c'){
@@ -109,7 +155,6 @@ class controller_xml{
 				$res = $controller->consolidaPolizas($mes, $anio, $ide, $doc);
 				return $res;
 			}
-
 			$xls= new PHPExcel();
 	        //// insertamos datos a al objeto excel.
 	        // Fecha inicio y fecha fin
@@ -280,49 +325,172 @@ class controller_xml{
 		}
 	}
 
-	function nombreMes($mes){
-		switch ($mes) {
-			case 1:
-				$nombre = 'Enero';
-				break;
-			case 2:
-				$nombre = 'Febrero';
-				break;
-			case 3:
-				$nombre = 'Marzo';
-				break;
-			case 4:
-				$nombre = 'Abril';
-				break;
-			case 5:
-				$nombre = 'Mayo';
-				break;
-			case 6:
-				$nombre = 'Junio';
-				break;
-			case 7:
-				$nombre = 'Julio';
-				break;
-			case 8:
-				$nombre = 'Agosto';
-				break;
-			case 9:
-				$nombre = 'Septiembre';
-				break;
-			case 10:
-				$nombre = 'Octubre';
-				break;
-			case 11:
-				$nombre = 'Noviembre';
-				break;
-			case 12:
-				$nombre = 'Diciembre';
-				break;
-			default:
-				$nombre ='Desconocido';
-				break;
-		}
-		return $nombre;
+
+	function contabilizacion($mes, $anio, $ide, $doc, $t){
+			$data = new CoiDAO();
+			$data_p = new pegaso();
+			$res=$data->traeAuxiliares($mes, $anio, $ide, $uuid=false, $doc);
+			$xls= new PHPExcel();
+	        //// insertamos datos a al objeto excel.
+	        // Fecha inicio y fecha fin
+	        $df= $data_p->traeDF($idem = 1);
+	        $usuario =$_SESSION['user']->NOMBRE;
+	        $fecha = date('d-m-Y h:i:s');
+	        $ln = 10;
+	        $doc = $doc=='I'? 'Ingresos':'Egresos';
+	        //print_r($documentos);
+	        $totalSaldo=0;
+	        $i=0;
+	        $l_g = 0;
+	        $l_h = 0;
+	        foreach ($res as $key) {
+	            $i++;
+	            if($l_g < strlen($key->NOMBRE)){
+	            	$l_g = strlen($key->NOMBRE);
+	            }
+	            $xls->setActiveSheetIndex()
+	                ->setCellValue('A'.$ln,$i)
+	                ->setCellValue('B'.$ln,$key->TIPO_POLI)
+	                ->setCellValue('C'.$ln,$key->NUM_POLIZ)
+	                ->setCellValue('D'.$ln,$key->ORIGEN)
+	                ->setCellValue('E'.$ln,$key->NUM_PART)
+	                ->setCellValue('F'.$ln,$key->PERIODO)
+	                ->setCellValue('G'.$ln,$key->FECHA_POL)
+	                ->setCellValue('H'.$ln,$key->NUM_CTA)
+	                ->setCellValue('I'.$ln,utf8_encode($key->NOMBRE))//number_format($key->SUBTOTAL,2,".",""))
+	                ->setCellValue('J'.$ln,$key->MONTOMOV)//number_format($key->IVA,2,".",""))
+	                ->setCellValue('K'.$ln,$key->TIPCAMBIO)//number_format($key->IVA_RET,2,".",""))
+	                ;
+	            $ln++;
+	        }
+	        $ln++;
+	        $xls->setActiveSheetIndex()
+	                ->setCellValue('A'.$ln,'Fin del resumen de movimientos.');
+	                //->setCellValue('B'.$ln,'')
+	                //->setCellValue('C'.$ln,'$ '.number_format($key->SALDOFINAL-$key->IMP_TOT4,2))
+	                //->setCellValue('D'.$ln,'$ '.number_format($key->IMP_TOT4,2))
+	                //->setCellValue('E'.$ln,'$ '.number_format($key->IMPORTE,2))
+	                //->setCellValue('F'.$ln,'$ '.number_format($key->SALDO,2))
+	                //->setCellValue('G'.$ln,$key->FECHA_INI_COB)
+	                //->setCellValue('H'.$ln,$key->CVE_PEDI)
+	                //->setCellValue('I'.$ln,$key->OC);
+	        /// 
+	            $xls->getActiveSheet()
+	                ->setCellValue('A1',$df->RAZON_SOCIAL);
+	        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth(25);
+	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth($l_g);
+	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(13);
+	        
+	        // Hacer las cabeceras de las lineas;
+	        //->setCellValue('9','')
+	        $xls->getActiveSheet()
+	            ->setCellValue('A9','Ln')
+	            ->setCellValue('B9','Tipo')
+	            ->setCellValue('C9','Numero')
+	            ->setCellValue('D9','Origen')
+	            ->setCellValue('E9','Partida')
+	            ->setCellValue('F9','Periodo')
+	            ->setCellValue('G9','Fecha Poliza')
+	            ->setCellValue('H9','Cuenta')
+	            ->setCellValue('I9','Nombre')
+	            ->setCellValue('J9','Monto')
+	            ->setCellValue('K9','Tipo de Cambio')
+	            ;
+
+	        $nom_mes = $this->nombreMes($mes);
+	        $xls->getActiveSheet()
+	            ->setCellValue('A3','Revision de Contabilizacion del periodo '.$mes.' del ejercicio '.$anio)
+	            ->setCellValue('A4','Fecha de Emision del Reporte: ')
+	            ->setCellValue('A5','Total de Movimientos: ')
+	            ->setCellValue('A6','')
+	            ->setCellValue('A7','Usuario Elabora')
+	            ->setCellValue('A8','')
+	            ;
+	        $xls->getActiveSheet()
+	            ->setCellValue('E3','')
+	            ->setCellValue('E4',$fecha)
+	            ->setCellValue('E5',count($res))
+	            ->setCellValue('E6','')
+	            ->setCellValue('E7',$usuario)
+	            ->setCellValue('E8','')
+	            ;
+	        /// Unir celdas
+	        $xls->getActiveSheet()->mergeCells('A1:O1');
+	        // Alineando
+	        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+	        /// Estilando
+	        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>20,
+	                )
+	            )
+	        );
+	        $xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+	        $xls->getActiveSheet()->mergeCells('A3:H3');
+	        $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>15,
+	                )
+	            )
+	        );
+	        $a=10;
+	        foreach ($res as $kc){
+	        	if(empty($kc->NOMBRE) or $kc->NOMBRE == 'Sin Cuenta Actual'){
+	        		$xls->getActiveSheet()->getStyle('A'.$a.':K'.$a)->getFill()->applyFromArray(
+	            			array(
+	                			'font'=> array(
+	                			    'bold'=>true
+	                			),
+	                			'borders'=>array(
+	                			    'allborders'=>array(
+	                			        'style'=>PHPExcel_Style_Border::BORDER_THIN
+	                			    )
+	                			), 
+	                			'type' => PHPExcel_Style_Fill::FILL_SOLID,
+	        					'startcolor' => array(
+	        					     'rgb' => 'F28A8C'
+	        					)
+	            			)
+	        			);
+	        	}	
+	        	$a++;
+	        }
+	        //// Crear una nueva hoja 
+	            //$xls->createSheet();
+	        /// Crear una nueva hoja llamada Mis Datos
+	        /// Descargar
+	            $ruta='C:\\xampp\\htdocs\\EdoCtaXLS\\';
+	            $nom='Revision Contabilizacion de '.$df->RAZON_SOCIAL.' '.$nom_mes.'-'.$anio.'.xlsx';
+	            //header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+	            //header("Content-Disposition: attachment;filename=01simple.xlsx");
+	            //header('Cache-Control: max-age=0');
+	        /// escribimos el resultado en el archivo;
+	            $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+	        /// salida a descargar
+	            $x->save($ruta.$nom);
+	            ob_end_clean();
+	           // $x->save('php://output');
+	        /// salida a ruta :
+	            return array("status"=>'ok', "archivo"=>$nom);
+	}
+	
+	function cellColor($cells,$color){
+    	global $objPHPExcel;
+	    $objPHPExcel->getActiveSheet()->getStyle($cells)->getFill()->applyFromArray(array(
+	        'type' => PHPExcel_Style_Fill::FILL_SOLID,
+	        'startcolor' => array(
+	             'rgb' => $color
+	        )
+	    ));
 	}
 }?>
 

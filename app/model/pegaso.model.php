@@ -19606,15 +19606,15 @@ function cerrarRecepcion($doco){
 		  		$satcfdi= '';
 		  		$satmp ='';
 		  		$satfp = '';
-		  		if(substr($row->CVE_DOC,0,2)  == 'FA' ){
-		  			$satcfdi = $row->USO_CFDI; 
-		  			$satmp = $row->METODODEPAGO;
-		  			$satfp = $row->FORMADEPAGOSAT;
-		  		}elseif(substr($row->CVE_DOC,0,2)=='FP'){
+		  		//if(substr($row->CVE_DOC,0,2)  == 'FA' ){
+		  		//	$satcfdi = $row->USO_CFDI; 
+		  		//	$satmp = $row->METODODEPAGO;
+		  		//	$satfp = $row->FORMADEPAGOSAT;
+		  		//}elseif(substr($row->CVE_DOC,0,2)=='FP'){
 		  			$satcfdi = $row->SAT_USO; 
 		  			$satmp = $row->SAT_MP;
 		  			$satfp = $row->SAT_FP;
-		  		}
+		  		//}
 		  	$this->query="SELECT MIN(STATUS_SOLICITUD) AS VALIDACION FROM REFACTURACION WHERE FACT_ORIGINAL = '$docf'";
 		  	$res=$this->EjecutaQuerySimple();
 		  	$row2=ibase_fetch_object($res);
@@ -23705,6 +23705,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             $xml->registerXPathNamespace('c', $ns['cfdi']);
             $xml->registerXPathNamespace('t', $ns['tfd']);
             @$xml->registerXPathNamespace('impl', $ns['implocal']);
+            @$xml->registerXPathNamespace('p10',$ns['pago10']);
             foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
             	  $version = $cfdiComprobante['version'];
 				  if($version == ''){
@@ -23757,6 +23758,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             if(($tipo == 'I' or $tipo == 'E' or $tipo == 'ingreso' or $tipo == 'egreso' or $tipo== 'P') and $serie != 'NOMINA'){
             			$this->query="UPDATE XML_DATA_FILES SET TIPO = '$tipo' WHERE NOMBRE='$archivo'";
             			$this->EjecutaQuerySimple();
+
+
 
 			        	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
 			            	if($version == '3.2'){
@@ -23964,8 +23967,37 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			          		}
 
 			            }
-			          	
-			     
+			          	//// Revisamos si tiene el nodo Pago  $xml->xpath('//impl:ImpuestosLocales//impl:TrasladosLocales'
+			          	$pago = array();
+			          	$pagoDetalle=array();
+			          	if($xml->xpath('//p10:Pagos')){
+			          		foreach ($xml->xpath('//p10:Pagos') as $pg){
+			          			foreach ($pg->xpath('//pago10:Pago') as $pggen){
+			          				$fechaPago =isset($pggen['FechaPago'])? $pggen['FechaPago']:'01.01.1999';
+			          				$formaPago =isset($pggen['FormaDePagoP'])? $pggen['FormaDePagoP']:'';
+			          				$mondedaPago =isset($pggen['MonedaP'])? $pggen['MonedaP']:'';
+			          				$monto =isset($pggen['Monto'])? $pggen['Monto']:0;
+			          				$numOperacion =isset($pggen['NumOperacion'])? $pggen['NumOperacion']:'';
+			          				$rfcEmisorCtaOrd =isset($pggen['rfcEmisorCtaOrd'])? $pggen['rfcEmisorCtaOrd']:'';
+ 			          				$ctaOrdenante =isset($pggen['CtaOrdenante'])? $pggen['CtaOrdenante']:'';
+			          				$rfcEmisorCtaBen=isset($pggen['RfcEmisorCtaBen'])? $pggen['RfcEmisorCtaBen']:'';
+			          				$ctaBeneficiario=isset($pggen['CtaBeneficiario'])? $pggen['CtaBeneficiario']:'';
+			          				$pago[]=array("fechaPago"=>$fechaPago,"formaPago"=>$formaPago,"mondedaPago"=>$mondedaPago,"monto"=>$monto,"numOperacion"=>$numOperacion,"rfcEmisorCtaOrd"=>$rfcEmisorCtaOrd,"ctaOrdenante"=>$ctaOrdenante,"rfcEmisorCtaBen"=>$rfcEmisorCtaBen,"ctaBeneficiario"=>$ctaBeneficiario);
+			          			}
+			          			foreach ($pg->xpath('//pago10:DoctoRelacionado') as $pgdet){
+			          				$idDocumento =isset($pgdet['IdDocumento'])? $pgdet['IdDocumento']:''; 
+			          				$serie =isset($pgdet['Serie'])? $pgdet['Serie']:''; 
+			          				$folio =isset($pgdet['Folio'])? $pgdet['Folio']:''; 
+			          				$monedaDr =isset($pgdet['MonedaDR'])? $pgdet['MonedaDR']:''; 
+			          				$metodoPago =isset($pgdet['MetodoDePagoDR'])? $pgdet['MetodoDePagoDR']:''; 
+			          				$numParcialidad =isset($pgdet['NumParcialidad'])? $pgdet['NumParcialidad']:1; 
+			          				$impSaldoAnt =isset($pgdet['ImpSaldoAnt'])? $pgdet['ImpSaldoAnt']:0; 
+			          				$impPago =isset($pgdet['ImpPagado'])? $pgdet['ImpPagado']:0; 
+			          				$impSaldoIns =isset($pgdet['ImpSaldoInsoluto'])? $pgdet['ImpSaldoInsoluto']:0; 
+			          				$pagoDetalle[]=array('idDocumento'=>$idDocumento,'serie'=>$serie,'folio'=>$folio,'monedaDr'=>$monedaDr,'metodoPago'=>$metodoPago,'numParcialidad'=>$numParcialidad,'impSaldoAnt'=>$impSaldoAnt,'impPago'=>$impPago,'impSaldoIns'=>$impSaldoIns);
+			          			}
+			          		}
+			          	}
 			            //// Obtenemos las retenciones de los impuestos:
 			            foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos') as $Timp){	
 			            	if($version == '3.2'){
@@ -24173,6 +24205,52 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		}
 			            	}
 
+			            	if(count($pago)>0){
+			            		foreach ($pago as $keyPago){
+			            			///$pago[]=array("fechaPago"=>$fechaPago,"formaPago"=>$formaPago,"mondedaPago"=>$mondedaPago,"monto"=>$monto,"numOperacion"=>$numOperacion,"rfcEmisorCtaOrd"=>$rfcEmisorCtaOrd,"ctaOrdenante"=>$ctaOrdenante,"rfcEmisorCtaBen"=>$rfcEmisorCtaBen,"ctaBeneficiario"=>$ctaBeneficiario);
+			            			$fpa = $keyPago['fechaPago'];
+			            			$fmpa = $keyPago['formaPago'];
+			            			$monpa =$keyPago['mondedaPago'];
+			            			$motpa = $keyPago['monto'];
+			            			$numpa =$keyPago['numOperacion'];
+			            			$rfcord =$keyPago['rfcEmisorCtaOrd'];
+			            			$ctaord = $keyPago['ctaOrdenante'];
+			            			$rfcben = $keyPago['rfcEmisorCtaBen'];
+			            			$ctaben =$keyPago['ctaBeneficiario'];
+			            			$this->query="INSERT INTO XML_COMPROBANTE_PAGO (ID, UUID, FECHA, FORMA, MONEDA, MONTO, NUMOPERACION, RFC_BANCO_ORDENANTE, CTA_ORDENANTE, RFC_BANCO_BENEFICIARIO, CTA_BENEFICIARIO, STATUS) VALUES (NULL,'$uuid', '$fpa', '$fmpa', '$monpa', $motpa, '$numpa', '$rfcord', '$ctaord', '$rfcben', '$ctaben', 'P')";
+			            			$this->grabaBD();
+			            		}
+			            	}
+
+			            	if(count($pagoDetalle)>0){
+			            		//$pagoDetalle[]=array('idDocumento'=>$idDocumento,'serie'=>$serie,'folio'=>$folio,'monedaDr'=>$monedaDr,'metodoPago'=>$metodoPago,'numParcialidad'=>$numParcialidad,'impSaldoAnt'=>$impSaldoAnt,'impPago'=>$impPago,'impSaldoIns'=>$impSaldoIns);
+								foreach ($pagoDetalle as $keyPD){
+									$idDocumento = $keyPD['idDocumento'];
+									$serie = $keyPD['serie'];
+									$folio = $keyPD['folio'];
+									$monedaDr = $keyPD['monedaDr'];
+									$metodoPago = $keyPD['metodoPago'];
+									$numParcialidad = $keyPD['numParcialidad'];
+									$impSaldoAnt = $keyPD['impSaldoAnt'];
+									$impPago = $keyPD['impPago'];
+									$impSaldoIns = $keyPD['impSaldoIns'];
+			            			$this->query="INSERT INTO XML_COMPROBANTE_PAGO_DETALLE (ID, ID_DOCUMENTO,SERIE,FOLIO,	MONEDA,METODO_PAGO,NUM_PARCIALIDAD,SALDO,PAGO,SALDO_INSOLUTO,STATUS, UUID_PAGO) VALUES ( null, '$idDocumento', '$serie', '$folio', '$monedaDr', '$metodoPago', $numParcialidad, $impSaldoAnt, $impPago, $impSaldoIns, 'P', '$uuid')";
+			            			$this->grabaBD();
+			            		}
+								
+			            	}
+
+							if($xml->xpath('//cfdi:CfdiRelacionados')){
+        	    				foreach ($xml->xpath('//cfdi:CfdiRelacionados') as $rel){
+    	        					$tipoRelacion = isset($rel['TipoRelacion'])? $rel['TipoRelacion']:'';
+    	        					foreach ($rel->xpath('//cfdi:CfdiRelacionado') as $docRel){
+    	        						$docUUID = isset($docRel['UUID'])? $docRel['UUID']:'';
+    	        						$this->query = "INSERT INTO XML_RELACIONES (ID, UUID, TIPO, UUID_DOC_REL) VALUES (NULL, '$uuid', '$tipoRelacion', '$docUUID')";
+    	        						$this->grabaBD();
+    	        					}
+    	        				}
+	            			}
+	
 			            	$this->calcularImpuestos($uuid);
 			            }elseif($tipo2 == 'C'){
 			            	$this->query = "INSERT INTO XML_DATA_CANCELADOS (UUID, CLIENTE, SUBTOTAL, IMPORTE, FOLIO, SERIE, FECHA, RFCE, DESCUENTO, STATUS, TIPO, FILE )";

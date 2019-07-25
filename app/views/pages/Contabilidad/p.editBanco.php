@@ -10,7 +10,7 @@
     <div class="form-horizontal col-lg-12">
         <div class="panel panel-default">
             <div class="panel panel-heading">
-                <h3>Datos de Envio.</h3>
+                <h3>Edicion de Cuenta Bancaria.</h3>
             </div>
             <br />
             <div class="panel panel-body">
