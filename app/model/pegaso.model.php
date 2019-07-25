@@ -27041,4 +27041,18 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		}
 		return array("status"=>'C', "mensaje"=>$mensaje);
 	}
+
+	function actualizaUUID($res){
+		$uuid = $res['uuid'];
+		$poliza = $res['numpoliza'];
+		$tipo = $res['tipopoliza'];
+		$ejercicio = $res['ejercicio'];
+		$periodo = $res['periodo'];
+		$this->query="UPDATE XML_DATA SET STATUS= 'P' WHERE UUID='$uuid' ";
+		$this->EjecutaQuerySimple();
+		$this->query="UPDATE XML_POLIZAS set STATUS = 'C' WHERE UUID='$uuid' and status = 'A' and poliza = '$poliza' and tipo = '$tipo' and periodo = $periodo and ejercicio = $ejercicio";
+		echo $this->query;
+		$this->EjecutaQuerySimple();
+		return;
+	}
 }?>

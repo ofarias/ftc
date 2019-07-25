@@ -1108,7 +1108,7 @@ class CoiDAO extends DataBaseCOI {
 
     function verCuentasImp(){
         $data=array();
-        $this->query="SELECT * FROM FTC_PARAM_COI WHERE TIPO ='Traslado' or TIPO ='Retencion' or TIPO ='Exento'";
+        $this->query="SELECT F.*, (SELECT C.NOMBRE FROM CUENTAS_FTC C WHERE C.CUENTA_COI = F.CUENTA_CONTABLE) AS NOMBRE_CUENTA FROM FTC_PARAM_COI F WHERE F.TIPO ='Traslado' or F.TIPO ='Retencion' or F.TIPO ='Exento'";
         $r=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($r)){
             $data[]=$tsArray;
@@ -1470,15 +1470,17 @@ class CoiDAO extends DataBaseCOI {
     } 
 
     function sadPol($uuid, $tipo){
-        $this->query="SELECT * FROM POLIZAS19 WHERE UUID ='$uuid' and tipo= '$tipo'";
+        $this->query="SELECT * FROM POLIZAS19 WHERE UUID ='$uuid' and origen containing('PHP')";
         $res=$this->EjecutaQuerySimple();
         $row=ibase_fetch_object($res);
         if(!empty($row->NUM_POLIZ)){
             $pol=$row->NUM_POLIZ;
             $per = $row->PERIODO;
             $tipo = $row->TIPO_POLI;
-            $this->query="execute procedure SP_BORRA_POLIZA_INDIVIDUAL('$pol', '$per', '$tipo')";
+            $eje = $row->EJERCICIO;
+            $this->query="execute procedure BORRA_POLIZA_INDIVIDUAL('$pol', '$per', '$tipo', $eje)";
             $this->EjecutaQuerySimple();
+            return array('status'=>'ok', 'Poliza'=>$tipo.$pol, "uuid"=>$uuid, 'numpoliza'=>$pol, 'tipopoliza'=>$tipo, 'periodo'=>$per, 'ejercicio'=>$eje);
         } 
     }
 
@@ -1623,6 +1625,12 @@ class CoiDAO extends DataBaseCOI {
             $data[]=$tsArray;
         }
         return $data;
+    }
+
+    function borraCuenta($idImp){
+        $this->query="UPDATE FTC_PARAM_COI SET CUENTA_CONTABLE = '', cuenta_coi = '' WHERE ID = $idImp";
+        $this->EjecutaQuerySimple();
+        return array("status"=>'ok');
     }
 }      
 ?>

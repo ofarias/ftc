@@ -210,6 +210,10 @@ class controller_coi{
 		if($_SESSION['user']){
 			$data= new CoiDAO;
 			$res=$data->sadPol($uuid, $tipo);
+			if($res['status']=='ok'){
+				$data_p= new pegaso;
+				$actUUID=$data_p->actualizaUUID($res);
+			}
 			return $res;
 		}
 	}
@@ -234,9 +238,15 @@ class controller_coi{
 			$consolida = $data->consolidaPolizas($mes, $anio, $ide, $polizas);
 			// Obtenermos la informacion de las polizas por fecha de la tabla de xml_polizas basados en la fecha y tipo
 			//$this->query="SELECT * FROM XML_POLIZAS WHERE PERIODO = $mes and EJERCICIO = $anio and status = 'A'";
-
 			return $consolida;
+		}
+	}
 
+	function borraCuenta($idImp){
+		if($_SESSION['user']){
+			$data = new CoiDAO;
+			$res=$data->borraCuenta($idImp);
+			return $res;
 		}
 	}
 

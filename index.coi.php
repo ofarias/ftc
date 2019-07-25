@@ -62,6 +62,10 @@ if (isset($_POST['usuario'])){
 	$res=$controller_coi->contabiliza($_POST['tipo'], $_POST['idp']);
 	echo json_encode($res);
 	exit();
+}elseif(isset($_POST['borraCuenta'])){
+	$res=$controller_coi->borraCuenta($_POST['idImp']);
+	echo json_encode($res);
+	exit();
 }
 else{switch ($_GET['action']){
 	//case 'inicio':

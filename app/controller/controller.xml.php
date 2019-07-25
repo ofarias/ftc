@@ -444,7 +444,7 @@ class controller_xml{
 	        );
 	        $a=10;
 	        foreach ($res as $kc){
-	        	if(empty($kc->NOMBRE) or $kc->NOMBRE == 'Sin Cuenta Actual'){
+	        	if(empty($kc->NOMBRE) or $kc->NUM_CTA == 'Sin Cuenta Actual'){
 	        		$xls->getActiveSheet()->getStyle('A'.$a.':K'.$a)->getFill()->applyFromArray(
 	            			array(
 	                			'font'=> array(
