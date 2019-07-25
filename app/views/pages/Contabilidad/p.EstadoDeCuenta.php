@@ -16,7 +16,6 @@
                                             <th>Abonos Mes Actual</th>
                                             <th>Abonos Mes Anterior</th>
                                             <th>Movs. X Relac. Actual</th>
-                                            <!--<th>Movs. X Relac. Anterior</th>-->
                                             <th>Carga Edo Cta</th>
                                         </tr>
                                     </thead>
@@ -31,13 +30,13 @@
                                             <td><?php echo $data->ABONOS_ACTUAL;?></td>
                                             <td><?php echo $data->ABONOS_ANTERIOR;?></td>
                                             <td><?php echo $data->MOV_X_REL_AC;?></td>
-                                            <!--<td><?php echo $data->MOV_X_REL_AN;?></td>-->
                                             <td>
                                               <form action="upload_EdoCta.php" method="post" enctype="multipart/form-data">
                                                 <input type="file" name="fileToUpload">
                                                 <input type="submit" name="enviar" value="Cargar">
                                                 <input type="hidden" name="datos" value="<?php echo $data->BANCO.':'.$data->NUM_CUENTA.':'.$data->CTA_CONTAB?>">
                                               </form>
+                                              <a href="app/tmp/LayOut_edo_cta.xlsx" download>Descarga LayOut</a>
                                             </td>
                                         </tr>
                                       <?php endforeach; ?>

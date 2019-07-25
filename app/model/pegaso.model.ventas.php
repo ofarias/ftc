@@ -1993,4 +1993,36 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         }
     }
 
+    function cargaSae($doc, $folio, $serie, $uuid, $ruta, $rfcr, $tipo){
+        /*$this->query="SELECT 'F' as tipo_doc, documento as cve_doc,  '3.3' as version, uuid,
+                        NOCERTIFICADOSAT AS NO_SERIE,
+                        FECHATIMBRADO  AS FECHA_CERT,
+                        'N' DESGLOCEIMP1,
+                        'N' DESGLOCEIMP2,
+                        'N' DESGLOCEIMP3,
+                        'S' AS DESGLOCEIMP4
+                    FROM xml_data WHERE SERIE = '$serie' AND FOLIO = $folio AND tipo = 'I' --AND fecha >= '29.03.2019'  AND RFCE = 'IMI161007SY7'
+                    ";
+        $res=$this->EjecutaQuerySimple();
+        $row = ibase_fetch_object($res);*/
+        $ruta2= "C:\\xampp\\htdocs\\uploads\\xml\\IMI161007SY7\\Emitidos\\".$rfcr."\\IMI161007SY7-".$doc.'-'.$uuid.".xml";
+        //$file = $ruta2;
+        $myFile = fopen("$ruta2", "r") or die("No se ha logrado abrir el archivo ($ruta2)!");
+        $myXMLData = fread($myFile, filesize($ruta2));
+        //$xml = @simplexml_load_string($myXMLData) or die("Error: No se ha logrado crear el objeto XML ($file)");
+        $doc = $serie.'0'.$folio;
+        $this->query="EXECUTE PROCEDURE SP_CARGA_CFDI_SAE($folio,'$serie','$doc', '123', '$tipo')";
+        $this->EjecutaQuerySimple();
+        $this->query = "UPDATE CFDI01 SET XML_DOC = '$myXMLData' WHERE CVE_DOC = '$doc'";
+        $this->EjecutaQuerySimple();
+            $this->query="EXECUTE PROCEDURE  SP_CARGA_FACTURA_SAE($folio,'$serie','$doc', '$tipo')";
+            $this->EjecutaQuerySimple();
+            $this->query="EXECUTE PROCEDURE  SP_CARGA_PARTIDAS_SAE($folio,'$serie', '$doc', '$uuid', '$tipo')";
+            $this->EjecutaQuerySimple();
+            $this->query="EXECUTE PROCEDURE  SP_CARGA_CUENM_SAE ($folio, '$serie', '$doc', '$uuid', '$tipo')";
+            $this->EjecutaQuerySimple();
+        
+        return $mensaje = array('status' => 'ok');
+    }
+
 }?>

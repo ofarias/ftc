@@ -1,9 +1,12 @@
+</script>
 <br>
 
 <label>Buscar Factura: </label><br/>
 Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactura" style="text-transform:uppercase;">
 <br/>
 <label id="info"></label>
+
+
     <div class="panel panel-default">
               <div class="panel-heading">
                   <h4><i class="fa fa-list-alt"></i>Ver Pagos Estado de Cuenta</h4>
@@ -17,9 +20,6 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
 <p id="algo2"></p>
 <p id="boton"></p>
 <br />
-
-<input type="radio" name="facturas" value="pendinentes" <?php echo ($tipo=='t')? 'checked':''?> onchange="traeDocs('t','<?php echo $cve_maestro?>', '<?php echo $maestro?>')"> Pendientes &nbsp;&nbsp;&nbsp;<input type="radio" name="facturas" value="historico" onchange="traeDocs('h', '<?php echo $cve_maestro?>', '<?php echo $maestro?>')" <?php echo ($tipo=='h')? 'checked':''?>> Historico
-
 <div class="row">
     <div class="col-lg-12">
         <div class="panel panel-default" id="">
@@ -47,7 +47,8 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
                                 <th>Ln</th>
                                 <th>Sel</th>
                                 <th>Factura</th>
-                                <th>Cliente</th>
+                                <th>Contra Recibo <br/>Evidencia</th>
+                                <th>Cliente<br/>Plazo</th>
                                 <th>Importe</th>
                                 <th>Fecha Documento /<br/> Fecha Cobranza </th>
                                 <th>Vencimiento</th>
@@ -59,7 +60,6 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
                         <tbody>
                             <?php $total = 0;
                             $i = 0;
-                            $totalVenta = 0;
                             foreach($facturas as $doc):
                                 //$linea=$sc->LINEA_CRED;
                                 $i++;
@@ -71,8 +71,7 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
                                 }elseif($doc->VENCIMIENTO < 0 ){
                                     $color = "style='background-color:#bbfab6;'";
                                 }
-                                $totalVenta=$totalVenta + $doc->IMPORTE;
-                                $total=$total + $doc->SALDOFINAL;
+                                $total = $total + $doc->SALDOFINAL;
                             ?>     
                                     <tr class="odd gradeX" <?php echo $color?> >
                                         <td><?php echo $i?></td>
@@ -84,9 +83,14 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
                                             
                                             <a href="index.php?action=imprimeFact&factura=<?php echo $doc->CVE_DOC?>" onclick="alert('Se ha descargado tu factura.')"><img border='0' src='app/views/images/pdf.jpg' width='12' height='15'></a>
                                         </td>
-                                        <td><?php echo '( '.$doc->CVE_CLPV.') '.$doc->NOMBRE?></td>                                    
+                                        <td>
+                                            <?php echo empty($doc->CONTRARECIBO)? 'Sin Contrarecibo':$doc->CONTRARECIBO?>
+                                            <br/>
+                                            <?php echo !empty($doc->ARCHIVOS)? '<a href="index.php?action=verComprobantesRecibo&idc='.$doc->C.'" target="pop-up" '.'>'.$doc->ARCHIVOS.' Archivos</a>':'Sin Archivos'?>
+                                        </td>
+                                        <td><?php echo '( '.$doc->CVE_CLPV.') '.$doc->NOMBRE?><br/><?php echo '<b> Plazo: '.$doc->PLAZO.'<b/> dia(s)'?></td>                                    
                                         <td align="right"><?php echo '$ '.number_format($doc->IMPORTE,2);?></td>
-                                        <td> <?php echo '<font color="purple">'.$doc->FECHA_DOC.'</font><br/> <font color="blue">'.$doc->FECHA_INI_COB.'</font>'?></td>
+                                        <td> <?php echo '<font color="purple">'.$doc->FECHA_DOC.'</font><br/> <font color="blue">'.$doc->FECHA_INI_COB.'</font><br/><font color="red">'.$doc->FECHACOB.'</font>'?></td>
                                        <td align="center"><b><?php echo $doc->VENCIMIENTO?></b></td>
                                         <td align="right"><font color="red"><b><?php echo '$ '.number_format($doc->PAGOS,2,".",",");?></b></font></td>
                                         <td align="right"><font color="red"><b><?php echo '$ '.number_format($doc->IMPORTE_NC,2);?></b></font></td>
@@ -96,9 +100,13 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
                             <?php endforeach;?>
                         </tbody>
                                     <tr>
-                                        <td colspan="4" align="right">Total Venta</td>
-                                        <td><font size="3pxs" color="green"><b><?php echo '$ '.number_format($totalVenta,2)?></b></font></td>
-                                        <td colspan="4" align="right"><b>Total Por Cobrar:</b></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td><b>Total Por Cobrar: </b></td>
                                         <td><font size="3pxs" color="blue"><b><?php echo '$ '.number_format($total,2)?></font></b></td>
                                         <td></td>
                                     </tr>
@@ -122,11 +130,8 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
         <input type="hidden" name="sel" value="" id="s">        
     </form>
 <script type="text/javascript" language="JavaScript" src="app/views/bower_components/jquery/dist/jquery.min.js"></script>
-<script type="text/javascript">
 
-    function traeDocs(t, cvem, m){
-        window.open("index.cobranza.php?action=CarteraxCliente&cve_maestro="+ cvem +"&maestro="+m+"&tipo="+t , "_self")
-    }
+<script type="text/javascript">
 
     function altaCC(i){
        var m = document.getElementById('mae').value
@@ -149,7 +154,7 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
             }        
         }else{
             var sel='No';
-            if(confirm('Se incluiran solo los documentos con saldo mayor a $ 3.00 ')){
+            if(confirm('Se incluiran todos los documentos' + tipo)){
                 alert('Procede la descarga de Todos los documentos.');
             }else{
                 return false;

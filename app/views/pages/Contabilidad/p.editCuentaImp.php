@@ -8,17 +8,19 @@
                         <!-- /.panel-heading -->
                            <div class="panel-body">
                             <div class="table-responsive">                            
-                                <table class="table table-striped table-bordered table-hover">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-impuestos">
                                     <thead>
                                             <th>Ln</th>
                                             <th>Impuesto</th>
-                                            <th>Cuenta Contable</th>
+                                            <th>Cuenta Contable<br/>Nombre Cuenta</th>
                                             <th>Tipo</th>
                                             <th>Tasa</th>
                                             <th>Status</th>
                                             <th>Nombre</th>
                                             <th>Factor</th>
                                             <th>Tipo de Poliza</th>
+                                            <th>Aplica a XML:</th>
+                                            <th>Eliminar</th>
                                     </thead>
                                   <tbody>
                                         <?php
@@ -29,13 +31,18 @@
                                        <tr>
                                             <td><?php echo $i;?></td>
                                             <td><?php echo $data->IMPUESTO;?></td>
-                                            <td><input type="text" name="cuenta" class="cuencont" placeholder="<?php echo $data->CUENTA_COI;?>" orig="<?php echo $data->CUENTA_CONTABLE?>" id="<?php echo $data->ID?>"></td>
+                                            <td><input type="text" name="cuenta" class="cuencont" placeholder="<?php echo $data->CUENTA_COI;?>" orig="<?php echo $data->CUENTA_CONTABLE?>" id="<?php echo $data->ID?>"><br/><?php echo $data->NOMBRE_CUENTA?></td>
                                             <td><?php echo $data->TIPO;?></td>
                                             <td><?php echo number_format($data->TASA,2);?></td>
                                             <td><?php echo $data->STATUS;?></td>
                                             <td><?php echo $data->NOMBRE;?></td>
                                             <td><?php echo $data->POLIZA?></td>
                                             <td><?php echo $data->FACTOR;?></td>
+                                            <td><?php echo $data->TIPO_XML?></td>
+                                            <td><?php if(!empty($data->CUENTA_CONTABLE)){?>
+                                            <input type="button" class="btn-sm btn-danger borrar" value="Borrar Cuenta" idImp="<?php echo $data->ID?>" cta="<?php echo $data->CUENTA_COI?>" nombre="<?php echo $data->NOMBRE?>"  >
+                                            <?php }?>
+                                            </td>
                                         </tr>
                                         <?php endforeach; ?>
                                  </tbody>
@@ -86,6 +93,35 @@ $(".cuencont").change(function(){
             alert('No se realizo ningun cambio')
             location.reload(true)
         }
+})
+
+$(".borrar").click(function(){
+    var idImp=$(this).attr('idImp')
+    var nombre = $(this).attr('nombre')
+    var cuenta = $(this).attr('cta')
+    $.confirm({
+        title:'Eliminacion de Cuenta Contable',
+        content:'Al eliminar al cuenta <b>'+cuenta+' '+nombre+'</b> de impuestos, ya no se crearan las partidas de los impuestos',
+        buttons: {
+            aceptar:function(){
+                $.ajax({
+                    url:'index.coi.php',
+                    type:'post',
+                    dataType:'json',
+                    data:{borraCuenta:1, idImp},
+                    success:function(data){
+                        location.reload(true)
+                    },
+                    error:function(){
+
+                    }
+                })
+            },
+            cancelar:function(){
+                return 
+            }
+        }
+    })
 })
 
 </script>

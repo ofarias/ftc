@@ -28,7 +28,6 @@
             </button>
         <?php }?>
         <br/>
-        <br/>
     <?php }?>
 </div>
 <!--
@@ -59,10 +58,8 @@
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <div>
-                                <p><?php echo 'Usuario: '.$_SESSION['user']->NOMBRE?></p>
+                                <p><?php echo 'Usuario: '.$_SESSION['user']->NOMBRE?><br/><?php echo 'XMLs '.$ide?></p>
                                 <p><?php echo 'RFC seleccionado: '.$_SESSION['rfc']?>
-                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -72,7 +69,6 @@
                                         <a href="index.php?action=imprimeUUID&uuid=<?php echo $uuid?>" onclick="alert('Se ha descargar tu factura, revisa en tu directorio de descargas')"><img border='0' src='app/views/images/pdf.jpg' width='55' height='60'></a>
                                 </p>
                                 <p><?php echo 'Empresa Seleccionada: <b>'.$_SESSION['empresa']['nombre']."</b>"?></p>  
-                            </div>
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
@@ -316,10 +312,10 @@
                     var fecha = this.$content.find('.fecha').val();
                     //var maestr = this.$content.find('mae').val();
                     if(cta == ''){
-                        $.alert('Dede de colocar una cuenta Bancaria...');
+                        $.alert('Debe de colocar una cuenta Bancaria...');
                         return false;
                     }else if(t ==''){
-                        $.alert('Dede seleccionar un tipo de Egreso...');
+                        $.alert('Debe seleccionar un tipo de Egreso...');
                         return false;
                     }else if (fecha === ''){
                         $.alert('Seleccione una fecha por favor...');
@@ -557,6 +553,14 @@
                     var clpv = data.proveedor
                     var ctaclpv =data.ctaProvCoi
                     var monto = data.monto
+                    if(ctacoi === null || ctacoi == '' ){
+                        $.alert('El Banco ' + banco + ' con la cuenta '+ cta +' no tiene cuenta contable, favor de revisar')
+                        return false;
+                    }
+                    if(ctaclpv === null || ctaclpv == ''){
+                        $.alert('El Proveedor ' + clpv + ' no tiene cuenta contable, favor de revisar')
+                        return false;   
+                    }
                     $.confirm({
                         columnClass: 'col-md-8',
                         title: 'Registro de Poliza de ' + tipo,
@@ -566,7 +570,7 @@
                         '<br/><b>Monto: ' + monto + '</b>' 
                         ,
                         buttons: {
-                            formSubmit: {
+                            formSubmit:{
                             text: 'Registrar',
                             btnClass: 'btn-blue', 
                             action:function(){

@@ -54,6 +54,18 @@ if (isset($_POST['usuario'])){
 	$res=$controller_coi->polizaFinal($_POST['uuid'], $_POST['tipo'], $_POST['idp'], $_POST['tipoxml']);
 	echo json_encode($res);
 	exit();
+}elseif(isset($_POST['sadPol'])){
+	$res=$controller_coi->sadPol($_POST['uuid'], $_POST['sadPol']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['contabiliza'])) {
+	$res=$controller_coi->contabiliza($_POST['tipo'], $_POST['idp']);
+	echo json_encode($res);
+	exit();
+}elseif(isset($_POST['borraCuenta'])){
+	$res=$controller_coi->borraCuenta($_POST['idImp']);
+	echo json_encode($res);
+	exit();
 }
 else{switch ($_GET['action']){
 	//case 'inicio':
