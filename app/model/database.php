@@ -10,12 +10,9 @@
 		
 		#Abre la conexión a la base de datos
 		private function AbreCnx(){
-<<<<<<< HEAD
 			$host = 'localhost:'.$_SESSION['bd'];
-=======
 			$host = 'ofa.dyndns.org:'.$_SESSION['bd'];
 			//$host = '192.168.100.33:'.$_SESSION['bd'];
->>>>>>> 13c061875a4c7668179f3cd9f75ee297515e8e25
 			$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
 		}		
 		#Cierra la conexion a la base de datos
