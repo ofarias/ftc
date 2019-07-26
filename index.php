@@ -4313,8 +4313,8 @@ else{
 			$controller->detalleGasto($idg);
 			break;
 		default: 
-		header('Location: index.php?action=login');
-		break;
+		        $controller->login();
+		        break;
 	}
 
 }
