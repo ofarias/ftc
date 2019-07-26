@@ -125,15 +125,6 @@ class pegaso extends database{
 		$this->query="UPDATE FTC_INICIO_LOGS SET STATUS = 'O', salida = current_timestamp WHERE PHP='$php' and USR_LOGIN='$usuario' and status='I' ";
 		$this->EjecutaQuerySimple();
 		$_SESSION=array();
-        session_unset();
-        session_destroy();
-        if (ini_get("session.use_cookies")) {
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params["path"], $params["domain"],
-                $params["secure"], $params["httponly"]
-            );
-        }
         //header('Location: index.php?action=login');
         return;
 	}
