@@ -62,7 +62,7 @@ class pegaso extends database{
 		$this->query="INSERT INTO FTC_INICIO_LOGS (ID, USR_LOGIN, USR_NOMBRE, USR_EQUIPO, FECHA, STATUS, IP, PHP, navegador)
 							VALUES (null, '$usuario', '$nombre', '$equipo',current_timestamp, 'I','$ip', '$p', '$pn')";
 		$this->grabaBD();
-		if($usuario == 'ofarias' and $_SESSION['empresa']['auto']== 'si'){
+		if( ($usuario == 'ofarias' or $usuario == 'fbarbosa') and $_SESSION['empresa']['auto']== 'si'){
 			$this->revisaParametros($uuid = false);
 		}
 		return;
