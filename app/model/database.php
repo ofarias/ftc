@@ -3,13 +3,14 @@
 /*Clase para acceder a datos*/
     abstract class database{
     	private static $usr = "SYSDBA";
-		private static $pwd = "masterkey";
+		private static $pwd = "MASTERDB";
 		private $cnx;
 		protected $query;
 		private $host = "C:\\ftcData\\PCF.FDB";
 		
 		#Abre la conexión a la base de datos
 		private function AbreCnx(){
+			$host = 'localhost:'.$_SESSION['bd'];
 			$host = 'ofa.dyndns.org:'.$_SESSION['bd'];
 			//$host = '192.168.100.33:'.$_SESSION['bd'];
 			$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
