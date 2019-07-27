@@ -43,8 +43,7 @@ class pegaso_controller{
                 $params["path"], $params["domain"],
                 $params["secure"], $params["httponly"]
             );
-		}
-		$this->Login();
+		}		
 		return;
 	}
 
