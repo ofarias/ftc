@@ -124,9 +124,9 @@ class pegaso extends database{
 		$usuario = $_SESSION['user']->USER_LOGIN;
 		$this->query="UPDATE FTC_INICIO_LOGS SET STATUS = 'O', salida = current_timestamp WHERE PHP='$php' and USR_LOGIN='$usuario' and status='I' ";
 		$this->EjecutaQuerySimple();
-		$_SESSION=array();
-        //header('Location: index.php?action=login');
-        return;
+		//$_SESSION=array();
+        	//header('Location: index.php?action=login');
+        	return;
 	}
 
 	function cambioSenia($nuevaSenia, $actual, $usuario){

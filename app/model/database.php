@@ -12,8 +12,8 @@
 		private function AbreCnx(){
 			$host = 'localhost:'.$_SESSION['bd'];
 			$host = 'ofa.dyndns.org:'.$_SESSION['bd'];
-			// echo '$host: '.$host;
 			// $host = '192.168.100.33:'.$_SESSION['bd'];
+			//echo "ibase_connect(".$host.", ".self::$usr.", ".self::$pwd.")";
 			$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
 		}		
 		#Cierra la conexion a la base de datos
