@@ -9,14 +9,8 @@
 		private $host = "C:\\ftcData\\PCF.FDB";
 		
 		#Abre la conexión a la base de datos
-<<<<<<< HEAD
-		private function AbreCnx(){
-			$host = 'localhost:'.$_SESSION['bd'];
-			$host = 'ofa.dyndns.org:'.$_SESSION['bd'];
-=======
 		private function AbreCnx(){			
 			$host = 'ofa.dyndns.org:'.$_SESSION['bd'];			
->>>>>>> 7722961d0808e31a6fa1d2cf0faec5d830fd7bd4
 			// $host = '192.168.100.33:'.$_SESSION['bd'];
 			//echo "ibase_connect(".$host.", ".self::$usr.", ".self::$pwd.")";
 			$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
