@@ -3,7 +3,6 @@ require_once 'app/model/database.php';
 require_once 'app/model/class.ctrid.php';
 
 class verificaIDs extends database{
-
 	function verificarID($ids){
 		$ctrid = new idpegaso;
 		foreach ($ids as $data) {
@@ -41,8 +40,6 @@ class verificaIDs extends database{
 
 		}
 	}
-
-
 	function revisionPOC($i, $f){
 		$data=array();
 		$verifica = array();
@@ -85,6 +82,5 @@ class verificaIDs extends database{
 		}
 		return $verifica;
 	}
-
-} ?>
-
+} 
+?>
