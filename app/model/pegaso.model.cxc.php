@@ -1,5 +1,4 @@
 <?php
-
 require_once 'app/model/database.php';
 
 class pegasoCobranza extends database {
@@ -974,6 +973,5 @@ class pegasoCobranza extends database {
         }
         return $data;
     }
-
 }
-?>    
+?> 
