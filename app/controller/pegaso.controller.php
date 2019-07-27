@@ -39,7 +39,10 @@ class pegaso_controller{
 		session_destroy();
 		if (ini_get("session.use_cookies")) {
 			$params = session_get_cookie_params();
-//			setcookie(session_name(), '', time() - 42000, $params["path"], $params["domain"], $params["secure"], $params["httponly"]);
+			$name = session_name();
+			$secure = $params['secure'] && $params['secure']!=""; 
+			$httpOnly = $params['httponly'] && $params['httponly']!="";
+			setcookie($name, '', time() - 42000, $params['path'], $params['domain'], $secure, $httpOnly);
 		}		
 		return;
 	}
