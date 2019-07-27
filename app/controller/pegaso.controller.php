@@ -56,7 +56,10 @@ class pegaso_controller{
 			setcookie($name, '', time() - 42000, $params['path'], $params['domain'], $secure, $httpOnly);
 		}
 		*/		
-		return;
+		$pagina = $this->load_templateL('Login');
+		$html = $this->load_page('app/views/modules/m.login.php');
+		$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
+		$this->view_page($pagina);		
 	}
 
 	function LoginConta($user, $pass){
