@@ -975,5 +975,5 @@ class pegasoCobranza extends database {
         return $data;
     }
 
-}?>
-    
+}
+?>    
