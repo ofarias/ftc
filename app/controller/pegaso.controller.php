@@ -35,8 +35,18 @@ class pegaso_controller{
 	function salir(){
 		$data= new pegaso;
 		$salir=$data->salir();
+
+		$CookieInfo = session_get_cookie_params();
+		if ( (empty($CookieInfo['domain'])) && (empty($CookieInfo['secure'])) ) {
+			setcookie(session_name(), '', time()-3600, $CookieInfo['path']);
+		} elseif (empty($CookieInfo['secure'])) {
+			setcookie(session_name(), '', time()-3600, $CookieInfo['path'], $CookieInfo['domain']);
+		} else {
+			setcookie(session_name(), '', time()-3600, $CookieInfo['path'], $CookieInfo['domain'], $CookieInfo['secure']);
+		}
 		session_unset();
 		session_destroy();
+		/*
 		if (ini_get("session.use_cookies")) {
 			$params = session_get_cookie_params();
 			print_r($params);
@@ -44,7 +54,8 @@ class pegaso_controller{
 			$secure = $params['secure'] && $params['secure']!=""; 
 			$httpOnly = $params['httponly'] && $params['httponly']!="";
 			setcookie($name, '', time() - 42000, $params['path'], $params['domain'], $secure, $httpOnly);
-		}		
+		}
+		*/		
 		return;
 	}
 
