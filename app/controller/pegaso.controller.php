@@ -45,10 +45,10 @@ class pegaso_controller{
 		}
 		//session_unset();
 		session_destroy();		
-		$pagina = $this->load_templateL('Login');
-		$html = $this->load_page('app/views/modules/m.login.php');
-		$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
-		$this->view_page($pagina);		
+		//$pagina = $this->load_templateL('Login');
+		$html = $this->load_page('app/views/modules/m.logoff.php');
+		$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html);
+		$this->view_page($pagina);
 	}
 
 	function LoginConta($user, $pass){
