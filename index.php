@@ -2687,7 +2687,7 @@ else{
 		break;
 	case 'salir':
         $controller->salir();
-        $controller->Login();
+        $controller->login();
         break;
 	case 'loginC':
 		$_SESSION['empresa']=$_GET['empresa'];
@@ -4313,9 +4313,8 @@ else{
 			$controller->detalleGasto($idg);
 			break;
 		default: 
-		        $controller->login();
-		        break;
+			$controller->login();
+			break;
 	}
-
 }
 ?>
