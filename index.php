@@ -2687,7 +2687,7 @@ else{
 		break;
 	case 'salir':
         $controller->salir();
-        //$controller->login();
+        $controller->Login();
         break;
 	case 'loginC':
 		$_SESSION['empresa']=$_GET['empresa'];
