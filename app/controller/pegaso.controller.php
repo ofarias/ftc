@@ -65,7 +65,6 @@ class pegaso_controller{
 		$bd = $conta->traeBD();
 		$data = new pegaso;
 			$rs = $data->AccesoLogin($user, $pass);
-			
 				if(isset($rs) > 0){					
 					$r = $data->CompruebaRol($user, $pass);
 					switch ($r->USER_ROL){
