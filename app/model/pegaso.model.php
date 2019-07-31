@@ -58,7 +58,6 @@ class pegaso extends database{
 		$equipo=php_uname();
 		$p=session_id();
 		$pn=$_SERVER['HTTP_USER_AGENT'];
-		//echo 'Nombre de la session de PHP:'.$pn;
 		$this->query="INSERT INTO FTC_INICIO_LOGS (ID, USR_LOGIN, USR_NOMBRE, USR_EQUIPO, FECHA, STATUS, IP, PHP, navegador)
 							VALUES (null, '$usuario', '$nombre', '$equipo',current_timestamp, 'I','$ip', '$p', '$pn')";
 		$this->grabaBD();
@@ -83,10 +82,11 @@ class pegaso extends database{
 		}
 		if(count($data)>0){
 			$controller_coi = new controller_coi;
+			$autoPoliza=array();
 			foreach($data as $k){
 				$tcont = $_SESSION['empresa']['rfc'] == $k->CLIENTE? 'rfce':'cliente';
 				$tip=$_SESSION['empresa']['rfc'] == $k->CLIENTE? 'Proveedor':'Cliente';
-				$this->query="SELECT xd.*, xpa.cuenta_Contable as pcc, xc.cuenta_Contable as ccc FROM XML_DATA XD LEFT JOIN XML_PARTIDAS XPA ON XPA.UUID = XD.UUID left join xml_clientes xc on xd.$tcont = xc.rfc and xc.tipo = '$tip' where xd.uuid='$k->UUID'";
+				$this->query="SELECT xd.*, xpa.cuenta_Contable as pcc, xc.cuenta_Contable as ccc, xc.nombre as nom_email, xc.rfc as rfc_mail FROM XML_DATA XD LEFT JOIN XML_PARTIDAS XPA ON XPA.UUID = XD.UUID left join xml_clientes xc on xd.$tcont = xc.rfc and xc.tipo = '$tip' where xd.uuid='$k->UUID'";
 				$r=$this->EjecutaQuerySimple();
 					while ($tsA=ibase_fetch_object($r)) {
 						$data2[]=$tsA;
@@ -111,30 +111,28 @@ class pegaso extends database{
 					//exit('Valor de IDE. '.$ide);
 					$res=$controller_coi->creaPoliza($tipo, $uuid, $ide);
 					//exit('Realizar la poliza del uuid '.$k->UUID.' con la respuesta: '.print_r($res));
+					$autoPoliza[] =array('uuid' => $k->UUID,"fecha"=>$k->FECHA, "tipo"=>$tip,"rfc"=>$key->RFC_MAIL, "nombre"=>$key->NOM_EMAIL ,"info"=>$res); 
 				}
 				//exit('No se pudo realizar la poliza del uuid '.$k->UUID);
 				unset($data2);
 			}
 		}
+		//print_r($autoPoliza);
+		if(count($autoPoliza)>0){
+			$controller = new pegaso_controller;
+			$msj = $controller->polizaAutomatica($autoPoliza);
+		}
+		return;
 	}
 
 	function salir(){
-		$php= session_id();
-		$usuario = $_SESSION['user']->USER_LOGIN;
-		$this->query="UPDATE FTC_INICIO_LOGS SET STATUS = 'O', salida = current_timestamp WHERE PHP='$php' and USR_LOGIN='$usuario' and status='I' ";
-		$this->EjecutaQuerySimple();
-		$_SESSION=array();
-        session_unset();
-        session_destroy();
-        if (ini_get("session.use_cookies")) {
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params["path"], $params["domain"],
-                $params["secure"], $params["httponly"]
-            );
-        }
-        //header('Location: index.php?action=login');
-        return;
+		if($_SESSION['bd'] && $_SESSION['bd']!=""){
+			$php= session_id();
+			$usuario = $_SESSION['user']->USER_LOGIN;
+			$this->query="UPDATE FTC_INICIO_LOGS SET STATUS = 'O', salida = current_timestamp WHERE PHP='$php' and USR_LOGIN='$usuario' and status='I' ";
+			$this->EjecutaQuerySimple();
+		}        
+        	return;
 	}
 
 	function cambioSenia($nuevaSenia, $actual, $usuario){
@@ -632,7 +630,7 @@ class pegaso extends database{
 	function detallePago($documento){
 		$data=array();	
 		if(substr($documento, 0,1) != 'O'){
-				$this->query=" SELECT s.idsol as cve_doc, p.nombre, s.monto as importe, s.fechaelab, s.fecha as fecha_doc, 'Contrarecibos' as Recepcion, 'NA' as enlazado, s.tipo as TipoPagoR, 'NA' as FER, 'NA' as TE, usuario as Confirmado, s.tipo as PagoTesoreria, 'NA' as pago_tes
+				$this->query=" SELECT s.idsol as cve_doc, p.nombre, s.monto as importe, s.fechaelab, s.fecha as fecha_doc, 'Contrarecibos' as Recepcion, 'NA' as enlazado, s.tipo as TipoPagoR, 'NA' as FER, 'NA' as TE, usuario as Confirmado, s.tipo as PagoTesoreria, 'NA' as pago_tes, s.proveedor as cve_clpv
 								from SOLICITUD_PAGO s
 								left join prov01 p on s.proveedor = p.clave
 								where idsol = $documento";
@@ -23676,7 +23674,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	}
     	foreach($data as $pd){
     		$rfce = $pd->RFCE; /// Cuando el rfc emisor es de la empresa que se trabaja es una venta
-    		$rfcr = $pd->RFCR; /// Cuando el rfc receptor es de la empresa que se trabaja es una compra 
+    		$rfcr = $pd->RFCR; /// Cuando el rfc receptor es de la empresa que se trabaja es una compra 		
     		$this->query="SELECT MAX(CUENTA_CONTABLE) as CUENTA_CONTABLE from xml_partidas where rfc = '$rfcr' and CLAVE_SAT = '$pd->CLAVE_SAT' and UNIDAD_SAT = '$pd->UNIDAD_SAT'";
     		$r=$this->EjecutaQuerySimple();
     		//print '<br/>'.$this->query.'<br/>';
@@ -23748,17 +23746,16 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					  $MetodoPago = $cfdiComprobante['MetodoPago'];
 				  }
 			}
-            /*foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Nomina//nomina:Percepciones//nomina:Percepcion') as $Percepcion){
-               $nombreper = $Percepcion['TipoPercepcion'];
-               //$nombre = $Receptor['nombre'];
-            }*/
-            //$this->query="DELETE FROM XML_DATA_FILES WHERE nombre = '$archivo'";
-            //$this->EjecutaQuerySimple();
+			
+            if($tipo == 'P'){
+            	$serieComp = $serie; 
+            	$folioComp = $folio;
+
+            }
+
             if(($tipo == 'I' or $tipo == 'E' or $tipo == 'ingreso' or $tipo == 'egreso' or $tipo== 'P') and $serie != 'NOMINA'){
             			$this->query="UPDATE XML_DATA_FILES SET TIPO = '$tipo' WHERE NOMBRE='$archivo'";
             			$this->EjecutaQuerySimple();
-
-
 
 			        	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
 			            	if($version == '3.2'){
@@ -24086,7 +24083,12 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
                             		//echo '<br/> El Direcotirio no existe y se debe de crear<br/>';
                             		mkdir($path,0777, true);
                             	}
+                            	if($tipo=='P'){
+                                   copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serieComp).utf8_encode($folioComp).'-'.$uuid.".xml");
+                            	}else{	
                                    copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serie).utf8_encode($folio).'-'.$uuid.".xml");
+                            	}
+                            	
                             }
 
                             /// Insertamos en la tabla de CFIDsss
@@ -24248,6 +24250,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	        						$this->grabaBD();
     	        					}
     	        				}
+	            			}
+
+	            			if($tipo == 'P'){
+	            				$this->query="UPDATE XML_DATA SET SERIE='$serieComp', folio='$folioComp', documento= '$serieComp'||'$folioComp' where uuid='$uuid'";
+	            				$this->queryActualiza();
 	            			}
 	
 			            	$this->calcularImpuestos($uuid);
@@ -24676,6 +24683,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$rfc = $cliente[3];
     	$rfcr = $cliente[0];
     	$uuid = $cliente[2];
+
     	if($ide == 'Emitidos'){
 			$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfcr' and tipo = 'Cliente'";
 	    	$this->queryActualiza();
@@ -24697,7 +24705,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$cve_sat = $key[1];
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
-	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and (select rfce from xml_data where uuid = '$uuid') = '$rfc' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat' and PARTIDA = $par";
+	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and (select rfce from xml_data where uuid = '$uuid') = '$rfc' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat' and (cuenta_Contable is null or cuenta_Contable = '') --and PARTIDA = $par";
 	    		$this->queryActualiza();
 	      	}	
     	}

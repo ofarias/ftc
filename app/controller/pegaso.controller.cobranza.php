@@ -1144,7 +1144,7 @@ class pegaso_controller_cobranza{
         $_SESSION['info']=$response;
         $_SESSION['exec'] = $exec;    //// guardamos los datos en la variable goblar $_SESSION.
         $_SESSION['mensaje']=$mensaje;
-        $_SESSION['titulo'] = 'Envio de Documentos Cuenta por Cobrar FERRETERA PEGASO SA DE CV';   //// guardamos los datos en la variable global $_SESSION
+        $_SESSION['titulo'] = 'Envio de Documentos Cuenta por Cobrar';   //// guardamos los datos en la variable global $_SESSION
         include 'app/mailer/send.enviaRutaCobranza.php';   ///  se incluye la classe Contrarecibo     
     }
 

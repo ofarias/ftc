@@ -1887,11 +1887,11 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
                 //$this->query="UPDATE CAJAS SET STATUS_LOG = 'NC', status_recepcion = iif(status_recepcion >=5, status_recepcion, 5) WHERE ID = $idc";
                 //        $res=$this->queryActualiza();
                 $this->query="EXECUTE PROCEDURE SP_LIB_X_NC ($idc)";
-                $res=$this->queryActualiza();
+                $res=$this->EjecutaQuerySimple();
                 if($res == 1){
                     return array("status"=>'ok');
                 }else{
-                    return array("status"=>'no');
+                    return array("status"=>'ok');
                 }            
         }else{
             return array("status"=>'no', "mensaje"=>'El Saldo de la Factura'.$row->FACTURA.' asociada a la caja '.$idc.', es de $ '.number_format($sf,2).' la cual es menor a $ 5.00 pesos' );
@@ -1933,7 +1933,6 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
             return array("status"=>'no',"mensaje"=>'No se pudo procesar, se realizo un ticket para su revision, no existe la nota de credito '.$row->DOCUMENTO);
         }
     }
-
 
     function verPartidas($idc){
         $data=array();
@@ -1994,35 +1993,125 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
     }
 
     function cargaSae($doc, $folio, $serie, $uuid, $ruta, $rfcr, $tipo){
-        /*$this->query="SELECT 'F' as tipo_doc, documento as cve_doc,  '3.3' as version, uuid,
-                        NOCERTIFICADOSAT AS NO_SERIE,
-                        FECHATIMBRADO  AS FECHA_CERT,
-                        'N' DESGLOCEIMP1,
-                        'N' DESGLOCEIMP2,
-                        'N' DESGLOCEIMP3,
-                        'S' AS DESGLOCEIMP4
-                    FROM xml_data WHERE SERIE = '$serie' AND FOLIO = $folio AND tipo = 'I' --AND fecha >= '29.03.2019'  AND RFCE = 'IMI161007SY7'
-                    ";
-        $res=$this->EjecutaQuerySimple();
-        $row = ibase_fetch_object($res);*/
         $ruta2= "C:\\xampp\\htdocs\\uploads\\xml\\IMI161007SY7\\Emitidos\\".$rfcr."\\IMI161007SY7-".$doc.'-'.$uuid.".xml";
-        //$file = $ruta2;
-        $myFile = fopen("$ruta2", "r") or die("No se ha logrado abrir el archivo ($ruta2)!");
-        $myXMLData = fread($myFile, filesize($ruta2));
-        //$xml = @simplexml_load_string($myXMLData) or die("Error: No se ha logrado crear el objeto XML ($file)");
-        $doc = $serie.'0'.$folio;
-        $this->query="EXECUTE PROCEDURE SP_CARGA_CFDI_SAE($folio,'$serie','$doc', '123', '$tipo')";
-        $this->EjecutaQuerySimple();
-        $this->query = "UPDATE CFDI01 SET XML_DOC = '$myXMLData' WHERE CVE_DOC = '$doc'";
-        $this->EjecutaQuerySimple();
-            $this->query="EXECUTE PROCEDURE  SP_CARGA_FACTURA_SAE($folio,'$serie','$doc', '$tipo')";
+        if($tipo != 'P'){
+            $myFile = fopen("$ruta2", "r") or die("No se ha logrado abrir el archivo ($ruta2)!");
+            $myXMLData = fread($myFile, filesize($ruta2));
+            $doc = $serie.'0'.$folio;
+            $this->query="EXECUTE PROCEDURE SP_CARGA_CFDI_SAE($folio,'$serie','$doc', '123', '$tipo')";
             $this->EjecutaQuerySimple();
-            $this->query="EXECUTE PROCEDURE  SP_CARGA_PARTIDAS_SAE($folio,'$serie', '$doc', '$uuid', '$tipo')";
+            $this->query = "UPDATE CFDI01 SET XML_DOC = '$myXMLData' WHERE CVE_DOC = '$doc'";
             $this->EjecutaQuerySimple();
-            $this->query="EXECUTE PROCEDURE  SP_CARGA_CUENM_SAE ($folio, '$serie', '$doc', '$uuid', '$tipo')";
-            $this->EjecutaQuerySimple();
-        
+                $this->query="EXECUTE PROCEDURE  SP_CARGA_FACTURA_SAE($folio,'$serie','$doc', '$tipo')";
+                $this->EjecutaQuerySimple();
+                $this->query="EXECUTE PROCEDURE  SP_CARGA_PARTIDAS_SAE($folio,'$serie', '$doc', '$uuid', '$tipo')";
+                $this->EjecutaQuerySimple();
+                $this->query="EXECUTE PROCEDURE  SP_CARGA_CUENM_SAE ($folio, '$serie', '$doc', '$uuid', '$tipo')";
+                $this->EjecutaQuerySimple();    
+        }else{
+            $res=$this->cargaCEP($doc, $ruta2, $rfcr, $serie, $folio);
+        }   
         return $mensaje = array('status' => 'ok');
+    }
+
+    function InsertaCEPSAE($nameFile, $cve_clie, $rfc, $serie, $folio, $ven, $file, $fecha){
+        $this->query="INSERT into factg01 (TIP_DOC, CVE_DOC, CVE_CLPV, STATUS, DAT_MOSTR, CVE_VEND, CVE_PEDI, FECHA_DOC, FECHA_ENT, FECHA_VEN, FECHA_CANCELA, CAN_TOT, IMP_TOT1, IMP_TOT2, IMP_TOT3, IMP_TOT4, DES_TOT, DES_FIN, COM_TOT, CONDICION, CVE_OBS, NUM_ALMA, ACT_CXC, ACT_COI, ENLAZADO, TIP_DOC_E, NUM_MONED, TIPCAMB, NUM_PAGOS, FECHAELAB, PRIMERPAGO, RFC, CTLPOL, ESCFD, AUTORIZA, SERIE, FOLIO, AUTOANIO, DAT_ENVIO, CONTADO, CVE_BITA, BLOQ, FORMAENVIO, DES_FIN_PORC, DES_TOT_PORC, IMPORTE, COM_TOT_PORC, METODODEPAGO, NUMCTAPAGO, TIP_DOC_ANT, DOC_ANT, TIP_DOC_SIG, DOC_SIG, UUID, VERSION_SINC, FORMADEPAGOSAT, USO_CFDI)
+            values ('G', '$nameFile', (SELECT FIRST 1 c.CLAVE FROM CLIE01 c WHERE c.rfc = '$rfc' AND c.tipo_empresa = 'M' and c.Matriz = c.clave ), 'E', 0 , (SELECT FIRST 1 c.CVE_VEND FROM CLIE01 c WHERE c.rfc = '$rfc' AND c.tipo_empresa = 'M' and c.Matriz = c.clave ), '', CURRENT_DATE, CURRENT_DATE, CURRENT_DATE, NULL, 0,0,0,0,0,0,0,0,NULL, 0, 1, 'S','N','O','O',1,1,1,current_timestamp, 0, '$rfc', 0, 'T', 0,
+            '$serie', $folio, '', 0, 'N', 0, 'N','A', 0, 0, 0, 0,null, NULL, '', '', null, NULL, '$file', current_timestamp, null,  'P01')";
+            $this->grabaBD();
+
+            $this->query="INSERT into FACTG_CLIB01 (CLAVE_DOC ) VALUES ( '$nameFile')";
+            $this->grabaBD();
+
+            $this->query="INSERT INTO PAR_FACTG01 (CVE_DOC, NUM_PAR, CVE_ART, CANT, PXS, PREC, COST, IMPU1, IMPU2, IMPU3, IMPU4, IMP1APLA, IMP2APLA, IMP3APLA, IMP4APLA, TOTIMP1, TOTIMP2, TOTIMP3, TOTIMP4, DESC1, DESC2, DESC3, COMI, APAR, ACT_INV, NUM_ALM, POLIT_APLI, TIP_CAM, UNI_VENTA, TIPO_PROD, CVE_OBS, REG_SERIE, E_LTPD, TIPO_ELEM, NUM_MOV, TOT_PARTIDA, IMPRIMIR, MAN_IEPS, APL_MAN_IMP, CUOTA_IEPS, APL_MAN_IEPS, MTO_PORC, MTO_CUOTA, CVE_ESQ, DESCR_ART, UUID, VERSION_SINC)
+                         VALUES ('$nameFile', 1, 'SERV-PAGO', 1, 1, 0, 0, 0, 0, 0, 16, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'S', 1, NULL, 1, 'ACT', 'S', 0, 1, 1, 'N', 0, 0, 'S', 'N', 1, 0, 'C', 0, 0, 1, NULL, NULL, current_timestamp)";
+            $this->grabaBD();
+        return;
+        //if(file_exists($file)){
+        //    $xml_doc=fopen($file, "r");
+        //    $r=$this->cargaCEP($folio);
+        //}
+    }
+
+    function cargaCEP($cep, $ruta2, $rfcr, $serie, $folio){
+        $path="C:\\xampp\\htdocs\\uploads\\xml\\IMI161007SY7\\Emitidos\\".$rfcr."\\";
+        $files = array_diff(scandir($path), array('.', '..'));
+        foreach($files as $file){
+            $data = explode(".", $file);
+            $fileName = $data[0];
+            $fileExtension = $data[1];
+            if(strtoupper($fileExtension) == 'XML' and strpos($fileName, 'CEP') !== false){
+                if(strpos($fileName, $cep) !== false){
+                    $file = $path.$fileName.'.'.$fileExtension;
+                    $myFile = fopen($file, "r") or die("No se ha logrado abrir el archivo ($file)!");
+                    $myXMLData = fread($myFile, filesize($file));
+                    $xml = simplexml_load_string($myXMLData) or die("Error: No se ha logrado crear el objeto XML ($file)");
+                    $ns = $xml->getNamespaces(true);
+                    $xml->registerXPathNamespace('c', $ns['cfdi']);
+                    $xml->registerXPathNamespace('t', $ns['tfd']);
+
+                    foreach ($xml->xpath('//t:TimbreFiscalDigital') as $tfd) {
+                           $fechaT = $tfd['FechaTimbrado']; 
+                           $fechaT = str_replace("T", " ", $fechaT); 
+                           $uuid = $tfd['UUID'];
+                           $noNoCertificadoSAT = $tfd['NoCertificadoSAT'];
+                           $RfcProvCertif=$tfd['RfcProvCertif'];
+                           $SelloCFD=$tfd['SelloCFD'];
+                           $SelloSAT=$tfd['SelloSAT'];
+                           $versionT = $tfd['Version'];
+                           $rfcprov = $tfd['RfcProvCertif'];
+                    }
+                    foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
+                        $version = $cfdiComprobante['version'];
+                        if($version == ''){
+                            $version = $cfdiComprobante['Version'];
+                        }
+                        if($version == '3.2'){
+                        }elseif($version == '3.3'){
+                            $serie = $cfdiComprobante['Serie'];                  
+                            $folio = $cfdiComprobante['Folio'];
+                            $total = $cfdiComprobante['Total'];
+                            $tipo = $cfdiComprobante['TipoDeComprobante'];
+                            $moneda = $cfdiComprobante['Moneda'];
+                            $lugar = $cfdiComprobante['LugarExpedicion'];
+                            $Certificado = $cfdiComprobante['Certificado'];
+                            $Sello = $cfdiComprobante['Sello'];
+                            $noCert = $cfdiComprobante['NoCertificado'];
+                            $fecha = $cfdiComprobante['Fecha'];
+                            $fecha = str_replace("T", " ", $fecha);
+                            $subtotal = $cfdiComprobante['SubTotal'];
+                        }
+                    }
+                    foreach ($xml->xpath('//cfdi:Emisor') as $emi){
+                        if($version == '3.2'){
+                        }elseif($version == '3.3'){
+                            $rfce=$emi['Rfc'];
+                            $emisor=$emi['Nombre'];
+                            $rf = $emi['RegimenFiscal'];
+                        }
+                    }
+                    foreach ($xml->xpath('//cfdi:Receptor') as $rec){
+                        if($version == '3.2'){
+                        }elseif($version == '3.3'){
+                            $rfcr=$rec['Rfc'];
+                            $recep=$rec['Nombre'];
+                            $UsoCFDI = $rec['UsoCFDI'];
+                        }
+                    }
+                    if($tipo == 'P'){
+                        $doc = $serie.str_pad($folio,6,"0", STR_PAD_LEFT);
+                            $this->query="INSERT INTO CFDI01 (TIPO_DOC, CVE_DOC, VERSION, UUID, NO_SERIE, FECHA_CERT, FECHA_CANCELA, XML_DOC, DESGLOCEIMP1, DESGLOCEIMP2, DESGLOCEIMP3, DESGLOCEIMP4, MSJ_CANC, PENDIENTE)
+                            VALUES ('G', '$doc', '1.1', '$uuid', '$noNoCertificadoSAT', '$fecha', '', '$myXMLData','S', 'N', 'N', 'S', NULL, 'N')";
+                            $this->grabaBD();
+                            $this->InsertaCEPSAE($doc, $cve_clie = null, $rfcr, $serie, $folio, $ven=null,$file= $uuid, $fecha= null);
+                    }
+
+                }else{
+                }
+            }
+        }
+        return array("status"=>'ok', "mensaje"=>'Se inserto el documento');
+        //return array("status"=>'no',"mensaje"=>'No se encontro el Archivo', "archivo"=>'no');
     }
 
 }?>

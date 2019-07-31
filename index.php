@@ -10,12 +10,11 @@ $controller_cxc = new pegaso_controller_cobranza;
 $controller_v = new pegaso_controller_ventas;
 $controllerxml = new xml;
 if(isset($_GET['action'])){
-	$action = $_GET['action'];
+	$action=$_GET['action'];
 }else{
-	$action = '';
+	$action='';
 }
-//exit(print_r($_POST));
-//print_r($_POST);
+
 if (isset($_POST['usuario'])){
 	$controller->InsertaUsuarioN($_POST['usuario'], $_POST['contrasena'], $_POST['email'], $_POST['rol'], $_POST['letra'], $_POST['nombre'], $_POST['numletras'], $_POST['paterno'],$_POST['materno']);	
 }elseif (isset($_POST['cambioSenia'])){
@@ -2678,7 +2677,7 @@ exit();
 	exit();
 }
 else{
-	switch ($_GET['action']){
+	switch ($action){
 	//case 'inicio':
 	//	$controller->Login();
 	//	break;
@@ -2687,7 +2686,7 @@ else{
 		break;
 	case 'salir':
         $controller->salir();
-        header('Location: index.php?action=login');
+        //$controller->login();
         break;
 	case 'loginC':
 		$_SESSION['empresa']=$_GET['empresa'];
@@ -4313,9 +4312,8 @@ else{
 			$controller->detalleGasto($idg);
 			break;
 		default: 
-		        $controller->login();
-		        break;
+			$controller->login();
+			break;
 	}
-
 }
 ?>

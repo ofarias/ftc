@@ -35,20 +35,17 @@ class pegaso_controller{
 	function salir(){
 		$data= new pegaso;
 		$salir=$data->salir();
-		$CookieInfo = session_get_cookie_params();
-		if ( (empty($CookieInfo['domain'])) && (empty($CookieInfo['secure'])) ) {
-			setcookie(session_name(), '', time()-3600, $CookieInfo['path']);
-		} elseif (empty($CookieInfo['secure'])) {
-			setcookie(session_name(), '', time()-3600, $CookieInfo['path'], $CookieInfo['domain']);
-		} else {
-			setcookie(session_name(), '', time()-3600, $CookieInfo['path'], $CookieInfo['domain'], $CookieInfo['secure']);
+		session_unset();
+        	session_destroy();
+        	if (ini_get("session.use_cookies")) {
+            		$params = session_get_cookie_params();
+            		setcookie(session_name(), '', time() - 42000,
+                		$params["path"], $params["domain"],
+                		$params["secure"], $params["httponly"]
+            		);
 		}
-		//session_unset();
-		session_destroy();		
-		$pagina = $this->load_templateL('Login');
-		$html = $this->load_page('app/views/modules/m.logoff.php');
-		$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
-		$this->view_page($pagina);
+		$this->Login();
+		return;
 	}
 
 	function LoginConta($user, $pass){
@@ -78,6 +75,7 @@ class pegaso_controller{
 		$bd = $conta->traeBD();
 		$data = new pegaso;
 			$rs = $data->AccesoLogin($user, $pass);
+			
 				if(isset($rs) > 0){					
 					$r = $data->CompruebaRol($user, $pass);
 					switch ($r->USER_ROL){
@@ -20599,18 +20597,6 @@ function ImprimeFacturaPegaso($factura, $destino){
 			$res=$data->canapl($idp, $ida, $valor, $uuid);
 			return $res;
 		}
-	}
-
-	function polizaAutomatica($polizaAuto){
-		$_SESSION['info']=$polizaAuto;
-		$_SESSION['titulo']='Envio de Reporte de Polizas Automaticas';   //// guardamos los datos en la variable global $_SESSION
-        include 'app/mailer/envioRepPolAuto.php';   ///  se incluye la classe Contrarecibo     
-        if($mensaje == ''){
-            
-        }else{
-            echo '<script> alert("Se ha enviado el correo favor de confirmar con el remitente..."); window.close();</script>';
-        }
-        return;
 	}
 }?>
 
