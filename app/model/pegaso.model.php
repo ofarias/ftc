@@ -70,6 +70,7 @@ class pegaso extends database{
 	function revisaParametros($uuid){
 		$data=array();
 		$data2=array();
+		$autoPoliza=array();
 		$fi = $_SESSION['empresa']['fecha_inicio'];
 		if(!empty($uuid)){
 			$this->query="SELECT * FROM XML_DATA XD LEFT JOIN XML_POLIZAS XP ON XP.UUID = XD.UUID WHERE XD.UUID = '$uuid'";
@@ -82,7 +83,6 @@ class pegaso extends database{
 		}
 		if(count($data)>0){
 			$controller_coi = new controller_coi;
-			$autoPoliza=array();
 			foreach($data as $k){
 				$tcont = $_SESSION['empresa']['rfc'] == $k->CLIENTE? 'rfce':'cliente';
 				$tip=$_SESSION['empresa']['rfc'] == $k->CLIENTE? 'Proveedor':'Cliente';
