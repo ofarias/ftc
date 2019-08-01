@@ -242,11 +242,23 @@ class controller_coi{
 		}
 	}
 
-	function borraCuenta($idImp){
+	function borraCuenta($idImp, $opcion){
 		if($_SESSION['user']){
 			$data = new CoiDAO;
-			$res=$data->borraCuenta($idImp);
+			$res=$data->borraCuenta($idImp, $opcion);
 			return $res;
+		}
+	}
+
+	function grabaImp($imp, $cccoi, $tipo , $tasa, $uso, $nombre, $factor, $aplica, $status){
+		if($_SESSION['user']){
+			$data= new CoiDAO;
+			$res=$data->grabaImp($imp, $cccoi, $tipo , $tasa, $uso, $nombre, $factor, $aplica, $status);
+			$redireccionar = 'cuentasImp';			
+			$html = $this->load_page('app/views/pages/Contabilidad/p.redirectform.php');
+				ob_start();
+				include 'app/views/pages/Contabilidad/p.redirectform.php';
+			return ;
 		}
 	}
 

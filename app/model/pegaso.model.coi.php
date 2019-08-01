@@ -1627,10 +1627,47 @@ class CoiDAO extends DataBaseCOI {
         return $data;
     }
 
-    function borraCuenta($idImp){
-        $this->query="UPDATE FTC_PARAM_COI SET CUENTA_CONTABLE = '', cuenta_coi = '' WHERE ID = $idImp";
+    function borraCuenta($idImp, $opcion){
+        if($opcion == 'Eliminar'){
+            $this->query="UPDATE FTC_PARAM_COI SET CUENTA_CONTABLE = '', cuenta_coi = '' WHERE ID = $idImp";
+        }else{
+            $opcion=$opcion=='Activar'? 1:0;
+            $this->query="UPDATE FTC_PARAM_COI SET status = $opcion WHERE ID = $idImp";
+        }
         $this->EjecutaQuerySimple();
         return array("status"=>'ok');
+    }
+
+    function grabaImp($imp, $cccoi, $tipo , $tasa, $uso, $nombre, $factor, $aplica, $status){
+        $status = $status=='Activo'? 1:0;
+        $cuenta = array();
+        $cc = '';
+        $coi = '';
+        if(strlen($cccoi) > 0 ){
+            $cuenta = explode(":", $cccoi);
+            @$coi = $cuenta[0];
+            @$cc = $cuenta[7];
+            if(count($cuenta)<8){
+            echo '<script type="text/javascript">alert("No se encontro la cuenta -->'.$cccoi.'<-- en el Catalogo de cuentas, favor de seleccionarla correctamente")</script>';
+            return;
+            }
+        }
+        //echo '<br/>Status: '.$status;
+        //echo '<br/> Factor: '.$factor;
+        //echo '<br/> Tasa valor'.(float)$tasa;
+        if((float)$tasa and (float)$tasa < 1 and $factor=='Tasa'){
+            $tasa = (float)$tasa;
+            $this->query = "INSERT INTO FTC_PARAM_COI (ID, IMPUESTO, CUENTA_CONTABLE, TIPO, TASA, STATUS, NOMBRE, POLIZA, FACTOR, CUENTA_COI, NAT, TIPO_XML) VALUES (NULL, '$imp', '$cc', '$tipo', $tasa, $status, '$nombre', '$uso', '$factor', '$coi', (SELECT NATURALEZA FROM CUENTAS19 WHERE NUM_CTA = '$cc'), '$aplica')";
+            if(@$res=$this->grabaBD()){
+                echo '<script type="text/javascript">alert("Se ha insertado correctamente el impuesto")</script>';
+            }else{
+                echo '<script type="text/javascript">alert("Lo sentimos al parecer ya existe un impuesto con esa informacion, favor de verificarla")</script>';
+            }
+            return;
+        }else{
+            echo '<script type="text/javascript">alert("El valor del Factor debe de ser menor a 1 cuando el fator es tasa ya que significaria que es el 100%")</script>';
+        }
+        
     }
 }      
 ?>
