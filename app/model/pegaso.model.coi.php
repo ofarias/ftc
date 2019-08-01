@@ -1129,7 +1129,6 @@ class CoiDAO extends DataBaseCOI {
 
     function creaPoliza($tipo, $uuid, $cabecera, $detalle, $impuestos){
         /// Obtenemos la fecha del documento
-
         $usuario=$_SESSION['user']->USER_LOGIN;
         foreach($cabecera as $cb){
             $periodo=$cb->PERIODO;
@@ -1215,18 +1214,18 @@ class CoiDAO extends DataBaseCOI {
                         $cuenta = '';
                         $parImp = $partida + 1;
                         if($tf=='Retencion'){
-                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status = 1 and factor = '$factor' and tipo = '$tf' and poliza ='$tipo' and tipo_xml = '$tipoXML'";
+                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status= 1 and factor = '$factor' and tipo = '$tf' and poliza ='$tipo' and round(tasa,3) = $tasa and tipo_xml = '$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
                         }else{
-                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status = 1 and factor = '$factor'and tipo = '$tf' and poliza ='$tipo' and tasa=$tasa and tipo_xml = '$tipoXML'";
+                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status= 1 and factor = '$factor'and tipo = '$tf' and poliza ='$tipo' and round(tasa,3) = $tasa and tipo_xml = '$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
                         }
                         //echo 'Busqueda de la cuenta de impuestos: '.$this->query;
                         $res=$this->EjecutaQuerySimple();
-                        $rowImp = ibase_fetch_object($res);
+                        $rowImp=ibase_fetch_object($res);
                         if(!empty($rowImp)){
+                            //echo 'Encontro impuesto'.$par;
                             $cuenta = $rowImp->CUENTA_CONTABLE;
                             $nom_1 = $rowImp->NOMBRE; 
                             $nat1= $rowImp->NAT==1? 'H':$nat1;
-
                                 $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
                                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                                 values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
@@ -1234,7 +1233,7 @@ class CoiDAO extends DataBaseCOI {
                                 $this->EjecutaQuerySimple();   
                                 $partida++;
                         }else{
-                        //    echo 'La definicion del impueso no existe: '.$this->query;
+                            //echo 'La definicion del impueso no existe: '.$this->query;
                             $cuenta=$aux->CUENTA_CONTABLE;
                             $nom_1=$aux->DESCRIPCION;
                             $cuenta = $aux->CUENTA_CONTABLE;
@@ -1360,7 +1359,7 @@ class CoiDAO extends DataBaseCOI {
             if(count($impuestos2) > 0 ){
             /// 2.- Busca los parametros en la table de los parametros de impuestos FTC_param_coi
                 foreach ($impuestos2 as $impt) {
-                    $this->query="SELECT * FROM FTC_PARAM_COI WHERE IMPUESTO = '$impt->IMPUESTO' AND TASA = $impt->TASA AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = '$subTipo' and tipo_xml='$tipoXML'";
+                    $this->query="SELECT * FROM FTC_PARAM_COI WHERE status = 1 and IMPUESTO = '$impt->IMPUESTO' AND round(TASA,3) = $impt->TASA AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = '$subTipo' and tipo_xml='$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null) ";
                     $rs=$this->EjecutaQuerySimple();
                     //echo $this->query;
                     $rimp = ibase_fetch_object($rs);
@@ -1374,7 +1373,7 @@ class CoiDAO extends DataBaseCOI {
                         $this->grabaBD();
 
                         /// Buscamos la cuenta de Dr para la contrapartida.
-                        $this->query="SELECT * FROM FTC_PARAM_COI WHERE IMPUESTO = '$impt->IMPUESTO' AND TASA = $impt->TASA AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = 'Dr' and tipo_xml='$tipoXML'";
+                        $this->query="SELECT * FROM FTC_PARAM_COI WHERE status = 1 and IMPUESTO = '$impt->IMPUESTO' AND round(TASA,3) = $impt->TASA AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = 'Dr' and tipo_xml='$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
                         $rs=$this->EjecutaQuerySimple();
                         $rimpCP = ibase_fetch_object($rs);
 

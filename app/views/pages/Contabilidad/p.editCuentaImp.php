@@ -105,8 +105,8 @@
                     </td>
                     <td>
                         <select name="status" id="status">
-                            <option value="activo">Activo</option>
-                            <option value="inactivo">Inactivo</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
                         </select>
                     </td>
                     <td title="Nombre para identificar el impuesto, Ejemplo IVA por cobrar del 16%">
