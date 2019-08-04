@@ -210,7 +210,55 @@ class controller_coi{
 		if($_SESSION['user']){
 			$data= new CoiDAO;
 			$res=$data->sadPol($uuid, $tipo);
+			if($res['status']=='ok'){
+				$data_p= new pegaso;
+				$actUUID=$data_p->actualizaUUID($res);
+			}
 			return $res;
+		}
+	}
+
+	function contabiliza($tipo , $idp){
+		if($_SESSION['user']){
+			$data= new pegaso;
+			$data_coi = new CoiDAO;
+			$cabecera = $data->detalleGasto($idp);
+			$detalle = $data->aplicacionesGasto($idp, $t='c');
+			$impuestos2=$data->impuestosPolizaFinal($uuid=$detalle['uuid']);
+			$crear = $data_coi->creaPolizaGasto($cabecera , $detalle=$detalle['datos'], $tipo, $impuestos2);
+			exit();
+		}
+	}
+
+	function consolidaPolizas($mes, $anio, $ide, $doc){
+		if($_SESSION['user']){
+			$data= new pegaso;
+			$datacoi = new CoiDAO;
+			$polizas=$datacoi->traePolizas($mes, $anio, $ide);
+			$consolida = $data->consolidaPolizas($mes, $anio, $ide, $polizas);
+			// Obtenermos la informacion de las polizas por fecha de la tabla de xml_polizas basados en la fecha y tipo
+			//$this->query="SELECT * FROM XML_POLIZAS WHERE PERIODO = $mes and EJERCICIO = $anio and status = 'A'";
+			return $consolida;
+		}
+	}
+
+	function borraCuenta($idImp, $opcion){
+		if($_SESSION['user']){
+			$data = new CoiDAO;
+			$res=$data->borraCuenta($idImp, $opcion);
+			return $res;
+		}
+	}
+
+	function grabaImp($imp, $cccoi, $tipo , $tasa, $uso, $nombre, $factor, $aplica, $status){
+		if($_SESSION['user']){
+			$data= new CoiDAO;
+			$res=$data->grabaImp($imp, $cccoi, $tipo , $tasa, $uso, $nombre, $factor, $aplica, $status);
+			$redireccionar = 'cuentasImp';			
+			$html = $this->load_page('app/views/pages/Contabilidad/p.redirectform.php');
+				ob_start();
+				include 'app/views/pages/Contabilidad/p.redirectform.php';
+			return ;
 		}
 	}
 

@@ -123,4 +123,6 @@ class cargaXML extends database {
 		}
 		fclose($fp);
 	}
+
+	
 }

@@ -8,7 +8,10 @@
                         <p><?php echo 'RFC seleccionado: '.$_SESSION['rfc']?></p>
                         <p><?php echo 'Empresa Seleccionada: <b>'.$_SESSION['empresa']['nombre']."</b>"?></p>  
                         <p><?php echo 'Se muestran los XML '.$ide." del mes ".$mes." del ".$anio?></p>
-                        <p>Ver impuestos &nbsp;&nbsp;Si: <input type="radio" name="verImp" id="verImp" class="imp" value="si"> &nbsp;&nbsp;No: <input type="radio" name="verImp" id="NoverImp" class="imp" value="no"></p>
+                        <p>Ver impuestos &nbsp;&nbsp;Si: <input type="radio" name="verImp" id="verImp" class="imp" value="si"> &nbsp;&nbsp;No: <input type="radio" name="verImp" id="NoverImp" class="imp" value="no">&nbsp;&nbsp;&nbsp;&nbsp; <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descargar a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','x')"></font></a>
+                            <font color="black"><input type="button" value="Consolidar Polizas" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'c')"></font>
+                            <font color="red"><input type="button"  value="Revision Contabilizacion" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'z')"></font>
+                        </p>
                     </div>
                         </div>
                         <div class="panel-body">
@@ -100,12 +103,14 @@
                                             <td class="impDet"><?php echo '$ '.number_format($key->IEPS_RET,2);?></td>
                                             <td class="impDet"><?php echo '$ '.number_format($key->ISR_RET,2);?></td>
                                             <td><?php echo '$ '.number_format($key->DESCUENTO,2);?></td>
-                                            <td><?php echo '$ '.number_format($key->IMPORTE,2);?> </td>
+                                            <td><?php echo '$ '.number_format($key->IMPORTEXML,2);?> </td>
                                             <td><?php echo '<b>'.$key->MONEDA.'<b/>';?> </td>
                                             <td><?php echo '$ '.number_format($key->TIPOCAMBIO,2);?> </td>
                                             <td>
                                                 <a href="index.php?action=verXML&uuid=<?php echo $key->UUID?>&ide=<?php echo $ide?>" class="btn btn-info" target="popup" onclick="marcar(<?php echo $ln?>, 'c'); window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar </a>
                                                 <center><input type="checkbox" name="revision" id="<?php echo $ln?>" value="<?php echo $ln?>" color="<?php echo $color2?>" onclick="marcar(this.value, 'cb')" ></center>
+                                                <br/>
+                                                
                                             </td>
                                             <form action="index.php" method="POST">
                                                     <input type="hidden" name="factura" value="<?php echo $key->SERIE.$key->FOLIO?>">
@@ -114,6 +119,7 @@
                                                         <a href="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->RFCE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" 
                                                         download="<?php echo $key->RFCE.'-'.substr($key->FECHA, 0, 10).'-'.number_format($key->IMPORTE,2).'-'.$key->UUID.'.xml'?>">  
                                                         <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>
+
                                                     <?php }else{?>
                                                         <a href="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->CLIENTE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" 
                                                             download="<?php echo $key->RFCE.'-'.substr($key->FECHA, 0, 10).'-'.number_format($key->IMPORTE,2).'-'.$key->UUID.'.xml'?>">  
@@ -121,6 +127,7 @@
                                                     <?php }?>
                                                     &nbsp;&nbsp;
                                                     <a href="index.php?action=imprimeUUID&uuid=<?php echo $key->UUID?>" onclick="alert('Se ha descargar tu factura, revisa en tu directorio de descargas')"><img border='0' src='app/views/images/pdf.jpg' width='25' height='30'></a>
+                                                    <input type="button" value="" class="btn-sm btn-info cargaSAE" doc="<?php echo $key->SERIE.$key->FOLIO?>" ruta="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->CLIENTE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" serie="<?php echo $key->SERIE?>" folio ="<?php echo $key->FOLIO?>" uuid="<?php echo $key->UUID?>" rfcr="<?php echo $key->CLIENTE?>" ln="<?php echo $ln?>" tipo="<?php echo $doc?>">
                                                 </td>
                                             </form>
                                         </tr>
@@ -133,7 +140,6 @@
             </div>
         </div>
 </div>
-
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
@@ -142,7 +148,30 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
-     function marcar(ln, t){
+    function excel(mes, anio, ide, doc, t){
+       $.ajax({
+            url:'index.xml.php',
+            type:'post',
+            dataType:'json',
+            data:{xmlExcel:1, mes, anio, ide, doc, t},
+            success:function(data){
+                if(data.status=='ok'){
+                    window.open("/edoCtaXLS/"+data.archivo, 'download' );
+                    //document.getElementById("descarga").innerHTML='<a href="/edoCtaXLS/Documentos 24.xlsx" download>Descargar</a>'
+                }
+                if(data.status == 'C' && data.mensaje == 'a'){
+                    alert('Las polizas coinciden con COI')
+                }else if(data.status == 'C' && data.mensaje != 'a'){
+                    alert(data.mensaje + ' favor de actualizar la pantalla')
+                }
+            }, 
+            error:function(){
+                window.open("/edoCtaXLS/"+data.archivo, 'download' );
+            }
+        })     
+    }
+
+    function marcar(ln, t){
         var renglon = document.getElementById("ln_"+ln)
         var chek = document.getElementById(ln)
         var color = chek.getAttribute("color")
@@ -162,6 +191,31 @@
         }else{
             $(".impDet").show()
         }
+    })
+
+    $(".cargaSAE").click(function(){
+        var doc = $(this).attr('doc')
+        var serie = $(this).attr('serie')
+        var folio = $(this).attr('folio')
+        var uuid = $(this).attr('uuid')
+        var ruta = $(this).attr('ruta')
+        var rfcr = $(this).attr('rfcr')
+        var ln = $(this).attr('ln')
+        var tipo = $(this).attr('tipo')
+        $.ajax({
+            url:'index.v.php',
+            type:'post',
+            dataType:'json',
+            data:{cargaSae:1, doc, serie, folio, uuid, ruta, rfcr, tipo},
+            success:function(data){
+                if(data.status == 'ok'){
+                   marcar(ln, 'c')
+                }
+            },
+            error:function(){
+                alert('No se inserto :(')
+            }
+        })
     })
 
 

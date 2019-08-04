@@ -1,5 +1,4 @@
 <?php
-
 require_once 'app/model/database.php';
 
 class pegasoCobranza extends database {
@@ -116,159 +115,158 @@ class pegasoCobranza extends database {
     }
 
      function traeDatacliente($cliente){
-            $this->query= "SELECT c.nombre, rfc, telefono, fax, emailpred,clave,lista_prec,v.nombre as vendedor,descuento, (iif(calle is null, '', calle ||', ')|| iif(numext is null, '',numext|| ', ') || iif(numint is null, '',numint||', ')|| iif(municipio is null, '', municipio||', ')|| iif(estado is null, '', estado||', ')||iif(pais is null, '',pais||', ')||iif(codigo is null, '', codigo) ) as direccion, c.diascred, 
-            	c.banco_deposito, c.banco_origen, c.refer_edo, c.metodo_pago
-            	 FROM clie01 c left join vend01 v on c.cve_vend = v.cve_vend WHERE trim(c.clave) =trim('$cliente')";
-                    //echo $this->query;
-            $resultado = $this->QueryObtieneDatosN();
-            while($tsArray = ibase_fetch_object($resultado)){
-                $data[] = $tsArray;
-            }
-            //var_dump($this->query);
-            return $data;
+        $this->query= "SELECT c.nombre, rfc, telefono, fax, emailpred,clave,lista_prec,v.nombre as vendedor,descuento, (iif(calle is null, '', calle ||', ')|| iif(numext is null, '',numext|| ', ') || iif(numint is null, '',numint||', ')|| iif(municipio is null, '', municipio||', ')|| iif(estado is null, '', estado||', ')||iif(pais is null, '',pais||', ')||iif(codigo is null, '', codigo) ) as direccion, c.diascred, 
+            c.banco_deposito, c.banco_origen, c.refer_edo, c.metodo_pago
+                FROM clie01 c left join vend01 v on c.cve_vend = v.cve_vend WHERE trim(c.clave) =trim('$cliente')";
+                //echo $this->query;
+        $resultado = $this->QueryObtieneDatosN();
+        while($tsArray = ibase_fetch_object($resultado)){
+            $data[] = $tsArray;
+        }
+        //var_dump($this->query);
+        return $data;
     }
 
     function SaldosDelCliente($cliente){
-            $this->query="SELECT ca.linea_cred,
-            					 ca.plazo,
-            					 c.limcred as linea_cred,
-                                (select sum((p.cant_orig - p.empacado) * p.costo) from preoc01 p where clien = c.clave and (P.status = 'B' or p.status ='D' or p.status = 'X' or p.status = 'N') and fechasol > '01.10.2017') as comprometido,
-                                (select sum (saldofinal) from facturas where cve_clpv = c.clave and vencimiento is null and saldofinal > 10) as comprometido2,
-                                (select sum (saldofinal) from facturas where cve_clpv = c.clave and vencimiento < 0 and vencimiento is not null and saldofinal > 10) as Cobranza,
-                                (select sum(saldofinal) from facturas where cve_clpv = c.clave and vencimiento > 0 and vencimiento < 29 and saldofinal > 10) as vencido,
-                                (select sum(saldofinal) from facturas where cve_clpv = c.clave and vencimiento >= 29 and saldofinal > 10) as extraJudicial
-                          FROM clie01 c 
-                          left JOIN cartera ca on ca.idcliente = c.clave 
-                          where trim(c.clave) = trim('$cliente')";
-            //echo $this->query;
-            $resultado = $this->QueryObtieneDatosN();
-            while($tsArray = ibase_fetch_object($resultado)){
-                $data[] = $tsArray;
-            }
-            return $data;
+        $this->query="SELECT ca.linea_cred,
+                                ca.plazo,
+                                c.limcred as linea_cred,
+                            (select sum((p.cant_orig - p.empacado) * p.costo) from preoc01 p where clien = c.clave and (P.status = 'B' or p.status ='D' or p.status = 'X' or p.status = 'N') and fechasol > '01.10.2017') as comprometido,
+                            (select sum (saldofinal) from facturas where cve_clpv = c.clave and vencimiento is null and saldofinal > 10) as comprometido2,
+                            (select sum (saldofinal) from facturas where cve_clpv = c.clave and vencimiento < 0 and vencimiento is not null and saldofinal > 10) as Cobranza,
+                            (select sum(saldofinal) from facturas where cve_clpv = c.clave and vencimiento > 0 and vencimiento < 29 and saldofinal > 10) as vencido,
+                            (select sum(saldofinal) from facturas where cve_clpv = c.clave and vencimiento >= 29 and saldofinal > 10) as extraJudicial
+                        FROM clie01 c 
+                        left JOIN cartera ca on ca.idcliente = c.clave 
+                        where trim(c.clave) = trim('$cliente')";
+        //echo $this->query;
+        $resultado = $this->QueryObtieneDatosN();
+        while($tsArray = ibase_fetch_object($resultado)){
+            $data[] = $tsArray;
+        }
+        return $data;
     }
 
 
     function saldoVencidoCliente($cliente){
-        	$this->query="SELECT SUM(SALDOFINAL) as saldovencido from factf01 WHERE trim(cve_clpv) = trim($cliente)";
-        	$rs=$this->QueryObtieneDatosN();
-        	$row=ibase_fetch_object($rs);
-        	$saldoVencido=$row->SALDOVENCIDO;
-        	return $saldoVencido;
+        $this->query="SELECT SUM(SALDOFINAL) as saldovencido from factf01 WHERE trim(cve_clpv) = trim($cliente)";
+        $rs=$this->QueryObtieneDatosN();
+        $row=ibase_fetch_object($rs);
+        $saldoVencido=$row->SALDOVENCIDO;
+        return $saldoVencido;
     }
 
     function saldoComprometido($cliente){
-        	$this->query="SELECT SUM(IMPORTE) as Saldo 
-        					FROM FACTP01 
-        					WHERE trim(CVE_CLPV) = trim($cliente) 
-        					and (doc_sig is null or doc_sig = '')";
-        	$rs=$this->QueryObtieneDatosN();
-        	$row=ibase_fetch_object($rs);
-        	$saldoSinSig= $row->SALDO;
+        $this->query="SELECT SUM(IMPORTE) as Saldo 
+                        FROM FACTP01 
+                        WHERE trim(CVE_CLPV) = trim($cliente) 
+                        and (doc_sig is null or doc_sig = '')";
+        $rs=$this->QueryObtieneDatosN();
+        $row=ibase_fetch_object($rs);
+        $saldoSinSig= $row->SALDO;
 
-        	$this->query="SELECT SUM(p.IMPORTE) as saldo 
-        					FROM FACTP01 p
-        					inner join factf01 f on p.doc_sig = f.cve_doc and  
-        					WHERE TRIM(CVE_CLPV) = TRIM($cliente)";
-        	return $saldoComprometido;
+        $this->query="SELECT SUM(p.IMPORTE) as saldo 
+                        FROM FACTP01 p
+                        inner join factf01 f on p.doc_sig = f.cve_doc and  
+                        WHERE TRIM(CVE_CLPV) = TRIM($cliente)";
+        return $saldoComprometido;
     }
 
-        function saldoCliente($cliente){
-        	$this->query = "SELECT SUM(SALDOFINAL) as saldo FROM FACTF01 WHERE TRIM(CVE_CLPV) = TRIM($cliente)";
-        	$rs=$this->QueryObtieneDatosN();
-        	$row = ibase_fetch_object($rs);
-        	$saldo = $row->SALDO;
-        	return $saldo;
+    function saldoCliente($cliente){
+        $this->query = "SELECT SUM(SALDOFINAL) as saldo FROM FACTF01 WHERE TRIM(CVE_CLPV) = TRIM($cliente)";
+        $rs=$this->QueryObtieneDatosN();
+        $row = ibase_fetch_object($rs);
+        $saldo = $row->SALDO;
+        return $saldo;
+    }
+    
+    function ContactosDelCliente($cliente){     //12072016
+        $this->query="SELECT ncontacto,nombre,direccion,telefono,email,tipocontac FROM contac01 WHERE cve_clie = '$cliente'";
+        $resultado = $this->QueryObtieneDatosN();
+        while($tsArray = ibase_fetch_object($resultado)){
+            $data[] = $tsArray;
         }
-       
-        function ContactosDelCliente($cliente){     //12072016
-            $this->query="SELECT ncontacto,nombre,direccion,telefono,email,tipocontac FROM contac01 WHERE cve_clie = '$cliente'";
-            $resultado = $this->QueryObtieneDatosN();
-            while($tsArray = ibase_fetch_object($resultado)){
-                $data[] = $tsArray;
-            }
-            return $data;
-        }
+        return $data;
+    }
 
-        function traeSaldosDoc($cliente, $historico){     //12072016 
-            if($historico =='Si'){	
-            $this->query="SELECT  f.cve_clpv,
-            				f.cve_doc,
-            				f.fechaelab,
-            				f.fecha_cr,
-            				f.fecha_vencimiento,
-            				'Guia' as guia,
-            				f.importe,
-                            datediff(day, current_timestamp, f.fecha_vencimiento) as dias , 
-                            f.contrarecibo_cr,
-                            f.cve_pedi as pedido,
-                            f.saldofinal,
-                            f.aplicado,
-                            f.importe_nc,
-                            f.id_pagos,
-                            f.nc_aplicadas,
-                             iif(f.id_pagos = '' or f.id_pagos is null,0,
-						    ((select (FOLIO_X_banco||' $ '||cast(monto as decimal(7,2)))
-						    from carga_pagos where
-						    id = iif( char_length(f.id_pagos) = 1,substring(f.id_pagos from 1 for 1),
-						    iif(char_length(f.id_pagos) = 2,substring(f.id_pagos from 1 for 2),
-						    iif(char_length(f.id_pagos) = 3,substring(f.id_pagos from 1 for 3),
-						    iif(char_length(f.id_pagos) = 4, substring(f.id_pagos from 1 for 4),
-						    iif(char_length(f.id_pagos) = 5, substring(f.id_pagos from 1 for 5),
-						     '0')))))))) as info_pago
-                            FROM  factf01 f
-                            WHERE trim(f.cve_clpv) = trim('$cliente')
-                            and f.status <> 'C'
-                            and (deuda2015 = 1 or deuda2015 is null or deuda2015 = 0)
-                            order by f.fecha_vencimiento asc";
-                            //echo $this->query;
-
-            }else{
-            $this->query="SELECT  f.cve_clpv,
-            				f.cve_doc,
-            				f.fechaelab,
-            				f.fecha_cr,
-            				(select fecha_INI_COB from facturas fa where fa.cve_doc = f.cve_doc) as fecha_INI_COB,
-            				'Guia' as guia,
-            				f.importe,
-                            (select vencimiento from facturas fa where fa.cve_doc = f.cve_doc) as dias, 
-                            f.contrarecibo_cr,
-                            f.cve_pedi as pedido,
-                            f.saldofinal,
-                            f.aplicado,
-                            f.importe_nc,
-                            f.id_pagos,
-                            f.nc_aplicadas, 
+    function traeSaldosDoc($cliente, $historico){     //12072016 
+        if($historico =='Si'){	
+        $this->query="SELECT  f.cve_clpv,
+                        f.cve_doc,
+                        f.fechaelab,
+                        f.fecha_cr,
+                        f.fecha_vencimiento,
+                        'Guia' as guia,
+                        f.importe,
+                        datediff(day, current_timestamp, f.fecha_vencimiento) as dias , 
+                        f.contrarecibo_cr,
+                        f.cve_pedi as pedido,
+                        f.saldofinal,
+                        f.aplicado,
+                        f.importe_nc,
+                        f.id_pagos,
+                        f.nc_aplicadas,
                             iif(f.id_pagos = '' or f.id_pagos is null,0,
-						    ((select (FOLIO_X_banco||' $ '||cast(monto as decimal(7,2)))
-						    from carga_pagos where
-						    id = iif( char_length(f.id_pagos) = 1,substring(f.id_pagos from 1 for 1),
-						    iif(char_length(f.id_pagos) = 2,substring(f.id_pagos from 1 for 2),
-						    iif(char_length(f.id_pagos) = 3,substring(f.id_pagos from 1 for 3),
-						    iif(char_length(f.id_pagos) = 4, substring(f.id_pagos from 1 for 4),
-						    iif(char_length(f.id_pagos) = 5, substring(f.id_pagos from 1 for 5),
-						     '0')))))))) as info_pago
-                            FROM  factf01 f
-                            left join aplicaciones a on f.cve_doc = a.documento  and a.cancelado = 0 
-                            WHERE trim(f.cve_clpv) = trim('$cliente') and saldoFinal > 2 
-                            and f.status <> 'C' 
-                            and (deuda2015 = 1 or deuda2015 is null or deuda2015 = 0)
-                            and extract(year from f.fecha_doc) >= 2016
-                            order by f.fecha_vencimiento asc";
-                            //echo $this->query;
-            }
-            $resultado = $this->QueryObtieneDatosN();
-            //echo $this->query;
-            while($tsArray = ibase_fetch_object($resultado)){
-                $data[] = $tsArray;
-            }
-            return $data;
+                        ((select (FOLIO_X_banco||' $ '||cast(monto as decimal(7,2)))
+                        from carga_pagos where
+                        id = iif( char_length(f.id_pagos) = 1,substring(f.id_pagos from 1 for 1),
+                        iif(char_length(f.id_pagos) = 2,substring(f.id_pagos from 1 for 2),
+                        iif(char_length(f.id_pagos) = 3,substring(f.id_pagos from 1 for 3),
+                        iif(char_length(f.id_pagos) = 4, substring(f.id_pagos from 1 for 4),
+                        iif(char_length(f.id_pagos) = 5, substring(f.id_pagos from 1 for 5),
+                            '0')))))))) as info_pago
+                        FROM  factf01 f
+                        WHERE trim(f.cve_clpv) = trim('$cliente')
+                        and f.status <> 'C'
+                        and (deuda2015 = 1 or deuda2015 is null or deuda2015 = 0)
+                        order by f.fecha_vencimiento asc";
+                        //echo $this->query;
+        }else{
+            $this->query="SELECT  f.cve_clpv,
+                        f.cve_doc,
+                        f.fechaelab,
+                        f.fecha_cr,
+                        (select fecha_INI_COB from facturas fa where fa.cve_doc = f.cve_doc) as fecha_INI_COB,
+                        'Guia' as guia,
+                        f.importe,
+                        (select vencimiento from facturas fa where fa.cve_doc = f.cve_doc) as dias, 
+                        f.contrarecibo_cr,
+                        f.cve_pedi as pedido,
+                        f.saldofinal,
+                        f.aplicado,
+                        f.importe_nc,
+                        f.id_pagos,
+                        f.nc_aplicadas, 
+                        iif(f.id_pagos = '' or f.id_pagos is null,0,
+                        ((select (FOLIO_X_banco||' $ '||cast(monto as decimal(7,2)))
+                        from carga_pagos where
+                        id = iif( char_length(f.id_pagos) = 1,substring(f.id_pagos from 1 for 1),
+                        iif(char_length(f.id_pagos) = 2,substring(f.id_pagos from 1 for 2),
+                        iif(char_length(f.id_pagos) = 3,substring(f.id_pagos from 1 for 3),
+                        iif(char_length(f.id_pagos) = 4, substring(f.id_pagos from 1 for 4),
+                        iif(char_length(f.id_pagos) = 5, substring(f.id_pagos from 1 for 5),
+                            '0')))))))) as info_pago
+                        FROM  factf01 f
+                        left join aplicaciones a on f.cve_doc = a.documento  and a.cancelado = 0 
+                        WHERE trim(f.cve_clpv) = trim('$cliente') and saldoFinal > 2 
+                        and f.status <> 'C' 
+                        and (deuda2015 = 1 or deuda2015 is null or deuda2015 = 0)
+                        and extract(year from f.fecha_doc) >= 2016
+                        order by f.fecha_vencimiento asc";
+                        //echo $this->query;
         }
+        $resultado = $this->QueryObtieneDatosN();
+        //echo $this->query;
+        while($tsArray = ibase_fetch_object($resultado)){
+            $data[] = $tsArray;
+        }
+        return $data;
+    }
 
-      function solCorte($cveclie){
+    function solCorte($cveclie){
         $usuario=$_SESSION['user']->NOMBRE;
         $this->query ="INSERT INTO SOL_CLIENTES (ID, CVE_CLPV, FECHA_SOL, USUARIO_SOL, FECHA_RES, USUARIO_RES, STATUS) 
-                              VALUES (NULL, '$cveclie', current_timestamp, '$usuario', null, '', 2)";
+                                VALUES (NULL, '$cveclie', current_timestamp, '$usuario', null, '', 2)";
         $rs=$this->EjecutaQuerySimple();
 
         return;
@@ -525,7 +523,7 @@ class pegasoCobranza extends database {
         
     }
 
-     function infoDocumentos($items){
+    function infoDocumentos($items){
         $data=array();
         $doc=explode(',', $items);
         for ($i=0; $i < count($doc); $i++) { 
@@ -922,7 +920,7 @@ class pegasoCobranza extends database {
         }
     }
 
-     function traeDocumentos($sel, $maestro){
+    function traeDocumentos($sel, $maestro){
         $data = array();
         if($sel == 'Si'){
             $this->query="SELECT rc.*, f.*, (select nombre from maestros where id = $maestro) as nombre_maestro 
@@ -953,7 +951,7 @@ class pegasoCobranza extends database {
         return $data;
     }
 
-     function actAcr(){
+    function actAcr(){
         $this->query="execute procedure SALDO_COMPROMETIDO_MESTROS";
         $this->EjecutaQuerySimple();
         $this->query="UPDATE MAESTROS M SET ACREEDOR = (SELECT COALESCE(SUM(CP.saldo),0) FROM CARGA_PAGOS CP WHERE CAST(M.ID AS VARCHAR(20)) = CP.CLIENTE  and guardado>0 and seleccionado >0)";
@@ -974,6 +972,5 @@ class pegasoCobranza extends database {
         }
         return $data;
     }
-
-}?>
-    
+}
+?> 

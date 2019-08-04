@@ -280,12 +280,12 @@
                                             <th>REGISTRAR</th>
                                             <th>USUARIO QUE REGISTRO</th>
                                             <th>TIPO</th>
-                                           
                                         </tr>
                                     </thead>
                                   <tbody>
                                         <?php $i = 0;
                                               $desc1 = '';
+                                              $desc = '';
                                         foreach ($exec as $datos):
                                               if(empty($datos->TP) and $datos->TIPO = 'Venta'){
                                                 $tipo = 'Venta';
@@ -331,7 +331,7 @@
                                               <?php if($desc == "Pago de Factura"){?>
                                               <a href="index.php?action=pagoFacturas&idp=<?php echo $datos->IDENTIFICADOR?>" target="_blank"?> <?php echo $desc;?> </a>
                                             <?php }elseif($datos->TIPO == 'Gasto'){?>
-                                              <a href="index.php?action=detalleGasto&idg=<?php echo $datos->CONSECUTIVO?>" target="_blank">Detalle</a>
+                                              <a href="index.php?action=detalleGasto&idg=<?php echo $datos->CONSECUTIVO?>" target="_blank">Detalle <?php echo $datos->TIPO?></a>
                                               <?php }else{?>
                                               <?php echo $desc;?> 
                                               <?php }?>

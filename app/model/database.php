@@ -7,13 +7,11 @@
 		private $cnx;
 		protected $query;
 		private $host = "C:\\ftcData\\PCF.FDB";
-		
 		#Abre la conexión a la base de datos
 		private function AbreCnx(){
 			$host = 'ofa.dyndns.org:'.$_SESSION['bd'];
-			//$host = '192.168.100.33:'.$_SESSION['bd'];
-			$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
-		}		
+			$this->cnx=ibase_connect($host, self::$usr, self::$pwd);
+		}
 		#Cierra la conexion a la base de datos
 		private function CierraCnx(){
 			ibase_close($this->cnx);
@@ -22,10 +20,6 @@
 		protected function EjecutaQuerySimple(){
 			$this->AbreCnx();
 			$rs = ibase_query($this->cnx, $this->query);
-			//print_r($rs);
-			//echo $this->query;
-			//$rows =ibase_affected_rows();
-			//echo 'Numero de lineas afctadas: '.$rows.'<br/>';
 			return $rs;
 			unset($this->query);
 			$this->CierraCnx();

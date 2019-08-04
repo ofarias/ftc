@@ -58,6 +58,16 @@ if (isset($_POST['usuario'])){
 	$res=$controller_coi->sadPol($_POST['uuid'], $_POST['sadPol']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['contabiliza'])) {
+	$res=$controller_coi->contabiliza($_POST['tipo'], $_POST['idp']);
+	echo json_encode($res);
+	exit();
+}elseif(isset($_POST['borraCuenta'])){
+	$res=$controller_coi->borraCuenta($_POST['idImp'], $_POST['opcion']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['grabaImp'])) {
+	$res=$controller_coi->grabaImp($_POST['imp'],$_POST['cccoi'],$_POST['tipo'],$_POST['tasa'],$_POST['uso'], $_POST['nombre'], $_POST['factor'], $_POST['aplica'], $_POST['status']);
 }
 else{switch ($_GET['action']){
 	//case 'inicio':
