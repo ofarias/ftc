@@ -101,12 +101,13 @@ class controller_xml{
 		if (isset($_SESSION['user'])) {            
             $data = new cargaXML;
             $valid_formats = array("txt", "TXT");
-            $max_file_size = 1024 * 10000; //1000 kb
-            //$target_dir = "C:\\Temp\\uploads\\xml\\";
-            $target_dir="C:/xampp/htdocs/uploads/xml/metaData/";	
+            $max_file_size = 1024 * 10000; 
+            $target_dir="C:/xampp/htdocs/uploads/xml/metaData/";
+            if(!file_exists($target_dir)){
+            	mkdir($target_dir);
+            }
             $count = 0;
             $respuesta = 0;
-			// Loop $_FILES to exeicute all files
 			foreach ($_FILES['files']['name'] as $f => $name) {	
                 if ($_FILES['files']['error'][$f] == 4) {
                     continue; // Skip file if any error found
@@ -119,11 +120,19 @@ class controller_xml{
                         $message[] = "$name no es un archivo permitido.";
                         continue; // Skip invalid file formats
                     } else { // No error found! Move uploaded files 
+                        $leeMetadatos=$data->leeMetadatos($_FILES["files"]["tmp_name"][$f]);
+                        // aqui cambiamos el nombre del archivo para poder guardarlo con el nombre correcto.
+                        $name=$leeMetadatos['rfce'].'-'.$leeMetadatos['rfcr'].'-'.$leeMetadatos['status'].'-'.$name;
                         $archivo = $target_dir.$name;
-                        if (move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name)){
-                            $count++;// Number of successfully uploaded file
-							$respuesta+=$data->insertarMetaDatos($archivo);
+                        if($leeMetadatos['status']== 'ok'){
+                        	if(move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name)){
+                            	$count++;
+								$respuesta+=$data->insertarMetaDatos($archivo);
 								//unlink($_FILES["files"]["tmp_name"][$f]);
+                        	}	
+                        }else{
+                        	move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name);
+                        	echo $leeMetadatos['mensaje'].'<br/>';
                         }
                     }
                 }

@@ -1,7 +1,7 @@
 <div class="container">
         <!-- Marketing Icons Section -->
         <div class="row">
-            <div class="col-lg-12">
+            <div class="col-md-12">
                 <h3 class="page-header">
                     <!--<img src="app/views/images/logob.jpg">-->
                 </h3>
@@ -11,174 +11,167 @@
             </div>
             <br/>
         <div class="row">
-            <div class="col-lg-12">
+            <div class="col-md-12">
                 <h3 class="page-header">
                     <!--<img src="app/views/images/logob.jpg">-->
                 </h3>
             </div>
-             <div class="col-xs-12 col-md-2">
-                <div class="panel panel-default">
+             <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Maestros y CARTERAS</h4>
+                        <h4>Maestros y Carteras</h4>
                     </div>
                     <div class="panel-body">
                         <p><br></p>
-                        <center><a href="index.php?action=verMaestros" class="btn btn-default"><img src="app/views/images/Documents-icon.png"></a></center>
+                        <center><a href="index.php?action=verMaestros" class="btn btn-default"><img class="img-ico" src="app/views/images/Documents-icon.png"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-xs-12 col-md-2">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Catálogo de clientes.</h4>
+                        <h4>Catálogo de clientes.</h4>
                     </div>
                     <div class="panel-body">
                         <p><br></p>
-                        <center><a href="index.php?action=documentos_cliente" class="btn btn-default"><img src="app/views/images/Clientes/Catalogodeclientes.png" width="50" height="70"></a></center>
+                        <center><a href="index.php?action=documentos_cliente" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/Catalogodeclientes.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
             
             <div class="col-md-2">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i>Registro de Cargos Financieros </h4>
+                        <h4>Registro de Cargos Financieros </h4>
                     </div>
                     <div class="panel-body">
                         <p></p>        
-                     <center><a href="index.php?action=regCargosFinancieros" class="btn btn-default"><img src="app/views/images/Clientes/RegistroFinanciero.png" width="50" height="70"></a></center>
+                     <center><a href="index.php?action=regCargosFinancieros" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/RegistroFinanciero.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
                <div class="col-md-2">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i>Asociar Cargo Financiero a Pago</h4>
+                        <h4>Asociar Cargo Financiero a Pago</h4>
                     </div>
                     <div class="panel-body">
                         <p></p>        
-                     <center><a href="index.php?action=asociaCF" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                     <center><a href="index.php?action=asociaCF" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/RegistroFinancieroAPago.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
             <div class="col-md-2">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> CAPTURA DE ABONOS</h4>
+                        <h4>Captura de Abonos</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Captura de Abonos</p>
-                        <center><a href="index.php?action=selectBanco" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                        <center><a href="index.php?action=selectBanco" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/CapturaAbonos.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
             <div class="col-md-2">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Cobranza </h4>
+                        <h4>Cobranza </h4>
                     </div>
-                    <div class="panel-body">
-                        <p>Cobranza</p>
-                        <center><a href="index.cobranza.php?action=cobranza" class="btn btn-default"><img src="app/views/images/cobranza/cobranza_n.png" width="70" height="80"></a></center>
+                    <div class="panel-body">    
+                        <center><a href="index.cobranza.php?action=cobranza" class="btn btn-default"><img class="img-ico" src="app/views/images/cobranza/cobranza_n.png" width="70" height="80"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> SKUS </h4>
+                        <h4>Clientes y SKU</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Clientes y SKU </p>
-                        <center><a href="index.v.php?action=verFTCArticulosVentas" class="btn btn-default"><img src="app/views/images/folder.png"></a></center>
+                        <center><a href="index.v.php?action=verFTCArticulosVentas" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/ClientesSku.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-             <div class="col-md-3">
-                <div class="panel panel-default">
+             <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading"> 
-                        <h4><i class="fa fa-list-alt"></i> Estado de Pedidos</h4>
+                        <h4>Estado de Pedidos</h4>
                     </div>
                     <div class="panel-body">
                         <p></p>
-                        <center><a href="index.php?action=pedimento" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/martz90/hex/72/car-icon.png"></a></center>
+                        <center><a href="index.php?action=pedimento" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/estadoPedido.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Buscar Cajas por pedido </h4>
+                        <h4>Buscar Cajas por pedido </h4>
                     </div>
                     <div class="panel-body">
                         <p><br></p>
-                        <center><a href="index.php?action=BuscarCajasxPedido" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
+                        <center><a href="index.php?action=BuscarCajasxPedido" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/RegistroFinancieroAPago.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-xs-12 col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Catálogo de requisitos.</h4>
+                        <h4>Catálogo de requisitos.</h4>
                     </div>
                     <div class="panel-body">
                         <p><br></p>
-                        <center><a href="index.php?action=catalogo_documentos" class="btn btn-default"><img src="app/views/images/Documents-icon.png"></a></center>
+                        <center><a href="index.php?action=catalogo_documentos" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/CatalogoRequisitos.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-             <div class="col-xs-12 col-md-3">
-                <div class="panel panel-default">
+             <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Realizar Notas de Credito</h4>
+                        <h4>Notas de Credito y Refacturaciones</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Notas de Credito y Refacturaciones </p>
-                        <center><a href="index.php?action=buscaFacturaNC" class="btn btn-default"><img src="app/views/images/Clipboard-Paste-icon.png"></a></center>
+                        <center><a href="index.php?action=buscaFacturaNC" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/NotaCredito.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-xs-12 col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i> Imprimir Aplicaciones</h4>
+                        <h4>Imprimir aplicaciones de Pago</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Imprimir aplicaciones de Pago</p>
-                        <center><a href="index.php?action=verAplicaciones" class="btn btn-default"><img src="app/views/images/dollar-collection-icon.png"></a></center>
+                        <center><a href="index.php?action=verAplicaciones" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/impAplicaciones.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-xs-12 col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i>Imprimir Polizas</h4>
+                        <h4>Imprimir Relacion de Pago</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Imprimir Relacion de Pago</p>
-                        <center><a href="index.php?action=buscaPagosActivos" class="btn btn-default"><img src="app/views/images/dollar-collection-icon.png"></a></center>
+                        <center><a href="index.php?action=buscaPagosActivos" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/impPolizas.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div> 
-            <div class="col-xs-12 col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i>Aplicaciones a Facturas</h4>
+                        <h4>Ver Aplicaciones por Dia</h4>
                     </div>
                     <div class="panel-body">
-                        <p>Ver Aplicaciones por Dia</p>
-                        <center><a href="index.php?action=verAplivsFact" class="btn btn-default"><img src="app/views/images/dollar-collection-icon.png"></a></center>
+                        <center><a href="index.php?action=verAplivsFact" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/AplicacionesFacturas.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="panel panel-default">
+            <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4><i class="fa fa-list-alt"></i>Cancelacion de Pagos</h4>
+                        <h4>Cancelacion de Pagos</h4>
                     </div>
                     <div class="panel-body">
                         <p></p>   
-                        <center><a href="index.php?action=buscaPagos" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/designbolts/seo/64/Pay-Per-Click-icon.png"></a></center>
+                        <center><a href="index.php?action=buscaPagos" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/CancelacionPago.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
