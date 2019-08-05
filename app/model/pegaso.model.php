@@ -27055,11 +27055,31 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$tipo = $res['tipopoliza'];
 		$ejercicio = $res['ejercicio'];
 		$periodo = $res['periodo'];
-		$this->query="UPDATE XML_DATA SET STATUS= 'P' WHERE UUID='$uuid' ";
+		$this->query="UPDATE XML_DATA SET STATUS= 'P' WHERE UUID='$uuid' and STATUS != 'C'";
 		$this->EjecutaQuerySimple();
 		$this->query="UPDATE XML_POLIZAS set STATUS = 'C' WHERE UUID='$uuid' and status = 'A' and poliza = '$poliza' and tipo = '$tipo' and periodo = $periodo and ejercicio = $ejercicio";
-		echo $this->query;
+		//echo $this->query;
 		$this->EjecutaQuerySimple();
 		return;
+	}
+
+	function verMetaDatos(){
+		$data=array();
+		$this->query="SELECT archivo, min(fecha_certificacion) as fecha_ini, max(fecha_certificacion) as fecha_fin, count(uuid) as Registros, min(FECHA_CANCELACION) as FECHA_CANCELACION, count(FECHA_CANCELACION) as cancelados, min(usuario) as usuario, min(fecha_carga) as fecha_carga FROM FTC_META_DATOS group by ARCHIVO";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function verMetaDatosDet($archivo){
+		$data=array();
+		$this->query="SELECT f.*, COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = f.uuid and status='A') AS VARCHAR(100)),'') as poliza FROM FTC_META_DATOS f WHERE f.ARCHIVO = '$archivo'";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		return $data;
 	}
 }?>

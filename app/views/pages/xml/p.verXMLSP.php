@@ -85,6 +85,11 @@
                                                 $color = 'style="background-color:#bcffe9"';
                                                 $test = 'Poliza Eg';
                                                 $color2= "#bcffe9";
+                                            }elseif($key->STATUS=='C'){
+                                                $descSta = 'El Documento esta cancelado en el SAT';
+                                                $color = 'style="background-color:#fa8055"';
+                                                $test = 'Cancelado';
+                                                $color2= "#bcffe9";
                                             }
                                         ?>
                                         <tr class="<?php echo $test?> odd gradeX " <?php echo $color ?> title="<?php echo $descSta?>" id="ln_<?php echo $ln?>" >

@@ -84,7 +84,7 @@ class controller_xml{
 
 	function cargaMetaDatos(){
 		if($_SESSION['user']){
-			$pagina =$this->load_template2('Pedidos');
+			$pagina =$this->load_template('Pedidos');
 			$html=$this->load_page('app/views/pages/xml/p.cargaMetaDatos.php');
    			ob_start();
    			include 'app/views/pages/xml/p.cargaMetaDatos.php';
@@ -147,8 +147,38 @@ class controller_xml{
 	}
 
 	function verMetaDatos(){
-		$data = new pegaso;
-		$res= $data->insertaLTPD();
+		if($_SESSION['user']){
+			$data=new pegaso;
+			$pagina =$this->load_template('Pedidos');
+			$html=$this->load_page('app/views/pages/xml/p.verMetaDatos.php');
+   			ob_start();
+   			$md = $data->verMetaDatos();
+   			include 'app/views/pages/xml/p.verMetaDatos.php';
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+		//$res= $data->insertaLTPD();
+	}
+
+	function verMetaDatosDet($archivo){
+		if($_SESSION['user']){
+			$data=new pegaso;
+			$pagina =$this->load_template2('Pedidos');
+			$html=$this->load_page('app/views/pages/xml/p.verMetaDatosDet.php');
+   			ob_start();
+   			$md = $data->verMetaDatosDet($archivo);
+   			include 'app/views/pages/xml/p.verMetaDatosDet.php';
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
 	}
 
 	function xmlExcel($mes, $anio, $ide, $doc, $t){

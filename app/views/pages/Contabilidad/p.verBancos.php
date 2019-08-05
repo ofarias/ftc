@@ -1,11 +1,11 @@
 <br /><br />
-<button id="clienteNuevo" class="btn btn-info">Alta de Cuenta</button>
+<button id="clienteNuevo" class="btn btn-info">Alta de Cuenta Bancaria</button>
 <br/><br/>
 <div class="row">
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h4>Clientes y requisitos asociados.</h4>
+                <h4>Bancos Registrados en el Sistema.</h4>
             </div>
             <div class="panel-body">
                 <div class="table-responsive">                            
