@@ -348,6 +348,8 @@ class controller_xml{
 	            if($l_g < strlen($key->NOMBRE)){
 	            	$l_g = strlen($key->NOMBRE);
 	            }
+	            $abono=$key->DEBE_HABER=='H'? $key->MONTOMOV:0;
+	            $cargo=$key->DEBE_HABER=='D'? $key->MONTOMOV:0;
 	            $xls->setActiveSheetIndex()
 	                ->setCellValue('A'.$ln,$i)
 	                ->setCellValue('B'.$ln,$key->TIPO_POLI)
@@ -358,8 +360,9 @@ class controller_xml{
 	                ->setCellValue('G'.$ln,$key->FECHA_POL)
 	                ->setCellValue('H'.$ln,$key->NUM_CTA)
 	                ->setCellValue('I'.$ln,utf8_encode($key->NOMBRE))//number_format($key->SUBTOTAL,2,".",""))
-	                ->setCellValue('J'.$ln,$key->MONTOMOV)//number_format($key->IVA,2,".",""))
-	                ->setCellValue('K'.$ln,$key->TIPCAMBIO)//number_format($key->IVA_RET,2,".",""))
+	                ->setCellValue('J'.$ln,$abono)//number_format($key->IVA,2,".",""))
+	                ->setCellValue('K'.$ln,$cargo)//number_format($key->IVA_RET,2,".",""))
+	                ->setCellValue('L'.$ln,$key->TIPCAMBIO)
 	                ;
 	            $ln++;
 	        }
@@ -389,6 +392,7 @@ class controller_xml{
 	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth($l_g);
 	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(15);
 	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(13);
 	        
 	        // Hacer las cabeceras de las lineas;
 	        //->setCellValue('9','')
@@ -402,8 +406,9 @@ class controller_xml{
 	            ->setCellValue('G9','Fecha Poliza')
 	            ->setCellValue('H9','Cuenta')
 	            ->setCellValue('I9','Nombre')
-	            ->setCellValue('J9','Monto')
-	            ->setCellValue('K9','Tipo de Cambio')
+	            ->setCellValue('J9','Cargo')
+	            ->setCellValue('K9','Abono')
+	            ->setCellValue('L9','Tipo de Cambio')
 	            ;
 
 	        $nom_mes = $this->nombreMes($mes);

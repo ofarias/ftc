@@ -24550,7 +24550,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(100)),'') as poliza
     					,'' as tp_tes
     					, fecha_recep as fecha_edo_cta
-						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F') $uuid";
+						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F' or x.status = 'C') $uuid";
     	}else{
     				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
@@ -24559,7 +24559,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = rfce and tipo = 'Proveedor') as cuenta_Contable,
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(100)),'') as poliza
 						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
-						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F') $uuid";
+						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
     	}
     	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();

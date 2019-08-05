@@ -144,7 +144,6 @@
         </div>
     </div>
 </div>
-
 <form action="index.coi.php" method="POST" id="formImp">
     <input type="hidden" name="imp" value="" id="ni_imp">
     <input type="hidden" name="cccoi" value="" id="ni_cccoi">
@@ -157,7 +156,6 @@
     <input type="hidden" name="status" value="" id="ni_status">
     <input type="hidden" name="grabaImp" value="" id="ni_grabaImp">
 </form>
-
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
