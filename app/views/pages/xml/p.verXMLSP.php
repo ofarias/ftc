@@ -11,6 +11,7 @@
                         <p>Ver impuestos &nbsp;&nbsp;Si: <input type="radio" name="verImp" id="verImp" class="imp" value="si"> &nbsp;&nbsp;No: <input type="radio" name="verImp" id="NoverImp" class="imp" value="no">&nbsp;&nbsp;&nbsp;&nbsp; <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descargar a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','x')"></font></a>
                             <font color="black"><input type="button" value="Consolidar Polizas" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'c')"></font>
                             <font color="red"><input type="button"  value="Revision Contabilizacion" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'z')"></font>
+                            <font color="green"><input type="button"  value="Polzas Automaticas" onclick="pAuto(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
                         </p>
                     </div>
                         </div>
@@ -174,6 +175,27 @@
                 window.open("/edoCtaXLS/"+data.archivo, 'download' );
             }
         })     
+    }
+
+    function pAuto(mes, anio, ide, doc, t){
+        $.confirm({
+            content: function () {
+                var self = this;
+                return $.ajax({
+                    url: 'index.xml.php',
+                    dataType: 'json',
+                    method: 'post',
+                    data:{xmlExcel:1, mes, anio, ide, doc, t}
+                }).done(function (response) {
+                    self.setContent('Description: ' + response.mensaje);
+                    self.setContentAppend('<br>Status: ' + response.status);
+                    self.setTitle(response.title);
+                }).fail(function(){
+                    self.setContent('Se ha procesado la informacion y se envio un correo con el resultado.');
+                });
+            }
+        });
+        $.alert("El procesa tardara de 1 a 5 minutos, dependiendo el total de documentos a analizar, le suplicamos sea paciente... :)")
     }
 
     function marcar(ln, t){

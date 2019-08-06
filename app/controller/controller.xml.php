@@ -193,6 +193,10 @@ class controller_xml{
 				$controller = new controller_coi;
 				$res = $controller->consolidaPolizas($mes, $anio, $ide, $doc);
 				return $res;
+			}elseif($t == 'pa'){
+				$m = new pegaso;
+				$res=$m->revisaParametros($uuid);
+				return $res;
 			}
 			$xls= new PHPExcel();
 	        //// insertamos datos a al objeto excel.

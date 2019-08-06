@@ -121,8 +121,9 @@ class pegaso extends database{
 		if(count($autoPoliza)>0){
 			$controller = new pegaso_controller;
 			$msj = $controller->polizaAutomatica($autoPoliza);
+			return array("status"=>'ok', "mensaje"=>"Se han creado : ".count($autoPoliza)." Polizas de forma Automatica y se ha enviado el reporte al correo ".$_SESSION['user']->USER_EMAIL);
 		}
-		return;
+		return array("status"=>'ok', "mensaje"=>"No se encontraron conincidencias :|", "title"=>'Polizas Automaticas');
 	}
 
 	function salir(){
@@ -24705,7 +24706,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$cve_sat = $key[1];
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
-	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and (select rfce from xml_data where uuid = '$uuid') = '$rfc' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat' and (cuenta_Contable is null or cuenta_Contable = '') --and PARTIDA = $par";
+	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' where xp.rfc = '$rfcr' and (select x.rfce from xml_data x where x.uuid = '$uuid') = '$rfc' and  xp.CLAVE_SAT = '$cve_sat' and xp.UNIDAD_SAT = '$uni_sat' and (select x.status from xml_data x where x.uuid = '$uuid') = 'P' --and (cuenta_Contable is null or cuenta_Contable = '') --and PARTIDA = $par";
 	    		$this->queryActualiza();
 	      	}	
     	}
