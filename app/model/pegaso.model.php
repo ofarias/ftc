@@ -26336,13 +26336,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function impuestosPolizaFinal($uuid){
 		$data = array();	
-		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) AS MONTO, SUM(BASE) AS BASE  FROM XML_IMPUESTOS WHERE UUID in ('$uuid') group by impuesto, tasa, tipofactor, Tipo";
+		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) AS MONTO, SUM(BASE) AS BASE  FROM XML_IMPUESTOS WHERE UUID in ($uuid) group by impuesto, tasa, tipofactor, Tipo";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
 		}	
-		//print_r($data);
-		//exit();
 		return $data;	
 	}
 
@@ -26838,10 +26836,15 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $folio;
 	}
 
-	function detalleGasto($idg){
+	function detalleGasto($idg, $tipo){
 		$data = array();
-		$this->query="SELECT G.*, Pg.CUENTA_BANCARIA, pg.FOLIO_PAGO, (select CTA_CONTAB FROM PG_BANCOS PB WHERE PB.BANCO||' - '||PB.NUM_CUENTA = pg.cuenta_bancaria ) as cta_banco, COALESCE((SELECT NOMBRE FROM XML_CLIENTES XC WHERE G.CVE_PROV = ('xml_'||XC.IDCLIENTE)),'Sin Proveedor') AS PROV , (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE AG.IDG = G.ID AND AG.STATUS = 0) AS APLICADO FROM GASTOS G left join PAGO_GASTO PG on pg.idgasto = g.id WHERE g.ID = $idg";
+		$x = '';
+		if($tipo == 'z'){
+			$x = "and (contabilizado is null or contabilizado = '')";
+		}
+		$this->query="SELECT G.*, Pg.CUENTA_BANCARIA, pg.FOLIO_PAGO, (select CTA_CONTAB FROM PG_BANCOS PB WHERE PB.BANCO||' - '||PB.NUM_CUENTA = pg.cuenta_bancaria ) as cta_banco, COALESCE((SELECT NOMBRE FROM XML_CLIENTES XC WHERE G.CVE_PROV = ('xml_'||XC.IDCLIENTE)),'Sin Proveedor') AS PROV , (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE AG.IDG = G.ID AND AG.STATUS = 0) AS APLICADO FROM GASTOS G left join PAGO_GASTO PG on pg.idgasto = g.id WHERE g.ID = $idg $x ";
 		$res=$this->EjecutaQuerySimple();
+		//echo $this->query;
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
 		}
@@ -26900,7 +26903,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		if($tipo == 'c'){
 			$uuid= '';
 			foreach ($data as $key){
-				$uuid .= $key->UUID.',';
+				$uuid .= "'".$key->UUID."',";
 			}
 			$uuid=substr($uuid,0, strlen($uuid)-1);
 			return array("datos"=>$data,"uuid"=>$uuid);
@@ -26917,13 +26920,14 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		}elseif(isset($valConta['status'])){
 			return $valConta;
 		}
-		//echo 'res1: '.($valFact[0]->IMPORTE - $valFact[0]->APLICADO); 
-		//echo '<br/>Res2: '.(($valFact[0]->IMPORTE - $valFact[0]->APLICADO)- $valor);
-		if( ($valFact[0]->IMPORTE - $valFact[0]->APLICADO) > 0 and  ((($valFact[0]->IMPORTE - $valFact[0]->APLICADO) - $valor) >= (-0.01)) and $valor > 0){ // Validacion de la factura
+		//echo 'res1: '.($valFact[0]->IMPORTE - $valFact[0]->APLICADO).'<br/>'; 
+		//echo '<br/>Res2: '.(($valFact[0]->IMPORTE - $valFact[0]->APLICADO)- $valor).'<br/>';
+		$mensaje= 'No hizo nada: '.$valor;
+		if( ((float)$valFact[0]->IMPORTE - (float)$valFact[0]->APLICADO) >= (-0.1) and  ( (((float)$valFact[0]->IMPORTE - (float)$valFact[0]->APLICADO) - $valor) >= (-0.1)) and $valor > 0){ // Validacion de la factura
 			$this->query="SELECT * FROM gastos where id = $idp";
 			$res=$this->EjecutaQuerySimple();
 			$row = ibase_fetch_object($res);
-			if($row->SALDO >= $valor){ // Valida que el saldo sea mayor a lo que se va a aplicar.
+			if( ($row->SALDO+.05) >= $valor){ // Valida que el saldo sea mayor a lo que se va a aplicar.
 				$this->query="UPDATE GASTOS SET SALDO = SALDO - $valor where id = $idp";
 				$res=$this->queryActualiza();
 				if($res == 1){
@@ -27082,5 +27086,28 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$data[]=$tsArray;
 		}
 		return $data;
+	}
+
+	function actGasto($info, $detalle, $idp){
+		print_r($info);
+		$usuario=$_SESSION['user']->NOMBRE;
+		$status=$info['status'];
+		$poliza=$info['poliza'];
+		$numero=str_pad($info['numero'],5," ",STR_PAD_LEFT);
+		$ejercicio=$info['ejercicio'];
+		$periodo=$info['periodo'];
+		foreach ($detalle as $k) {
+			$this->query="INSERT INTO XML_POLIZAS (ID, UUID, STATUS, POLIZA, TIPO, PERIODO, EJERCICIO, USUARIO, FECHA) 
+							VALUES (NULL,'$k->UUID', 'A', '$numero','Eg',$periodo, $ejercicio, '$usuario', current_timestamp)";
+			$this->grabaBD();
+
+			$this->query="UPDATE XML_DATA SET STATUS = 'E' WHERE UUID = '$k->UUID'";
+			$this->queryActualiza();
+		}
+		$this->query="UPDATE GASTOS SET CONTABILIZADO = '$poliza' where id=$idp";
+		$this->queryActualiza();
+
+
+
 	}
 }?>

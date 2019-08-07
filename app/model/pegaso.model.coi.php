@@ -1560,13 +1560,14 @@ class CoiDAO extends DataBaseCOI {
                 $this->EjecutaQuerySimple();   
                 //echo $this->query; 
         }
-       $par = 2;
+       $par = count($detalle) + 1;
         if(count($impuestos2) > 0){
             /// 2.- Busca los parametros en la table de los parametros de impuestos FTC_param_coi
                 foreach ($impuestos2 as $impt) {
                     print_r($impt);
                     $tipoXML='Recibido';
-                    $this->query="SELECT * FROM FTC_PARAM_COI WHERE IMPUESTO = '$impt->IMPUESTO' AND TASA = $impt->TASA AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = '$subTipo' and tipo_xml='$tipoXML'";
+                    $tasa=(empty($impt->TASA))? 0:$impt->TASA;  
+                    $this->query="SELECT * FROM FTC_PARAM_COI WHERE IMPUESTO = '$impt->IMPUESTO' AND TASA = $tasa AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = '$subTipo' and tipo_xml='$tipoXML'";
                     $rs=$this->EjecutaQuerySimple();
                     //echo $this->query;
                     $rimp = ibase_fetch_object($rs);
@@ -1600,8 +1601,6 @@ class CoiDAO extends DataBaseCOI {
             }
         $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo);
         return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Dr'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
-        
-        exit();
     }
 
     function traePolizas($mes, $anio, $ide){

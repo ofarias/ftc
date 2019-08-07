@@ -20571,7 +20571,7 @@ function ImprimeFacturaPegaso($factura, $destino){
 	function detalleGasto($idg){
 		if($_SESSION['user']){
 			$data= new pegaso;
-			$datos = $data->detalleGasto($idg);
+			$datos = $data->detalleGasto($idg, $tipo=false);
 			$aplicaciones =$data->aplicacionesGasto($idg, $tipo=false);
 			$facturas = $data->facturasProvPendientes($uuid = false);
 			$pagina = $this->load_template_popup();

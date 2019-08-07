@@ -222,11 +222,13 @@ class controller_coi{
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$data_coi = new CoiDAO;
-			$cabecera = $data->detalleGasto($idp);
+			$cabecera = $data->detalleGasto($idp, $tip='z');
 			$detalle = $data->aplicacionesGasto($idp, $t='c');
 			$impuestos2=$data->impuestosPolizaFinal($uuid=$detalle['uuid']);
 			$crear = $data_coi->creaPolizaGasto($cabecera , $detalle=$detalle['datos'], $tipo, $impuestos2);
-			exit();
+			if($crear['status'] == 'ok' ){
+				$act=$data->actGasto($crear, $detalle, $idp);
+			}
 		}
 	}
 

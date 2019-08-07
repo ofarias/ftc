@@ -19,7 +19,6 @@
                                             <th>Importe</th>
                                             <th>Aplicado</th>
                                             <th style="background-color:'#ccffe6'">Saldo</th>
-                                            <th>Cancelar </th>
                                             <th>Contabilizar</th> 
                                            
                                        </tr>
@@ -32,6 +31,7 @@
                                             $idp = $key->ID; 
                                         ?>
                                         <tr class="odd gradeX" <?php echo $color ?> >
+                                            <input type="hidden" name="saldoPago" value="<?php echo $key->SALDO?>" id="sp">
                                             <td> <?php echo $key->ID ?> </td>
                                             <td><?php echo $key->FECHA_CREACION?></td>
                                             <td><?php echo '<font color="blue">'.$key->REFERENCIA.'</font><br/><font color="red">'.$key->DOC.'</font>'?></td>
@@ -41,11 +41,12 @@
                                             <td><?php echo '$ '.number_format($key->TOTAL,2);?> </td>
                                             <td><?php echo '$ '.number_format($key->APLICADO,2);?> </td>
                                             <td><?php echo '$ '.number_format($key->SALDO,2);?></td>
-                                            <td><input type="button" class="btn btn-danger" name="can" value="Cancelar" d="<?php echo $key->ID?>">
-                                                <input type="hidden" name="saldoPago" value="<?php echo $key->SALDO?>" id="sp">
-                                            </td>
                                             <td>
+                                                <?php if(empty($key->CONTABILIZADO)){?>
                                                 <input type="button" class="btn btn-success conta" value="Contabilizar" idp = "<?php echo $key->ID?>" val="<?php echo $key->SALDO?>">
+                                            <?php }else{?>
+                                               <b><?php echo $key->CONTABILIZADO?></b>
+                                            <?php }?>
                                             </td>
                                         </tr>
                                         </form>
@@ -96,10 +97,10 @@
                                             <td><?php echo $app->PROV;?><br/><a href="index.php?action=verXML&uuid=<?php echo $app->UUID?>&ide=Recibidos" class="btn-sm btn-info" target="popup" onclick="window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar UUID</a></td>
                                             <td align="right"><font color="<?php echo $color?>"><b><?php echo '$ '.number_format($app->APLICADO,2);?></b></font> </td>
                                             <td>
-                                                <?php if($app->STATUS == 0){?>
+                                                <?php if($app->STATUS == 0 and empty($key->CONTABILIZADO)){?>
                                                 <input type="button" class="btn btn-danger canapl" name="can" value="Cancelar" d="<?php echo $app->ID?>" val="<?php echo $app->APLICADO?>" ida="<?php echo $app->ID?>" uuid="<?php echo $app->UUID?>" idp="<?php echo $app->IDG?>"></td>
                                             <?php }else{?>
-                                                <input type="button" class="btn btn-danger canapl" name="can" value="Cancelado" disabled ></td>
+                                                <input type="button" class="btn btn-danger canapl" name="can" value="Cancelado" disabled ><br/><b><?php echo 'Poliza: '.$key->CONTABILIZADO?></b></td>
                                             <?php }?>
                                             <td></td>
                                         </tr>
