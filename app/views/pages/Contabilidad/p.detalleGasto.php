@@ -125,7 +125,7 @@
         </div>
 </div>
 <?php }?>
-<div>
+<div class="hide">
     <label>Buscar Pagos </label> <br/>
     <label>Busqueda por Monto o Folio </label><br/>
     <form action="index.cobranza.php" method="post">
