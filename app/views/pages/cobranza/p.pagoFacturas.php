@@ -251,7 +251,7 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
     <div class="col-lg-12">
         <div class="panel panel-default"> 
             <div class="panel-heading">
-               <p><font color="grey"><b>FACTURAS CON SALDO DEL MAESTRO</font> <?php echo $maestro?>.</b></p>
+               <p><font color="black"><b>FACTURAS CON SALDO.</font> <?php echo $maestro?></b></p>
                <p><b>Se muestran solo las facturas con fecha anterior al pago.</b></p>
             </div>
                     <div class="panel-body">
@@ -281,8 +281,8 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
                                             <td><?php echo $data->FECHAELAB?></td>
                                             <td><?php echo $data->CLIENTE;?><?php echo isset($data->NOMBRE)? ' &nbsp; <b><font color="grey">'.$data->NOMBRE.'</font></b>':''?></td>
                                             <td><?php echo '$ '.number_format($data->IMPORTE,2);?></td>
-                                            <td><?php echo '$ '.number_format($data->SALDOFINAL,2)?></td>
-                                            <td><input type="number" step="any" name="montoAplicar" class="apl" ln="<?php echo $ln?>" saldo="<?php echo $data->SALDOFINAL?>" doc="<?php echo $data->CVE_DOC?>" ></td>
+                                            <td><?php echo '$ '.number_format($data->SALDOFINAL,2)?><br/><a class='sd' saldo="<?php echo $data->SALDOFINAL?>" ln="<?php echo $ln?>">Saldar</a></td>
+                                            <td><input type="number" step="any" name="montoAplicar" class="apl" ln="<?php echo $ln?>" saldo="<?php echo $data->SALDOFINAL?>" doc="<?php echo $data->CVE_DOC?>" id="ma_<?php echo $ln?>"></td>
                                             <td><label id="saldoInsoluto_<?php echo $ln?>"></label></td>
                                             <td><?php echo 'Ver detalle de la factura'?></td>
                                         </tr>
@@ -294,12 +294,9 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
                     </div>
     </div>
 </div>
-
 <?php }?>
-
 <script type="text/javascript" language="JavaScript" src="app/views/bower_components/jquery/dist/jquery.min.js"></script>
 <script type="text/javascript">
-
     $("#infoPago").mouseover(function(){
         alert('Informacion del pago');
     })
@@ -413,6 +410,14 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
                 list.innerHTML="<br/><p>No se encontro Informacion de la Factura <font color='blue'>"+ docf +"</font>, favor de revisar la informacion. </p>";
             }
         })
+    })
+
+    $(".sd").click(function(){
+        var saldo = parseFloat($(this).attr('saldo'))
+        var ln = $(this).attr('ln')
+        document.getElementById('ma_'+ln).value=saldo
+        abc()
+        //alert('Trae el saldo' + saldo)
     })
 
     function verAplicaciones(docf){
@@ -536,6 +541,10 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
 
     $(".apl").change(function(){
         //alert('Cambio el monto en la aplicacion');
+        abc()
+    })
+
+    function abc(){
         var montoPago = parseFloat(document.getElementById('pago').value,2);
         var monto = 0.0001;
         var a = 0.0001;
@@ -568,7 +577,7 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
 
             return;
         }
-    })
+    }
 
     function format(numero){
             var long = numero[0].length;

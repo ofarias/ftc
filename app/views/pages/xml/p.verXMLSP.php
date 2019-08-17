@@ -8,10 +8,12 @@
                         <p><?php echo 'RFC seleccionado: '.$_SESSION['rfc']?></p>
                         <p><?php echo 'Empresa Seleccionada: <b>'.$_SESSION['empresa']['nombre']."</b>"?></p>  
                         <p><?php echo 'Se muestran los XML '.$ide." del mes ".$mes." del ".$anio?></p>
-                        <p>Ver impuestos &nbsp;&nbsp;Si: <input type="radio" name="verImp" id="verImp" class="imp" value="si"> &nbsp;&nbsp;No: <input type="radio" name="verImp" id="NoverImp" class="imp" value="no">&nbsp;&nbsp;&nbsp;&nbsp; <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descargar a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','x')"></font></a>
+                        <p>Ver impuestos &nbsp;&nbsp;Si: <input type="radio" name="verImp" id="verImp" class="imp" value="si"> &nbsp;&nbsp;No: <input type="radio" name="verImp" id="NoverImp" class="imp" value="no">&nbsp;&nbsp;&nbsp;&nbsp; <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descargar a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','x')"></font>
+                            <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descarga Partidas a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','xp')"></font>
                             <font color="black"><input type="button" value="Consolidar Polizas" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'c')"></font>
                             <font color="red"><input type="button"  value="Revision Contabilizacion" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'z')"></font>
                             <font color="green"><input type="button"  value="Polzas Automaticas" onclick="pAuto(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
+
                         </p>
                     </div>
                         </div>

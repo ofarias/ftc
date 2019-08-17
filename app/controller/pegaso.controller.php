@@ -20612,5 +20612,32 @@ function ImprimeFacturaPegaso($factura, $destino){
         }
         return;
 	}
+
+	function aplicarPago3($idp, $saldop, $items, $total, $retorno){
+    	if(isset($_SESSION['user_p'])){
+    		$data= new pegaso;
+			$pagina=$this->load_template('Pedidos');
+    		$html=$this->load_page('app/views/pages/p.pagarFacturas.php');
+    		ob_start();
+    			$aplicaPago = $data->aplicarPago3($idp, $saldop, $items, $total, $retorno);
+    			exit();
+    			if($retorno == 'cobranza'){
+    				$redireccionar = "CarteraxCliente&cve_maestro={$aplicaPago}";
+             		$pagina=$this->load_template('Pedidos');
+		            $html = $this->load_page('app/views/pages/p.redirectformCobranza.php');
+		            include 'app/views/pages/p.redirectformCobranza.php';
+		            $this->view_page($pagina);                     
+    			}else{
+    				$redireccionar = "SaldosxDocumento&cliente={$aplicaPago}";
+             		$pagina=$this->load_template('Pedidos');
+		            $html = $this->load_page('app/views/pages/p.redirectform.php');
+		            include 'app/views/pages/p.redirectform.php';
+		            $this->view_page($pagina);
+ 	   			}
+    	}else{
+    		$e = "Favor de iniciar Sesión";
+    		header('Location: index.php?action=login&e='.urlencode($e)); exit;
+    	}		
+    }
 }?>
 

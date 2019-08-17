@@ -24567,8 +24567,21 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	while($tsArray = ibase_fetch_object($res)){
     		$data[]=$tsArray;
     	}
-
     	return ($data);
+    }
+
+    function verXMLPAR($mes, $anio, $ide, $uuid=false, $doc){
+    	$data=array();
+    	if($ide == 'Recibidos'){
+    		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor' ), xp.*, xd.* from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor') is not null and extract(month from xd.fecha)=$mes and extract(year from xd.fecha)= $anio";
+    	}else{
+    		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor' ), xp.*, xd.* from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Cliente') is not null and extract(month from xd.fecha)=$mes and extract(year from xd.fecha)= $anio";
+    	}
+    	$res=$this->EjecutaQuerySimple();	
+    	while ($tsArray=ibase_fetch_object($res)) {
+    		$data[]=$tsArray;
+    	}
+    	return $data;
     }
 
 	function verXMLIngreso($uuid){
@@ -26813,7 +26826,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$this->grabaBD();
 			}
 		}
-		exit();
+		return;
 	}
 
 	function folioBanco($banco, $cuenta){
@@ -27106,8 +27119,131 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		}
 		$this->query="UPDATE GASTOS SET CONTABILIZADO = '$poliza' where id=$idp";
 		$this->queryActualiza();
-
-
-
 	}
+
+	function aplicarPago3($idp, $saldop, $items, $total, $retorno){
+    	$resultado = $saldop - $total;
+    	$user = $_SESSION['user_p']->NOMBRE;
+    		/// Saldo 10,000.00 Facturas 8,000.00 resultaod 2,000.00
+    	$saldoPago = $saldop; 
+    	if($resultado >= -3 ){
+    		//echo 'Entro a la aplicacion del pago';
+    		$docf= explode(',', $items);
+    		for($i=0;$i<count($docf); $i++){
+    			$doc= explode("-", $docf[$i]);
+    			$montoAplicar = $doc[1];
+    			$documento = $doc[0];
+    				$tabla = 'FACTURAS_FP';
+    				$campo = 'CVE_DOC';
+    				$campoUpd = 'documento';
+    				$tablaUpd= 'FTC_FACTURAS';
+    				
+    				$this->query = "SELECT * FROM $tabla WHERE trim($campo) = trim('$documento')";
+	    			$rs=$this->EjecutaQuerySimple();
+	    			$row = ibase_fetch_object($rs);
+	    		///exit($this->query);
+				/// insertamos la nueva aplicacion.
+	    				//echo $sf.' - '.$montoAplicar;
+	    			if($row->SALDOFINAL - $montoAplicar  >= -0.009){
+	    				//echo 'se valido la deuda';
+	    				$saldoPago = $saldoPago -$montoAplicar; 
+	    				$saldoDoc =$row->SALDOFINAL - $montoAplicar;
+	    			$this->query="INSERT INTO APLICACIONES (ID, FECHA, IDPAGO, DOCUMENTO, MONTO_APLICADO, SALDO_DOC, SALDO_PAGO, USUARIO, STATUS, RFC, FORMA_PAGO, CANCELADO, PROCESADO, CIERRE_CC, REC_CONTA) 
+	    									VALUES (NULL, current_timestamp, $idp, '$documento', $montoAplicar, $saldoDoc, $saldoPago, '$user','E' ,'$row->RFC', '$idp', 0,  0, 0, 0)";
+	    			$res=$this->EjecutaQuerySimple();
+	    			/// Calculamos los nuevos saldo y totales.
+	    			// Saldo del Pago
+	    			$this->query="UPDATE CARGA_PAGOS SET APLICACIONES = APLICACIONES + $montoAplicar, SALDO = saldo - $montoAplicar WHERE ID = $idp";
+	    			$rs = $this->EjecutaQuerySimple();
+
+	    			$this->query="SELECT * FROM CARGA_PAGOS WHERE ID = $idp";
+	    			$res=$this->EjecutaQuerySimple();
+	    			$info=ibase_fetch_object($res);
+
+		    			if($info->CLIENTE){
+		    				$this->query="UPDATE MAESTROS SET ACREEDOR = ACREEDOR-$montoAplicar WHERE ID = $info->CLIENTE";
+		    				$this->queryActualiza();
+		    			}
+
+	    			/// Saldo del Documento
+		    			if($tablaUpd =='FTC_FACTURAS'){
+							$this->query="UPDATE FTC_FACTURAS SET monto_aplicaciones = monto_aplicaciones + $montoAplicar, monto_pagos = monto_pagos + $montoAplicar, SALDO_FINAL = TOTAL - $montoAplicar - $row->IMPORTE_NC - MONTO_APLICACIONES
+		    							WHERE DOCUMENTO = '$row->CVE_DOC'";
+			    			$res=$this->EjecutaQuerySimple();		
+		    			}else{
+		    				$this->query="UPDATE $tablaUpd SET aplicado = aplicado + $montoAplicar, pagos = pagos + $montoAplicar, SALDOFINAL = IMPORTE - $montoAplicar - $row->IMPORTE_NC - APLICADO
+		    							WHERE $campoUpd = '$row->CVE_DOC'";
+			    			$res=$this->EjecutaQuerySimple();		
+		    			//echo '<br/>'.$this->query.'<br/>';
+		    			}
+	    			
+	    			$this->query="SELECT MAX(ID) as ID  FROM APLICACIONES WHERE DOCUMENTO = '$row->CVE_DOC' and PROCESADO = 0";
+	    			$res=$this->EjecutaQuerySimple();
+	    			$row2=ibase_fetch_object($res);
+	    			//echo $this->query.'<p>';
+
+	    			$this->query="UPDATE APLICACIONES SET PROCESADO = 1 WHERE ID = $row2->ID";
+	    			$result=$this->EjecutaQuerySimple();
+
+	    			$this->query="UPDATE FTC_REGISTRO_COBRANZA SET APLICACION = '$row2->ID', MONTO_APLICACION= (SELECT MONTO_APLICADO FROM APLICACIONES WHERE ID = $row2->ID ) WHERE DOCUMENTO = '$documento' and MARCA = 'A'";
+	    			$this->EjecutaQuerySimple();
+
+		    			// Actualizamos la factura con sus pagos;
+		    			if($tablaUpd == 'FTC_FACTURAS'){
+		    				$this->query="UPDATE FTC_FACTURAS SET ID_APLICACIONES = IIF(id_aplicaciones is null or id_aplicaciones= '', '$row2->ID', id_aplicaciones||', '||'$row2->ID'),
+		    			 		id_pagos= iif(id_pagos is null or id_pagos='', '$idp', id_pagos||', '||'$idp')
+		    			 		where DOCUMENTO = '$row->CVE_DOC'";
+		    			}else{
+		    				$this->query="UPDATE $tablaUpd SET ID_APLICACIONES = IIF(id_aplicaciones is null or id_aplicaciones= '', '$row2->ID', id_aplicaciones||', '||'$row2->ID'),
+		    			 		id_pagos= iif(id_pagos is null or id_pagos='', '$idp', id_pagos||', '||'$idp')
+		    			 		where $campoUpd = '$row->CVE_DOC'";
+		    			}
+	    				$rs=$this->EjecutaQuerySimple();
+	    			//echo $this->query.'<p>';
+	    			/// final
+	    			/// Analizamos la situacion del cliente
+		    			$this->query="SELECT * FROM CLIE01 WHERE CLAVE = '$row->CVE_CLPV'";
+		    			//echo 'Traemos al cliente'.$this->query.'<p>';
+		    			$res4=$this->EjecutaQuerySimple();
+		    			$row4 = ibase_fetch_object($res4);
+		    			if(!empty($row4->STATUS_COBRANZA)){
+		    					//echo 'El cliente esta suspendido'.'<p>';
+								$this->query="SELECT min(datediff(day from current_date to fecha_vencimiento)) as dias, COUNT(CVE_DOC) AS DOCS 
+												from $tabla
+											    where cve_clpv = '$row4->CLAVE'
+											        and status_fact = 'Cobranza'
+											        and extract(year from fecha_doc) >= 2016
+											        and saldofinal >= 5 ";
+								$rs5 = $this->EjecutaQuerySimple();
+								$row5 = ibase_fetch_object($rs5);
+
+								//echo 'Traemos los documentos : '.$this->query.'<p>';
+
+								if ($row5->DIAS > -7){
+								//	echo 'Ya no tiene documentos';
+									$this->query="UPDATE CLIE01 SET STATUS_COBRANZA = NULL, inicio_corte = null, finaliza_corte= null, monto_cobranza= 0 , saldo_monto_cobranza = 0 where clave ='$row4->CLAVE'";
+									$rs=$this->EjecutaQuerySimple();
+								//	echo 'Libera el Cliente'.$this->query.'<p>';
+								}
+		    			}
+	    			}else{
+
+		    			if($retorno == 'cobranza'){
+		    				return $row->CVE_MAESTRO;
+		    			}else{
+		    				return $row->CVE_CLPV;	
+		    			}
+	    			}
+    		}
+    	}else{
+    		echo 'El pago es parcial';
+    	}
+	    	if($retorno == 'cobranza'){
+	    		return $row->CVE_MAESTRO;
+	    	}else{
+	   		 	return $row->CVE_CLPV;		
+	    	}
+	    //exit('Revisar');
+	    
+    }
 }?>
