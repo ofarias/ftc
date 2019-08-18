@@ -7,7 +7,7 @@
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered table-hover" id="dataTables-example">
+                                <table class="table table-striped table-bordered table-hover" >
                                     <thead>
                                         <tr>
                                             <th>Pago</th>
@@ -69,7 +69,7 @@
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered table-hover" id="dataTables-example">
+                                <table class="table table-striped table-bordered table-hover" >
                                     <thead>
                                         <tr>
                                             <th>Aplicacion</th>
@@ -102,22 +102,12 @@
                                             <?php }else{?>
                                                 <input type="button" class="btn btn-danger canapl" name="can" value="Cancelado" disabled ><br/><b><?php echo 'Poliza: '.$key->CONTABILIZADO?></b></td>
                                             <?php }?>
-                                            <td></td>
+                                            
                                         </tr>
                                         </form>
                                         <?php endforeach; ?>
                                  </tbody>
-                                 <tfoot>
-                                     <td></td>
-                                     <td></td>
-                                     <td></td>
-                                     <td></td>
-                                     <td></td>
-                                     <td></td>
-                                     <td></td>
-                                     <td align="left" style="font-size: 20px"></td>
-                                     <td align="right" style="font-size: 20px; color:blue"></td>
-                                 </tfoot>
+                                
                                 </table>
                             </div>
                       </div>
@@ -145,7 +135,7 @@
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered table-hover" id="dataTables-example">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-aplicaGasto">
                                     <thead>
                                         <tr>
                                             <th>UUID</th>
