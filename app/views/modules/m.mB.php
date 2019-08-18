@@ -66,6 +66,17 @@
                    </div>
                </div>
             </div>
+              <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-list-alt"></i> Recibir Orden de compra</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p>Recepcion de producto </p>
+                        <center><a href="index.php?action=recepcionOC" class="btn btn-default"><img src="app/views/images/File-warning-icon.png"></a></center>
+                    </div>
+                </div>
+            </div>
              <div class="col-md-4">
                 <div class="panel panel-default">
                     <div class="panel-heading">

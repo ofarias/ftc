@@ -24573,10 +24573,12 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     function verXMLPAR($mes, $anio, $ide, $uuid=false, $doc){
     	$data=array();
     	if($ide == 'Recibidos'){
-    		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor' ), xp.*, xd.* from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor') is not null and extract(month from xd.fecha)=$mes and extract(year from xd.fecha)= $anio";
+    		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor' ), xp.*, xd.* from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor') is not null and extract(month from xd.fecha)=$mes and extract(year from xd.fecha)= $anio order by xd.fecha, xd.documento";
     	}else{
-    		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor' ), xp.*, xd.* from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Cliente') is not null and extract(month from xd.fecha)=$mes and extract(year from xd.fecha)= $anio";
+    		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente' ), xp.*, xd.* from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente') is not null and extract(month from xd.fecha)=$mes and extract(year from xd.fecha)= $anio order by xd.fecha, xd.documento";
     	}
+    	//echo $this->query;
+    	//exit();
     	$res=$this->EjecutaQuerySimple();	
     	while ($tsArray=ibase_fetch_object($res)) {
     		$data[]=$tsArray;
