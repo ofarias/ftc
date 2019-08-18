@@ -396,59 +396,75 @@ class controller_xml{
 	            $totalSaldo += $key->IMPORTE;
 	            $xls->setActiveSheetIndex()
 	                ->setCellValue('A'.$ln,$i)
-	                ->setCellValue('B'.$ln,'')
+	                ->setCellValue('B'.$ln,$key->STATUS)
 	                ->setCellValue('C'.$ln,$key->UUID)
-	                ->setCellValue('D'.$ln,'Ingreso')
+	                ->setCellValue('D'.$ln,$key->TIPO)
 	                ->setCellValue('E'.$ln,$key->SERIE.$key->FOLIO)
 	                ->setCellValue('F'.$ln,$key->FECHA)
 	                ->setCellValue('G'.$ln,'('.$key->CLIENTE.')'.utf8_encode($key->NOMBRE))
 	                ->setCellValue('H'.$ln,'('.$key->RFCE.')'.$key->CLIENTE)
-	                ->setCellValue('I'.$ln,$key->SUBTOTAL)//number_format($key->SUBTOTAL,2,".",""))
-	                ->setCellValue('J'.$ln,$key->IVA)//number_format($key->IVA,2,".",""))
-	                ->setCellValue('K'.$ln,$key->IVA_RET)//number_format($key->IVA_RET,2,".",""))
-	                ->setCellValue('L'.$ln,'')//number_format($key->IEPS,2,".",""))
-	                ->setCellValue('M'.$ln,$key->IEPS_RET)//number_format($key->IEPS_RET,2,".",""))
-	                ->setCellValue('N'.$ln,$key->ISR_RET)//number_format($key->ISR_RET,2,".",""))
-	                ->setCellValue('O'.$ln,$key->DESCUENTO)//number_format($key->DESCUENTO,2,".",""))
-	                ->setCellValue('P'.$ln,$key->IMPORTE)//number_format($key->IMPORTEXML,2,".",""))
+	                ->setCellValue('I'.$ln,$key->PARTIDA)//number_format($key->SUBTOTAL,2,".",""))
+	                ->setCellValue('J'.$ln,utf8_encode($key->DESCRIPCION))//number_format($key->IVA,2,".",""))
+	                ->setCellValue('K'.$ln,$key->UNIDAD_SAT)//number_format($key->IVA_RET,2,".",""))
+	                ->setCellValue('L'.$ln,$key->CLAVE_SAT)//number_format($key->IEPS,2,".",""))
+	                ->setCellValue('M'.$ln,$key->CUENTA_CONTABLE)//number_format($key->IEPS_RET,2,".",""))
+	                ->setCellValue('N'.$ln,$key->CANTIDAD)//number_format($key->ISR_RET,2,".",""))
+	                ->setCellValue('O'.$ln,$key->UNITARIO)//number_format($key->DESCUENTO,2,".",""))
+	                ->setCellValue('P'.$ln,$key->DESCUENTO)//number_format($key->IMPORTEXML,2,".",""))
 	                ->setCellValue('Q'.$ln,$key->MONEDA)//number_format($key->MONEDA),".","")
 	                ->setCellValue('R'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
-	                ;
+	                ->setCellValue('S'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	                ->setCellValue('T'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	                ->setCellValue('U'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	                ->setCellValue('V'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	                ->setCellValue('X'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	                ->setCellValue('Y'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	                ->setCellValue('Z'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	            ;
 	            $ln++;
 	        }
 	        $ln++;
 	        $xls->setActiveSheetIndex()
-	                ->setCellValue('A'.$ln,'Fin del resumen de documentos.');
-	                //->setCellValue('B'.$ln,'')
-	                //->setCellValue('C'.$ln,'$ '.number_format($key->SALDOFINAL-$key->IMP_TOT4,2))
-	                //->setCellValue('D'.$ln,'$ '.number_format($key->IMP_TOT4,2))
-	                //->setCellValue('E'.$ln,'$ '.number_format($key->IMPORTE,2))
-	                //->setCellValue('F'.$ln,'$ '.number_format($key->SALDO,2))
-	                //->setCellValue('G'.$ln,$key->FECHA_INI_COB)
-	                //->setCellValue('H'.$ln,$key->CVE_PEDI)
-	                //->setCellValue('I'.$ln,$key->OC);
+	            ->setCellValue('A'.$ln,'Fin del resumen de documentos.');
+	          //->setCellValue('B'.$ln,'')
+	          //->setCellValue('C'.$ln,'$ '.number_format($key->SALDOFINAL-$key->IMP_TOT4,2))
+	          //->setCellValue('D'.$ln,'$ '.number_format($key->IMP_TOT4,2))
+	          //->setCellValue('E'.$ln,'$ '.number_format($key->IMPORTE,2))
+	          //->setCellValue('F'.$ln,'$ '.number_format($key->SALDO,2))
+	          //->setCellValue('G'.$ln,$key->FECHA_INI_COB)
+	          //->setCellValue('H'.$ln,$key->CVE_PEDI)
+	          //->setCellValue('I'.$ln,$key->OC);
 	        /// 
-	            $xls->getActiveSheet()
-	                ->setCellValue('A1',$df->RAZON_SOCIAL);
+	        $xls->getActiveSheet()
+	            ->setCellValue('A1',$df->RAZON_SOCIAL)
+	        ;
 	        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
 	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(5);
-	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(45);
-	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(10);
-	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(25);
-	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(17);
+	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(40);
+	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(20);
 	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth($l_g);
 	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth($l_h);
-	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(100);
+	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(50);
+	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(10);
 	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(5);
-	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension('T')->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension('U')->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension('V')->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension('W')->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension('X')->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension('Y')->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension('Z')->setWidth(10);
 	        
 	        // Hacer las cabeceras de las lineas;
 	        //->setCellValue('9','')
@@ -459,19 +475,26 @@ class controller_xml{
 	            ->setCellValue('D9','TIPO')
 	            ->setCellValue('E9','FOLIO')
 	            ->setCellValue('F9','FECHA')
-	            ->setCellValue('G9','RFC RECEPTOR')
-	            ->setCellValue('H9','RFC EMISOR')
-	            ->setCellValue('I9','SUBTOTAL')
-	            ->setCellValue('J9','IVA')
-	            ->setCellValue('K9','RETENCION IVA')
-	            ->setCellValue('L9','IEPS')
-	            ->setCellValue('M9','RETENCION IEPS')
-	            ->setCellValue('N9','RETENCION ISR')
-	            ->setCellValue('O9','DESCUENTO')
-	            ->setCellValue('P9','TOTAL')
-	            ->setCellValue('Q9','MON')
-	            ->setCellValue('R9','TC')
-	            ;
+	          	->setCellValue('G9','RECEPTOR')
+	            ->setCellValue('H9','EMISOR')
+	            ->setCellValue('I9','PARTIDA')
+	            ->setCellValue('J9','DESCRIPCION')
+	            ->setCellValue('K9','UNIDAD SAT')
+	            ->setCellValue('L9','CLAVE SAT')
+	            ->setCellValue('M9','CUENTA CONTABLE')
+	            ->setCellValue('N9','CANTIDAD')
+	            ->setCellValue('O9','PRECIO')
+	            ->setCellValue('P9','MONEDA')
+	            ->setCellValue('Q9','TIPO CAMBIO')
+	            ->setCellValue('R9','SUBTOTAL')
+	            ->setCellValue('S9','IVA')
+	            ->setCellValue('T9','IEPS')
+	            ->setCellValue('U9','ISR')
+	            ->setCellValue('V9','TOTAL')
+	            ->setCellValue('W9','')
+	            ->setCellValue('X9','')
+	        ;
+
 	        $nom_mes = $this->nombreMes($mes);
 	        $xls->getActiveSheet()
 	            ->setCellValue('A3','Resumen de Documentos XML '.$doc.' '.$ide. ' del mes de '.$nom_mes.' del '. $anio)
