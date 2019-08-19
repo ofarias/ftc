@@ -23656,12 +23656,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
         $file=str_replace(".xml", "", $file);
         $uuid=$a['uuid'];
         $tcf=$a['tcf'];
-        $this->query= "INSERT INTO XML_DATA_FILES (ID,NOMBRE,ARCHIVO,FECHA,USUARIO,TIPO, UUID, TIPO_FISCAL)VALUES(NULL,'$archivo','$file','$HOY','$usuario', '$tipo', '$uuid','$tcf')";
+        $this->query="INSERT INTO XML_DATA_FILES (ID,NOMBRE,ARCHIVO,FECHA,USUARIO,TIPO, UUID, TIPO_FISCAL)VALUES(NULL,'$archivo','$file','$HOY','$usuario', '$tipo', '$uuid','$tcf')";
         //echo "sql = ".$this->query;
         $respuesta = $this->grabaBD();
         $this->insertaXMLData($archivo, $tipo, $uuid);
         $this->actParametros($uuid, $tipo);
-        $this->revisaParametros($uuid);
         return $respuesta;
     }
 
@@ -24384,8 +24383,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	            //s$this->EjecutaQuerySimple();
             	exit($UUID);
         	}
-
-
         return;
      }
 

@@ -20024,6 +20024,7 @@ function ImprimeFacturaPegaso($factura, $destino){
                     }
                 }
             }
+        	$data->revisaParametros($uuid); /// Revisa los parametros. 
             echo "<br/><br/><b>Archivos cargados con exito: $count-$respuesta</b>";
             $this->facturacionSeleccionaCargaXML($tipo);
         } else {
@@ -20608,7 +20609,7 @@ function ImprimeFacturaPegaso($factura, $destino){
         if($mensaje == ''){
             
         }else{
-            echo '<script> alert("Se ha enviado el correo favor de confirmar con el remitente..."); window.close();</script>';
+            echo '<script> alert("Se ha enviado el correo favor de confirmar con el remitente..."); </script>';
         }
         return;
 	}
