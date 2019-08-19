@@ -20024,7 +20024,7 @@ function ImprimeFacturaPegaso($factura, $destino){
                     }
                 }
             }
-        	$data->revisaParametros($uuid); /// Revisa los parametros. 
+        	$data->revisaParametros(); /// Revisa los parametros. 
             echo "<br/><br/><b>Archivos cargados con exito: $count-$respuesta</b>";
             $this->facturacionSeleccionaCargaXML($tipo);
         } else {
