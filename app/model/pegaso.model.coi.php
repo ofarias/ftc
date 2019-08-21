@@ -1382,7 +1382,6 @@ class CoiDAO extends DataBaseCOI {
                         $this->query="SELECT * FROM FTC_PARAM_COI WHERE status = 1 and IMPUESTO = '$impt->IMPUESTO' AND round(TASA,3) = $impt->TASA AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = 'Dr' and tipo_xml='$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
                         $rs=$this->EjecutaQuerySimple();
                         $rimpCP = ibase_fetch_object($rs);
-
                         //// IVA pendiente de pago  1190-001-000 haber 
                         $ctaIVApp =$rimpCP->CUENTA_CONTABLE;//'119000100000000000002';
                         $par++;

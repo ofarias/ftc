@@ -559,6 +559,7 @@
                     var clpv = data.proveedor
                     var ctaclpv =data.ctaProvCoi
                     var monto = data.monto
+                    var obs = data.obs
                     if(ctacoi === null || ctacoi == '' ){
                         $.alert('El Banco ' + banco + ' con la cuenta '+ cta +' no tiene cuenta contable, favor de revisar')
                         return false;
@@ -573,7 +574,8 @@
                         content: 'Se registrara con los siguientes Valores <br/>' +
                         '<b>Banco:</b> ' + banco + ',<b> cuenta: </b>' + cta + '<b> coi: </b>' + ctacoi + 
                         '<br/><b>Proveedor </b>' + clpv + '<b> coi: </b>' + ctaclpv +
-                        '<br/><b>Monto: ' + monto + '</b>' 
+                        '<br/><b>Monto: </b> ' + monto + 
+                        '<br/><b>Observaciones:<b/>' + obs  
                         ,
                         buttons: {
                             formSubmit:{

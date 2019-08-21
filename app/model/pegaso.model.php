@@ -26367,6 +26367,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$data = array();	
 		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) AS MONTO, SUM(BASE) AS BASE  FROM XML_IMPUESTOS WHERE UUID in ($uuid) group by impuesto, tasa, tipofactor, Tipo";
 		$res=$this->EjecutaQuerySimple();
+		//echo $this->query;
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
 		}	
@@ -26683,10 +26684,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function traePago($idp, $t){
 		if($t == 'Egreso'){
-			$this->query="SELECT C.*, (SELECT CTA_CONTAB FROM PG_BANCOS b WHERE b.BANCO =  C.banco and b.NUM_cuenta = c.cuenta) AS CCOI, (SELECT NOMBRE FROM XML_CLIENTES WHERE IDCLIENTE = substring(c.proveedor from 5) ) as nom_prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES WHERE IDCLIENTE = substring(c.proveedor from 5) ) as ctaCoiProv, extract(month from c.fecha_edo_cta) as periodo, extract(year from c.fecha_edo_cta) as ejercicio FROM CR_DIRECTO C WHERE ID = $idp";
+			$this->query="SELECT C.*, (SELECT CTA_CONTAB FROM PG_BANCOS b WHERE b.BANCO =  C.banco and b.NUM_cuenta = c.cuenta) AS CCOI, (SELECT NOMBRE FROM XML_CLIENTES WHERE IDCLIENTE = substring(c.proveedor from 5) ) as nom_prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES WHERE IDCLIENTE = substring(c.proveedor from 5) ) as ctaCoiProv, extract(month from c.fecha_edo_cta) as periodo, extract(year from c.fecha_edo_cta) as ejercicio, C.REFERENCIA AS OBS FROM CR_DIRECTO C WHERE ID = $idp";
 			$res=$this->EjecutaQuerySimple();
 			$row=ibase_fetch_object($res);
-			return array("status"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->IMPORTE, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "proveedor"=>$row->NOM_PROV,"monto"=>"$ ".number_format($row->IMPORTE,2), "ctaProvCoi"=>$row->CTACOIPROV, "fecha_edo"=>$row->FECHA_EDO_CTA, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->FACTURA, "importe"=>$row->IMPORTE);
+			return array("status"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->IMPORTE, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "proveedor"=>$row->NOM_PROV,"monto"=>"$ ".number_format($row->IMPORTE,2), "ctaProvCoi"=>$row->CTACOIPROV, "fecha_edo"=>$row->FECHA_EDO_CTA, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->FACTURA."-->".$row->OBS, "importe"=>$row->IMPORTE, "obs"=>$row->OBS);
 		}elseif($t = 'Ingreso'){
 			$this->query="SELECT C.*, 
                				(select CTA_CONTAB
@@ -26710,7 +26711,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$res=$this->EjecutaQuerySimple();
 			$row=ibase_fetch_object($res);
 
-			return array("statsu"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->MONTO, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "proveedor"=>$row->NOM_PROV,"monto"=>"$ ".number_format($row->MONTO,2), "ctaProvCoi"=>$row->CTACOIPROV, "fecha_edo"=>$row->FECHA_RECEP, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->OBS, "importe"=>$row->MONTO);
+			return array("statsu"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->MONTO, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "proveedor"=>$row->NOM_PROV,"monto"=>"$ ".number_format($row->MONTO,2), "ctaProvCoi"=>$row->CTACOIPROV, "fecha_edo"=>$row->FECHA_RECEP, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->OBS, "importe"=>$row->MONTO, "obs"=>$row->OBS);
 		}
 	}
 

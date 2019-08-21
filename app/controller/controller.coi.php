@@ -195,7 +195,8 @@ class controller_coi{
 		if($_SESSION['user']){
 			$data = new pegaso;
 			$data_coi= new CoiDAO;
-			$impuestos2=$data->impuestosPolizaFinal($uuid);
+			$u = "'".$uuid."'";
+			$impuestos2=$data->impuestosPolizaFinal($u);
 			$infoPoliza=$data->traePago($idp, $tipo);
 			$pol = $data->cabeceraDocumento($uuid);
 			$res=$data_coi->polizaFinal($uuid, $tipo, $idp, $infoPoliza, $impuestos2, $tipoXML, $pol);
