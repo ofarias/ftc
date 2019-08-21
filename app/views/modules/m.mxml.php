@@ -13,7 +13,11 @@
                 </div>
                 <div class="panel-body">
                     <p>Configuracion</p>
-                    <center><a href="index.coi.php?action=cuentasImp" class="btn btn-default">Cuentas Impuestos</a>
+                    <?php if($cnxcoi=='si'){?>
+                        <center><a href="index.coi.php?action=cuentasImp" class="btn btn-default">Cuentas Impuestos</a>
+                    <?php }else{?>
+                        <center><a onclick="info()" class="btn btn-default">Cuentas Impuestos</a>
+                    <?php }?>
                     </center>
                 </div>
             </div>
@@ -141,6 +145,9 @@
             var anio = document.getElementById(anio).value
             window.open("index.php?action=mXMLSP&tipo="+tipo+"&anio="+anio, "self");
             return false;
+        }
 
+        function info(){
+            $.alert('No se encontro la conexion a la BD de COI, favor de comunicarse con Soporte Tecnico al 55-5055-3392')
         }
     </script>

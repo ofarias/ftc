@@ -4,6 +4,12 @@ require_once 'app/model/database.coi.php';
 /* Clase para hacer uso de database */
 class CoiDAO extends DataBaseCOI {
 
+    function validaConexion(){
+        $res=$this->checkConnect();
+        empty($res)? $_SESSION['cnxcoi']='no':$_SESSION['cnxcoi']='si';
+        return $res;
+    }
+
     function traeParametros(){
         $this->query="SELECT * FROM PARAMEMP";
         $res = $this->EjecutaQuerySimple();

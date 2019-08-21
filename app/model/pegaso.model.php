@@ -20,11 +20,12 @@ class pegaso extends database{
 		 	$res = $this->EjecutaQuerySimple();
 		 	$log = ibase_fetch_object($res);
 		 	if(isset($log) > 0){
-				/*Creamos variable de sesion*/
 					$mySQL = new ftc;
+					$coi = new CoiDAO;
 					$empresas = $mySQL->loginMysql($user, $pass);	
 					$_SESSION['user'] = $log;
 					$_SESSION['coi']=$empresas;
+					$cxncoi = $coi->validaConexion();
 					$logFtc=$this->registroLogin();
 					return $_SESSION['user'];				
 			}else{
@@ -72,6 +73,9 @@ class pegaso extends database{
 		$data2=array();
 		$autoPoliza=array();
 		$fi = $_SESSION['empresa']['fecha_inicio'];
+		if($_SESSION['cnxcoi']=== 'no'){
+			return array("status"=>'ok', "mensaje"=>"No se encontro conexion con coi :|", "title"=>'Polizas Automaticas');
+		}
 		if(!empty($uuid)){
 			$this->query="SELECT * FROM XML_DATA XD LEFT JOIN XML_POLIZAS XP ON XP.UUID = XD.UUID WHERE XD.UUID = '$uuid'";
 		}else{
@@ -10936,9 +10940,9 @@ function Pagos() {
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
-		$this->query="SELECT 7 as s, fecha_edo_cta as sort , 'Compra a Credito' as TIPO, ('SOL-'||idsol) as consecutivo, fecha_edo_cta as fechamov, 0 as abono, monto_final as cargo, 0 as saldo, '$banco' as BANCO, usuario_pago as usuario, 'Compra' as TP, ('SOL-'||idsol) as identificador, registro as registro, 'FA' as FA, fecha_edo_cta as fe, FECHA_EDO_CTA_OK as comprobado , contabilizado, SELECCIONADO, '' AS CEP, '' AS ARCHIVO_CEP, '' as obs
+		$this->query="SELECT 7 as s, coalesce(fecha_edo_cta, fecha) as sort , 'Compra a Credito' as TIPO, ('SOL-'||idsol) as consecutivo, coalesce(fecha_edo_cta, fecha) as fechamov, 0 as abono, monto_final as cargo, 0 as saldo, '$banco' as BANCO, usuario_pago as usuario, 'Compra' as TP, ('SOL-'||idsol) as identificador, registro as registro, 'FA' as FA, coalesce(fecha_edo_cta, fecha) as fe, FECHA_EDO_CTA_OK as comprobado , contabilizado, SELECCIONADO, tp_tes_final as tp_tes, '' AS CEP, '' AS ARCHIVO_CEP, '' as obs
 			FROM SOLICITUD_PAGO
-			WHERE EXTRACT(month from fecha_edo_cta) = $mes and extract(year from fecha_edo_cta) = $anio and banco_final=('$banco'||' - '||'$cuenta')  and (seleccionado = 2 ) order by fecha_edo_cta asc";
+			WHERE iif(fecha_edo_cta is null, EXTRACT(month from fecha), EXTRACT(month from fecha_edo_cta)) = $mes and iif(fecha_edo_cta is null, extract(year from fecha), extract(year from fecha_edo_cta)) = $anio and banco_final=('$banco'||' - '||'$cuenta')  and (seleccionado = 2 ) order by coalesce(fecha_edo_cta, fecha) asc";
     	//echo $this->query;
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray = ibase_fetch_object($rs)){

@@ -28,9 +28,9 @@
     <link rel="stylesheet" href="app/views/bower_components/font-awesome/css/font-awesome.min.css">
     <!--jQuery UI Core-->
     <link rel="stylesheet" href="app/views/bower_components/jquery-ui/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="/resources/demos/style.css">
+    <!--<link rel="stylesheet" href="/resources/demos/style.css">-->
     <!--jQuery time-->
-    <link rel="stylesheet" href="app/views/dist/css/bootstrap-timepicker.css" />
+    <!--<link rel="stylesheet" href="app/views/dist/css/bootstrap-timepicker.css" />-->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css" />
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->

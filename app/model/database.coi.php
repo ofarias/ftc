@@ -8,7 +8,14 @@
 		protected $query;
 		private $host= 'C:\\ftc\\coi.fdb';
    		//private $host = "192.168.100.95/3050:C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\COI8.00\Datos\Empresa13\COI80EMPRE13.FDB";
-		private function AbreCnx(){
+   		
+   		protected function checkConnect(){
+   			$host = $_SESSION['r_coi'];
+			@$res=$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
+			return $res;
+   		}
+
+   		private function AbreCnx(){
 			$host = $_SESSION['r_coi'];
 			$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
 		}

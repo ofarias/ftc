@@ -569,6 +569,7 @@ class pegaso_controller{
 			$periodos=$data->traePeriodosXML();
 			ob_start();
 			$table = ob_get_clean();
+			$cnxcoi=$_SESSION['cnxcoi'];
 			include 'app/views/modules/m.mxml.php';
 			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
 			$this->view_page($pagina);
@@ -20069,6 +20070,7 @@ function ImprimeFacturaPegaso($factura, $destino){
   			$html=$this->load_page('app/views/pages/xml/p.verXMLSP.php');
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
+  			$cnxcoi=$_SESSION['cnxcoi'];
   			$uuid =false;
     		$info=$data->verXMLSP($mes, $anio, $ide, $uuid, $doc);
     		include 'app/views/pages/xml/p.verXMLSP.php';
@@ -20101,15 +20103,22 @@ function ImprimeFacturaPegaso($factura, $destino){
   			$html=$this->load_page('app/views/pages/xml/p.verXML.php');
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
-  			//$actualiza=$coi->
+  			$cnxcoi =$_SESSION['cnxcoi'];
+    		$cccliente='Sin Cuenta Actual';
+    		$ccC=array();
+    		$ccpartidas=array();
+    		$cimpuestos=array();
+    		$param=array();
   			$infoCabecera=$data->verXMLSP($mes=false, $anio= false, $ide, $uuid, $doc=false);
     		$info=$data->verXML($uuid, $ide);
-    		$cccliente=$coi->traeCuentaCliente($infoCabecera, $ide);
-    		$ccC=$coi->traeCatalogoCuentas($tipo='V', $ide);
-    		//$ccG=$coi->traeCatalogoCuentas($tipo='G');
-    		$ccpartidas=$coi->traeCuentasSAT($info);
-    		$cimpuestos=array("iva"=>'0101010101010',"ieps"=>'0202020202020', "isr"=>'0303030303030');
-    		$param=$coi->traeParametros();
+    		if($cnxcoi=='si'){
+    			$cccliente=$coi->traeCuentaCliente($infoCabecera, $ide);
+    			$ccC=$coi->traeCatalogoCuentas($tipo='V', $ide);
+    			//$ccG=$coi->traeCatalogoCuentas($tipo='G');
+    			$ccpartidas=$coi->traeCuentasSAT($info);
+    			$cimpuestos=array("iva"=>'0101010101010',"ieps"=>'0202020202020', "isr"=>'0303030303030');
+    			$param=$coi->traeParametros();
+    		}
     		include 'app/views/pages/xml/p.verXML.php';
   			$table = ob_get_clean();
   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
@@ -20130,7 +20139,6 @@ function ImprimeFacturaPegaso($factura, $destino){
   			$this->view_page($pagina);
     	}
     }
-
 
     function editarArticulo($art, $tipo){
     	if($_SESSION['user']){

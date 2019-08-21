@@ -1,5 +1,6 @@
 <br/>
 <br/>
+<?php if($cnxcoi == 'si'){?>
 <?php foreach($infoCabecera as $pol){
     $polizas=$pol->POLIZA;
     if($_SESSION['rfc'] == $pol->RFCE){
@@ -30,6 +31,9 @@
         <br/>
     <?php }?>
 </div>
+<?php }else{ ?>
+    <label><font size="5 pxs"> <b>NO SE DETECTO CONEXIÓN CON ASPEL COI.</b></font></label>
+<?php }?>
 <!--
 <div style="float: left; width: 400px;" >
     <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cuenta de IVA : &nbsp;&nbsp;&nbsp; <?php echo '<b>'.$cimpuestos['iva'].'</b>' ?></p>
@@ -47,13 +51,15 @@
         $uuid=$key0->UUID;
     }
 ?>
-<?php $dig=$param->NIVELACTU;
-    for ($i=1; $i <= $dig ; $i++) { 
-        $a = "DIGCTA".$i;
-        $c=$param->$a;    
-        $p[]=($c);
-    }                                                         
-?>
+<?php if($cnxcoi=='si'){?>
+    <?php $dig=$param->NIVELACTU;
+        for ($i=1; $i <= $dig ; $i++) { 
+            $a = "DIGCTA".$i;
+            $c=$param->$a;    
+            $p[]=($c);
+        }                                                         
+    ?>
+<?php }?>
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
