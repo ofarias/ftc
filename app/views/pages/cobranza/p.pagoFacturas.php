@@ -9,7 +9,7 @@
     <div class="col-lg-12">
         <div class="panel panel-default"> 
             <div class="panel-heading">
-                A P L I C A C I O N.  
+                A P L I C A C I O N  D E  P A G O.  
             </div>
   <div class="panel-body">
                             <div class="table-responsive">
@@ -20,13 +20,14 @@
                                         $cep = $key->CEP;
                                 ?>
                                     <form action="index.php" method="post">
+                                        <label> <?php echo $key->BANCO?> </label><br>
                                         <label> El monto del pago es de: $ <?php echo number_format($key->MONTO,2)?> </label><br>
                                         <?php if(!empty($key->CF)){?>
                                             <label><font color="brown">Cargos Financieros <?php echo $key->CF?> por un monto de:<?php echo '$ '.$key->MONTO_CF?></font></label><br/>
                                         <?php }?>                                        
                                         <input type="hidden" name="idpago" value="<?php echo $key->ID?>">   
                                         <label> El saldo actual es de: $ <?php echo number_format($key->SALDO,2)?>   ---------->    </label>   <button name='imprimirComprobante' value="enviar" type="submit" class="btn btn-info">IMPRIMIR RELACION DEL PAGO</button><br> 
-                                        <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label><br>
+                                        <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn btn-info conta" tipo="total" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a><br>
                                     </form>
                                 <?php endforeach; ?>
                                     <br/>
@@ -92,12 +93,6 @@
                                             <th>Monto Aplicado</th>
                                             <th>Saldo Pago</th>
                                             <th>Usuario</th>
-                                            <?php if($rol == 'cxcc'){?>
-                                            <th></th>
-                                            <?php }else{?>
-                                            <th>Contabilizar</th>
-                                            <?php }?>
-                                           
                                         </tr>
                                     </thead>                                   
                                   <tbody>
@@ -115,20 +110,7 @@
                                             <td><?php echo '$ '.number_format($data->MONTO_APLICADO,2);?></td>
                                             <td><?php echo '$ '.number_format($data->SALDO_PAGO,2)?></td>
                                             <td><?php echo $data->USUARIO?></td>
-                                            <form action="index.php" method="post">
-                                            <?php if($rol== 'cxcc'){?>
-                                            <td>
-                                            
-                                            </td>
-                                            <?php }else{?>
-                                            <td>
-                                                <button type ="submit" value="enviar" name="contVenta" <?php echo ($data->CONTABILIZADO == 'OK')? "class='btn btn-success'":"class='btn btn-info'"?> <?php echo ($data->CONTABILIZADO == 'OK')? "disabled = 'disabled'":"" ?> > <?php echo ($data->CONTABILIZADO == 'OK')? 'Contabilizado':'Contabilizar' ?> </button>
-                                            </td>
-                                            <?php }?>
-                                                 
-                                            </form>
                                         </tr>
-                                        
                                         <?php endforeach; ?>
                             
                                  </tbody>
@@ -144,7 +126,7 @@
     <div class="col-lg-12">
         <div class="panel panel-default"> 
             <div class="panel-heading">
-                A P L I C A C I O N.  
+                A P L I C A C I O N&nbsp;&nbsp;&nbsp;&nbsp;D E&nbsp;&nbsp;&nbsp;&nbsp;F A C T U R A S.  
             </div>
   <div class="panel-body">
                             <div class="table-responsive">
@@ -154,10 +136,12 @@
                                         $folio = $key->ID;
                                         $maestro = $key->MAESTRO;
                                 ?>
+                                    <label><?php echo $key->BANCO?></label>
                                     <label> El monto del pago es de: $ <?php echo number_format($key->MONTO,2)?> </label><br>
                                     <label> El saldo actual es de: $ <?php echo number_format($key->SALDO,2)?>  <br> 
-                                    <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label><br>
-                                    <label> Identificado para el Maestro <font color="blue"><?php echo $key->MAESTRO?></font>&nbsp;&nbsp;&nbsp;<a onclick="cambiaAsoc(<?php echo $folio?>)"><font color="#b3b3ff">Cambiar Asociaciona</font></a></label>
+                                    <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a><br>
+                                    <label> Identificado para el Maestro <font color="blue"><?php echo $key->MAESTRO?></font>&nbsp;&nbsp;&nbsp;<a onclick="cambiaAsoc(<?php echo $folio?>)"><font color="#b3b3ff">Cambiar Asociaciona</font>&nbsp;&nbsp;&nbsp;</a></label>
+                                    <br/><br/>
                                     <form action="upload_comprobante_pago_v2.php" method="post" enctype="multipart/form-data" id="formulario">
                                         <input type="file" name="fileToUpload" id="fileToUpload" required accept=".pdf" >
                                         <input type="hidden" name="idp" value="<?php echo $key->ID?>">
@@ -165,6 +149,7 @@
                                         <input type="hidden" name="items" value="" id="item">
                                         <input type="hidden" name="total" value="" id="montoAplicar">
                                         <input type="hidden" name="retorno" value="aplicaPagoEdoCta">
+                                        <br/>
                                         <label><input type="button" name="apli" id="aplicar" class="btn btn-info" value="Aplicar"></label>
                                         <input type="hidden" name="pa" id="pago" value="<?php echo $key->SALDO?>">
                                     </form>
@@ -188,47 +173,31 @@
                                         <tr>
                                             <th>No.Aplicacion</th>
                                             <th>Clave</th>
-                                            <th>CLIENTE</th>
+                                            <th>CLIENTE<br/><font color="blue">UUID Documento</font></th>
                                             <th>Fecha Aplicacion</th>
                                             <th>Documento</th>
                                             <th>Importe</th>
-                                            <th>Saldo Documento</th>
                                             <th>Monto Aplicado</th>
+                                            <th>Saldo Documento</th>
                                             <th>Saldo Pago</th>
                                             <th>Usuario</th>
-                                            <?php if($rol == 'cxcc'){?>
-                                            <th></th>
-                                            <?php }else{?>
-                                            <th>Contabilizar</th>
-                                            <?php }?>
                                         </tr>
                                     </thead>                                   
                                   <tbody>
                                         <?php 
                                         foreach ($facturas as $data):
-                                    
                                             ?>
                                         <tr>
                                             <td><?php echo $data->ID;?><br/><input type="button" name="can" value="Cancelar" class="btn-small btn-danger" onclick="cApli(<?php echo $data->ID?>, '<?php echo $data->DOCUMENTO?>', <?php echo $folio?>)"></td>
                                             <td><?php echo $data->CLAVE?></td>
-                                            <td><?php echo $data->CLIENTE;?></td>
+                                            <td><?php echo $data->CLIENTE;?><br/><font color="blue"><b><?php echo $data->OBSERVACIONES?></b></font></td>
                                             <td><?php echo $data->FECHA;?></td>
                                             <td><?php echo $data->DOCUMENTO.'<font color="red"> FP:'.$data->FORMADEPAGOSAT.'</font><font color="blue">MP:'.$data->METODODEPAGO.'</font><font color="green">USO:'.$data->USO_CFDI.'</font>';?></td>
                                             <td><?php echo '$ '.number_format($data->IMPORTE,2)?></td>
-                                            <td><?php echo '$ '.number_format($data->SALDO_DOC,2);?></td>
                                             <td><?php echo '$ '.number_format($data->MONTO_APLICADO,2);?></td>
+                                            <td><?php echo '$ '.number_format($data->SALDO_DOC,2);?></td>
                                             <td><?php echo '$ '.number_format($data->SALDO_PAGO,2)?></td>
-                                            <td><?php echo $data->USUARIO?></td>
-                                            <form action="index.php" method="post">
-                                            <?php if($rol== 'cxcc'){?>
-                                            <td>
-                                            </td>
-                                            <?php }else{?>
-                                            <td>
-                                                <button type ="submit" value="enviar" name="contVenta" <?php echo ($data->CONTABILIZADO == 'OK')? "class='btn btn-success'":"class='btn btn-info'"?> <?php echo ($data->CONTABILIZADO == 'OK')? "disabled = 'disabled'":"" ?> > <?php echo ($data->CONTABILIZADO == 'OK')? 'Contabilizado':'Contabilizar' ?> </button>
-                                            </td>
-                                            <?php }?> 
-                                            </form>
+                                            <td><?php echo $data->USUARIO?></td> 
                                         </tr>
                                         <?php endforeach; ?>
                                  </tbody>
@@ -240,13 +209,14 @@
         </div>
     <?php }?>
 
-<label>Buscar Factura: </label><br/>
+<!--<label>Buscar Factura: </label><br/>
 Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactura" style="text-transform:uppercase;">
 <br/>
 <label id="info"></label>
-
+-->
 <br/>
-<label>Por Aplicar: </label><p id="xApl">$ 0.00</p>
+<font size="5pxs" color="white" id="pa"><label>Por Aplicar: </label><p id="xApl">$ 0.00</p></font>
+
 <div class="row">
     <div class="col-lg-12">
         <div class="panel panel-default"> 
@@ -256,18 +226,18 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
             </div>
                     <div class="panel-body">
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered table-hover">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-aplicaFactura">
                                     <thead>
                                         <tr>
                                             <th>Ln</th>
                                             <th>Factura</th>
                                             <th>Fecha</th>
-                                            <th>CLIENTE</th>
+                                            <th>CLIENTE<br/><font color="blue">UUID Documento</font></th>
                                             <th>Importe</th>
                                             <th>Saldo</th>
                                             <th>Aplicar</th>
                                             <th>Saldo Insoluto</th>
-                                            <th></th>
+                                            <th>Aplicar</th>
                                         </tr>
                                     </thead>                                   
                                   <tbody>
@@ -279,12 +249,12 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
                                             <td><?php echo $ln?></td>
                                             <td><?php echo $data->CVE_DOC;?></td>
                                             <td><?php echo $data->FECHAELAB?></td>
-                                            <td><?php echo $data->CLIENTE;?><?php echo isset($data->NOMBRE)? ' &nbsp; <b><font color="grey">'.$data->NOMBRE.'</font></b>':''?></td>
+                                            <td><?php echo $data->CLIENTE;?><?php echo isset($data->NOMBRE)? ' &nbsp; <b><font color="grey">'.$data->NOMBRE.'</font></b>':''?><br/><font color="blue"><b><?php echo $data->UUID?></b></font></td>
                                             <td><?php echo '$ '.number_format($data->IMPORTE,2);?></td>
                                             <td><?php echo '$ '.number_format($data->SALDOFINAL,2)?><br/><a class='sd' saldo="<?php echo $data->SALDOFINAL?>" ln="<?php echo $ln?>">Saldar</a></td>
                                             <td><input type="number" step="any" name="montoAplicar" class="apl" ln="<?php echo $ln?>" saldo="<?php echo $data->SALDOFINAL?>" doc="<?php echo $data->CVE_DOC?>" id="ma_<?php echo $ln?>"></td>
                                             <td><label id="saldoInsoluto_<?php echo $ln?>"></label></td>
-                                            <td><?php echo 'Ver detalle de la factura'?></td>
+                                            <td><input type="button" name="" value="Aplicar" class="aplicaInd" saldo="<?php echo $key->SALDO?>" ln="<?php echo $ln?>" idp="<?php echo $idp?>" uuid="<?php echo $data->UUID?>"></td>
                                         </tr>
                                         <?php endforeach; ?>
                                  </tbody>
@@ -299,6 +269,38 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
 <script type="text/javascript">
     $("#infoPago").mouseover(function(){
         alert('Informacion del pago');
+    })
+
+    $(".aplicaInd").click(function(){
+        var ln = $(this).attr('ln')
+        var monto = parseFloat(document.getElementById('ma_'+ln).value)
+        var saldo = parseFloat($(this).attr('saldo'))
+        var saldoI = saldo - monto
+        var idp = $(this).attr('idp')
+        var uuid = $(this).attr('uuid')
+        if(isNaN(monto)){
+            $.alert('La casilla Aplicar esta vacia para la linea ' + ln + ', favor de correguir.')
+            return
+        }
+        if(saldoI > -0.001 ){
+            //$.alert('Aplica individual' + monto + ' Salo pago: ' + saldo + ' saldo insoluto ' + saldoI)
+            $.ajax({
+                url:'index.cobranza.php',
+                type:'post',
+                dataType:'json',
+                data:{aplicaInd:1, idp, monto, uuid},
+                success:function(data){
+                    var m = data.mensaje
+                    //$.alert('El saldo del doc es: '+ m)
+                    location.reload(true)
+                },
+                error:function(){
+                    $.alert('Lo sentimos pero encontramos un error, favor de reportar a sistemas.')
+                }
+            })
+        }else{
+            $.alert('No se puede aplicar Aplica individual' + monto + ' Salo pago: ' + saldo + ' saldo insoluto ' + saldoI)
+        }
     })
 
     $("#bfactura").change(function(){
@@ -688,6 +690,37 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
             document.getElementById("fin").classList.add("hide");
         }
     }
+
+    $('.conta').click(function(){
+        var idp = $(this).attr('idp')
+        var tipo = $(this).attr('tipo')
+        var info = $(this).attr('info')
+        var y = ''
+        //$.alert('Contabilizar el pago' + idp + " tipo " + tipo)
+       $.confirm({
+            title: 'Creacion de poliza de Ingreso',
+            content: 'Desea crear la poliza de Ingreso ' + info, 
+            buttons: {
+                aceptar:function(){
+                    $.ajax({
+                        url:'index.coi.php',
+                        type:'post',
+                        dataType:'json',
+                        data:{contabilizaIg:1, idp, tipo, y},
+                        success:function(data){
+
+                        },
+                        error:function(){
+                            $.alert("Es penoso, pero encontramos un error, favor de reportar a sistemas.")
+                        }
+                    })
+                },
+                cancelar: function () {
+                    return
+                }
+            }
+        });
+    })
 
 </script>
 

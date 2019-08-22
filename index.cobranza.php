@@ -116,7 +116,12 @@ if (isset($_POST['cobranza'])){
 	$res=$controller_cxc->actAcr();
 	echo json_encode($res);
 	exit();
-}else{
+}elseif(isset($_POST['aplicaInd'])){
+	$res=$controller_cxc->aplicaInd($_POST['idp'],$_POST['monto'], $_POST['uuid']);
+	echo json_encode($res);
+	exit();
+}
+else{
 	switch ($_GET['action']){
 	case 'cobranza':
 		$controller_cxc->cobranza();

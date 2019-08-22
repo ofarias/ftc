@@ -1177,5 +1177,13 @@ class pegaso_controller_cobranza{
         } 
     }
 
+    function aplicaInd($idp, $monto, $uuid){
+        if($_SESSION['user']){
+            $data= new pegasoCobranza;
+            $aplica=$data->aplicaInd($idp, $monto, $uuid);
+            return $aplica;
+        }
+    }
+
 }
 ?>

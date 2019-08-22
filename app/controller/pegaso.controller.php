@@ -11820,24 +11820,23 @@ function fallarOC($doco){
         $usuario = $_SESSION['user']->NOMBRE;
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        
         $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
-        $pdf->Ln(60); 
+        $pdf->Ln(25); 
         $pdf->SetFont('Arial', 'B', 8);
         foreach ($generales as $data){
-        $pdf->Write(6,'ID:'.$data->ID);
-        $pdf->Ln();
-        $pdf->Write(6,'Fecha Estado de Cuenta: '.$data->FECHA_RECEP);
-        $pdf->Ln();
-        $pdf->Write(6,'Banco: '.$data->BANCO);
-        $pdf->Ln();
-        $pdf->Write(6,'Monto: $'.number_format($data->MONTO,2));
-        $pdf->Ln();
-        $pdf->Write(6,'Saldo Actual: $'.number_format($data->SALDO,2));
-        $pdf->Ln();
-        $pdf->Write(6,'Usuario Registra: '.$data->USUARIO);
-        $pdf->Ln();
-        $pdf->Write(6,'Fecha y hora de Registro: '.$data->FECHA);
+        	$pdf->Write(6,'ID:'.$data->ID);
+        	$pdf->Ln();
+        	$pdf->Write(6,'Fecha Estado de Cuenta: '.$data->FECHA_RECEP);
+        	$pdf->Ln();
+        	$pdf->Write(6,'Banco: '.$data->BANCO);
+        	$pdf->Ln();
+        	$pdf->Write(6,'Monto: $'.number_format($data->MONTO,2));
+        	$pdf->Ln();
+        	$pdf->Write(6,'Saldo Actual: $'.number_format($data->SALDO,2));
+        	$pdf->Ln();
+        	$pdf->Write(6,'Usuario Registra: '.$data->USUARIO);
+        	$pdf->Ln();
+        	$pdf->Write(6,'Fecha y hora de Registro: '.$data->FECHA);
     	}
       	$pdf->Ln(10);
         $pdf->SetFont('Arial', 'B', 6);
@@ -11871,7 +11870,7 @@ function fallarOC($doco){
         $pdf->Write(6,'Suma de Movimientos: $'.number_format($sumar,2));
         $pdf->Ln(4);
         $pdf->Write(6,'Fecha de impresion: '.date('d-m-Y H:i:s').' ---> Usiario Imprime: '.$usuario);
-        $pdf->Output('Secuencia entrega unidad .pdf','D');
+        $pdf->Output('Aplicacion del Pago '.$data->BANCO.'_'.substr($data->FECHA_RECEP,0,10).'_$ '.number_format($data->MONTO,2).'_'.$data->USUARIO.' .pdf','D');
     }
 
     function listarOCContrarecibos(){

@@ -219,14 +219,14 @@ class controller_coi{
 		}
 	}
 
-	function contabiliza($tipo , $idp){
+	function contabiliza($tipo , $idp, $z){
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$data_coi = new CoiDAO;
 			$cabecera = $data->detalleGasto($idp, $tip='z');
 			$detalle = $data->aplicacionesGasto($idp, $t='c');
 			$impuestos2=$data->impuestosPolizaFinal($uuid=$detalle['uuid']);
-			$crear = $data_coi->creaPolizaGasto($cabecera , $detalle=$detalle['datos'], $tipo, $impuestos2);
+			$crear = $data_coi->creaPolizaGasto($cabecera , $detalle=$detalle['datos'], $tipo, $impuestos2, $z);
 			if($crear['status'] == 'ok' ){
 				$act=$data->actGasto($crear, $detalle, $idp);
 			}
@@ -262,6 +262,28 @@ class controller_coi{
 				ob_start();
 				include 'app/views/pages/Contabilidad/p.redirectform.php';
 			return ;
+		}
+	}
+
+	function contabilizaIg($idp, $y, $tipo){
+		if($_SESSION['user']){
+			$data= new pegasoCobranza;
+			$data2 = new pegaso;
+			$data_coi = new CoiDAO;
+			$pago = $data->traePago($idp);
+			$detalle= $data->traeAplicaciones($idp);
+			$uuid= '';
+		    foreach ($detalle as $u){
+		        $uuid .= "'".$u->OBSERVACIONES."',";
+		    }
+		    $uuid= substr($uuid,0,-1);
+			$impuestos= $data2->impuestosPolizaFinal($uuid);
+			$creaPoliza=$data_coi->creaPolizaIg($pago, $detalle, $tipo = 'Ingreso', $impuestos, $y);
+			//if($creaPoliza['status']=='ok'){
+//
+//			//}else{
+//
+			//}
 		}
 	}
 

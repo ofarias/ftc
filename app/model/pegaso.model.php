@@ -10748,7 +10748,7 @@ function Pagos() {
 			}
 		#####################################################
 		//echo 'Banco'.$banco.' Cuenta: '.$cuenta.'<p>'; 
-    	$this->query="SELECT 1 as s, FECHA_RECEP AS sort, 'Venta' AS TIPO,  iif(FOLIO_X_BANCO = 'TR', (FOLIO_X_BANCO||id), FOLIO_X_BANCO) AS CONSECUTIVO, FECHA_RECEP AS FECHAMOV, MONTO AS ABONO, 0 AS CARGO, SALDO AS SALDO, BANCO AS BANCO, USUARIO AS USUARIO, tipo_pago as TP, id as identificador, registro as registro, folio_acreedor as FA , fecha_recep as fe, '' as comprobado, contabilizado, seleccionado, '' as tp_tes, obs 
+    	$this->query="SELECT 1 as s, FECHA_RECEP AS sort, 'Venta' AS TIPO,  iif(FOLIO_X_BANCO = 'TR', (FOLIO_X_BANCO||id), FOLIO_X_BANCO) AS CONSECUTIVO, FECHA_RECEP AS FECHAMOV, MONTO AS ABONO, 0 AS CARGO, SALDO AS SALDO, BANCO AS BANCO, USUARIO AS USUARIO, tipo_pago as TP, id as identificador, registro as registro, folio_acreedor as FA , fecha_recep as fe, '' as comprobado, contabilizado, seleccionado, contabilizado as tp_tes, obs 
     		   from carga_pagos 
     		   where BANCO = ('$banco'||' - '||'$cuenta') 
     		   		and fecha_recep between '$fechaIni' and '$fechafin'
@@ -11813,13 +11813,15 @@ function Pagos() {
 	function movimientosPago($idp){
 		$this->query="SELECT a.*, 
 							--f.*,
-							coalesce(f.importe, fp.importe) as importe,
-							 c.* 
+							coalesce(f.importe, fp.importe, x.importe) as importe,
+							coalesce(c.nombre, (select xc.nombre from XML_CLIENTES xc where xc.rfc = x.cliente)) as nombre,
+							'' as clave 
 					from aplicaciones a
 					left join factf01 f on f.cve_doc = a.documento
 					left join facturas_fp fp on fp.cve_doc = a.documento
-					inner join clie01 c on c.clave = f.cve_clpv or c.clave_trim = fp.cve_clpv
-					where a.idpago = $idp and cancelado = 0";
+					left join xml_data x on x.uuid = a.observaciones
+					left join clie01 c on c.clave = f.cve_clpv or c.clave_trim = fp.cve_clpv
+					where a.idpago = $idp and cancelado = 0";	
 		$rs=$this->QueryObtieneDatosN();
 		while($tsArray=ibase_fetch_object($rs)){
 			$data[]=$tsArray;
@@ -13321,13 +13323,14 @@ function Pagos() {
 
     function pagoFacturas($idp){
     	$data=array();
-    	$this->query="SELECT a.*, coalesce(c.nombre, (select cl.nombre from clie01 cl where cl.clave_trim = fp.cve_clpv)) AS CLIENTE, 
-    						coalesce(c.clave,fp.cve_clpv) as clave , coalesce(f.importe, fp.importe) as importe , f.uso_cfdi, f.METODODEPAGO, f.FORMADEPAGOSAT
+    	$this->query="SELECT a.*, coalesce(c.nombre, (select cl.nombre from clie01 cl where cl.clave_trim = fp.cve_clpv), (SELECT XC.NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.CLIENTE)) AS CLIENTE, 
+    						coalesce(c.clave,fp.cve_clpv, (SELECT 'xml_'||XC.IDcliente FROM XML_CLIENTES XC WHERE XC.RFC = X.CLIENTE) ) as clave , coalesce(f.importe, fp.importe, x.importe) as importe , f.uso_cfdi, f.METODODEPAGO, f.FORMADEPAGOSAT
     					FROM APLICACIONES a
     					left join factf01 f on a.documento = f.cve_doc
     					left join facturas_fp fp on a.documento = fp.cve_doc
+    					left join xml_data x on x.uuid = a.observaciones
     					left join clie01 c on c.clave = f.cve_clpv
-    					WHERE IDPAGO = $idp 
+    					WHERE a.IDPAGO = $idp 
     					and cancelado = 0
     					order by SALDO_PAGO DESC ";
     	$rs= $this->QueryObtieneDatosN();
@@ -24735,7 +24738,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$cve_sat = $key[1];
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
-	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' where xp.rfc = '$rfcr' and (select x.rfce from xml_data x where x.uuid = '$uuid') = '$rfc' and  xp.CLAVE_SAT = '$cve_sat' and xp.UNIDAD_SAT = '$uni_sat' and (select x.status from xml_data x where x.uuid = '$uuid') = 'P' --and (cuenta_Contable is null or cuenta_Contable = '') --and PARTIDA = $par";
+	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' where xp.rfc = '$rfcr' and (select x.rfce from xml_data x where x.uuid = '$uuid') = '$rfc' and  xp.CLAVE_SAT = '$cve_sat' and xp.UNIDAD_SAT = '$uni_sat' and ( (select x.status from xml_data x where x.uuid = '$uuid') = 'P' or  (select x.status from xml_data x where x.uuid = '$uuid') = 'S') --and (cuenta_Contable is null or cuenta_Contable = '') --and PARTIDA = $par";
+	    		echo $this->query;
 	    		$this->queryActualiza();
 	      	}	
     	}
@@ -26367,7 +26371,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$data = array();	
 		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) AS MONTO, SUM(BASE) AS BASE  FROM XML_IMPUESTOS WHERE UUID in ($uuid) group by impuesto, tasa, tipofactor, Tipo";
 		$res=$this->EjecutaQuerySimple();
-		//echo $this->query;
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
 		}	
@@ -26872,7 +26875,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		if($tipo == 'z'){
 			$x = "and (contabilizado is null or contabilizado = '')";
 		}
-		$this->query="SELECT G.*, Pg.CUENTA_BANCARIA, pg.FOLIO_PAGO, (select CTA_CONTAB FROM PG_BANCOS PB WHERE PB.BANCO||' - '||PB.NUM_CUENTA = pg.cuenta_bancaria ) as cta_banco, COALESCE((SELECT NOMBRE FROM XML_CLIENTES XC WHERE G.CVE_PROV = ('xml_'||XC.IDCLIENTE)),'Sin Proveedor') AS PROV , (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE AG.IDG = G.ID AND AG.STATUS = 0) AS APLICADO FROM GASTOS G left join PAGO_GASTO PG on pg.idgasto = g.id WHERE g.ID = $idg $x ";
+		$this->query="SELECT G.*, Pg.CUENTA_BANCARIA, pg.FOLIO_PAGO, (select CTA_CONTAB FROM PG_BANCOS PB WHERE PB.BANCO||' - '||PB.NUM_CUENTA = pg.cuenta_bancaria ) as cta_banco, COALESCE((SELECT NOMBRE FROM XML_CLIENTES XC WHERE G.CVE_PROV = ('xml_'||XC.IDCLIENTE)),'Multi Proveedor') AS PROV , (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE AG.IDG = G.ID AND AG.STATUS = 0) AS APLICADO FROM GASTOS G left join PAGO_GASTO PG on pg.idgasto = g.id WHERE g.ID = $idg $x ";
 		$res=$this->EjecutaQuerySimple();
 		//echo $this->query;
 		while ($tsArray=ibase_fetch_object($res)) {
@@ -26888,7 +26891,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		if($uuid){
 			$a =" and X.UUID = '".$uuid."'";
 		}
-		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') FROM XML_DATA X WHERE X.RFCE != '$rfc' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) $a";
+		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') FROM XML_DATA X WHERE X.RFCE != '$rfc' and x.tipo ='I' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) $a";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
@@ -27134,7 +27137,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$this->query="UPDATE XML_DATA SET STATUS = 'E' WHERE UUID = '$k->UUID'";
 			$this->queryActualiza();
 		}
-		$this->query="UPDATE GASTOS SET CONTABILIZADO = '$poliza' where id=$idp";
+		$this->query="UPDATE GASTOS SET CONTABILIZADO = '$poliza', seleccionado = 2, guardado = 1 where id=$idp";
 		$this->queryActualiza();
 	}
 

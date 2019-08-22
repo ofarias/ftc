@@ -43,10 +43,18 @@
                                             <td><?php echo '$ '.number_format($key->SALDO,2);?></td>
                                             <td>
                                                 <?php if(empty($key->CONTABILIZADO)){?>
-                                                <input type="button" class="btn btn-success conta" value="Contabilizar" idp = "<?php echo $key->ID?>" val="<?php echo $key->SALDO?>">
+                                                <input type="button" class="btn btn-success conta" value="Contabilizar" idp = "<?php echo $key->ID?>" val="<?php echo $key->SALDO?>"><br/><br/>
                                             <?php }else{?>
                                                <b><?php echo $key->CONTABILIZADO?></b>
                                             <?php }?>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="9" align="right">
+                                                <label>Cuenta para el Saldo:</label> 
+                                            </td>
+                                            <td colspan="1" align="left">
+                                                <input type="text" class="cuencont" id="cuens" placeholder="Cuenta para el Saldo" size="50">
                                             </td>
                                         </tr>
                                         </form>
@@ -293,13 +301,17 @@
 
     $(".conta").click(function(){
         var saldo = parseFloat($(this).attr('val'))
-        if(saldo > 0){
-            if(!confirm('Contabiliza el Gasto sin ser saldado?')){       
-                return false;
-            }
-        }
         var tipo ='gasto'
         var idp =  $(this).attr('idp')
+        var a = ''
+        if(saldo>0.001){
+            a = document.getElementById("cuens").value
+            if(a.length==0){
+                $.alert('Favor de colocar una cuenta valida para el saldo, de lo contrario la poliza no se podra contabilizar')
+                return
+            }
+        }
+
         $.confirm({
             title: 'Contabilizar Pago',
             content:function(){
@@ -309,7 +321,7 @@
                     url:'index.coi.php',
                     type:'post', 
                     dataType:'json', 
-                    data:{contabiliza:1, tipo, idp}
+                    data:{contabiliza:1, tipo, idp, a}
                 }).done(function(response){
                     self.setContentAppend('<div>Done</div>')
                 }).fail(function(){
@@ -327,6 +339,15 @@
             }   
         })
     });
+
+    $(".cuencont").autocomplete({
+        source: "index.coi.php?cuentas=1",
+        minLength: 3,
+        select: function(event, ui){
+        }
+    });
+   
+
 
 </script>
 

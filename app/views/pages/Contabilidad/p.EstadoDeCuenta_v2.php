@@ -363,15 +363,12 @@
 
                                                value ='<?php echo ($desc=='Compra' or $desc1 =='gasto')? "$datos->CARGO":"$datos->ABONO"?>' 
                                                docu="<?php echo $datos->S.'+'.$datos->IDENTIFICADOR;?>"
-                                        
-
                                                <?php echo $datos->S > 1? 'class="compra"':''?>
                                                <?php echo $datos->S == 1? 'class="abono"':''?>
                                                 >                                             
                                               </td>
                                             <td><?php echo $datos->USUARIO;?></td>
-                                            <td><?php echo $datos->CONTABILIZADO?></td>
-                                               
+                                            <td><?php echo $datos->TP_TES?></td>
                                             </form>
                                         <?php endforeach ?>
                                         </tr>
