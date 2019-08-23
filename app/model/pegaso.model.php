@@ -26736,73 +26736,157 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function revisaXLSX($target_file, $datos){
 		$data=array();
-		if($xlsx = SimpleXLSX::parse($target_file)){
-			echo "<h2>$target_file</h2>";
-			echo '<pre>';
-			//print_r( $xlsx->rows() );
-			echo '</pre>';
-			$i=0;
-			$l=1;
-			$e=0;
-			foreach ($xlsx->rows() as $key) {
-				if($i > 0 ){
-					$clave = $key[0];
-					$fecha = $key[1];
-					$desc = $key[2];
-					$abono = empty($key[3])? 0:$key[3];
-					$cargo = empty($key[4])? 0:$key[4];
-					$tipo = $key[6];
-					$uuid = $key[7];
-					$obs = substr(utf8_encode($key[8]),0,255);
-					if($cargo <> 0 and $abono <> 0 ){
-						$e++;
-						echo $clave.' <font color="red">No Inserta la linea por que el valor cargo y valor de abono son mayores a 0.00 .</font><br/>';
-					}else{
-						if((gettype($abono) == 'integer' or gettype($abono) =='double') and (gettype($cargo) == 'integer' or gettype($cargo)=='double')){
-							//echo '<br/>'.$e.' Abono: '.$abono.'-->'.$tipo;
-							//echo '<br/>Cargo: '.$cargo;
-							//echo '<br/>Monto de la transaccion: '.($abono + $cargo);
-							if(($abono + $cargo) > 0 and !empty($tipo) and ($tipo == 'EFE' or $tipo == 'CHQ' or $tipo =='TNS' or $tipo == 'TDC')){
-								$ca = ($abono>0)? 'a':'c';
-								$monto = ($abono>0)? $abono:$cargo;
-								//echo $clave.' <b>Inserta el '.$ca.' con la informacion</b> de tipo : '.$tipo.'<br/>';
+		if($_SESSION['rfc']=='IMI161007SY7'){
+
+			//$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Abril\\';
+			//$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Mayo\\';
+			$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Junio\\';
+
+    		$files = array_diff(scandir($path), array('.', '..'));
+    		//print_r($files);
+    		foreach($files as $file){
+		    	$data = explode(".", $file);
+		    	$fileName = $data[0];
+		    	$fileExtension = $data[1];
+			    if($xlsx = SimpleXLSX::parse($path.$file)){
+					echo "<h2>$file</h2>";
+					echo '<pre>';
+					//print_r( $xlsx->rows() );
+					echo '</pre>';
+					$i=0;
+					$l=0;
+					$e=0;
+					foreach ($xlsx->rows() as $key) {
+						$i++;
+						///strlen()==13 or strlen()==8
+						if($key[0]!='' and (strlen($key[0])==13 or strlen($key[0])==8) and $key[0]!='RECEPTOR' and $key[0]!='NO. PROVEEDOR'){
+							echo 'Valor de la celda A'.$i.': '.$key[2].' del archivo. '.$fileName.' partida con valor'.$l.'<br/>';
+							//$archivo = substr($target_file, strlen($target_file)-11,6);
+							$archivo = substr($fileName,13,6);
+							@$a=$key[0];
+							@$b=$key[1];
+							@$c=$key[2];
+							@$d=$key[3];
+							@$e=$key[4];
+							@$f=$key[5];
+							@$g=$key[6];
+							@$h=$key[7];
+							@$i=$key[8];
+							@$j=$key[9];
+							if($c!=''){
+								$l++;
+							}
+							$this->query="INSERT INTO FTC_XLS (ID, ARCHIVO, PARTIDA, A, B, C, D, E, F, G, H, I, J) 
+										VALUES (NULL,'$archivo', $l,'$a','$b','$c','$d','$e','$f','$g','$h','$i','$j')";
+							$this->grabaBD();
+						}		
+					}
+				}    	
+			}
+			/*
+			if($xlsx = SimpleXLSX::parse($target_file)){
+				echo "<h2>$target_file</h2>";
+				echo '<pre>';
+				//print_r( $xlsx->rows() );
+				echo '</pre>';
+				$i=0;
+				$l=0;
+				$e=0;
+				foreach ($xlsx->rows() as $key) {
+					$i++;
+					if($key[0]!=''){
+						echo 'Valor de la celda A'.$i.': '.$key[2].' del archivo. '.substr($target_file, strlen($target_file)-11, 6).' partida con valor'.$l.'<br/>';
+						$archivo = substr($target_file, strlen($target_file)-11,6);
+						@$a=$key[0];
+						@$b=$key[1];
+						@$c=$key[2];
+						@$d=$key[3];
+						@$e=$key[4];
+						@$f=$key[5];
+						@$g=$key[6];
+						@$h=$key[7];
+						@$i=$key[8];
+						@$j=$key[9];
+						if($c!=''){
+							$l++;
+						}
+						$this->query="INSERT INTO FTC_XLS (ID, ARCHIVO, PARTIDA, A, B, C, D, E, F, G, H, I, J) 
+									VALUES (NULL,'$archivo', $l,'$a','$b','$c','$d','$e','$f','$g','$h','$i','$j')";
+						$this->grabaBD();
+					}		
+				}
+			}
+			*/
+		return;
+		}else{
+			if($xlsx = SimpleXLSX::parse($target_file)){
+				echo "<h2>$target_file</h2>";
+				echo '<pre>';
+				//print_r( $xlsx->rows() );
+				echo '</pre>';
+				$i=0;
+				$l=1;
+				$e=0;
+				foreach ($xlsx->rows() as $key) {
+					if($i > 0 ){
+						$clave = $key[0];
+						$fecha = $key[1];
+						$desc = $key[2];
+						$abono = empty($key[3])? 0:$key[3];
+						$cargo = empty($key[4])? 0:$key[4];
+						$tipo = $key[6];
+						$uuid = $key[7];
+						$obs = substr(utf8_encode($key[8]),0,255);
+						if($cargo <> 0 and $abono <> 0 ){
+							$e++;
+							echo $clave.' <font color="red">No Inserta la linea por que el valor cargo y valor de abono son mayores a 0.00 .</font><br/>';
+						}else{
+							if((gettype($abono) == 'integer' or gettype($abono) =='double') and (gettype($cargo) == 'integer' or gettype($cargo)=='double')){
+								//echo '<br/>'.$e.' Abono: '.$abono.'-->'.$tipo;
+								//echo '<br/>Cargo: '.$cargo;
+								//echo '<br/>Monto de la transaccion: '.($abono + $cargo);
+								if(($abono + $cargo) > 0 and !empty($tipo) and ($tipo == 'EFE' or $tipo == 'CHQ' or $tipo =='TNS' or $tipo == 'TDC')){
+									$ca = ($abono>0)? 'a':'c';
+									$monto = ($abono>0)? $abono:$cargo;
+									//echo $clave.' <b>Inserta el '.$ca.' con la informacion</b> de tipo : '.$tipo.'<br/>';
+								}else{
+									$e++;
+									echo ($i+1)." <font color='red'>No Inserta la linea por que no tiene Valor o no contiene tipo valido.</font><br/>".$tipo;
+								}
 							}else{
 								$e++;
-								echo ($i+1)." <font color='red'>No Inserta la linea por que no tiene Valor o no contiene tipo valido.</font><br/>".$tipo;
+								echo $clave.' <font color="red">error valor de abono '.gettype($abono).' Valor de Cargo '.gettype($cargo).'</font><br/>';
+							}
+						}
+						if(!empty($fecha)){
+							$fecha = substr(trim($fecha),0,10);						
+							if(strpos($fecha, "-")){
+								$val= explode('-', $fecha);
+							}else{
+								$val= explode('/', $fecha);	
+							} 
+							//echo '<br/>'.print_r($val).' --'.count($val);
+							echo '<br/>Anio'.$val[0];
+							echo 'mes'.$val[1];
+							echo 'Dia'.$val[2].'<br/>';
+							if(checkdate($val[1], $val[2],$val[0])){
+							}else{	
+								$e++;
+								echo $clave.'<br/>No se encontro una fecha valida en '.$fecha.', la celda B2 debe de tener el formato de fecha dd/mm/yyyy';
 							}
 						}else{
 							$e++;
-							echo $clave.' <font color="red">error valor de abono '.gettype($abono).' Valor de Cargo '.gettype($cargo).'</font><br/>';
 						}
-					}
-					if(!empty($fecha)){
-						$fecha = substr(trim($fecha),0,10);						
-						if(strpos($fecha, "-")){
-							$val= explode('-', $fecha);
-						}else{
-							$val= explode('/', $fecha);	
-						} 
-						//echo '<br/>'.print_r($val).' --'.count($val);
-						echo '<br/>Anio'.$val[0];
-						echo 'mes'.$val[1];
-						echo 'Dia'.$val[2].'<br/>';
-						if(checkdate($val[1], $val[2],$val[0])){
-						}else{	
-							$e++;
-							echo $clave.'<br/>No se encontro una fecha valida en '.$fecha.', la celda B2 debe de tener el formato de fecha dd/mm/yyyy';
+						if($e == 0){
+							$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid, "obs"=>$obs);
 						}
-					}else{
-						$e++;
-					}
-					if($e == 0){
-						$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid, "obs"=>$obs);
-					}
-				}		
-				$i++;
-				$l++;
+					}		
+					$i++;
+					$l++;
+				}
+			} else {
+				echo SimpleXLSX::parseError();
 			}
-		} else {
-			echo SimpleXLSX::parseError();
 		}
 		if($e >0 ){
 			exit();
