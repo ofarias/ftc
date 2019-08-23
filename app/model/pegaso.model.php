@@ -24576,6 +24576,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
     function verXMLPAR($mes, $anio, $ide, $uuid=false, $doc){
     	$data=array();
+    	$periodo = $mes==0? '':"and extract(month from xd.fecha)='$mes'";
     	if($ide == 'Recibidos'){
     		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor'), (SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE ID = 1) AS EMISOR, xp.*, xd.*, xp.importe as pimporte, xp.descuento as pdescuento,
     			(SELECT cs.DESCRIPCION FROM CLAVES_SAT cs WHERE cs.CVE_PROD_SERV = xp.clave_sat) as desc_Clave, 
@@ -24583,8 +24584,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' GROUP BY IMPUESTO),0) AS PIVA,
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' GROUP BY IMPUESTO),0) AS PIEPS,
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' GROUP BY IMPUESTO),0) AS PISR 
-
-    			from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor') is not null and extract(month from xd.fecha)=$mes and extract(year from xd.fecha)= $anio and xd.tipo= '$doc'  order by xd.fecha, xd.documento";
+    			from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor') is not null  and extract(year from xd.fecha)=$anio and xd.tipo= '$doc' $periodo  order by xd.fecha, xd.documento";
     	}else{
     		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente'), (SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE ID = 1) AS EMISOR, xp.*, xd.*, xp.importe as pimporte,xp.descuento as pdescuento,
     			(SELECT cs.DESCRIPCION FROM CLAVES_SAT cs WHERE cs.CVE_PROD_SERV = xp.clave_sat) as desc_Clave, 
@@ -24592,7 +24592,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' GROUP BY IMPUESTO),0) AS PIVA,
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' GROUP BY IMPUESTO),0) AS PIEPS,
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' GROUP BY IMPUESTO),0) AS PISR
-    			from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente') is not null and extract(month from xd.fecha)=$mes and extract(year from xd.fecha)= $anio and xd.tipo= '$doc' order by xd.fecha, xd.documento";
+    			from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente') is not null and extract(year from xd.fecha)= $anio and xd.tipo= '$doc' $periodo order by xd.fecha, xd.documento";
     	}
     	//echo $this->query;
     	//exit();
@@ -24739,7 +24739,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
 	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' where xp.rfc = '$rfcr' and (select x.rfce from xml_data x where x.uuid = '$uuid') = '$rfc' and  xp.CLAVE_SAT = '$cve_sat' and xp.UNIDAD_SAT = '$uni_sat' and ( (select x.status from xml_data x where x.uuid = '$uuid') = 'P' or  (select x.status from xml_data x where x.uuid = '$uuid') = 'S') --and (cuenta_Contable is null or cuenta_Contable = '') --and PARTIDA = $par";
-	    		echo $this->query;
+	    		//echo $this->query;
 	    		$this->queryActualiza();
 	      	}	
     	}

@@ -162,6 +162,10 @@
 <script type="text/javascript">
 
     function excel(mes, anio, ide, doc, t){
+        if(mes==0 & t=='c'){
+            $.alert('Este proceso solo se puede realizar por periodo y no de forma anual.')
+            return
+        }
        $.ajax({
             url:'index.xml.php',
             type:'post',

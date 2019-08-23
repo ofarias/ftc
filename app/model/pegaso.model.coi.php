@@ -1141,11 +1141,13 @@ class CoiDAO extends DataBaseCOI {
             $ejercicio=$cb->EJERCICIO;
             $eje=substr($ejercicio,2);
             $fecha=$cb->FECHA; 
-            $proveedor = $cb->NOMBRE;
+            $nombre = $cb->NOMBRE;
             $tc = $cb->TIPOCAMBIO;
             $tbPol= 'POLIZAS'.$eje; 
             $tbAux= 'AUXILIAR'.$eje;
             $campo = 'FOLIO'.str_pad($periodo, 2, '0', STR_PAD_LEFT);
+            $rfc= $cb->RFC;
+            $doc = $cb->DOCUMENTO;
             $ie=$cb->TIPO;
         }
         ///creamos el nuevo folio de la poliza y actualizamos para apartarlo
@@ -1169,9 +1171,54 @@ class CoiDAO extends DataBaseCOI {
             $con = 'Venta ';
             $tipoXML='Emitido';
         }
-
+        if($rfc=='XAXX010101000'){
+            $file="C:\\xampp\\htdocs\\uploads\\xml\\PCI760610T65\\Emitidos\\XAXX010101000\\".$_SESSION['rfc'].'-'.$doc.'-'.$uuid.'.xml';
+            //echo 'El rfc es generico debemos de obtener el nombre desde el xml: '.$uuid;
+            $myFile = fopen("$file", "r") or die("No se ha logrado abrir el archivo ($file)!");
+            $myXMLData = fread($myFile, filesize($file));
+            $xml = @simplexml_load_string($myXMLData) or die("Error: No se ha logrado crear el objeto XML ($file)");
+            $ns = $xml->getNamespaces(true);
+            $xml->registerXPathNamespace('c', $ns['cfdi']);
+            $xml->registerXPathNamespace('t', $ns['tfd']);
+            @$xml->registerXPathNamespace('impl', $ns['implocal']);
+            @$xml->registerXPathNamespace('p10',$ns['pago10']);
+            foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
+                  $version = $cfdiComprobante['version'];
+                  if($version == ''){
+                    $version = $cfdiComprobante['Version'];
+                  }
+                  foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
+                            if($version == '3.2'){
+                                $rfc= $Receptor['rfc'];
+                                $nombre_recep = utf8_encode($Receptor['nombre']);
+                                $usoCFDI = '';
+                            }elseif($version == '3.3'){
+                                $rfc= $Receptor['Rfc'];
+                                $nombre_recep=utf8_encode($Receptor['Nombre']);
+                                $usoCFDI =$Receptor['UsoCFDI'];
+                             }
+                        }
+                foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $Emisor){
+                    if($version == '3.2'){
+                        $rfce = $Emisor['rfc'];
+                        $nombreE = '';
+                        $regimen = '';  
+                    }elseif($version == '3.3'){
+                        $rfce = $Emisor['Rfc'];
+                        $nombreE = utf8_encode($Emisor['Nombre']);
+                        $regimen = $Emisor['RegimenFiscal'];
+                    }
+                }
+            }
+            if($tipoXML == 'Emitido'){
+                $nombre = $nombre_recep;
+            }else{
+                $nombre = $nombreE;
+            }
+        }
+        
         foreach($cabecera as $pol){
-            $concepto = substr($con.', '.$pol->DOCUMENTO.', '.$pol->NOMBRE, 0, 110);
+            $concepto = substr($con.', '.$pol->DOCUMENTO.', '.$nombre, 0, 110);
             $cuenta = $pol->CUENTA_CONTABLE;
             $this->query="INSERT INTO $tbPol(TIPO_POLI, NUM_POLIZ, PERIODO, EJERCICIO, FECHA_POL, CONCEP_PO, NUM_PART, LOGAUDITA, CONTABILIZ, NUMPARCUA, TIENEDOCUMENTOS, PROCCONTAB, ORIGEN, UUID, ESPOLIZAPRIVADA, UUIDOP) 
                                 values ('$tipo','$folio', $periodo, $ejercicio, '$pol->FECHA', '$concepto', 0, '', 'N', 0, 1, 0, substring('PHP $usuario' from 1 for 15),'$uuid', 0, '')";
@@ -1201,7 +1248,7 @@ class CoiDAO extends DataBaseCOI {
             $partAux=$aux->PARTIDA;
             $cuenta = $aux->CUENTA_CONTABLE;
             $documento = $aux->DOCUMENTO;
-            $concepto = substr($aux->DESCRIPCION.', '.$documento.', '.$proveedor, 0, 120);
+            $concepto = substr($aux->DESCRIPCION.', '.$documento.', '.$nombre, 0, 120);
                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $aux->IMPORTE - $aux->DESCUENTO, 0, $tc, 0, $partida, 0,0, null, null)";
                 $this->EjecutaQuerySimple();   
@@ -1813,7 +1860,7 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function traePolizas($mes, $anio, $ide){
-        $this->query="SELECT * FROM POLIZAS19 WHERE PERIODO = $mes AND EJERCICIO = $anio";
+        $this->query="SELECT * FROM POLIZAS19 WHERE EJERCICIO = $anio $periodo";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
@@ -1824,7 +1871,8 @@ class CoiDAO extends DataBaseCOI {
     function traeAuxiliares($mes, $anio, $ide, $uuid=false, $doc){
         $data= array();
         $eje = substr($anio, 2,2);
-        $this->query="SELECT a.debe_haber, a.tipo_poli, a.num_poliz, (select origen from polizas$eje p where p.tipo_poli = a.tipo_poli and p.num_poliz = a.num_poliz and p.periodo = a.periodo and p.ejercicio = a.ejercicio ) as Origen, a.num_part, a.periodo, a.fecha_pol, (select c.cuenta from cuentas_ftc c where a.num_cta = c.cuenta_coi) as num_cta, c.nombre, a.montomov, a.tipcambio  from auxiliar$eje a left join cuentas$eje c on c.num_cta = a.num_cta where a.periodo = $mes and ejercicio = $anio order by a.tipo_poli, a.num_poliz ";
+        $periodo = $mes==0?  '':$mes;
+         $this->query="SELECT a.debe_haber, a.tipo_poli, a.num_poliz, (select origen from polizas$eje p where p.tipo_poli = a.tipo_poli and p.num_poliz = a.num_poliz and p.periodo = a.periodo and p.ejercicio = a.ejercicio ) as Origen, a.num_part, a.periodo, a.fecha_pol, (select c.cuenta from cuentas_ftc c where a.num_cta = c.cuenta_coi) as num_cta, c.nombre, a.montomov, a.tipcambio  from auxiliar$eje a left join cuentas$eje c on c.num_cta = a.num_cta where  ejercicio = $anio $periodo order by  a.periodo, a.tipo_poli, a.num_poliz ";
         $res=$this->EjecutaQuerySimple();
         //echo $this->query;
         //exit();

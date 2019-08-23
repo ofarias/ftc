@@ -49,6 +49,11 @@
         $serie=$key0->SERIE;
         $folio=$key0->FOLIO;
         $uuid=$key0->UUID;
+        if($rfcEmpresa == $rfce){
+            $r=$rfc; 
+        }else{
+            $r=$rfce;
+        }
     }
 ?>
 <?php if($cnxcoi=='si'){?>
@@ -70,7 +75,7 @@
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                        <a href="/uploads/xml/<?php echo $rfcEmpresa.'/Recibidos/'.$rfce.'/'.$rfce.'-'.$serie.$folio.'-'.$uuid.'.xml'?>" download>  <img border='0' src='app/views/images/xml.jpg' width='55' height='60'></a>&nbsp;&nbsp;
+                                        <a href="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$r.'/'.$rfce.'-'.$serie.$folio.'-'.$uuid.'.xml'?>" download>  <img border='0' src='app/views/images/xml.jpg' width='55' height='60'></a>&nbsp;&nbsp;
                                         <!--<a href="javascript:impFact(<?php echo "'".$serie.$folio."'"?>)" download><img border='0' src='app/views/images/pdf.jpg' width='55' height='60'></a>-->
                                         <a href="index.php?action=imprimeUUID&uuid=<?php echo $uuid?>" onclick="alert('Se ha descargar tu factura, revisa en tu directorio de descargas')"><img border='0' src='app/views/images/pdf.jpg' width='55' height='60'></a>
                                 </p>
