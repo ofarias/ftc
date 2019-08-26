@@ -1172,7 +1172,8 @@ class CoiDAO extends DataBaseCOI {
             $tipoXML='Emitido';
         }
         if($rfc=='XAXX010101000'){
-            $file="C:\\xampp\\htdocs\\uploads\\xml\\PCI760610T65\\Emitidos\\XAXX010101000\\".$_SESSION['rfc'].'-'.$doc.'-'.$uuid.'.xml';
+            $z=$_SESSION['rfc'];
+            $file="C:\\xampp\\htdocs\\uploads\\xml\\".$z."\\Emitidos\\XAXX010101000\\".$_SESSION['rfc'].'-'.$doc.'-'.$uuid.'.xml';
             //echo 'El rfc es generico debemos de obtener el nombre desde el xml: '.$uuid;
             $myFile = fopen("$file", "r") or die("No se ha logrado abrir el archivo ($file)!");
             $myXMLData = fread($myFile, filesize($file));
@@ -1860,7 +1861,7 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function traePolizas($mes, $anio, $ide){
-        $this->query="SELECT * FROM POLIZAS19 WHERE EJERCICIO = $anio $periodo";
+        $this->query="SELECT * FROM POLIZAS19 WHERE EJERCICIO = $anio and periodo=$mes";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;

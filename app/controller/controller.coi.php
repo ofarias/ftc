@@ -284,7 +284,7 @@ class controller_coi{
 					$actualiza=$data2->actXml($uuid, $tipo, $crea);
 				}		
 			}else{
-				echo 'Ya se ha contabilizado este pago.'
+				echo 'Ya se ha contabilizado este pago.';
 			}
 			//if($creaPoliza['status']=='ok'){
 //
