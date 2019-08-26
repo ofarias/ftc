@@ -271,14 +271,21 @@ class controller_coi{
 			$data2 = new pegaso;
 			$data_coi = new CoiDAO;
 			$pago = $data->traePago($idp);
-			$detalle= $data->traeAplicaciones($idp);
-			$uuid= '';
-		    foreach ($detalle as $u){
-		        $uuid .= "'".$u->OBSERVACIONES."',";
-		    }
-		    $uuid= substr($uuid,0,-1);
-			$impuestos= $data2->impuestosPolizaFinal($uuid);
-			$creaPoliza=$data_coi->creaPolizaIg($pago, $detalle, $tipo = 'Ingreso', $impuestos, $y);
+			if(!empty($pago)){
+				$detalle= $data->traeAplicaciones($idp);
+				$uuid= '';
+			    foreach ($detalle as $u){
+			        $uuid .= "'".$u->OBSERVACIONES."',";
+			    }
+			    $uuid= substr($uuid,0,-1);
+				$impuestos= $data2->impuestosPolizaFinal($uuid);
+				$creaPoliza=$data_coi->creaPolizaIg($pago, $detalle, $tipo = 'Ingreso', $impuestos, $y);
+				if($creaPoliza['status']=='ok'){
+					$actualiza=$data2->actXml($uuid, $tipo, $crea);
+				}		
+			}else{
+				echo 'Ya se ha contabilizado este pago.'
+			}
 			//if($creaPoliza['status']=='ok'){
 //
 //			//}else{

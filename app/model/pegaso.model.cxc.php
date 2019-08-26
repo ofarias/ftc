@@ -994,13 +994,14 @@ class pegasoCobranza extends database {
     }
 
     function traePago($idp){
+            $row=array();
             $this->query="SELECT C.*, 
                             (select CTA_CONTAB from PG_BANCOS B where B.BANCO || ' - ' || B.NUM_CUENTA = C.BANCO) as CCOI,
                             (select BANCO from PG_BANCOS B where B.BANCO || ' - ' || B.NUM_CUENTA = C.BANCO) as BBANCO,
                              (select NUM_CUENTA from PG_BANCOS B where B.BANCO || ' - ' || B.NUM_CUENTA = C.BANCO) as CUENTA,
                             extract(month from C.FECHA_RECEP) as PERIODO,
                             extract(year from C.FECHA_RECEP) as EJERCICIO
-                from CARGA_PAGOS c where C.ID = $idp";
+                from CARGA_PAGOS c where C.ID = $idp and (poliza_ingreso = '' or poliza_ingreso is null)";
             $res=$this->EjecutaQuerySimple();
             $row=ibase_fetch_object($res);
             return $row;
@@ -1016,6 +1017,8 @@ class pegasoCobranza extends database {
         }
         return $data;
     }
+
+   
 
 }
 ?> 
