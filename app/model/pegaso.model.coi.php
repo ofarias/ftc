@@ -1595,7 +1595,7 @@ class CoiDAO extends DataBaseCOI {
             $con='Egreso '.$pol->CUENTA_BANCARIA;
             $concepto = substr($con.', '.$pol->DOC.', '.$proveedorf.' -- '.$pol->REFERENCIA, 0, 110);
             $cuenta = $pol->CTA_BANCO;
-            if($tipo == 'gasto'){
+            if($tipo=='Eg'){
                 $nat0 = 'H';
             }else{
                 $nat0 = 'D';
@@ -1618,6 +1618,7 @@ class CoiDAO extends DataBaseCOI {
             $dhimppc = 'D';
             $dhimppe = 'H';
         }
+        $nat1=($nat0=='H')? 'D':'H';
         foreach ($detalle as $aux) {
             if($partida == 1){
                 if( substr($aux->CUENTA_CONTABLE, 0,1) == '6'){
@@ -1630,7 +1631,6 @@ class CoiDAO extends DataBaseCOI {
                 $this->query="UPDATE $tbPol SET CONCEP_PO = '$con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
                 $this->queryActualiza();
             }
-            $nat1=($nat0=='H')? 'D':'H';
             $cuenta = '';
             $partida++;
             $partAux=$partida;//$aux->PARTIDA;
@@ -1639,10 +1639,9 @@ class CoiDAO extends DataBaseCOI {
             $proveedor = $aux->PROV;
             $concepto = substr($aux->DESCRIPCION.', '.$documento.', '.$proveedor, 0, 120);
                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
-                                values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $aux->APLICADO, 0, $tc, 0, $partida, 0,0, null, null)";
+                                values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto', '$nat1', $aux->APLICADO, 0, $tc, 0, $partida, 0,0, null, null)";
                 $this->EjecutaQuerySimple();   
                 //echo $this->query; 
-
         }
         $a=1;
         if($saldo > 0.001){  
@@ -1657,7 +1656,8 @@ class CoiDAO extends DataBaseCOI {
             echo 'Se crea una partida a la cuenta seleccionada por el saldo del documento, se suguiere la cuenta de proveedores diversos'.$saldo;
             $partida ++; 
             $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
-                                values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuentaProv','$fecha', 'Sin Proveedor','$nat1', $saldo, 0, $tc, 0, $partida, 0,0, null, null)";
+                                values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuentaProv','$fecha','Pago a: '||coalesce((SELECT NOMBRE FROM CUENTAS$eje where num_cta = '$cuentaProv'), 'Sin Proveedor,')||', el $fecha', '$nat1', $saldo, 0, $tc, 0, $partida, 0,0, null, null)";
+            //echo $this->query;
             $this->EjecutaQuerySimple();   
             $a++; 
         }
