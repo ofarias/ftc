@@ -37,7 +37,7 @@
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                         <a href="/uploads/xml/<?php echo $rfcEmpresa.'/Recibidos/'.$rfce.'/'.$rfce.'-'.$serie.$folio.'-'.$uuid.'.xml'?>" download>  <img border='0' src='app/views/images/xml.jpg' width='55' height='60'></a>&nbsp;&nbsp;
-                                        <a href="javascript:impFact(<?php echo "'".$serie.$folio."'"?>)" download><img border='0' src='app/views/images/pdf.jpg' width='55' height='60'></a>
+                                        <a href="index.php?action=imprimeUUID&uuid=<?php echo $uuid?>" onclick="alert('Se ha descargar tu factura, revisa en tu directorio de descargas')"><img border='0' src='app/views/images/pdf.jpg' width='55' height='60'></a>
                                 </p>
                                 <p><?php echo 'Empresa Seleccionada: <b>'.$_SESSION['empresa']['nombre']."</b>"?></p>  
 
@@ -174,19 +174,6 @@
             boton.innerHTML='<input type="button" value ="Eliminar Poliza"  class="btn btn-success" onclick="eliminarPoliza()">';
         }
     });
-
-    function impFact(factura){
-        alert('Proximamente');
-        return;
-            $.ajax({
-                url:'index.php',
-                type:'post',
-                dataType:'json',
-                data:{imprimeFact:1, factura:factura},
-                success:function(data){
-                }
-            })
-        }
 
     function eliminarPoliza(){
         var ent= document.getElementById('uuid');

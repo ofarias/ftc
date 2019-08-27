@@ -407,11 +407,13 @@ else
                                             <td align="right"><?php echo '$ '.number_format($datos->CARGO,2);?></td>
                                             <td align="right"><?php echo '$ '.number_format($datos->SALDO,2);?></td>
                                             <td>
-                                              <?php if($desc=='Pago de Factura'){?>
+                                              <?php if($desc == "Pago de Factura"){?>
                                               <a href="index.php?action=pagoFacturas&idp=<?php echo $datos->IDENTIFICADOR?>" target="_blank"?> <?php echo $desc;?> </a>
-                                            <?php }else{?>
+                                            <?php }elseif($datos->TIPO == 'Gasto'){?>
+                                              <a href="index.php?action=detalleGasto&idg=<?php echo $datos->CONSECUTIVO?>" target="_blank">Detalle <?php echo $datos->TIPO?></a>
+                                              <?php }else{?>
                                               <?php echo $desc;?> 
-                                            <?php }?>
+                                              <?php }?>
                                             </td>
                                             <td><?php echo $datos->USUARIO;?></td>
                                             <td><?php echo $datos->CONTABILIZADO?></td>

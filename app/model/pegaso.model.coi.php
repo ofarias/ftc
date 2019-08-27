@@ -1703,7 +1703,7 @@ class CoiDAO extends DataBaseCOI {
         return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Eg'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
     }
 
-    function creaPolizaIg($cabecera, $detalle, $tipo, $impuestos, $y){
+    function creaPolizaIg($cabecera, $detalle, $tipo, $impuestos, $z){
         $tipo='Ig';
         $usuario=$_SESSION['user']->USER_LOGIN;
         $i=0;
@@ -1872,7 +1872,7 @@ class CoiDAO extends DataBaseCOI {
     function traeAuxiliares($mes, $anio, $ide, $uuid=false, $doc){
         $data= array();
         $eje = substr($anio, 2,2);
-        $periodo = $mes==0?  '':$mes;
+        $periodo = $mes==0?  '':' and periodo ='.$mes;
          $this->query="SELECT a.debe_haber, a.tipo_poli, a.num_poliz, (select origen from polizas$eje p where p.tipo_poli = a.tipo_poli and p.num_poliz = a.num_poliz and p.periodo = a.periodo and p.ejercicio = a.ejercicio ) as Origen, a.num_part, a.periodo, a.fecha_pol, (select c.cuenta from cuentas_ftc c where a.num_cta = c.cuenta_coi) as num_cta, c.nombre, a.montomov, a.tipcambio  from auxiliar$eje a left join cuentas$eje c on c.num_cta = a.num_cta where  ejercicio = $anio $periodo order by  a.periodo, a.tipo_poli, a.num_poliz ";
         $res=$this->EjecutaQuerySimple();
         //echo $this->query;

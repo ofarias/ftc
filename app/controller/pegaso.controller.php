@@ -11307,7 +11307,6 @@ function fallarOC($doco){
     }
 
     function PagoFactura($clie){
-    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13349,7 +13348,7 @@ function ImpSolicitud2($idsol){
 	            }
 	            $facturaP =array();
 	            $y = $x-$total;
-	            echo $y;
+	            //echo $y;
 	            if($x > $total){
 	       			$facturasP=$data->facturasMaestro($pago);
 	       		}
@@ -17087,13 +17086,13 @@ function ImpSolicitud2($idsol){
 			$pagina =$this->load_template('Pedidos');
 			ob_start();
 			$guardar=$data->guardaEdoCta($pagos, $compras, $gastos);
-			 if($banco == 'Banco Az'){
-	            	$banco = 'Banco Azteca';
-	            	$cuenta = '0110239668';
-	            }elseif ($banco == 'Scotiaba'){
-	            	$banco = 'Scotiabank';
-	            	$cuenta= '044180001025870734';
-	            }
+			///if($banco == 'Banco Az'){
+	        ///    	$banco = 'Banco Azteca';
+	        ///    	$cuenta = '0110239668';
+	        ///}elseif ($banco == 'Scotiaba'){
+	        ///    	$banco = 'Scotiabank';
+	        ///    	$cuenta= '044180001025870734';
+	        ///}
 	           // echo 'mes'.$mes.' anio '.$anio.' cuenta '.$cuenta.' banco '.$banco;
 	           // break;
 	         $redireccionar="estado_de_cuenta_mes&mes={$mes}&banco={$banco}&cuenta={$cuenta}&anio={$anio}&nvaFechComp=''";

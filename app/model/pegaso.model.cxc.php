@@ -1010,7 +1010,7 @@ class pegasoCobranza extends database {
 
     function traeAplicaciones($idp){
         $data=array();
-        $this->query="SELECT A.*, (SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = A.RFC), (SELECT CUENTA_CONTABLE FROM XML_CLIENTES WHERE RFC = A.RFC) FROM APLICACIONES A WHERE IDPAGO = $idp and cancelado=0";
+        $this->query="SELECT A.*, (SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo= 'Cliente'), (SELECT CUENTA_CONTABLE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo = 'Cliente') FROM APLICACIONES A WHERE IDPAGO = $idp and cancelado=0";
         $r=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($r)){
             $data[]=$tsArray;

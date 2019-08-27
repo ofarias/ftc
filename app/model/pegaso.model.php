@@ -10803,7 +10803,7 @@ function Pagos() {
 
     	$this->query="SELECT 3 as s, fecha_edo_cta as sort, 'Compra' as TIPO, (id||'-'||factura) as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA , fecha_edo_cta as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado, seleccionado, tp_tes, REFERENCIA as obs
     		FROM CR_DIRECTO
-    		where BANCO = '$banco' and cuenta = '$cuenta' and extract(month from fecha_EDO_CTA) = $mes and extract(year from fecha_edo_cta) = $anio and tipo = 'compra' or tipo='Anticipo'  or tipo='otro' or tipo='otro'  and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  order by fecha_edo_cta asc ";
+    		where BANCO = '$banco' and cuenta = '$cuenta' and extract(month from fecha_EDO_CTA) = $mes and extract(year from fecha_edo_cta) = $anio and (tipo = 'compra' or tipo='Anticipo'  or tipo='otro' or tipo='gasto') and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  order by fecha_edo_cta asc ";
     	//echo 'Esta es de tipo compra(CR): '.$this->query;
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray = ibase_fetch_object($rs)){
@@ -10887,8 +10887,15 @@ function Pagos() {
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
+
+    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort, 'Gasto' AS TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, TIPO_PAGO as tp_tes, REFERENCIA as obs
+    			FROM GASTOS g
+    			left join pago_gasto pg on pg.idgasto = g.id
+    			WHERE pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') 
+    				and iif(fecha_edo_cta is null,extract(month from g.FECHA_DOC), extract(month from fecha_edo_cta)) = $mes and iif(fecha_edo_cta is null, extract(year from g.FECHA_DOC), extract(year from fecha_edo_cta)) = $anio and g.status = 'V'  and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  ";
+
   */  	
-    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort, 'Gasto' AS TIPO, pg.ID AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, 0 AS SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, '' AS CEP, '' AS ARCHIVO_CEP, referencia as obs
+    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort, 'Gasto' AS TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, 0 AS SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, tipo_pago as Tp_tes, '' AS CEP, referencia as obs
     			FROM GASTOS g
     			left join pago_gasto pg on pg.idgasto = g.id
     			WHERE pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') and iif(fecha_edo_cta is null,extract(month from g.FECHA_DOC), extract(month from fecha_edo_cta)) = $mes and iif(fecha_edo_cta is null, extract(year from g.FECHA_DOC), extract(year from fecha_edo_cta)) = $anio and g.status = 'V'  and (seleccionado = 2 ) ";
@@ -13323,8 +13330,8 @@ function Pagos() {
 
     function pagoFacturas($idp){
     	$data=array();
-    	$this->query="SELECT a.*, coalesce(c.nombre, (select cl.nombre from clie01 cl where cl.clave_trim = fp.cve_clpv), (SELECT XC.NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.CLIENTE)) AS CLIENTE, 
-    						coalesce(c.clave,fp.cve_clpv, (SELECT 'xml_'||XC.IDcliente FROM XML_CLIENTES XC WHERE XC.RFC = X.CLIENTE) ) as clave , coalesce(f.importe, fp.importe, x.importe) as importe , f.uso_cfdi, f.METODODEPAGO, f.FORMADEPAGOSAT
+    	$this->query="SELECT a.*, coalesce(c.nombre, (select cl.nombre from clie01 cl where cl.clave_trim = fp.cve_clpv), (SELECT XC.NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.CLIENTE and xc.tipo = 'Cliente')) AS CLIENTE, 
+    						coalesce(c.clave,fp.cve_clpv, (SELECT 'xml_'||XC.IDcliente FROM XML_CLIENTES XC WHERE XC.RFC = X.CLIENTE and xc.tipo = 'Cliente') ) as clave , coalesce(f.importe, fp.importe, x.importe) as importe , f.uso_cfdi, f.METODODEPAGO, f.FORMADEPAGOSAT
     					FROM APLICACIONES a
     					left join factf01 f on a.documento = f.cve_doc
     					left join facturas_fp fp on a.documento = fp.cve_doc
@@ -13333,6 +13340,7 @@ function Pagos() {
     					WHERE a.IDPAGO = $idp 
     					and cancelado = 0
     					order by SALDO_PAGO DESC ";
+    		//echo $this->query;
     	$rs= $this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
     			$data[]=$tsArray;
@@ -18869,49 +18877,47 @@ function cerrarRecepcion($doco){
     }
 
     function guardaEdoCta($pagos, $compras, $gastos){	
-    	$pagos = explode(',', $pagos);
+    	$pagos = explode(',', substr($pagos, 1));
     	foreach ($pagos as $p){
     		$tipo = substr($p,0,1);
-    		$iden = substr($p,2,10);
+    		$iden = substr($p,2);
     		$this->query = "UPDATE carga_pagos set seleccionado = 2, guardado = 1 where ID = $iden and seleccionado = 1";
     		$this->EjecutaQuerySimple();
     	}
-    	$compras = explode(',', $compras);
-    	var_dump($compras);
-    	foreach ($compras as $c){
-    		$tipo = substr($c, 0,1);
-    		$iden = substr($c, 2, 10);
-
-    		if($tipo == 2){
-    			$this->query="UPDATE compo01 set seleccionado = 2, guardado = 1  where cve_doc = '$iden' and seleccionado  = 1";
-    			$this->EjecutaQuerySimple();	
-    		}elseif($tipo == 3 or $tipo == 5){
-    			$iden = substr($iden,3,10);
-    			$this->query="UPDATE CR_DIRECTO SET seleccionado = 2, guardado = 1  where ID = $iden and seleccionado = 1";
-    			$this->EjecutaQuerySimple();
-    			//echo 'consulra cr_directo'.$this->query.'<p>';
-    		}elseif ($tipo == 4){
-    			$iden = substr($iden,3, 10);
-    			$this->query="UPDATE GASTOS SET seleccionado = 2, guardado = 1  where ID = $iden and seleccionado = 1";
-    			$this->EjecutaQuerySimple();
-    		}elseif ($tipo == 6) {
-    			$iden = substr($iden, 1,10);
-    			$this->query="UPDATE DEUDORES SET seleccionado = 2, guardado = 1  where iddeudor =$iden and seleccionado = 1 ";
-    			$this->EjecutaQuerySimple();
-    			echo $this->query;
-
-    		}elseif ($tipo  == 7) {
-    			$iden = substr($iden, 4, 10);
-    			$this->query="UPDATE SOLICITUD_PAGO set seleccionado = 2, guardado = 1  where idsol = $iden and seleccionado =1";
-    			$this->EjecutaQuerySimple();
-    		}elseif($tipo == 8){
-    			$this->query="UPDATE FTC_POC set seleccionado = 2, guardado = 1  where OC = '$iden' and seleccionado =1";
-    			$this->EjecutaQuerySimple();
+    	if (!empty($compras)){
+    		$compras = explode(',', substr($compras,1));
+    		foreach ($compras as $c){
+    			$tipo = substr($c,0,1);
+  		  		$iden = substr($c,2);
+    			if($tipo == 2){
+    				$this->query="UPDATE compo01 set seleccionado = 2, guardado = 1  where cve_doc = '$iden' and seleccionado  = 1";
+    				$this->EjecutaQuerySimple();	
+    			}elseif($tipo == 3 or $tipo == 5){
+    				$iden = substr($iden,3);
+    				$this->query="UPDATE CR_DIRECTO SET seleccionado = 2, guardado = 1  where ID = $iden and seleccionado = 1";
+    				$this->EjecutaQuerySimple();
+    				//echo 'consulra cr_directo'.$this->query.'<p>';
+    			}elseif ($tipo == 4){
+    				$iden = substr($iden,3);
+    				$this->query="UPDATE GASTOS SET seleccionado = 2, guardado = 1  where ID = $iden and seleccionado = 1";
+    				$this->EjecutaQuerySimple();
+    			}elseif ($tipo == 6) {
+    				$iden = substr($iden, 1);
+    				$this->query="UPDATE DEUDORES SET seleccionado = 2, guardado = 1  where iddeudor =$iden and seleccionado = 1 ";
+    				$this->EjecutaQuerySimple();
+    				//echo $this->query;
+    			}elseif ($tipo  == 7) {
+    				$iden = substr($iden, 4);
+    				$this->query="UPDATE SOLICITUD_PAGO set seleccionado = 2, guardado = 1  where idsol = $iden and seleccionado =1";
+    				$this->EjecutaQuerySimple();
+    			}elseif($tipo == 8){
+    				$this->query="UPDATE FTC_POC set seleccionado = 2, guardado = 1  where OC = '$iden' and seleccionado =1";
+    				$this->EjecutaQuerySimple();
+    			}
+    			//echo $this->EjecutaQuerySimple();
     		}
-    		echo $this->EjecutaQuerySimple();
     	}
-    	echo $tipo.'<p>  identificador: '.$iden.'<p>';
-    //break;
+    	//echo $tipo.'<p>  identificador: '.$iden.'<p>';
     }
 
 
@@ -26393,6 +26399,30 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$this->query="INSERT INTO XML_POLIZAS (ID, UUID, STATUS, POLIZA, TIPO, PERIODO, EJERCICIO, USUARIO, FECHA) 
 							VALUES (NULL, '$uuid', 'A', '$poliza', '$tipo', $periodo, $ejercicio, '$usuario', current_timestamp)";
 		$this->grabaBD();
+		return;
+	}
+
+	function actXmlMtl($uuid, $tipo, $crea){
+		$poliza = str_pad($crea['numero'], 5, ' ', STR_PAD_LEFT);
+		$periodo = $crea['periodo'];
+		$ejercicio = $crea['ejercicio'];
+		$usuario =$_SESSION['user']->NOMBRE; 
+		$status = 'D';
+		if($tipo == 'Ig'){
+			$status='I';	
+		}elseif($tipo == 'Eg'){
+			$status='E';	
+		}
+		exit(print_r($uuid));
+		foreach($uuid as $u){
+			exit(print_r($U));
+
+			$this->query="UPDATE XML_DATA set STATUS='$status' where uuid=''";
+			$this->EjecutaQuerySimple();
+			$this->query="INSERT INTO XML_POLIZAS (ID, UUID, STATUS, POLIZA, TIPO, PERIODO, EJERCICIO, USUARIO, FECHA) 
+							VALUES (NULL, '$uuid', 'A', '$poliza', '$tipo', $periodo, $ejercicio, '$usuario', current_timestamp)";
+			$this->grabaBD();
+		}
 		return;
 	}
 
