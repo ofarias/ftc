@@ -139,7 +139,7 @@
                                     <label><?php echo $key->BANCO?></label>
                                     <label> El monto del pago es de: $ <?php echo number_format($key->MONTO,2)?> </label><br>
                                     <label> El saldo actual es de: $ <?php echo number_format($key->SALDO,2)?>  <br> 
-                                    <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a><br>
+                                    <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a> <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br>
                                     <label> Identificado para el Maestro <font color="blue"><?php echo $key->MAESTRO?></font>&nbsp;&nbsp;&nbsp;<a onclick="cambiaAsoc(<?php echo $folio?>)"><font color="#b3b3ff">Cambiar Asociaciona</font>&nbsp;&nbsp;&nbsp;</a></label>
                                     <br/><br/>
                                     <form action="upload_comprobante_pago_v2.php" method="post" enctype="multipart/form-data" id="formulario">
@@ -265,8 +265,19 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
     </div>
 </div>
 <?php }?>
-<script type="text/javascript" language="JavaScript" src="app/views/bower_components/jquery/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="/resources/demos/style.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(".cuencont").autocomplete({
+        source: "index.coi.php?cuentas=1",
+        minLength: 3,
+        select: function(event, ui){
+        }
+    });
+
     $("#infoPago").mouseover(function(){
         alert('Informacion del pago');
     })
@@ -695,7 +706,7 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
         var idp = $(this).attr('idp')
         var tipo = $(this).attr('tipo')
         var info = $(this).attr('info')
-        var y = ''
+        var y = document.getElementById('z').value
         //$.alert('Contabilizar el pago' + idp + " tipo " + tipo)
        $.confirm({
             title: 'Creacion de poliza de Ingreso',
