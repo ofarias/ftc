@@ -1708,18 +1708,18 @@ class CoiDAO extends DataBaseCOI {
         $usuario=$_SESSION['user']->USER_LOGIN;
         $i=0;
         //print_r($cabecera);
-            $fecha = strtotime($cabecera->FECHA_RECEP);
-            $periodo= date("m", $fecha);
-            $ejercicio=date("Y", $fecha);
-            $eje=substr($ejercicio,2);
-            $fecha=$cabecera->FECHA_RECEP; 
-            //$proveedor=$cabecera->PROV;
-            $saldo = $cabecera->SALDO;
-            $tc=1;
-            $tbPol= 'POLIZAS'.$eje; 
-            $tbAux= 'AUXILIAR'.$eje;
-            $campo= 'FOLIO'.str_pad($periodo, 2, '0', STR_PAD_LEFT);
-            $ie=$tipo;  
+        $fecha = strtotime($cabecera->FECHA_RECEP);
+        $periodo= date("m", $fecha);
+        $ejercicio=date("Y", $fecha);
+        $eje=substr($ejercicio,2);
+        $fecha=$cabecera->FECHA_RECEP; 
+        //$proveedor=$cabecera->PROV;
+        $saldo = $cabecera->SALDO;
+        $tc=1;
+        $tbPol= 'POLIZAS'.$eje; 
+        $tbAux= 'AUXILIAR'.$eje;
+        $campo= 'FOLIO'.str_pad($periodo, 2, '0', STR_PAD_LEFT);
+        $ie=$tipo;  
         
         foreach($detalle as $dc){
             $rfcf= '';

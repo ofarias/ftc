@@ -39,7 +39,7 @@ class factura extends database {
 			}
 
 			if($idc < 9999999){
-			$this->query ="SELECT p.descripcion|| coalesce((select coalesce((select cast(ANEXO_DESCRIPCION as varchar(1000))
+			$this->query ="SELECT p.descripcion|| coalesce((select first 1 coalesce((select first 1 cast(ANEXO_DESCRIPCION as varchar(1000))
                       from FTC_ANEXO_DESCR
                       where CAJA = $idc and
                             PARTIDA = P.PARTIDA and

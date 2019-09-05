@@ -73,6 +73,8 @@ class pegaso extends database{
 		$data2=array();
 		$autoPoliza=array();
 		$fi = $_SESSION['empresa']['fecha_inicio'];
+		$this->query="UPDATE xml_partidas set cuenta_contable = null where cuenta_contable = 'undefined'";
+		$this->queryActualiza();
 		if($_SESSION['cnxcoi']=== 'no'){
 			return array("status"=>'ok', "mensaje"=>"No se encontro conexion con coi :|", "title"=>'Polizas Automaticas');
 		}
@@ -20492,8 +20494,8 @@ function ejecutarRecepcion($ida, $cantRec, $cantOr ){
 					$this->query = "UPDATE TBLCONTROL01 SET ULT_CVE  = $folioOC where id_TABLA = 81";
 					$this->grabaBD();
 
-				$this->query="INSERT INTO FTC_POC (ID, CVE_DOC, CVE_PROV, FECHA_DOC, TP_TES, USUARIO, COSTO, DESCUENTO, PRECIO, IVA, STATUS, TOTAL_IVA, COSTO_TOTAL, URGENCIA, FECHA_ELAB, OC, FECHA_OC, USUARIO_OC, TP_TES_REQ, FECHA_ENTREGA, CONFIRMADO) 
-				VALUES (NULL, ('OCI-'||$idoci), '$row->PROVEEDOR', '$row->FECHA_OCI', NULL, '$usuario', $row->COSTO, 0, 0, 0, 'ORDEN', 0, $row->COSTO * 1.16, 0, current_timestamp, ('OPI'||$folioOC), current_timestamp, '$usuario', 'Cr', current_date, 'Directo Bodega')";
+				$this->query="INSERT INTO FTC_POC (ID, CVE_DOC, CVE_PROV, FECHA_DOC, TP_TES, USUARIO, COSTO, DESCUENTO, PRECIO, IVA, STATUS, TOTAL_IVA, COSTO_TOTAL, URGENCIA, FECHA_ELAB, OC, FECHA_OC, USUARIO_OC, TP_TES_REQ, FECHA_ENTREGA, CONFIRMADO, status_log) 
+				VALUES (NULL, ('OCI-'||$idoci), '$row->PROVEEDOR', '$row->FECHA_OCI', NULL, '$usuario', $row->COSTO, 0, 0, 0, 'ORDEN', 0, $row->COSTO * 1.16, 0, current_timestamp, ('OPI'||$folioOC), current_timestamp, '$usuario', 'Cr', current_date, 'Directo Bodega', 'Nuevo')";
 				$this->grabaBD();
 
 				$this->query="SELECT * FROM FTC_OCI WHERE OCI = $idoci";
@@ -26767,11 +26769,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	function revisaXLSX($target_file, $datos){
 		$data=array();
 		if($_SESSION['rfc']=='IMI161007SY7'){
-
 			//$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Abril\\';
 			//$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Mayo\\';
-			$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Junio\\';
-
+			//$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Junio\\';
+			$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Julio\\';
+			
     		$files = array_diff(scandir($path), array('.', '..'));
     		//print_r($files);
     		foreach($files as $file){

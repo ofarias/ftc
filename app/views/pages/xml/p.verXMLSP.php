@@ -140,7 +140,7 @@
                                                     <?php }?>
                                                     &nbsp;&nbsp;
                                                     <a href="index.php?action=imprimeUUID&uuid=<?php echo $key->UUID?>" onclick="alert('Se ha descargar tu factura, revisa en tu directorio de descargas')"><img border='0' src='app/views/images/pdf.jpg' width='25' height='30'></a>
-                                                    <!--<input type="button" value="" class="btn-sm btn-info cargaSAE" doc="<?php echo $key->SERIE.$key->FOLIO?>" ruta="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->CLIENTE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" serie="<?php echo $key->SERIE?>" folio ="<?php echo $key->FOLIO?>" uuid="<?php echo $key->UUID?>" rfcr="<?php echo $key->CLIENTE?>" ln="<?php echo $ln?>" tipo="<?php echo $doc?>">-->
+                                                    <input type="button" value="" class="btn-sm btn-info cargaSAE" doc="<?php echo $key->SERIE.$key->FOLIO?>" ruta="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->CLIENTE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" serie="<?php echo $key->SERIE?>" folio ="<?php echo $key->FOLIO?>" uuid="<?php echo $key->UUID?>" rfcr="<?php echo $key->CLIENTE?>" ln="<?php echo $ln?>" tipo="<?php echo $doc?>">
                                                 </td>
                                             </form>
                                         </tr>
@@ -166,7 +166,8 @@
             $.alert('Este proceso solo se puede realizar por periodo y no de forma anual.')
             return
         }
-       $.ajax({
+        $.alert('El proceso busca las polizas en COI, si no la encuentra libera el XML para ser registrado nuevamente')
+        $.ajax({
             url:'index.xml.php',
             type:'post',
             dataType:'json',
