@@ -234,7 +234,7 @@ class controller_xml{
 	                ->setCellValue('G'.$ln,'('.$key->CLIENTE.')'.utf8_encode($key->NOMBRE))
 	                ->setCellValue('H'.$ln,'('.$key->RFCE.')'.$key->EMISOR)
 	                ->setCellValue('I'.$ln,$key->SUBTOTAL)//number_format($key->SUBTOTAL,2,".",""))
-	                ->setCellValue('J'.$ln,$key->IVA)//number_format($key->IVA,2,".",""))
+	                ->setCellValue('J'.$ln,$key->IVA160)//number_format($key->IVA,2,".",""))
 	                ->setCellValue('K'.$ln,$key->IVA_RET)//number_format($key->IVA_RET,2,".",""))
 	                ->setCellValue('L'.$ln,$key->IEPS)//number_format($key->IEPS,2,".",""))
 	                ->setCellValue('M'.$ln,$key->IEPS_RET)//number_format($key->IEPS_RET,2,".",""))
