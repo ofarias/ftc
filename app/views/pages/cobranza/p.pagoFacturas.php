@@ -19,6 +19,7 @@
                                         $folio = $key->ID;
                                         $cep = $key->CEP;
                                 ?>
+                                    <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br>
                                     <form action="index.php" method="post">
                                         <label> <?php echo $key->BANCO?> </label><br>
                                         <label> El monto del pago es de: $ <?php echo number_format($key->MONTO,2)?> </label><br>
@@ -139,7 +140,7 @@
                                     <label><?php echo $key->BANCO?></label>
                                     <label> El monto del pago es de: $ <?php echo number_format($key->MONTO,2)?> </label><br>
                                     <label> El saldo actual es de: $ <?php echo number_format($key->SALDO,2)?>  <br> 
-                                    <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a> <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br>
+                                    <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a><input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br>
                                     <label> Identificado para el Maestro <font color="blue"><?php echo $key->MAESTRO?></font>&nbsp;&nbsp;&nbsp;<a onclick="cambiaAsoc(<?php echo $folio?>)"><font color="#b3b3ff">Cambiar Asociaciona</font>&nbsp;&nbsp;&nbsp;</a></label>
                                     <br/><br/>
                                     <form action="upload_comprobante_pago_v2.php" method="post" enctype="multipart/form-data" id="formulario">
@@ -722,7 +723,7 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
 
                         },
                         error:function(){
-                            $.alert("Es penoso, pero encontramos un error, favor de reportar a sistemas.")
+                            $.alert("Favor de revisar la poliza en coi!!!")
                         }
                     })
                 },
