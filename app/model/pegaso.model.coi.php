@@ -1811,7 +1811,7 @@ class CoiDAO extends DataBaseCOI {
             }else{
                 $cuentaProv='';
             }
-            echo 'Se crea una partida a la cuenta seleccionada por el saldo del documento';
+            //secho 'Se crea una partida a la cuenta seleccionada por el saldo del documento';
             $partida ++; 
             $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuentaProv','$fecha', coalesce((SELECT NOMBRE FROM CUENTAS$eje where num_cta = '$cuentaProv'), 'Sin Proveedor') ,'$nat1', $saldo, 0, $tc, 0, $partida, 0,0, null, null)";
