@@ -595,6 +595,12 @@ class pegaso_controller_ventas{
         return $exec;
     }
 
+    function TraeClientes($cliente){
+        $datav= new pegaso_ventas;
+        $exec=$datav->traeClientes($cliente);
+        return $exec;
+    }
+
 
     function solicitarAlta($categoria, $descripcion, $marca, $cotizacion, $cliente, $unidadmedida,$empaque, $cantsol){
     //($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $cotizacion, $cliente){

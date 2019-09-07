@@ -651,6 +651,23 @@ class pegaso_ventas extends database{
         return @$rs;
     }
 
+    function traeClientes($cliente){
+        $COMPLETO = false;
+        if(strpos($cliente, ' ')){
+            $desc2 = explode(' ', $cliente);
+            $contado  = count($desc2);
+            for($i = 0; $i < $contado; $i++){
+                $COMPLETO = $COMPLETO." AND nombre containing('".$desc2[$i]."') ";
+            }
+        }else{
+            $COMPLETO = " and nombre containing ('".$cliente."') or clave=upper('".$cliente."')";
+        }
+        $this->query="SELECT c.* FROM clie01 c where c.status!='' $COMPLETO";
+        //echo $this->query;
+        $rs=$this->QueryDevuelveAutocompleteClie();
+        return @$rs;    
+    }
+
     function traeCategorias(){
         $data = array();
         $this->query="SELECT * FROM CATEGORIAS WHERE STATUS = 'A'";

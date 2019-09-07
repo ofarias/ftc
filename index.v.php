@@ -91,6 +91,11 @@ if (isset($_POST['usuario'])){
 		$nombres = $controller_v->TraeProductosFTC($buscar);
 		echo json_encode($nombres);
 		exit;
+}elseif(isset($_GET['term']) && isset($_GET['cliente'])){
+		$buscar = $_GET['term'];
+		$nombres=$controller_v->TraeClientes($buscar);
+		echo json_encode($nombres);
+		exit();
 }elseif (isset($_POST['solicitarAlta'])) {
 		$categoria=$_POST['categoria'];	
 		//$linea=$_POST['linea'];
