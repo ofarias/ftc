@@ -287,12 +287,13 @@
                                               $desc1 = '';
                                               $desc = '';
                                         foreach ($exec as $datos):
-                                              if(empty($datos->TP) and $datos->TIPO = 'Venta'){
+                                              if(empty($datos->TP) and $datos->TIPO == 'Venta'){
                                                 $tipo = 'Venta';
                                               } else{
                                                 $tipo = $datos->TP;  
                                               }
                                               $i++;  
+                                              echo $tipo;
                                               if($tipo == 'DC'){
                                               $desc = 'DEVOLUCION DE COMPRA.';
                                               }elseif ($tipo =='DG'){
@@ -305,7 +306,7 @@
                                                 $desc = 'Pago de Factura';
                                               }elseif($tipo == 'Compra'){
                                                $desc = 'Compra'; 
-                                              }elseif (substr($tipo,0,3)== 'GTR'){
+                                              }elseif(substr($tipo,0,3)== 'GTR' or (substr($tipo,0,3))== 'GEF' or (substr($tipo,0,3)== 'GCH')){
                                                 $desc = $tipo;
                                                 $desc1 = 'gasto';
                                               }elseif ($tipo == 'Deudor') {
