@@ -2152,6 +2152,7 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         $fecha='';
         $cls='';
         $detalle= '';
+        $cd="";
         if($op4!='' and $op5!=''){
             // Quiere decir que se parametizan las fechas
             $fecha = " and fecha_doc >= '".$op4."' and fecha_doc <='".$op5."' ";    
@@ -2173,19 +2174,19 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         }
         if($op2 == 'Detallado'){
             $detalle = " left join ".$tabla2." on t2.documento = t1.documento ";
+            $cd="*.t2, ";
         }
 
         if($op3 == 'Agrupado'){
-            $this->query="SELECT * FROM $tabla $detalle where t1.status is not null  $fecha $cls order by cliente";
+            $this->query="SELECT t1.*, $cd (SELECT C.NOMBRE FROM CLIE01 C WHERE trim(C.CLAVE) = t1.cliente ) FROM $tabla $detalle where t1.status is not null  $fecha $cls order by cliente";
         }else{
-            $this->query="SELECT * FROM $tabla $detalle where t1.status is not null  $fecha $cls";
+            $this->query="SELECT t1.*, $cd (SELECT C.NOMBRE FROM CLIE01 C WHERE trim(C.CLAVE) = t1.cliente ) FROM $tabla $detalle where t1.status is not null  $fecha $cls";
         }
-        echo $this->query;
         $res=$this->EjecutaQuerySimple();
         while($tsarray=ibase_fetch_object($res)){
             $data[]=$tsarray;
         }
-        return $data;
+        return array("status"=>"ok", "datos"=>$data, "archivo"=>'');
     } 
 
 }?>

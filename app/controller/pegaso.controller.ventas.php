@@ -1407,8 +1407,174 @@ class pegaso_controller_ventas{
         if($_SESSION['user']){
             $datav=new pegaso_ventas;
             $datos=$datav->repVenta($op1, $op2, $op3, $op4, $op5, $op6, $op7);
+            if($op1= 'Excel'){
+                $res=$this->repVentaXLS($datos['datos'], $op4, $op5);
+                return $res;
+            }
             return $datos;
         }
+    }
+
+    function repVentaXLS($datos, $op4, $op5){
+            $xls= new PHPExcel();
+            $data= new pegaso; 
+            $df= $data->traeDF($idem = 1);
+            $usuario =$_SESSION['user']->NOMBRE;
+            $fecha = date('d-m-Y h:i:s');
+            $ln = 10;
+            $i = 0;
+            $t=0;
+            $s=0;
+            foreach ($datos as $key) {
+                $i++;
+                $t += $key->TOTAL;
+                $s += $key->SALDO_FINAL;
+                $xls->setActiveSheetIndex()
+                    ->setCellValue('A'.$ln,$key->DOCUMENTO)
+                    ->setCellValue('B'.$ln,$key->FECHA_DOC)
+                    ->setCellValue('C'.$ln,$key->NOMBRE)
+                    ->setCellValue('D'.$ln,$key->SUBTOTAL)
+                    ->setCellValue('E'.$ln,$key->IVA)
+                    ->setCellValue('F'.$ln,$key->TOTAL)
+                    ->setCellValue('G'.$ln,$key->SALDO_FINAL)
+                    ->setCellValue('H'.$ln,$key->USO_CFDI)
+                    ->setCellValue('I'.$ln,$key->FORMADEPAGOSAT)//number_format($key->SUBTOTAL,2,".",""))
+                    ->setCellValue('J'.$ln,$key->METODO_PAGO)//number_format($key->IVA,2,".",""))
+                    ->setCellValue('K'.$ln,$key->MONEDA)//number_format($key->IVA_RET,2,".",""))
+                    ->setCellValue('L'.$ln,$key->TIPO_CAMBIO)
+                    ->setCellValue('M'.$ln,$key->USUARIO)//number_format($key->IEPS,2,".",""))
+                    ->setCellValue('N'.$ln,$key->UUID)
+                    ->setCellValue('O'.$ln,$key->STATUS)
+                ;
+                $ln++;
+            }
+            $ln++;
+            $xls->setActiveSheetIndex()
+                ->setCellValue('A'.$ln,'Fin del resumen de los documentos.');
+              //->setCellValue('B'.$ln,'')
+              //->setCellValue('C'.$ln,'$ '.number_format($key->SALDOFINAL-$key->IMP_TOT4,2))
+              //->setCellValue('D'.$ln,'$ '.number_format($key->IMP_TOT4,2))
+              //->setCellValue('E'.$ln,'$ '.number_format($key->IMPORTE,2))
+              //->setCellValue('F'.$ln,'$ '.number_format($key->SALDO,2))
+              //->setCellValue('G'.$ln,$key->FECHA_INI_COB)
+              //->setCellValue('H'.$ln,$key->CVE_PEDI)
+              //->setCellValue('I'.$ln,$key->OC);
+            /// 
+            $xls->getActiveSheet()
+                ->setCellValue('A1',$df->RAZON_SOCIAL)
+            ;
+            /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+            $xls->getActiveSheet()->getColumnDimension('A')->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension('C')->setWidth(40);
+            $xls->getActiveSheet()->getColumnDimension('D')->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension('E')->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension('F')->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension('G')->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension('H')->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension('I')->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension('J')->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension('K')->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension('L')->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension('M')->setWidth(30);
+            $xls->getActiveSheet()->getColumnDimension('N')->setWidth(40);
+            $xls->getActiveSheet()->getColumnDimension('O')->setWidth(10);
+            
+            // Hacer las cabeceras de las lineas;
+            //->setCellValue('9','')
+            $xls->getActiveSheet()
+                ->setCellValue('A9','Documento')
+                ->setCellValue('B9','Fecha')
+                ->setCellValue('C9','Nombre')
+                ->setCellValue('D9','SubTotal')
+                ->setCellValue('E9','Iva')
+                ->setCellValue('F9','Total')
+                ->setCellValue('G9','Saldo')
+                ->setCellValue('H9','Uso CFDI')
+                ->setCellValue('I9','Forma Pago')
+                ->setCellValue('J9','Metodo Pago')
+                ->setCellValue('K9','Moneda')
+                ->setCellValue('L9','TC')
+                ->setCellValue('M9','Usuario')
+                ->setCellValue('N9','UUID')
+                ->setCellValue('O9','STATUS')
+            ;
+
+            $xls->getActiveSheet()
+                ->setCellValue('A3','Resumen de Documentos')
+                ->setCellValue('A4','Fecha de Emision del Reporte: ')
+                ->setCellValue('A5','Fecha Incial: ')
+                ->setCellValue('A6','Fecha Final: ')
+                ->setCellValue('A7','Total Facturado: ')
+                ->setCellValue('A8','Total Saldo: ')
+                ->setCellValue('A9','Usuario Elabora')
+                ->setCellValue('A10','')
+                ;
+            $xls->getActiveSheet()
+                ->setCellValue('D3','')
+                ->setCellValue('D4',$fecha)
+                ->setCellValue('D5',$op4)
+                ->setCellValue('D6',$op5)
+                ->setCellValue('D7','$ '.number_format($t,2))
+                ->setCellValue('D8','$ '.number_format($s,2))
+                ->setCellValue('D9',$usuario)
+                ->setCellValue('D10','')
+                ;
+            /// Unir celdas
+            $xls->getActiveSheet()->mergeCells('A1:O1');
+            // Alineando
+            $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+            /// Estilando
+            $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+                array('font' => array(
+                        'size'=>20,
+                    )
+                )
+            );
+            //Nombre de la hoja
+            $xls->getActiveSheet()->setTitle('Resumen de Ventas');
+
+            $xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+            $xls->getActiveSheet()->mergeCells('A3:F3');
+            $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
+                array('font' => array(
+                        'size'=>15,
+                    )
+                )
+            );
+
+            $xls->getActiveSheet()->getStyle('A3:D3')->applyFromArray(
+                array(
+                    'font'=> array(
+                        'bold'=>true
+                    ),
+                    'borders'=>array(
+                        'allborders'=>array(
+                            'style'=>PHPExcel_Style_Border::BORDER_THIN
+                        )
+                    )
+                )
+            );
+            //// Crear una nueva hoja 
+                //$xls->createSheet();
+            /// Crear una nueva hoja llamada Mis Datos
+            /// Descargar
+            $ruta='C:\\xampp\\htdocs\\EdoCtaXLS\\';
+            if(!file_exists($ruta)){
+                mkdir($ruta);
+            }
+            $nom='Detalle de Documentos de '.$df->RAZON_SOCIAL." ".date("d-m-Y H-i-s").'.xlsx';
+            //header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            //header("Content-Disposition: attachment;filename=01simple.xlsx");
+            //header('Cache-Control: max-age=0');
+            /// escribimos el resultado en el archivo;
+            $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+            /// salida a descargar
+            $x->save($ruta.$nom);
+            ob_end_clean();
+               // $x->save('php://output');
+            /// salida a ruta :
+            return array("status"=>'ok', "datos"=>$datos,"archivo"=>$nom);
     }
 
     function cargaSae($doc, $folio, $serie, $uuid, $ruta, $rfcr, $tipo){
