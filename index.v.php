@@ -505,6 +505,10 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	$res=$controller_v->cargaSae($_POST['doc'], $_POST['folio'], $_POST['serie'], $_POST['uuid'], $_POST['ruta'], $_POST['rfcr'], $_POST['tipo']);
 	echo json_encode($res);
 	exit();
+}elseif(isset($_POST['repVenta'])){
+	$res=$controller_v->repVenta($_POST['op1'], $_POST['op2'],$_POST['op3'],$_POST['op4'],$_POST['op5'],$_POST['op6'],$_POST['op7']);
+	echo json_encode($res);
+	exit();
 }
 else{switch ($_GET['action']){
 		case 'login':

@@ -1403,6 +1403,14 @@ class pegaso_controller_ventas{
         }    
     }
 
+    function repVenta($op1, $op2, $op3, $op4, $op5, $op6, $op7){
+        if($_SESSION['user']){
+            $datav=new pegaso_ventas;
+            $datos=$datav->repVenta($op1, $op2, $op3, $op4, $op5, $op6, $op7);
+            return $datos;
+        }
+    }
+
     function cargaSae($doc, $folio, $serie, $uuid, $ruta, $rfcr, $tipo){
         if($_SESSION['user']){
             $datav = new pegaso_ventas;

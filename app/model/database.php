@@ -105,8 +105,8 @@
 			$this->AbreCnx();
 			$rs = ibase_query($this->cnx, $this->query);
 			while($row = ibase_fetch_object($rs)){
-				$row->CLAVE = htmlentities(stripcslashes($row->CLAVE));
-				$row->NOMBRE = htmlentities(stripcslashes($row->NOMBRE));
+				$row->CLAVE =utf8_encode($row->CLAVE);
+				$row->NOMBRE = utf8_encode(str_replace(",", " ", $row->NOMBRE));
 				//$row->COSTO_VENTAS = htmlentities(stripcslashes($row->COSTO_VENTAS));
 				//$row->PROVEEDOR = htmlentities(stripcslashes($row->PROVEEDOR));
 				//$row_set[] = $row->CLAVE;

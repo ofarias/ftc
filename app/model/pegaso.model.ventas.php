@@ -2131,4 +2131,61 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         //return array("status"=>'no',"mensaje"=>'No se encontro el Archivo', "archivo"=>'no');
     }
 
+    function repVenta($op1,$op2,$op3,$op4,$op5,$op6,$op7){
+        $data=array();
+        switch ($op6) {
+            case 'Facturas':
+                $tabla = "FTC_FACTURAS t1 ";
+                $tabla2 = "FTC_FACTURAS_DETALLE t2 ";
+                break;
+            case 'Prefacturas':
+                $tabla = " Cajas t1 ";
+                $tabla2 = " preoc01 t2 ";
+                break;
+            case 'Cotizaciones':
+                $tabla = "FACTP01 t1 ";
+                $tabla2 = " PAR_FACTP01 t2 ";
+                break;
+            default:
+            break;
+        }
+        $fecha='';
+        $cls='';
+        $detalle= '';
+        if($op4!='' and $op5!=''){
+            // Quiere decir que se parametizan las fechas
+            $fecha = " and fecha_doc >= '".$op4."' and fecha_doc <='".$op5."' ";    
+        }elseif($op4 == '' and $op5 !=''){
+            $fecha = " and fecha_doc <= '".$op5."' ";
+        }elseif ($op4 != '' and $op5 == ''){
+            $fecha = " and fecha_doc >= '".$op4."' ";
+        }
+
+        if($op7!= '' and strpos($op7, ":")){
+            $clie=explode(",",$op7);
+            for($i=0; $i < (count($clie)-1); $i++){
+                $cli=explode(":", $clie[$i]);
+                $cli[0]=str_replace("<p>","", trim($cli[0]));
+                $cli[0]=str_replace("</p>", "", trim($cli[0]));
+                $cls .= "trim('".$cli[0]."'),"; 
+            }     
+            $cls=" and trim(cliente) in (".substr($cls,0,-1).")";
+        }
+        if($op2 == 'Detallado'){
+            $detalle = " left join ".$tabla2." on t2.documento = t1.documento ";
+        }
+
+        if($op3 == 'Agrupado'){
+            $this->query="SELECT * FROM $tabla $detalle where t1.status is not null  $fecha $cls order by cliente";
+        }else{
+            $this->query="SELECT * FROM $tabla $detalle where t1.status is not null  $fecha $cls";
+        }
+        echo $this->query;
+        $res=$this->EjecutaQuerySimple();
+        while($tsarray=ibase_fetch_object($res)){
+            $data[]=$tsarray;
+        }
+        return $data;
+    } 
+
 }?>
