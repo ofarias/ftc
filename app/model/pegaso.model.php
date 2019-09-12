@@ -10973,7 +10973,6 @@ function Pagos() {
 
     
     function saldosBancos($mes, $banco , $cuenta, $anio){
-    	//$this->query="SELECT * FROM PG_BANCOS WHERE BANCO = '$banco' and NUM_CUENTA = '$cuenta'";
     	$data = array();
     	if($mes == 1){
     		$mes = 12;
@@ -10983,11 +10982,17 @@ function Pagos() {
     	}
     	$this->query="SELECT * FROM FTC_CTRL_BANCOS WHERE BANCO = '$banco' and CUENTA= '$cuenta' and periodo =$mes and ANIO = $anio";
     	$rs=$this->EjecutaQuerySimple();
-
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
-    	//echo $this->query;
+    	if(empty($data)){
+    		$this->query="SELECT COALESCE(SALDOI, 0) AS MONTO_FINAL FROM PG_BANCOS WHERE BANCO = '$banco' and NUM_CUENTA = '$cuenta'";
+    		$rs=$this->EjecutaQuerySimple();
+    			while($tsArray=ibase_fetch_object($rs)){
+    			$data[]=$tsArray;
+    		}
+    	}
+
     	return $data;
     }
 
