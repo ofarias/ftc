@@ -293,7 +293,6 @@
                                                 $tipo = $datos->TP;  
                                               }
                                               $i++;  
-                                              echo $tipo;
                                               if($tipo == 'DC'){
                                               $desc = 'DEVOLUCION DE COMPRA.';
                                               }elseif ($tipo =='DG'){
