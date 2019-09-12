@@ -5,7 +5,6 @@
                         <div class="panel-heading">
                                  SALDO DE CUENTAS BANCARIAS &nbsp;&nbsp;&nbsp;v.2
                         </div>
-
                         <?php 
                           $saldoInicial = 0;
                           foreach ($saldos as $sdos ):

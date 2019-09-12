@@ -10926,7 +10926,7 @@ function Pagos() {
     	}
     	$this->query="SELECT 3 as s, fecha_edo_cta as sort, 'Compra' as TIPO, (id||'-'||factura) as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA , fecha_edo_cta as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado, seleccionado, tp_tes, '' AS CEP, '' AS ARCHIVO_CEP,  referencia as obs
     		FROM CR_DIRECTO
-    		where BANCO = '$banco' and cuenta = '$cuenta' and extract(month from fecha_EDO_CTA) = $mes and extract(year from fecha_edo_cta) = $anio and tipo = 'compra' or tipo='Anticipo'  or tipo='otro' and (seleccionado = 2 ) order by fecha_edo_cta asc ";
+    		where BANCO = '$banco' and cuenta = '$cuenta' and extract(month from fecha_EDO_CTA) = $mes and extract(year from fecha_edo_cta) = $anio and (tipo = 'compra' or tipo='Anticipo'  or tipo='otro') and (seleccionado = 2 ) order by fecha_edo_cta asc ";
     	//echo 'Esta es de tipo compra(CR): '.$this->query;
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray = ibase_fetch_object($rs)){
@@ -10992,7 +10992,6 @@ function Pagos() {
     			$data[]=$tsArray;
     		}
     	}
-
     	return $data;
     }
 
@@ -26648,9 +26647,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$res=$this->EjecutaQuerySimple();
 			$rowV=ibase_fetch_object($res);
 			if(empty($rowV->IDPAGO)){
-				$this->query="INSERT INTO CR_DIRECTO( FACTURA, FECHA_FACTURA, FECHA_MOV, PROVEEDOR, IMPORTE, FECHA_EDO_CTA, TP_TES, REFERENCIA, BANCO, CUENTA, TIPO, idgasto, usuario)
+				$this->query="INSERT INTO CR_DIRECTO( FACTURA, FECHA_FACTURA, FECHA_MOV, PROVEEDOR, IMPORTE, FECHA_EDO_CTA, TP_TES, REFERENCIA, BANCO, CUENTA, TIPO, idgasto, usuario, seleccionado, guardado)
 	   							VALUES (
-	   								(SELECT FIRST 1 DOCUMENTO FROM XML_DATA WHERE UUID = '$uuid' and idpago is null), 
+	   								substring((SELECT FIRST 1 DOCUMENTO FROM XML_DATA WHERE UUID = '$uuid' and idpago is null) from 1 for 20), 
 	   								(SELECT FIRST 1 FECHA FROM XML_DATA WHERE UUID = '$uuid' and idpago is null),  
 	   								current_timestamp, 
 	   								'xml_'||(SELECT FIRST 1 idcliente from xml_clientes where tipo='Proveedor' and RFC = (SELECT RFCE FROM XML_DATA WHERE UUID='$uuid'and idpago is null) ), 
@@ -26662,9 +26661,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	   								(SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = $cta),
 	   								'$t',
 	   								9999,
-	   								'$usuario') RETURNING id";
-	   			//echo $this->query;
-		  		$rs=$this->EjecutaQuerySimple();
+	   								'$usuario', 2, 1) RETURNING id";
+	   			$rs=$this->EjecutaQuerySimple();
 		  		$row = ibase_fetch_object($rs);
 		  		if($row->ID > 0){
 					$mensaje = array("status"=>'ok', "mensaje"=>"Se ha insertado el gasto".$row->ID);
