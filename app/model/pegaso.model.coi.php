@@ -1263,14 +1263,15 @@ class CoiDAO extends DataBaseCOI {
                     $factor =$imp->TIPOFACTOR;
                     $tf = $imp->TIPO;
                     $nom_1 = $aux->DESCRIPCION;
-
                     if($partAux == $par){
                         $cuenta = '';
                         $parImp = $partida + 1;
                         if($tf=='Retencion'){
-                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status= 1 and factor = '$factor' and tipo = '$tf' and poliza ='$tipo' and round(tasa,3) = $tasa and tipo_xml = '$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
+                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status= 1 and factor = '$factor' and tipo = '$tf' and poliza ='$tipo' and round(tasa,3) = round($tasa,3) and tipo_xml = '$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
+                            //echo 'Consulta si existe Retencion: '.$this->query;
                         }else{
-                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status= 1 and factor = '$factor'and tipo = '$tf' and poliza ='$tipo' and round(tasa,3) = $tasa and tipo_xml = '$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
+                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status= 1 and factor = '$factor'and tipo = '$tf' and poliza ='$tipo' and round(tasa,3) = round($tasa,3) and tipo_xml = '$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
+                            //echo 'Consulta si NO existe Retencion: '.$this->query;
                         }
                         //echo 'Busqueda de la cuenta de impuestos: '.$this->query;
                         $res=$this->EjecutaQuerySimple();
@@ -1279,10 +1280,10 @@ class CoiDAO extends DataBaseCOI {
                             //echo 'Encontro impuesto'.$par;
                             $cuenta = $rowImp->CUENTA_CONTABLE;
                             $nom_1 = $rowImp->NOMBRE; 
-                            $nat1= $rowImp->NAT==1? 'H':$nat1;
+                            $n= $rowImp->NAT==1? 'H':$nat1;
                                 $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
                                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
-                                                values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
+                                                values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$n', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
                                 //echo '<br/>'.$this->query.'<br/>';
                                 $this->EjecutaQuerySimple();   
                                 $partida++;
@@ -1306,7 +1307,7 @@ class CoiDAO extends DataBaseCOI {
                         //$parImp = $partida + 1;
                         $cuenta = $aux->CUENTA_CONTABLE;
                         $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
-                        $this->query="UPDATE $tbAux SET montomov = montomov + $imp->MONTO WHERE NUM_CTA = '$cuenta' and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo = $periodo and ejercicio = $ejercicio";
+                        $this->query="UPDATE $tbAux SET montomov = montomov + $imp->MONTO WHERE NUM_CTA = '$cuenta' and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo=$periodo and ejercicio=$ejercicio and num_part = (parImp -1)";
                         /*
                         $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                         values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
