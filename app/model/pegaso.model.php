@@ -24564,7 +24564,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(select first 1 nombre from xml_clientes xc where xc.rfc = x.cliente) as nombre, 
     					(SELECT first 1 RAZON_SOCIAL FROM FTC_EMPRESAS WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = x.cliente and tipo = 'Cliente') as cuenta_Contable,
-    					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(100)),'') as poliza
+    					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(200)),'') as poliza
     					,'' as tp_tes
     					, fecha_recep as fecha_edo_cta
 						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F' or x.status = 'C') $uuid";
@@ -24574,11 +24574,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
     					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = rfce and tipo = 'Proveedor') as cuenta_Contable,
-    					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(100)),'') as poliza
+    					COALESCE(CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(200)),'') as poliza
 						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
 						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
     	}
-    	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while($tsArray = ibase_fetch_object($res)){
     		$data[]=$tsArray;
@@ -26408,26 +26407,32 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return;
 	}
 
-	function actXmlMtl($uuid, $tipo, $crea){
+	function actXmlMtl($uuid, $tipo, $crea, $idp){
+		$usuario=$_SESSION['user']->NOMBRE;
 		$poliza = str_pad($crea['numero'], 5, ' ', STR_PAD_LEFT);
 		$periodo = $crea['periodo'];
 		$ejercicio = $crea['ejercicio'];
 		$usuario =$_SESSION['user']->NOMBRE; 
-		$status = 'D';
-		if($tipo == 'Ig'){
-			$status='I';	
-		}elseif($tipo == 'Eg'){
+		$status = 'Ig';
+		if($tipo == 'Ingreso'){
+			$status='I';
+			$t='Ig';	
+		}elseif($tipo == 'Egreso'){
 			$status='E';	
+			$t='Eg';
 		}
-		exit(print_r($uuid));
-		foreach($uuid as $u){
-			exit(print_r($U));
-
-			$this->query="UPDATE XML_DATA set STATUS='$status' where uuid=''";
+		$uuid=explode(",", $uuid);
+		for ($i=0; $i <count($uuid) ; $i++) { 
+			$u=$uuid[$i];
+			$this->query="UPDATE XML_DATA set STATUS='$status' where uuid=$u";
 			$this->EjecutaQuerySimple();
 			$this->query="INSERT INTO XML_POLIZAS (ID, UUID, STATUS, POLIZA, TIPO, PERIODO, EJERCICIO, USUARIO, FECHA) 
-							VALUES (NULL, '$uuid', 'A', '$poliza', '$tipo', $periodo, $ejercicio, '$usuario', current_timestamp)";
+							VALUES (NULL, $u, 'A', '$poliza', '$t', $periodo, $ejercicio, '$usuario', current_timestamp)";
 			$this->grabaBD();
+			$this->query="UPDATE CARGA_PAGOS SET POLIZA_INGRESO = '$t'||'$poliza', seleccionado = 2, guardado = 1 where id=$idp";
+			$this->queryActualiza();
+			$this->query="UPDATE APLICACIONES SET POLIZA_INGRESO = '$t'||'$poliza', usuario_rec_conta = SUBSTRING('$usuario' FROM 1 FOR 49) where idpago=$idp and status= 'E' and cancelado = 0";
+			$this->queryActualiza();
 		}
 		return;
 	}
@@ -27294,6 +27299,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    			// Saldo del Pago
 	    			$this->query="UPDATE CARGA_PAGOS SET APLICACIONES = APLICACIONES + $montoAplicar, SALDO = saldo - $montoAplicar WHERE ID = $idp";
 	    			$rs = $this->EjecutaQuerySimple();
+
+	    			
 
 	    			$this->query="SELECT * FROM CARGA_PAGOS WHERE ID = $idp";
 	    			$res=$this->EjecutaQuerySimple();

@@ -1454,10 +1454,11 @@ class CoiDAO extends DataBaseCOI {
         $data=array();
         $eje= substr($ejercicio,-2);
         //echo 'Insertar Informacion del UUID: ';
-        //print_r($pol);
+        print_r($pol);
+        $folio= str_pad(trim($folio),5," ",STR_PAD_LEFT);
         $this->query="SELECT * FROM AUXILIAR$eje a left join cuentas$eje c on c.num_cta = a.num_cta where c.capturauuid = 1 and a.NUM_POLIZ='$folio' and a.periodo = $periodo and ejercicio = $ejercicio and TIPO_POLI = '$tipo'"; /// Anexar al ultima condicion.
         $res=$this->EjecutaQuerySimple();
-        //echo $this->query;
+        //echo $this->query.'<br/>';
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
         }
@@ -1475,6 +1476,7 @@ class CoiDAO extends DataBaseCOI {
                 $fecha = $pol[0]->FECHA;
                 $this->query="INSERT INTO UUIDTIMBRES (NUMREG, UUIDTIMBRE, MONTO, SERIE, FOLIO, RFCEMISOR, RFCRECEPTOR, ORDEN, FECHA, TIPOCOMPROBANTE, TIPOCAMBIO, VERSIONCFDI, MONEDA)
                              VALUES ( (SELECT CTUUIDCOMP FROM CONTROL) + 1 , '$uuid', $monto, '$seried', '$foliod', '$rfce', '$cliente', $a->NUM_PART, '$fecha', 1,  $tc, '3.3', '$moneda')";       
+                echo $this->query;
                 $r=$this->grabaBD();
                 if($r == 1 ){
                     $this->query="UPDATE CONTROL SET CTUUIDCOMP = CTUUIDCOMP + 1";
@@ -1708,20 +1710,17 @@ class CoiDAO extends DataBaseCOI {
         $tipo='Ig';
         $usuario=$_SESSION['user']->USER_LOGIN;
         $i=0;
-        //print_r($cabecera);
         $fecha = strtotime($cabecera->FECHA_RECEP);
         $periodo= date("m", $fecha);
         $ejercicio=date("Y", $fecha);
         $eje=substr($ejercicio,2);
         $fecha=$cabecera->FECHA_RECEP; 
-        //$proveedor=$cabecera->PROV;
         $saldo = $cabecera->SALDO;
         $tc=1;
         $tbPol= 'POLIZAS'.$eje; 
         $tbAux= 'AUXILIAR'.$eje;
         $campo= 'FOLIO'.str_pad($periodo, 2, '0', STR_PAD_LEFT);
         $ie=$tipo;  
-        
         foreach($detalle as $dc){
             $rfcf= '';
             $clientef='';
@@ -1742,22 +1741,16 @@ class CoiDAO extends DataBaseCOI {
             }
             $i++;
         }
-
         $rfcf=($rfcf=='')? $rfce:$rfcf;
         $clientef=($clientef=='')? $cliente:$clientef;
-        //echo '<br/>Rfc: '.$rfcf.'<br/>';
-        //echo '<br/>Nombre: '.utf8_encode($clientef).'<br/>';
-        //exit();
         ///creamos el nuevo folio de la poliza y actualizamos para apartarlo
         $this->query="SELECT $campo FROM FOLIOS where tippol='$tipo' and Ejercicio=$ejercicio";
         $res=$this->EjecutaQuerySimple();
         $row= ibase_fetch_object($res);
         $folion = $row->$campo + 1; 
         $folio =str_pad($folion, 5, ' ', STR_PAD_LEFT);
-
         $this->query="UPDATE FOLIOS SET $campo = $folion where tippol='$tipo' and Ejercicio=$ejercicio";
         $this->queryActualiza();
-
             $con= $cabecera->BANCO;
             $concepto = substr($con.', '.$cabecera->CONTABILIZADO.', '.$clientef.' -- '.$cabecera->OBS.' $'.number_format($cabecera->MONTO,2), 0, 110);
             $cuenta = $cabecera->CCOI;
@@ -1773,9 +1766,6 @@ class CoiDAO extends DataBaseCOI {
             $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$cabecera->FECHA_RECEP', '$concepto', '$nat0' , $cabecera->MONTO, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
             $this->grabaBD();  
-            //echo '<br/> Inserta Primer Partida'.$this->query.'<br/>';
-            /// Validacion para la insercion de UUID.
-        
         $partida = 1;
         if($tipo == 'Ig'){
             $subTipo = 'Ig';
@@ -1857,8 +1847,54 @@ class CoiDAO extends DataBaseCOI {
             }else{
             // Si no hay impuestos, no hace nada. 
             }
-        // Pendiente $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo);
-        return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Eg'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
+        // insercion del registro del uuid en la poliza de Ig.    
+        foreach ($detalle as $idet){
+            $seried = explode("-", $idet->DOCUMENTO);
+            $rfce=$_SESSION['rfc'];
+            $pol=array("SERIE"=>$seried[0] , "FOLIO"=>$seried[1], "CLIENTE"=>$idet->RFC, "IMPORTE"=>$idet->MONTO_APLICADO, "TIPOCAMBIO"=>1, "MONEDA"=>'MNX', "RFCE"=>$rfce, "FECHA"=>$idet->FECHA, "CC"=>$idet->CUENTA_CONTABLE);
+            $this->insertaUUIDFinalIg('Ig', $idet->OBSERVACIONES, $pol, $folio, $ejercicio, $periodo, false );
+            unset($pol);
+        }
+        return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Ig'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
+    }
+
+    function insertaUUIDFinalIg($tipo, $uuid, $pol, $folio, $ejercicio, $periodo, $infoPoliza){
+        $data=array();
+        $eje= substr($ejercicio,-2);
+        //echo 'Insertar Informacion del UUID: ';
+        //print_r($pol);
+        $folio= str_pad(trim($folio),5," ",STR_PAD_LEFT);
+        $cc= $pol['CC'];
+        $this->query="SELECT * FROM AUXILIAR$eje a left join cuentas$eje c on c.num_cta = a.num_cta where c.capturauuid = 1 and a.NUM_POLIZ='$folio' and a.periodo = $periodo and ejercicio = $ejercicio and TIPO_POLI = '$tipo' AND a.num_cta= '$cc'"; /// Anexar al ultima condicion.
+        $res=$this->EjecutaQuerySimple();
+        //echo $this->query.'<br/>';
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        //echo 'Valor del count de data: '.count($data);
+        if(count($data) > 0){
+            //echo '<br/> Encontro Datos e intenta la insercion:<br/>';
+            foreach ($data as $a) {
+                $seried =$pol['SERIE'];
+                $foliod =$pol['FOLIO'];
+                $cliente = $pol['CLIENTE'];
+                $monto = $pol['IMPORTE'];
+                $tc = $pol['TIPOCAMBIO'];
+                $moneda = $pol['MONEDA'];
+                $rfce = $pol['RFCE'];
+                $fecha = $pol['FECHA'];
+                $this->query="INSERT INTO UUIDTIMBRES (NUMREG, UUIDTIMBRE, MONTO, SERIE, FOLIO, RFCEMISOR, RFCRECEPTOR, ORDEN, FECHA, TIPOCOMPROBANTE, TIPOCAMBIO, VERSIONCFDI, MONEDA)
+                             VALUES ( (SELECT CTUUIDCOMP FROM CONTROL) + 1 , '$uuid', $monto, '$seried', '$foliod', '$rfce', '$cliente', $a->NUM_PART, '$fecha', 1,  $tc, '3.3', '$moneda')";       
+                $r=$this->grabaBD();
+                if($r == 1 ){
+                    $this->query="UPDATE CONTROL SET CTUUIDCOMP = CTUUIDCOMP + 1";
+                    $this->queryActualiza();
+                    $this->query="UPDATE AUXILIAR$eje a set a.IDUUID = (SELECT CTUUIDCOMP FROM CONTROL) where a.NUM_POLIZ='$folio' and a.periodo = $periodo and a.ejercicio = $ejercicio and a.NUM_PART = $a->NUM_PART";
+                    $this->queryActualiza();
+                }
+            }
+        }
+       return;
     }
 
     function traePolizas($mes, $anio, $ide){

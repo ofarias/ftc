@@ -986,6 +986,8 @@ class pegasoCobranza extends database {
             if($res=$this->grabaBD()){
                 $this->query="UPDATE CARGA_PAGOS SET SALDO = SALDO - $monto where id = $idp";
                 $this->queryActualiza();
+                $this->query="UPDATE XML_DATA SET IDPAGO = $idp where uuid = '$uuid'";
+                $this->queryActualiza();
             }
             return array("status"=>'ok', "mensaje"=>$row->IMPORTE, "SaldoDoc"=>$row->SALDODOC, "SaldoPago"=>$row->SALDOPAGO);
         }else{
@@ -1010,15 +1012,13 @@ class pegasoCobranza extends database {
 
     function traeAplicaciones($idp){
         $data=array();
-        $this->query="SELECT A.*, (SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo= 'Cliente'), (SELECT CUENTA_CONTABLE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo = 'Cliente') FROM APLICACIONES A WHERE IDPAGO = $idp and cancelado=0";
+        $this->query="SELECT A.*, (SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo= 'Cliente'), (SELECT CUENTA_CONTABLE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo = 'Cliente') FROM APLICACIONES A WHERE IDPAGO = $idp and cancelado=0 and status = 'E'";
         $r=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($r)){
             $data[]=$tsArray;
         }
         return $data;
     }
-
-   
 
 }
 ?> 

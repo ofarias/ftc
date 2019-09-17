@@ -28,7 +28,12 @@
                                         <?php }?>                                        
                                         <input type="hidden" name="idpago" value="<?php echo $key->ID?>">   
                                         <label> El saldo actual es de: $ <?php echo number_format($key->SALDO,2)?>   ---------->    </label>   <button name='imprimirComprobante' value="enviar" type="submit" class="btn btn-info">IMPRIMIR RELACION DEL PAGO</button><br> 
-                                        <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn btn-info conta" tipo="total" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a><br>
+                                        <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <?php if(empty($key->POLIZA_INGRESO)){?>
+                                            <a class="btn btn-info conta" tipo="total" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a><br>
+                                        <?php }else{?>
+                                            <font color="BLUE"><b><?php echo 'Poliza: '.$key->POLIZA_INGRESO.' Ejercicio: '.substr($key->FECHA_RECEP,0,4).' Peridod: '.substr($key->FECHA_RECEP,5,2) ?></b></font>
+                                        <?php }?>
                                     </form>
                                 <?php endforeach; ?>
                                     <br/>
@@ -139,8 +144,16 @@
                                 ?>
                                     <label><?php echo $key->BANCO?></label>
                                     <label> El monto del pago es de: $ <?php echo number_format($key->MONTO,2)?> </label><br>
-                                    <label> El saldo actual es de: $ <?php echo number_format($key->SALDO,2)?>  <br> 
-                                    <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="btn btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a><input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br>
+                                    <label> El saldo actual es de: $ <?php echo number_format($key->SALDO,2)?>  
+                                    <form action="index.php" method="post">
+                                    <input type="hidden" name="idpago" value="<?php echo $key->ID?>">
+                                    <button name='imprimirComprobante' value="enviar" type="submit" class="btn btn-info">IMPRIMIR RELACION DEL PAGO</button></form>
+                                        <br> 
+                                    <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php if(empty($key->POLIZA_INGRESO)){?>
+                                        <a class="btn btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a><input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br/>
+                                    <?php }else{?>
+                                            <font color="BLUE"><b><?php echo 'Poliza: '.$key->POLIZA_INGRESO.' Ejercicio: '.substr($key->FECHA_RECEP,0,4).' Peridod: '.substr($key->FECHA_RECEP,5,2) ?></b></font><br/>
+                                    <?php }?>
                                     <label> Identificado para el Maestro <font color="blue"><?php echo $key->MAESTRO?></font>&nbsp;&nbsp;&nbsp;<a onclick="cambiaAsoc(<?php echo $folio?>)"><font color="#b3b3ff">Cambiar Asociaciona</font>&nbsp;&nbsp;&nbsp;</a></label>
                                     <br/><br/>
                                     <form action="upload_comprobante_pago_v2.php" method="post" enctype="multipart/form-data" id="formulario">
@@ -720,6 +733,7 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
                         dataType:'json',
                         data:{contabilizaIg:1, idp, tipo, y},
                         success:function(data){
+                            location.reload(true)
 
                         },
                         error:function(){

@@ -281,7 +281,7 @@ class controller_coi{
 				$impuestos= $data2->impuestosPolizaFinal($uuid);
 				$creaPoliza=$data_coi->creaPolizaIg($pago, $detalle, $tipo = 'Ingreso', $impuestos, $y);
 				if($creaPoliza['status']=='ok'){
-					$actualiza=$data2->actXmlMtl($uuid, $tipo, $creaPoliza);
+					$actualiza=$data2->actXmlMtl($uuid, $tipo, $creaPoliza, $idp);
 				}		
 			}else{
 				echo 'Ya se ha contabilizado este pago.';
