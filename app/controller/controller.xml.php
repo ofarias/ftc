@@ -84,8 +84,10 @@ class controller_xml{
 
 	function cargaMetaDatos(){
 		if($_SESSION['user']){
+			$data = new cargaXML;
 			$pagina =$this->load_template('Pedidos');
 			$html=$this->load_page('app/views/pages/xml/p.cargaMetaDatos.php');
+   			$nomMeta=$data->nomMeta();
    			ob_start();
    			include 'app/views/pages/xml/p.cargaMetaDatos.php';
    			$table = ob_get_clean();
@@ -773,5 +775,14 @@ class controller_xml{
 	        )
 	    ));
 	}
+
+	function zipXML($mes, $anio, $ide, $doc){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$zip = $data->zipXML($mes, $anio, $ide, $doc);
+			return $zip;
+		}
+	}
+
 }?>
 

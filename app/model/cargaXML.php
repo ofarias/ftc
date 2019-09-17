@@ -162,5 +162,73 @@ class cargaXML extends database {
 		fclose($fp);
 	}
 
-	
+	function nomMeta(){
+		$path="C:\\xampp\\htdocs\\meta\\";
+		//exit();
+		if(file_exists($path)){
+			$files=array_diff(scandir($path), array('.', '..'));
+			foreach($files as $file){
+		    // Divides en dos el nombre de tu archivo utilizando el . 
+		    $data = explode(".", $file);
+		    // Nombre del archivo
+		    $fileName = $data[0];
+		    // Extensión del archivo 
+		    $fileExtension = $data[1];
+		    if($fileExtension=='txt'){
+		        echo $file.'<br/>';
+		        $f=fopen($path.$file, 'r');
+		        $l=1;
+		         while(!feof($f)) {
+					$linea = fgets($f);
+					$lin=explode('~', $linea);
+					//echo $linea.'<br/>';
+					$nf=$lin[1]."-".$lin[3].".txt";
+					if($l == 2) echo $lin[1]."-".$lin[3]."<br />";
+					$l++;
+					if($l>2)break;
+				}
+				fclose($f);
+				rename( $path.$file, $path.$nf);
+		        //echo 'Encontramos el archivo: '.$fileName.'.xml';
+		        // Realizamos un break para que el ciclo se interrumpa		        
+		    }
+		}
+		}
+	}
+
+	function zipXML($mes, $anio, $ide, $doc){
+		$data=array();
+		$rfc=$_SESSION['rfc'];
+		$campo = ($ide=='Recibidos')? 'cliente':'rfce';
+		$campof = ($mes ==0)? '':" and extract(month from fecha)=".$mes;
+		$date=date("d-m-Y H_i_s");
+		$this->query="SELECT * FROM XML_DATA WHERE $campo ='$rfc' and tipo = '$doc' and extract(year from fecha)=$anio $campof order by fecha";
+		//echo $this->query;
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		$zip=new ZipArchive();
+		$dir="C:\\xampp\\htdocs\\zipFiles\\";
+		$zip->open($dir.$rfc."_".$mes."_".$anio."_".$ide."_".$doc."_".$date.".zip", ZipArchive::CREATE);
+		$d="$rfc";
+			foreach ($data as $k){
+				$rf=($ide=='Recibidos')? $k->RFCE:$k->CLIENTE;
+				$r="C:\\xampp\\htdocs\\uploads\\xml\\".$rfc."\\".$ide."\\".$rf."\\";
+				$nameFile=$k->RFCE."-".$k->DOCUMENTO."-".$k->UUID.".xml";
+				$archivo=$r.$nameFile;
+				if(file_exists($archivo)){
+					$zip->addFile($archivo, $nameFile);
+				}else{
+					echo 'No existe '.$archivo.'<br/>';
+				}
+			}
+		$zip->close();
+		$x=$rfc."_".$mes."_".$anio."_".$ide."_".$doc."_".$date.".zip";
+		$x1=$rfc."_".$mes."_".$anio."_".$ide."_".$doc.".zip";
+		header("Content-disposition: attachment; filename=".$x1);
+		header("Content-type: application/octet-stream");
+		readfile($dir.$x);
+		//unlink('miarchivo.zip');//Destruye el archivo temporal
+	}
 }

@@ -39,6 +39,9 @@ else{
 	case 'verMetaDatosDet':
 		$controller->verMetaDatosDet($_GET['archivo']);
 		break;
+	case 'zipXML':
+		$controller->zipXML($_GET['mes'], $_GET['anio'], $_GET['ide'], $_GET['doc']);
+		break;
 	default: 
 		header('Location: index.php?action=login');
 		break;

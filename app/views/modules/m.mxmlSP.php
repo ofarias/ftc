@@ -32,8 +32,6 @@
                     </div>
                 </h3>
             </div>
-
-
             <?php if($te == 0){?>
                 <div class="col-md-4">
                     <div class="panel panel-default">
@@ -46,7 +44,7 @@
                             <p>Monto Anual: 0.00</p>
                             <p>Sub Total: <?php echo '$ '.number_format(0,2)?></p>
                             <p>Total: <?php echo '$ '.number_format(0,2)?></p>
-                            <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=E" class="btn btn-info">Ver</a></center>
+                            <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=E" class="btn btn-info">Ver</a>&nbsp;&nbsp;&nbsp;<a href="" class="btn btn-success">Zip</a></center>
                         </div>
                     </div>
                 </div>
@@ -82,7 +80,7 @@
                         <p>Monto Anual: </p>
                         <p>Sub Total: <?php echo '$ '.number_format($a->EGRESOSS,2)?></p>
                         <p>Total: <?php echo '$ '.number_format($a->EGRESOST,2)?></p>
-                        <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $a->TIPO?>" class="btn btn-info">Ver</a></center>
+                        <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $a->TIPO?>" class="btn btn-info">Ver</a>&nbsp;&nbsp;&nbsp;<a href="index.xml.php?action=zipXML&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $a->TIPO?>" class="btn btn-success">Zip</a></center>
                     </div>
                 </div>
             </div>                 
@@ -99,7 +97,7 @@
                             <p>Monto Anual: 0.00</p>
                             <p>Sub Total: <?php echo '$ '.number_format(0,2)?></p>
                             <p>Total: <?php echo '$ '.number_format(0,2)?></p>
-                            <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=P" class="btn btn-info">Ver</a></center>
+                            <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=P" class="btn btn-info">Ver</a>&nbsp;&nbsp;&nbsp;<a href="" class="btn btn-success">Zip</a></center>
                         </div>
                     </div>
                 </div>
@@ -137,7 +135,7 @@
                             <p><font color="blue">XMLs </font><b><?php echo 0?></b><font color="blue"> Sin procesar: <?php echo 0?></font></p>
                             <p>Sub Total: <?php echo '$ '.number_format(0,2)?></p>
                             <p>Total: <?php echo '$ '.number_format(0,2)?></p>
-                            <center><a href="index.php?action=verXMLSP&mes=<?php echo $key->MES?>&anio=<?php echo $key->ANIO?>&ide=<?php echo $ide?>" class="btn btn-info">Ver</a></center>
+                            <center><a href="index.php?action=verXMLSP&mes=<?php echo $key->MES?>&anio=<?php echo $key->ANIO?>&ide=<?php echo $ide?>" class="btn btn-info">Ver</a>&nbsp;&nbsp;&nbsp;</center>
                         </div>
                     </div>
                 </div>
@@ -153,7 +151,7 @@
                         <p><font color="blue">XMLs </font><b><?php echo $key->XMLS?></b><font color="blue"> Sin procesar: <?php echo $key->FALTANTES?></font></p>
                         <p>Sub Total: <?php echo '$ '.number_format($key->EGRESOSS,2)?></p>
                         <p>Total: <?php echo '$ '.number_format($key->EGRESOST,2)?></p>
-                        <center><a href="index.php?action=verXMLSP&mes=<?php echo $key->MES?>&anio=<?php echo $key->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $key->TIPO?>" class="btn btn-info">Ver</a></center>
+                        <center><a href="index.php?action=verXMLSP&mes=<?php echo $key->MES?>&anio=<?php echo $key->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $key->TIPO?>" class="btn btn-info">Ver</a>&nbsp;&nbsp;&nbsp;<a href="index.xml.php?action=zipXML&mes=<?php echo $key->MES?>&anio=<?php echo $key->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $key->TIPO?>" class="btn btn-success">Zip</a></center>
                     </div>
                 </div>
             </div>
@@ -169,7 +167,7 @@
                             <p><font color="blue">XMLs </font><b><?php echo 0?></b><font color="blue"> Sin procesar: <?php echo 0?></font></p>
                             <p>Sub Total: <?php echo '$ '.number_format(0,2)?></p>
                             <p>Total: <?php echo '$ '.number_format(0,2)?></p>
-                            <center><a href="index.php?action=verXMLSP&mes=<?php echo $key->MES?>&anio=<?php echo $key->ANIO?>&ide=<?php echo $ide?>" class="btn btn-info">Ver</a></center>
+                            <center><a href="index.php?action=verXMLSP&mes=<?php echo $key->MES?>&anio=<?php echo $key->ANIO?>&ide=<?php echo $ide?>" class="btn btn-info">Ver</a>&nbsp;&nbsp;&nbsp;</center>
                         </div>
                     </div>
                 </div>
