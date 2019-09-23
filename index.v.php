@@ -509,6 +509,15 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	$res=$controller_v->repVenta($_POST['op1'], $_POST['op2'],$_POST['op3'],$_POST['op4'],$_POST['op5'],$_POST['op6'],$_POST['op7']);
 	echo json_encode($res);
 	exit();
+}elseif(isset($_GET['term']) && isset($_GET['prodVM'])){
+    $b = $_GET['term'];
+    $producto=$controller_v->prodVM($b);
+    echo json_encode($producto);
+    exit;
+}elseif (isset($_POST['docNV'])) {
+	$partida=$controller_v->docNV($_POST['clie'], $_POST['prod'], $_POST['cant'], $_POST['prec'], $_POST['desc'], $_POST['iva'], $_POST['ieps'] );
+	echo json_encode($partida);
+	exit();
 }
 else{switch ($_GET['action']){
 		case 'login':
@@ -658,6 +667,9 @@ else{switch ($_GET['action']){
 				break;
 			case 'repVentas':
 				$controller_v->repVentas($GET_['tipo']=false,$_GET['clie']=false, $_GET['inicio']=false, $_GET['fin']=false);
+				break;
+			case 'ventasMostrador':
+				$controller_v->ventasMostrador();
 				break;
 	default:
 		header('Location: index.v.php?action=login');

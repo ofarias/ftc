@@ -1585,5 +1585,32 @@ class pegaso_controller_ventas{
         }
     }
 
+    function ventasMostrador(){
+        if($_SESSION['user']){
+            $datav=new pegaso_ventas;
+            $pagina=$this->load_template('Pedidos');
+            $html=$this->load_page('app/views/pages/ventas/p.ventasMostrador.php');
+            ob_start();
+            include 'app/views/pages/ventas/p.ventasMostrador.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+            $this->view_page($pagina);
+        }else{
+                $e = "Favor de iniciar Sesión";
+                header('Location: index.php?action=login&e='.urlencode($e)); exit;
+        }    
+    }
+
+    function prodVM($b){
+        $datav=new pegaso_ventas;
+        $prod=$datav->prodVM($b);
+        return $prod;
+    }
+
+    function docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps){
+        $datav=new pegaso_ventas;
+        $insPar=$datav->docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps);
+        return $insPar;
+    }
 }
 ?>

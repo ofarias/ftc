@@ -2189,4 +2189,39 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return array("status"=>"ok", "datos"=>$data, "archivo"=>'');
     } 
 
+    function prodVM($b){
+        $this->query="SELECT * FROM FTC_Articulos WHERE (GENERICO||' '||SINONIMO||' '|| CALIFICATIVO||' '||CLAVE_PROD) CONTAINING('$b')";
+        $r=$this->QueryDevuelveAutocompleteProd();
+        return $r;
+    }
+
+    function docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps){
+        //$folio = $this->creaFolioNV();
+        $c = $this->cabeceraNV($clie);
+        $d = $this->partidaNV($prod, $cant, $prec, $desc, $iva, $ieps, $folio, $c);
+        return $inserta;
+    }
+
+    function cabeceraNV($clie){
+        $usuario=$_SESSION['user']->NOMBRE;
+        $letra = $_SESSION['user']->LETRA_NUEVA;
+        $this->query="INSERT INTO FTC_NV 
+            ( 
+            IDF, DOCUMENTO, SERIE, FOLIO, FORMADEPAGOSAT, VERSION, TIPO_CAMBIO, METODO_PAGO, REGIMEN_FISCAL, LUGAR_EXPEDICION, MONEDA, TIPO_COMPROBANTE, CONDICIONES_PAGO, SUBTOTAL, IVA, IEPS, DESC1, DESC2, TOTAL, SALDO_FINAL, ID_PAGOS, ID_APLICACIONES, NOTAS_CREDITO, MONTO_NC, MONTO_PAGOS, MONTO_APLICACIONES, CLIENTE, USO_CFDI, STATUS, USUARIO, FECHA_DOC, FECHAELAB, IDIMP, UUID, DESCF, IDCAJA, CONTABILIZADO, POLIZA, FECHA_CANCELACION, USUARIO_CANCELACION) 
+            VALUES (null, '$letra'||(SELECT COALESCE(MAX(FOLIO), 0) + 1 FROM FTC_NV WHERE SERIE = '$letra'),'$letra', (SELECT COALESCE(MAX(FOLIO), 0) + 1 FROM FTC_NV WHERE SERIE = '$letra'), '', 1.1, 1, '', '', '', 1,'NV', '$condicion', 0,0,0,0,0,0,0,'','','',0,0,0,'$cliente', '', 'P', '$usuario', current_date, current_timestamp, 0, null, 0, null, '', '', null, '' 
+            ) RETURNING IDF, SERIE, FOLIO, DOCUMENTO";
+        $res=$this->grabaBD();
+        return $res;
+    }
+
+    function partidaNV($prod, $cant, $prec, $desc, $iva, $ieps, $folio, $c){
+        $this->query="INSERT INTO FTC_NV_DETALLE ( IDFP ,IDF ,DOCUMENTO ,PARTIDA ,CANTIDAD ,ARTICULO ,UM ,DESCRIPCION ,IMP1 ,IMP2 ,IMP3 ,IMP4 ,DESC1 ,DESC2 ,DESC3 ,DESCF ,SUBTOTAL ,TOTAL ,CLAVE_SAT ,MEDIDA_SAT ,PEDIMENTOSAT ,LOTE ,USUARIO ,FECHA ,IDPREOC ,IDCAJA ,IDPAQUETE ,PRECIO ,STATUS ,NUEVO_PRECIO ,NUEVA_CANTIDAD ,CAMBIO ) 
+            VALUES (null, $c->IDF, '$c->DOCUMENTO', (SELECT COALESCE(MAX(PARTIDA),0) + 1 FROM FTC_NV_DETALLE WHERE IDF = $c->IDF), $cant, '$prod', 'um', 'Descripcion', $iva, $ieps, 0, $desc, 0, 0, 0, 2, 4, '', '',  
+        )";
+        $this->grabaBD();
+
+        $this->query="UPDATE FTC_NV SET WHERE DOCUMENTO = '$folio'";
+        $this->queryActualiza();
+    }
+
 }?>

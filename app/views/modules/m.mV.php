@@ -60,10 +60,20 @@
             <div class="col-md-2">
                 <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4>Reporte de Ventas</i></h4>
+                        <h4>Reporte de Ventas</h4>
                     </div>
                     <div class="panel-body">
                         <center><a href="index.v.php?action=repVentas" class="btn btn-default"><img class="img-ico" src="app/views/images/Ventas/RepVentas.png" width="50" height="70"></a></center>
+                    </div>
+                </div>
+            </div>
+           <div class="col-md-2">
+                <div class="panel panel-default cu-panel-clie">
+                    <div class="panel-heading">
+                        <h4>Ventas de Mostrador</h4>
+                    </div>
+                    <div class="panel-body">
+                        <center><a href="index.v.php?action=ventasMostrador" class="btn btn-default"><img class="img-ico" src="app/views/images/Ventas/RepVentas.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>

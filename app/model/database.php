@@ -85,6 +85,20 @@
 			$this->CierraCnx();
 		}
 
+		protected function QueryDevuelveAutocompleteProd(){
+			$this->AbreCnx();
+			$rs = ibase_query($this->cnx, $this->query);
+			while($row = ibase_fetch_object($rs)){
+				//$row->CLAVE = htmlentities(stripcslashes($row->CVE_ART));
+				//$row->NOMBRE = htmlentities(stripcslashes($row->DESCR));
+				//$row_set[] = $row->CLAVE;
+				$row_set[] = utf8_encode($row->ID)." : ".utf8_encode($row->GENERICO.' '.$row->SINONIMO.' '.$row->CALIFICATIVO).":".$row->PRECIO.":".$row->DESC1.":".$row->DESC2.":".$row->IVA;
+			}
+			return $row_set;
+			unset($this->query);	
+			$this->CierraCnx();
+		}
+
 		protected function QueryDevuelveAutocompletePFTC(){
 			$this->AbreCnx();
 			$rs = ibase_query($this->cnx, $this->query);
