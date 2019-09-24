@@ -1585,12 +1585,16 @@ class pegaso_controller_ventas{
         }
     }
 
-    function ventasMostrador(){
+    function ventasMostrador($doc, $idf){
         if($_SESSION['user']){
             $datav=new pegaso_ventas;
             $pagina=$this->load_template('Pedidos');
             $html=$this->load_page('app/views/pages/ventas/p.ventasMostrador.php');
             ob_start();
+            $partidas=array();
+            if($doc<>'0' and $idf<>'0'){
+                $partidas=$datav->nvPartidas($doc, $idf);
+            }
             include 'app/views/pages/ventas/p.ventasMostrador.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
@@ -1607,10 +1611,22 @@ class pegaso_controller_ventas{
         return $prod;
     }
 
-    function docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps){
+    function clieVM($b){
         $datav=new pegaso_ventas;
-        $insPar=$datav->docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps);
+        $cliente=$datav->clieVM($b);
+        return $cliente;
+    }
+
+    function docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps, $descf, $doc, $idf){
+        $datav=new pegaso_ventas;
+        $insPar=$datav->docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps, $descf, $doc, $idf);
         return $insPar;
+    }
+
+    function dropP($doc, $idf , $p){
+        $datav=new pegaso_ventas;
+        $par=$datav->dropP($doc, $idf , $p);
+        return $par;   
     }
 }
 ?>

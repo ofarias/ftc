@@ -89,10 +89,7 @@
 			$this->AbreCnx();
 			$rs = ibase_query($this->cnx, $this->query);
 			while($row = ibase_fetch_object($rs)){
-				//$row->CLAVE = htmlentities(stripcslashes($row->CVE_ART));
-				//$row->NOMBRE = htmlentities(stripcslashes($row->DESCR));
-				//$row_set[] = $row->CLAVE;
-				$row_set[] = utf8_encode($row->ID)." : ".utf8_encode($row->GENERICO.' '.$row->SINONIMO.' '.$row->CALIFICATIVO).":".$row->PRECIO.":".$row->DESC1.":".$row->DESC2.":".$row->IVA;
+				$row_set[] = utf8_encode($row->ID)." : ".utf8_encode($row->GENERICO.' '.$row->SINONIMO.' '.$row->CALIFICATIVO).":".$row->PRECIO.":".$row->DESC1.":".$row->DESC2.":".$row->IVA.":".$row->EXISTENCIA;
 			}
 			return $row_set;
 			unset($this->query);	
@@ -130,7 +127,20 @@
 			unset($this->query);	
 			$this->CierraCnx();	
 		}
-		
+
+		protected function QueryDevuelveAutocompleteClieNV(){
+			$this->AbreCnx();
+			$rs = ibase_query($this->cnx, $this->query);
+			while($row = ibase_fetch_object($rs)){
+				$row->CLAVE =utf8_encode($row->CLAVE);
+				$row->NOMBRE = utf8_encode(str_replace(",", " ", $row->NOMBRE));
+				$row_set[] = $row->CLAVE." : ".$row->NOMBRE.":".$row->DIRECCION.":".$row->INTERIOR.":".$row->COLONIA.":".$row->DELEGACION.":".$row->CODIGO.":".$row->PAIS;
+			}
+			return $row_set;
+			unset($this->query);	
+			$this->CierraCnx();	
+		}
+
 		
 		protected function QueryDevuelveAutocompleteP(){
 			$this->AbreCnx();
