@@ -35,18 +35,20 @@ class pegaso extends database{
 	}
 
 	function creaPeriodo(){
-		$mes = date('n');
+		$ma = date("m");
 		$anio = date('Y');
-		if($mes == 12){
-			$mes = 1;
-			$anio = $anio + 1;
-		}
-		$this->query="SELECT * FROM PERIODOS_2016 WHERE numero=$mes AND ANHIO = $anio";
-		$rs=$this->EjecutaQuerySimple();
-		$row=ibase_fetch_object($rs);
-		if(empty($row)){
+		$this->query="SELECT COALESCE(max(numero),0) as mes FROM PERIODOS_2016 WHERE anHio = $anio";
+		$res=$this->EjecutaQuerySimple();
+		$row = ibase_fetch_object($res);
+		if($row->MES != $ma){
+		$mes= $row->MES + 1;
+		$n1=$this->mesMx($mes);
+		$n2=$this->mesMx($mes+1);
+		$ultimo = date("d",(mktime(0,0,0,$mes+1,1,$anio)-1));
+		$fi = '01.'.$mes.'.'.$anio;
+		$ff = $ultimo.'.'.$mes.'.'.$anio;
 			$this->query="INSERT INTO PERIODOS_2016 (id, nombre, numero, fecha_ini, fecha_fin, anhio, siguiente) 
-							values (null, (SELECT MAX(NOMBRE) FROM PERIODOS_2016 WHERE numero = ($mes + 1)), $mes +1, (SELECT MAX(fecha_ini) FROM PERIODOS_2016 WHERE numero = ($mes + 1)), (SELECT MAX(fecha_fin) FROM PERIODOS_2016 WHERE numero = ($mes + 1)), $anio, (SELECT MAX(SIGUIENTE) FROM PERIODOS_2016 WHERE numero = ($mes + 1)))";
+							values (null,upper('$n1'),$mes,'$fi','$ff',$anio,upper('$n2'))";
 			$this->grabaBD();
 		}
 		return;
@@ -26386,6 +26388,23 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$data[]=$tsArray;
 		}	
 		return $data;	
+	}
+
+	function impuestosPolizaFinalDetImp($uuid, $por){
+		$data = array();	
+		$u =  explode(",", $uuid);
+	 	$pr = explode(",", $por);
+	 	$p=1;
+	 	for ($i=0; $i < count($u); $i++) {
+	 		$uu=$u[$i]; 
+	 		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) * $pr[$i] AS MONTO, SUM(BASE) AS BASE, $p as partida FROM XML_IMPUESTOS WHERE UUID = $uu group by impuesto, tasa, tipofactor, Tipo";
+			$res=$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)){
+				$data[]=$tsArray;
+			}	
+	 		$p++;
+	 	}
+	 	return $data;	
 	}
 
 	function actXml($uuid, $tipo, $crea){

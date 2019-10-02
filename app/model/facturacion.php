@@ -2409,7 +2409,7 @@ class factura extends database {
 
 			$mysql->query  = "SELECT A.ID, A.MONTO_APLICADO, A.FECHA, A.DOCUMENTO, A.SALDO_DOC  ";
 			$mysql->query .= " FROM APLICACIONES A ";				
-			$mysql->query .= " WHERE A.IDPAGO = $pagoId;";
+			$mysql->query .= " WHERE A.IDPAGO = $pagoId and A.status ='E' and (A.cancelado is null or A.cancelado =0);";
 			$res = $mysql->EjecutaQuerySimple();
 			
 		while ($registro = ibase_fetch_object($res)){		

@@ -975,11 +975,10 @@ class pegasoCobranza extends database {
 
     function aplicaInd($idp, $monto, $uuid){
         $usuario=$_SESSION['user']->NOMBRE;
-        $this->query="SELECT x.*, (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento) as Aplicado, x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento) as SaldoDOC,(SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and status = '0')-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0) AS SALDOPAGO,
-            ((SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and status ='0')-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0))-(x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento)) as SaldoInsPago
+        $this->query="SELECT x.*, (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento) as Aplicado, x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento) as SaldoDOC,(SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and (STATUS = '0' or status = 'I'))-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0) AS SALDOPAGO,
+            ((SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and (STATUS = '0' or status = 'I'))-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0))-(x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento)) as SaldoInsPago
             FROM XML_DATA x WHERE UUID = '$uuid'";
-            
-        $res=$this->EjecutaQuerySimple();
+         $res=$this->EjecutaQuerySimple();
         $row=ibase_fetch_object($res);
 
         if($row->SALDODOC > 0 And $row->SALDOPAGO>0 AND ($row->SALDOPAGO - $monto) >= 0 and ($row->SALDODOC-$monto>=0)){
@@ -1013,7 +1012,8 @@ class pegasoCobranza extends database {
 
     function traeAplicaciones($idp){
         $data=array();
-        $this->query="SELECT A.*, (SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo= 'Cliente'), (SELECT CUENTA_CONTABLE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo = 'Cliente') FROM APLICACIONES A WHERE IDPAGO = $idp and cancelado=0 and status = 'E'";
+        $this->query="SELECT A.*, (SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo= 'Cliente'), (SELECT CUENTA_CONTABLE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo = 'Cliente'), MONTO_APLICADO / (SELECT IMPORTE FROM XML_DATA X WHERE X.UUID = A.OBSERVACIONES) AS PORC
+        FROM APLICACIONES A WHERE IDPAGO = $idp and cancelado=0 and status = 'E'";
         $r=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($r)){
             $data[]=$tsArray;

@@ -274,12 +274,17 @@ class controller_coi{
 			if(!empty($pago)){
 				$detalle= $data->traeAplicaciones($idp);
 				$uuid= '';
+				$por = '';
 			    foreach ($detalle as $u){
 			        $uuid .= "'".$u->OBSERVACIONES."',";
+			        $por .= $u->PORC.","; 
 			    }
 			    $uuid= substr($uuid,0,-1);
-				$impuestos= $data2->impuestosPolizaFinal($uuid);
-				$creaPoliza=$data_coi->creaPolizaIg($pago, $detalle, $tipo = 'Ingreso', $impuestos, $y);
+			    $por = substr($por, 0,-1);
+				//$impuestos= $data2->impuestosPolizaFinal($uuid);
+				$impuestos= $data2->impuestosPolizaFinalDetImp($uuid, $por);
+				//$creaPoliza=$data_coi->creaPolizaIg($pago, $detalle, $tipo = 'Ingreso', $impuestos, $y);
+				$creaPoliza=$data_coi->creaPolizaIgDetImp($pago, $detalle, $tipo = 'Ingreso', $impuestos, $y);
 				if($creaPoliza['status']=='ok'){
 					$actualiza=$data2->actXmlMtl($uuid, $tipo, $creaPoliza, $idp);
 				}		

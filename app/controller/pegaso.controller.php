@@ -3509,7 +3509,7 @@ class pegaso_controller{
             if (isset($_SESSION['user'])){
 	            $data = new pegaso;
 	            $pagina=$this->load_template('Pedidos');
-	            $html=$this->load_page('app/views/pages/p.secunidad.php');
+	            $html=$this->load_page('app/views/pages/Logistica_recoleccion/p.secunidad.php');
 	            ob_start();
 	            $secuenciaDetalle = $data->AsignaSecDetalle($idu, $docs = false); /// obtiene la lista de los documentos de la unidad.
 	            $cvedoc = $data->ObiteneDataSecRO($prove, $uni); ///  obtiene la lisat de los documentos de COMPO01
@@ -5734,7 +5734,7 @@ function AsignaSecuencia($unidad){
             if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
-            $html=$this->load_page('app/views/pages/p.secunidad.php');
+            $html=$this->load_page('app/views/pages/Logistica_recoleccion/p.secunidad.php');
             ob_start();
                 $secuenciaDetalle = $data->AsignaSecDetalle($unidad, $docs = false);
                 $unidades=$data->TraeUnidades();
@@ -5742,7 +5742,7 @@ function AsignaSecuencia($unidad){
                 //$secuenciaentrega=$data->AsignaSecEntrega($unidad);
                 //$secuencia=$data->AsignaSec($unidad);
                 if (count($secuenciaDetalle) > 0){
-                    include 'app/views/pages/p.secunidad.php';
+                    include 'app/views/pages/Logistica_recoleccion/p.secunidad.php';
                     $table = ob_get_clean();
                         $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
                 }else{
