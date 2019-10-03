@@ -40,7 +40,10 @@ class pegaso extends database{
 		$this->query="SELECT COALESCE(max(numero),0) as mes FROM PERIODOS_2016 WHERE anHio = $anio";
 		$res=$this->EjecutaQuerySimple();
 		$row = ibase_fetch_object($res);
+		echo 'mES: '.$rwo->MES.' MA: '.$mas;
+
 		if($row->MES != $ma){
+
 		$mes= $row->MES + 1;
 		$n1=$this->mesMx($mes);
 		$n2=$this->mesMx($mes+1);
@@ -51,6 +54,7 @@ class pegaso extends database{
 							values (null,upper('$n1'),$mes,'$fi','$ff',$anio,upper('$n2'))";
 			$this->grabaBD();
 		}
+
 		return;
 	}
 
