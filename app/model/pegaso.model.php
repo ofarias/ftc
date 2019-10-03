@@ -23658,7 +23658,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$rfcEmpresa = $_SESSION['rfc'];
 		//echo '<br/>'.utf8_decode($nombre_recep);
 		if($rfcEmpresa != $rfce and $rfcEmpresa!=$rfc){
-			echo ('<br/><font color="red">El RFC NO CORRESPONDE A LA EMPRESA SELECCIONADA, SOLO SE PUEDEN SUBIR RFC DE LA EMPRESA SELECCIONA....'. $uuid.'</font><br/>');
+			echo ('<br/><font color="red">El RFC NO CORRESPONDE A LA EMPRESA SELECCIONADA, SOLO SE PUEDEN SUBIR RFC DE LA EMPRESA SELECCIONA....'.$archivo.'</font><br/>');
 			$tipo = 'falso';
 		}
 		return array("uuid"=>$uuid, "tcf"=>$tipo);

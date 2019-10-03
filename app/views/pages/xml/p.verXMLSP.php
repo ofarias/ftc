@@ -13,11 +13,11 @@
                             <?php if($cnxcoi=='si'){?>
                             <font color="black"><input type="button" value="Consolidar Polizas" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'c')"></font>
                             <font color="red"><input type="button"  value="Revision Contabilizacion" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'z')"></font>
-                            <font color="green"><input type="button"  value="Polzas Automaticas" onclick="pAuto(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
+                            <font color="green"><input type="button"  value="Polizas Automaticas" onclick="pAuto(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
                         <?php }else{?>
                             <font color="black"><input type="button" value="Consolidar Polizas" onclick="info()"></font>
                             <font color="red"><input type="button"  value="Revision Contabilizacion" onclick="info()"></font>
-                            <font color="green"><input type="button"  value="Polzas Automaticas" onclick="info()"></font>
+                            <font color="green"><input type="button"  value="Polizas Automaticas" onclick="info()"></font>
                         <?php }?>
                         </p>
                     </div>
