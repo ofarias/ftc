@@ -23658,7 +23658,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$rfcEmpresa = $_SESSION['rfc'];
 		//echo '<br/>'.utf8_decode($nombre_recep);
 		if($rfcEmpresa != $rfce and $rfcEmpresa!=$rfc){
-			echo ('<br/><font color="red">El RFC NO CORRESPONDE A LA EMPRESA SELECCIONADA, SOLO SE PUEDEN SUBIR RFC DE LA EMPRESA SELECCIONA....'.$archivo.'</font><br/>');
+			echo ('<br/><font color="red">El RFC '.$rfce.' NO CORRESPONDE A LA EMPRESA '.$rfcEmpresa.' SELECCIONADA, SOLO SE PUEDEN SUBIR RFC DE LA EMPRESA SELECCIONA....'.$uuid.'</font><br/>');
 			$tipo = 'falso';
 		}
 		return array("uuid"=>$uuid, "tcf"=>$tipo);
@@ -26396,18 +26396,21 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function impuestosPolizaFinalDetImp($uuid, $por){
 		$data = array();	
-		$u =  explode(",", $uuid);
-	 	$pr = explode(",", $por);
-	 	$p=1;
-	 	for ($i=0; $i < count($u); $i++) {
-	 		$uu=$u[$i]; 
-	 		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) * $pr[$i] AS MONTO, SUM(BASE) AS BASE, $p as partida FROM XML_IMPUESTOS WHERE UUID = $uu group by impuesto, tasa, tipofactor, Tipo";
-			$res=$this->EjecutaQuerySimple();
-			while ($tsArray=ibase_fetch_object($res)){
-				$data[]=$tsArray;
-			}	
-	 		$p++;
-	 	}
+		if(!empty($uuid)){
+			$u =  explode(",", $uuid);
+		 	$pr = explode(",", $por);
+		 	$p=1;
+
+		 	for ($i=0; $i < count($u); $i++) {
+		 		$uu=$u[$i]; 
+		 		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) * $pr[$i] AS MONTO, SUM(BASE) AS BASE, $p as partida FROM XML_IMPUESTOS WHERE UUID = $uu group by impuesto, tasa, tipofactor, Tipo";
+				$res=$this->EjecutaQuerySimple();
+				while ($tsArray=ibase_fetch_object($res)){
+					$data[]=$tsArray;
+				}	
+		 		$p++;
+		 	}	
+		}
 	 	return $data;	
 	}
 
@@ -27413,6 +27416,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	   		 	return $row->CVE_CLPV;		
 	    	}
 	    //exit('Revisar');
-	    
+    }
+
+    function acmd_xml($data){
+    	foreach ($data as $k) {
+    		if($k->TIPO_POLI == 'Dr'){
+    			$this->query="UPDATE XML_POLIZAS SET tipo ";
+    		}
+    	}
     }
 }?>

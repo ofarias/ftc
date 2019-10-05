@@ -2120,7 +2120,40 @@ class CoiDAO extends DataBaseCOI {
         }else{
             echo '<script type="text/javascript">alert("El valor del Factor debe de ser menor a 1 cuando el fator es tasa ya que significaria que es el 100%")</script>';
         }
-        
+    }
+
+    function acmd($mes, $anio){
+        $eje=substr($anio, 2);
+        //$tipos= array("Dr", "Ig", "Eg");
+        $tipos= array("Dr");
+        for ($i=0; $i <count($tipos) ; $i++) { 
+            $this->query="SELECT * FROM POLIZAS$eje where ejercicio =$anio and periodo = $mes and tipo_poli = '$tipos[$i]' order by fecha_pol";
+            $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)){
+                $data[]=$tsArray;
+            }
+            $num = 0;
+            if(count($data)>0){
+                $this->query="UPDATE POLIZAS$eje set num_poliz = 'a'||trim(num_poliz) where  ejercicio =$anio and periodo = $mes and tipo_poli = '$tipos[$i]'";
+                $this->queryActualiza();
+                $this->query="UPDATE AUXILIAR$eje set num_poliz = 'a'||trim(num_poliz) where  ejercicio =$anio and  periodo = $mes and tipo_poli = '$tipos[$i]'";
+                $this->queryActualiza();
+                foreach ($data as $k){
+                    $num++;
+                    $this->query="UPDATE POLIZAS$eje set num_poliz=lpad('$num',5) where num_poliz= 'a'||trim('$k->NUM_POLIZ') and tipo_poli = '$tipos[$i]'";
+                    $this->queryActualiza();
+                    $this->query="UPDATE AUXILIAR$eje set num_poliz=lpad('$num',5) where num_poliz= 'a'||trim('$k->NUM_POLIZ') and tipo_poli = '$tipos[$i]'";
+                    $this->queryActualiza();
+                }
+            }
+            unset($data);
+        }
+        $this->query="SELECT * FROM POLIZAS$eje where ejercicio =$anio and periodo = $mes order by fecha_pol";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
     }
 }      
 ?>

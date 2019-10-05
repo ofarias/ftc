@@ -1,4 +1,4 @@
-f<?php 
+<?php 
     foreach ($facturas as $data){
         $cliente = $data->CLAVE;
     }                         
@@ -11,7 +11,7 @@ f<?php
             <div class="panel-heading">
                 A P L I C A C I O N  D E  P A G O.  
             </div>
-  <div class="panel-body">
+                    <div class="panel-body">
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered table-hover">
                                 <?php 
@@ -28,13 +28,16 @@ f<?php
                                         <?php }?>                                        
                                         <input type="hidden" name="idpago" value="<?php echo $key->ID?>">   
                                         <label> El saldo actual es de: $ <?php echo number_format($key->SALDO,2)?>   ---------->    </label>   <button name='imprimirComprobante' value="enviar" type="submit" class="btn btn-info">IMPRIMIR RELACION DEL PAGO</button><br> 
+                                        <input type="hidden" id="sdo" value="<?php echo $key->SALDO?>">
                                         <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                         <?php if(empty($key->POLIZA_INGRESO)){?>
-                                            <a class="btn btn-info conta" tipo="total" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a><br>
+                                            <a class="btn btn-info conta" tipo="total" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a><br/>
+                                            Observaciones: &nbsp;&nbsp;<input type="text" id="obs" value="<?php echo $key->OBS?>"><br/>
                                         <?php }else{?>
                                             <font color="BLUE"><b><?php echo 'Poliza: '.$key->POLIZA_INGRESO.' Ejercicio: '.substr($key->FECHA_RECEP,0,4).' Peridod: '.substr($key->FECHA_RECEP,5,2) ?></b></font>
                                         <?php }?>
                                     </form>
+
                                 <?php endforeach; ?>
                                     <br/>
                                     <?php if($cep == 0){?>
@@ -132,7 +135,7 @@ f<?php
     <div class="col-lg-12">
         <div class="panel panel-default"> 
             <div class="panel-heading">
-                A P L I C A C I O N&nbsp;&nbsp;&nbsp;&nbsp;D E&nbsp;&nbsp;&nbsp;&nbsp;F A C T U R A S.  
+                A P L I C A C I O N&nbsp;&nbsp;&nbsp;&nbsp;DE&nbsp;&nbsp;&nbsp;&nbsp;F A C T U R A S.  
             </div>
   <div class="panel-body">
                             <div class="table-responsive">
@@ -144,24 +147,22 @@ f<?php
                                 ?>
                                     <label><?php echo $key->BANCO?></label>
                                     <label> El monto del pago es de: $ <?php echo number_format($key->MONTO,2)?> </label><br>
-                                    <label> El saldo actual es de: $ <?php echo number_format($key->SALDO,2)?>  
-                                    <!--
+                                    <label> El saldo actual es de: $ <?php echo number_format($key->SALDO,2)?></label>
+                                    <input type="hidden" id="sdo" value="<?php echo $key->SALDO?>"> 
+                                    &nbsp;&nbsp;&nbsp;
                                     <form action="index.php" method="post">
                                         <input type="hidden" name="idpago" value="<?php echo $key->ID?>">
                                         <button name='imprimirComprobante' value="enviar" type="submit" class="btn btn-info">IMPRIMIR RELACION DEL PAGO</button>
+                                    <br/> 
                                     </form>
-                                    -->
-                                    <br> 
-                                    <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?php if(empty($key->POLIZA_INGRESO)){?>
+                                    <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
+                                    <?php if(empty($key->POLIZA_INGRESO)){?>
 
-                                        <a class="btn btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">
-                                        Contabilizar
-                                    </a>
-
-
-                                        <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br/>
-
+                                    <a class="btn btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a>
+                                    <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br/>
+                                    Observaciones: &nbsp;&nbsp;<input type="text" id="obs" value="<?php echo $key->OBS?>"><br/>
+                                    
                                     <?php }else{?>
                                             <font color="BLUE"><b><?php echo 'Poliza: '.$key->POLIZA_INGRESO.' Ejercicio: '.substr($key->FECHA_RECEP,0,4).' Peridod: '.substr($key->FECHA_RECEP,5,2) ?></b></font><br/>
                                     <?php }?>
@@ -732,8 +733,15 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
         var tipo = $(this).attr('tipo')
         var info = $(this).attr('info')
         var y = document.getElementById('z').value
-    //$.alert('Contabilizar el pago' + idp + " tipo " + tipo)
-       $.confirm({
+        var obs = document.getElementById("obs").value
+        var saldo =parseFloat(document.getElementById("sdo").value)
+        //$.alert('Contabilizar el pago' + idp + " tipo " + tipo)
+        if(saldo > 0.1 && y == ""){
+            alert("Seleccione una cuenta para la monto del pago por favor....")
+            return
+        }
+
+        $.confirm({
             title: 'Creacion de poliza de Ingreso',
             content: 'Desea crear la poliza de Ingreso ' + info, 
             buttons: {
@@ -742,13 +750,13 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
                         url:'index.coi.php',
                         type:'post',
                         dataType:'json',
-                        data:{contabilizaIg:1, idp, tipo, y},
+                        data:{contabilizaIg:1, idp, tipo, y, obs},
                         success:function(data){
                             location.reload(true)
 
                         },
                         error:function(){
-                            $.alert("Favor de revisar la poliza en coi!!!")
+                            location.reload(true)
                         }
                     })
                 },
@@ -760,4 +768,3 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
     })
 
 </script>
-

@@ -265,12 +265,12 @@ class controller_coi{
 		}
 	}
 
-	function contabilizaIg($idp, $y, $tipo){
+	function contabilizaIg($idp, $y, $tipo, $obs){
 		if($_SESSION['user']){
 			$data= new pegasoCobranza;
 			$data2 = new pegaso;
 			$data_coi = new CoiDAO;
-			$pago = $data->traePago($idp);
+			$pago = $data->traePago($idp, $obs);/// Pendiente
 			if(!empty($pago)){
 				$detalle= $data->traeAplicaciones($idp);
 				$uuid= '';
@@ -296,6 +296,16 @@ class controller_coi{
 //			//}else{
 //
 			//}
+		}
+	}
+
+	function acmd($mes, $anio){
+		if($_SESSION['user']){
+			$data_coi= new CoiDAO;
+			$data= new pegaso;
+			$acmd_coi=$data_coi->acmd($mes, $anio);
+			$acmd_ftc=$data->acmd($acmd_coi);
+			return $res;
 		}
 	}
 
