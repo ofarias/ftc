@@ -2190,16 +2190,25 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
     } 
 
     function prodVM($b){
-        $this->query="SELECT * FROM FTC_Articulos WHERE (GENERICO||' '||SINONIMO||' '|| CALIFICATIVO||' '||CLAVE_PROD) CONTAINING('$b')";
+        $this->query="SELECT A.*, (SELECT coalesce(SUM(b.RESTANTE), 0) FROM ingresobodega b where b.producto = 'PGS'||A.ID ) as Existencia  FROM FTC_Articulos A WHERE (A.GENERICO||' '||A.SINONIMO||' '|| A.CALIFICATIVO||' '||A.CLAVE_PROD) CONTAINING('$b')";
         $r=$this->QueryDevuelveAutocompleteProd();
         return $r;
     }
 
-    function docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps){
+    function clieVM($b){
+        $this->query="SELECT A.*, A.CALLE||'-'||COALESCE(A.NUMEXT,'') AS DIRECCION, A.NUMINT AS INTERIOR, A.MUNICIPIO AS DELEGACION  FROM clie01 A WHERE A.NOMBRE CONTAINING('$b') OR a.rfc containing ('$b')";
+        $r=$this->QueryDevuelveAutocompleteClieNV();
+        return $r;
+    }
+
+    function docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps, $descf, $doc, $idf){
         //$folio = $this->creaFolioNV();
-        $c = $this->cabeceraNV($clie);
-        $d = $this->partidaNV($prod, $cant, $prec, $desc, $iva, $ieps, $folio, $c);
-        return $inserta;
+        $c=array(); 
+        if($doc == 0 and $idf== 0){
+            $c = $this->cabeceraNV($clie);
+        }
+        $d = $this->partidaNV($prod, $cant, $prec, $desc, $iva, $ieps, $c, $descf, $doc, $idf);
+        return array("status"=>'ok',"doc"=>$d['doc'], "idf"=>$d['idf']);
     }
 
     function cabeceraNV($clie){
@@ -2207,22 +2216,82 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         $letra = $_SESSION['user']->LETRA_NUEVA;
         $this->query="INSERT INTO FTC_NV 
             ( 
-            IDF, DOCUMENTO, SERIE, FOLIO, FORMADEPAGOSAT, VERSION, TIPO_CAMBIO, METODO_PAGO, REGIMEN_FISCAL, LUGAR_EXPEDICION, MONEDA, TIPO_COMPROBANTE, CONDICIONES_PAGO, SUBTOTAL, IVA, IEPS, DESC1, DESC2, TOTAL, SALDO_FINAL, ID_PAGOS, ID_APLICACIONES, NOTAS_CREDITO, MONTO_NC, MONTO_PAGOS, MONTO_APLICACIONES, CLIENTE, USO_CFDI, STATUS, USUARIO, FECHA_DOC, FECHAELAB, IDIMP, UUID, DESCF, IDCAJA, CONTABILIZADO, POLIZA, FECHA_CANCELACION, USUARIO_CANCELACION) 
-            VALUES (null, '$letra'||(SELECT COALESCE(MAX(FOLIO), 0) + 1 FROM FTC_NV WHERE SERIE = '$letra'),'$letra', (SELECT COALESCE(MAX(FOLIO), 0) + 1 FROM FTC_NV WHERE SERIE = '$letra'), '', 1.1, 1, '', '', '', 1,'NV', '$condicion', 0,0,0,0,0,0,0,'','','',0,0,0,'$cliente', '', 'P', '$usuario', current_date, current_timestamp, 0, null, 0, null, '', '', null, '' 
+            IDF, DOCUMENTO, SERIE, FOLIO, FORMADEPAGOSAT, VERSION, TIPO_CAMBIO, METODO_PAGO, REGIMEN_FISCAL, LUGAR_EXPEDICION, MONEDA, TIPO_COMPROBANTE, CONDICIONES_PAGO, SUBTOTAL, IVA, IEPS, DESC1, DESC2, TOTAL, SALDO_FINAL, ID_PAGOS, ID_APLICACIONES, NOTAS_CREDITO, MONTO_NC, MONTO_PAGOS, MONTO_APLICACIONES, CLIENTE, USO_CFDI, STATUS, USUARIO, FECHA_DOC, FECHAELAB, IDIMP, UUID, DESCF, IDCAJA, CONTABILIZADO, POLIZA, FECHA_CANCELACION, USUARIO_CANCELACION
+            ) 
+            VALUES (null, '$letra'||(SELECT COALESCE(MAX(FOLIO), 0) + 1 FROM FTC_NV WHERE SERIE = '$letra'),'$letra', (SELECT COALESCE(MAX(FOLIO), 0) + 1 FROM FTC_NV WHERE SERIE = '$letra'), '', 1.1, 1, '', '', '', 1,'NV', 'Contado', 0,0,0,0,0,0,0,'','','',0,0,0,'$clie', '', 'P', '$usuario', current_date, current_timestamp, 0, null, 0, null, 0, null, null, '' 
             ) RETURNING IDF, SERIE, FOLIO, DOCUMENTO";
             echo $this->query;
         $res=$this->grabaBD();
-        return $res;
+        $row=ibase_fetch_object($res);
+        return $row;
     }
 
-    function partidaNV($prod, $cant, $prec, $desc, $iva, $ieps, $folio, $c){
+    function partidaNV($prod, $cant, $prec, $desc, $iva, $ieps, $c, $descf, $doc, $idf){
+        $usuario=$_SESSION['user']->NOMBRE;
+        $st = $prec*$cant;
+        $d = $cant*($prec * ($desc/100));
+        $t = ($st-$d)*(1+($iva/100));
+        if(!empty($c)){
+            $idf = $c->IDF;
+            $doc = $c->DOCUMENTO;
+        }
         $this->query="INSERT INTO FTC_NV_DETALLE ( IDFP ,IDF ,DOCUMENTO ,PARTIDA ,CANTIDAD ,ARTICULO ,UM ,DESCRIPCION ,IMP1 ,IMP2 ,IMP3 ,IMP4 ,DESC1 ,DESC2 ,DESC3 ,DESCF ,SUBTOTAL ,TOTAL ,CLAVE_SAT ,MEDIDA_SAT ,PEDIMENTOSAT ,LOTE ,USUARIO ,FECHA ,IDPREOC ,IDCAJA ,IDPAQUETE ,PRECIO ,STATUS ,NUEVO_PRECIO ,NUEVA_CANTIDAD ,CAMBIO ) 
-            VALUES (null, $c->IDF, '$c->DOCUMENTO', (SELECT COALESCE(MAX(PARTIDA),0) + 1 FROM FTC_NV_DETALLE WHERE IDF = $c->IDF), $cant, '$prod', 'um', 'Descripcion', $iva, $ieps, 0, $desc, 0, 0, 0, 2, 4, '', '',  
+            VALUES (null, $idf, '$doc', (SELECT COALESCE(MAX(PARTIDA),0) + 1 FROM FTC_NV_DETALLE WHERE IDF = $idf), $cant, '$prod', (SELECT FIRST 1 UM FROM producto_ftc WHERE CLAVE_FTC=$prod), (SELECT FIRST 1 NOMBRE FROM producto_ftc WHERE CLAVE_FTC=$prod), $iva, $ieps, 0, 0, $desc, 0, 0, $descf, $st, $t, (SELECT CVE_PRODSERV FROM INVE01 I WHERE I.CVE_art = 'PGS'||$prod), (SELECT CVE_UNIDAD FROM INVE01 I WHERE I.CVE_ART = 'PGS'||$prod), '','','$usuario', current_date, 0, 0, 0, $prec, 0, 0, 0, 0  
         )";
         $this->grabaBD();
 
-        $this->query="UPDATE FTC_NV SET WHERE DOCUMENTO = '$folio'";
+        $this->query="UPDATE FTC_NV F SET 
+            F.SUBTOTAL = (SELECT SUM(SUBTOTAL) FROM FTC_NV_DETALLE FD WHERE FD.IDF = $idf), 
+            F.TOTAL = (SELECT SUM(TOTAL) FROM FTC_NV_DETALLE FD WHERE FD.IDF = $idf),
+            F.IVA = (SELECT SUM((PRECIO * (IMP1/100))*CANTIDAD) FROM FTC_NV_DETALLE FD WHERE FD.IDF = $idf),
+            F.DESC1 = (SELECT SUM((PRECIO * (DESC1/100))*CANTIDAD) FROM FTC_NV_DETALLE FD WHERE FD.IDF = $idf),
+            F.SALDO_FINAL = (SELECT SUM(TOTAL) FROM FTC_NV_DETALLE FD WHERE FD.IDF = $idf),
+            F.DESCF = $descf
+            WHERE IDF = $idf";
         $this->queryActualiza();
+        return array("doc"=>$doc, "idf"=>$idf);
+    }
+
+    function nvPartidas($docf, $idf){
+        $data=array();
+        $this->query="SELECT F.*,(SELECT SUM(RESTANTE) FROM ingresobodega I WHERE I.PRODUCTO='PGS'||F.ARTICULO) AS EXISTENCIA FROM FTC_NV_DETALLE F WHERE IDF=$idf and Documento = '$docf'";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function dropP($doc, $idf, $p){
+        $this->query="DELETE FROM FTC_NV_DETALLE WHERE DOCUMENTO = '$doc' and IDF=$idf and PARTIDA = $p ";
+        $this->queryActualiza();
+        $res=$this->acomodoPartidas($doc, $idf);
+        return $res;
+    }
+
+    function acomodoPartidas($doc, $idf){
+        $this->query="SELECT * FROM FTC_NV_DETALLE WHERE DOCUMENTO = '$doc' and idf=$idf  order by partida";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsarray=ibase_fetch_object($res)) {
+            $data[]=$tsarray;
+        }
+        $p=0;
+        foreach ($data as $x){
+            $p++;
+            $this->query="UPDATE FTC_NV_DETALLE SET PARTIDA = $p where documento = '$doc' and idf=$idf and partida = $x->PARTIDA";
+            $this->queryActualiza();
+        }
+
+        $this->query="UPDATE FTC_NV F SET 
+            F.SUBTOTAL = (SELECT SUM(SUBTOTAL) FROM FTC_NV_DETALLE FD WHERE FD.IDF = $idf), 
+            F.TOTAL = (SELECT SUM(TOTAL) FROM FTC_NV_DETALLE FD WHERE FD.IDF = $idf),
+            F.IVA = (SELECT SUM((PRECIO * (IMP1/100))*CANTIDAD) FROM FTC_NV_DETALLE FD WHERE FD.IDF = $idf),
+            F.DESC1 = (SELECT SUM((PRECIO * (DESC1/100))*CANTIDAD) FROM FTC_NV_DETALLE FD WHERE FD.IDF = $idf),
+            F.SALDO_FINAL = (SELECT SUM(TOTAL) FROM FTC_NV_DETALLE FD WHERE FD.IDF = $idf)
+            WHERE IDF = $idf";
+        $this->queryActualiza();
+
+        return array("status"=>'ok');
     }
 
 }?>

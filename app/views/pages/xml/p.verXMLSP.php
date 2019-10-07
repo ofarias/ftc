@@ -13,11 +13,12 @@
                             <?php if($cnxcoi=='si'){?>
                             <font color="black"><input type="button" value="Consolidar Polizas" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'c')"></font>
                             <font color="red"><input type="button"  value="Revision Contabilizacion" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'z')"></font>
-                            <font color="green"><input type="button"  value="Polzas Automaticas" onclick="pAuto(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
+                            <font color="green"><input type="button"  value="Polizas Automaticas" onclick="pAuto(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
+                            <font color="#DC143C"><input type="button"  value="Acomodar Pólizas" onclick="pAcomodo(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
                         <?php }else{?>
                             <font color="black"><input type="button" value="Consolidar Polizas" onclick="info()"></font>
                             <font color="red"><input type="button"  value="Revision Contabilizacion" onclick="info()"></font>
-                            <font color="green"><input type="button"  value="Polzas Automaticas" onclick="info()"></font>
+                            <font color="green"><input type="button"  value="Polizas Automaticas" onclick="info()"></font>
                         <?php }?>
                         </p>
                     </div>
@@ -123,7 +124,6 @@
                                                 <a href="index.php?action=verXML&uuid=<?php echo $key->UUID?>&ide=<?php echo $ide?>" class="btn btn-info" target="popup" onclick="marcar(<?php echo $ln?>, 'c'); window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar </a>
                                                 <center><input type="checkbox" name="revision" id="<?php echo $ln?>" value="<?php echo $ln?>" color="<?php echo $color2?>" onclick="marcar(this.value, 'cb')" ></center>
                                                 <br/>
-                                                
                                             </td>
                                             <form action="index.php" method="POST">
                                                     <input type="hidden" name="factura" value="<?php echo $key->SERIE.$key->FOLIO?>">
@@ -140,7 +140,9 @@
                                                     <?php }?>
                                                     &nbsp;&nbsp;
                                                     <a href="index.php?action=imprimeUUID&uuid=<?php echo $key->UUID?>" onclick="alert('Se ha descargar tu factura, revisa en tu directorio de descargas')"><img border='0' src='app/views/images/pdf.jpg' width='25' height='30'></a>
+                                                <!--
                                                     <input type="button" value="" class="btn-sm btn-info cargaSAE" doc="<?php echo $key->SERIE.$key->FOLIO?>" ruta="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->CLIENTE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" serie="<?php echo $key->SERIE?>" folio ="<?php echo $key->FOLIO?>" uuid="<?php echo $key->UUID?>" rfcr="<?php echo $key->CLIENTE?>" ln="<?php echo $ln?>" tipo="<?php echo $doc?>">
+                                                -->
                                                 </td>
                                             </form>
                                         </tr>
@@ -220,6 +222,25 @@
             renglon.style.background="#F08080";         
         }else{
             renglon.style.background=color;
+        }
+    }
+
+    function pAcomodo(mes, anio, ide, doc, t){
+        if(confirm("Desea Reacomodar las polizas del periodo " + mes + " ejercicio " + anio)){
+            $.ajax({
+                url:'index.coi.php',
+                type:'post',
+                dataType:'json',
+                data:{acmd:1, mes, anio},
+                success:function(data){
+                    alert("Listo se acomodaron las polizas")
+                },
+                error:function(){
+
+                }
+            })
+        }else{
+            return
         }
     }
 

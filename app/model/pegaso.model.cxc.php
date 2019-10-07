@@ -975,13 +975,13 @@ class pegasoCobranza extends database {
 
     function aplicaInd($idp, $monto, $uuid){
         $usuario=$_SESSION['user']->NOMBRE;
-        $this->query="SELECT x.*, (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento) as Aplicado, x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento) as SaldoDOC,(SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and status = 0)-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0) AS SALDOPAGO,
-            ((SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and status = 0)-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0))-(x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento)) as SaldoInsPago
+        $this->query="SELECT x.*, (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento) as Aplicado, x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento) as SaldoDOC,(SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and (STATUS = '0' or status = 'I'))-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0) AS SALDOPAGO,
+            ((SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and (STATUS = '0' or status = 'I'))-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0))-(x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento)) as SaldoInsPago
             FROM XML_DATA x WHERE UUID = '$uuid'";
-        $res=$this->EjecutaQuerySimple();
+         $res=$this->EjecutaQuerySimple();
         $row=ibase_fetch_object($res);
 
-        if($row->SALDODOC > 0 And $row->SALDOPAGO>0 AND ($row->SALDOPAGO - $monto) >= 0 and ($row->SALDODOC-$monto>=0)){
+        if( $row->SALDODOC > 0 And ($row->SALDOPAGO + .001) > 0 AND ( ($row->SALDOPAGO + .001) - $monto) >= 0 and ($row->SALDODOC-$monto>=0)){
             $this->query="INSERT INTO APLICACIONES (ID, FECHA, IDPAGO, DOCUMENTO, MONTO_APLICADO, SALDO_DOC, SALDO_PAGO, USUARIO, STATUS, RFC, FORMA_PAGO, CANCELADO, PROCESADO, CIERRE_CC, REC_CONTA, FECHA_CIERRE_CC, USUARIO_CIERRE_CC, FECHA_REC_CONTA, FOLIO_REC_CONTA, USUARIO_REC_CONTA, OBSERVACIONES, CONTABILIZADO, TIPO, POLIZA_INGRESO) VALUES (null, current_timestamp, $idp, (SELECT DOCUMENTO FROM XML_DATA WHERE UUID = '$uuid'),$monto, $row->SALDODOC - $monto, $row->SALDOPAGO -$monto,'$usuario', 'E', (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid'), (SELECT CONTABILIZADO FROM CARGA_PAGOS WHERE ID=$idp), 0, 0, 0, 0, null, null, null, 0, null, '$uuid', null,null, null  )";
             if($res=$this->grabaBD()){
                 $this->query="UPDATE CARGA_PAGOS SET SALDO = SALDO - $monto where id = $idp";
@@ -995,8 +995,10 @@ class pegasoCobranza extends database {
         }
     }
 
-    function traePago($idp){
+    function traePago($idp, $obs){
             $row=array();
+            $this->query="UPDATE CARGA_PAGOS SET OBS= '$obs' where id = $idp";
+            $this->queryActualiza();
             $this->query="SELECT C.*, 
                             (select CTA_CONTAB from PG_BANCOS B where B.BANCO || ' - ' || B.NUM_CUENTA = C.BANCO) as CCOI,
                             (select BANCO from PG_BANCOS B where B.BANCO || ' - ' || B.NUM_CUENTA = C.BANCO) as BBANCO,
@@ -1006,13 +1008,16 @@ class pegasoCobranza extends database {
                 from CARGA_PAGOS c where C.ID = $idp and (poliza_ingreso = '' or poliza_ingreso is null)";
             $res=$this->EjecutaQuerySimple();
             $row=ibase_fetch_object($res);
+
+
             return $row;
             //return array("statsu"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->MONTO, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "monto"=>"$ ".number_format($row->MONTO,2), "fecha_edo"=>$row->FECHA_RECEP, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->OBS, "importe"=>$row->MONTO, "obs"=>$row->OBS,"tipo_tes"=>$row->CONTABILIZADO);
     }
 
     function traeAplicaciones($idp){
         $data=array();
-        $this->query="SELECT A.*, (SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo= 'Cliente'), (SELECT CUENTA_CONTABLE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo = 'Cliente') FROM APLICACIONES A WHERE IDPAGO = $idp and cancelado=0 and status = 'E'";
+        $this->query="SELECT A.*, (SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo= 'Cliente'), (SELECT CUENTA_CONTABLE FROM XML_CLIENTES WHERE RFC = A.RFC and tipo = 'Cliente'), MONTO_APLICADO / (SELECT IMPORTE FROM XML_DATA X WHERE X.UUID = A.OBSERVACIONES) AS PORC
+        FROM APLICACIONES A WHERE IDPAGO = $idp and cancelado=0 and status = 'E'";
         $r=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($r)){
             $data[]=$tsArray;
