@@ -14,7 +14,7 @@ class pegaso extends database{
 	function AccesoLogin($user, $pass){
 		$u=$user;
 			//$this->creaPeriodo();
-			$this->query = "SELECT  USER_LOGIN, USER_PASS, USER_ROL, LETRA, LETRA2, LETRA3, LETRA4, LETRA5, LETRA6, NUMERO_LETRAS, NOMBRE, CC, CR, aux_comp, COORDINADOR_COMP, USER_EMAIL, POLIZA_TIPO, CATEGORIA 
+			$this->query = "SELECT  USER_LOGIN, USER_PASS, USER_ROL, LETRA, LETRA2, LETRA3, LETRA4, LETRA5, LETRA6, NUMERO_LETRAS, NOMBRE, CC, CR, aux_comp, COORDINADOR_COMP, USER_EMAIL, POLIZA_TIPO, CATEGORIA, LETRA_NUEVA
 						FROM PG_USERS 
 						WHERE USER_LOGIN = '$u' and USER_PASS = '$pass' and user_status = 'alta'"; /*Contraseña va encriptada con MD5*/
 		 	$res = $this->EjecutaQuerySimple();
@@ -26708,7 +26708,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
                  		, '$folio'
                  		, (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid')
                  		, 0, 0, 0, null, '0', '$tpago', '', 0, 0, 0, NULL, NULL, NULL, NULL, 0, 0, '$uuid', 0,''
-                 		, (SELECT SERIE||FOLIO FROM XML_DATA WHERE UUID = '$uuid')||' -- '||'$obs')
+                 		--, (SELECT SERIE||FOLIO FROM XML_DATA WHERE UUID = '$uuid')||' -- '||'$obs')
+                 		, '$obs'||' -- '||(SELECT SERIE||FOLIO FROM XML_DATA WHERE UUID = '$uuid'))
                  		 RETURNING ID";
             $res=$this->grabaBD();
             $ridp=ibase_fetch_object($res);
@@ -26993,9 +26994,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $folio;
 	}
 
-	function detalleGasto($idg, $tipo){
+	function detalleGasto($idg, $tipo, $obs){
 		$data = array();
 		$x = '';
+		if(!empty($obs)){
+			$this->query="UPDATE GASTOS SET DOC = substring('$obs' from 1 for 255) where id= $idg ";
+			$this->queryActualiza();
+		}
 		if($tipo == 'z'){
 			$x = "and (contabilizado is null or contabilizado = '')";
 		}

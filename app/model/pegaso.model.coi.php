@@ -1357,7 +1357,13 @@ class CoiDAO extends DataBaseCOI {
         $periodo = $infoPoliza['perido'];
         $periodo2 = str_pad($periodo, 2,'0',STR_PAD_LEFT);
         $fecha = $infoPoliza['fecha_edo'];
-        $concepto = substr($tipo." ".$infoPoliza['banco'].", pago factura ".$infoPoliza['factura'].", ".$infoPoliza['proveedor']." $ ".$infoPoliza['monto'], 0, 120);
+        if(strpos($infoPoliza["obs"], "--")){
+            $obs=explode("--",$infoPoliza["obs"]);
+            $obs=$obs[0];
+        }else{
+            $obs=$infoPoliza["obs"];
+        }
+        $concepto = substr($obs." ".$tipo." ".$infoPoliza['banco'].", pago factura ".$infoPoliza['factura'].", ".$infoPoliza['proveedor']." $ ".$infoPoliza['monto'], 0, 120);
         if($tipo == 'Egreso'){
             $subTipo = 'Eg';
             $dhc = 'D';
@@ -1371,7 +1377,6 @@ class CoiDAO extends DataBaseCOI {
             $dhimppc = 'H';
             $dhimppe = 'D';
         }
-
         $this->query="INSERT INTO POLIZAS$eje (TIPO_POLI, NUM_POLIZ, PERIODO, EJERCICIO, FECHA_POL, CONCEP_PO, NUM_PART, LOGAUDITA, CONTABILIZ, NUMPARCUA, TIENEDOCUMENTOS, PROCCONTAB, ORIGEN, UUID, ESPOLIZAPRIVADA, UUIDOP) 
                     VALUES ('$subTipo', lpad( cast((SELECT FOLIO$periodo2 FROM FOLIOS where TIPPOL='$subTipo' AND Ejercicio = $ejercicio ) as int) + 1, 5), $periodo, $ejercicio, '$fecha', '$concepto', 4, '','N', 0, 1, 0, substring('PHP $usuario' from 1 for 15), '$uuid', 0,'') returning NUM_POLIZ";
             //echo $this->query;
@@ -1390,13 +1395,13 @@ class CoiDAO extends DataBaseCOI {
 
             $ctaBanco = $infoPoliza['cuentaCoi'];
             $montoB = $infoPoliza['importe'];
-            $conceptoA1 = substr('Pago Factura '.$infoPoliza['factura'].', '.$infoPoliza['proveedor'], 0,120);
-            $conceptoA2 = substr($tipo.' '.$infoPoliza['banco'].' '.$infoPoliza['monto'], 0,120);
-            $conceptoIA = substr('IVA Acreditable pagado de la factura '.$infoPoliza['factura'], 0,120);
-            $conceptoIP = substr('IVA Pendiente de pago de la factura '.$infoPoliza['factura'], 0,120);
+            $conceptoA1 = substr($obs." ".'Pago Factura '.$infoPoliza['factura'].', '.$infoPoliza['proveedor'], 0,120);
+            $conceptoA2 = substr($obs." ".$tipo.' '.$infoPoliza['banco'].' '.$infoPoliza['monto'], 0,120);
+            $conceptoIA = substr($obs." ".'IVA Acreditable pagado de la factura '.$infoPoliza['factura'], 0,120);
+            $conceptoIP = substr($obs." ".'IVA Pendiente de pago de la factura '.$infoPoliza['factura'], 0,120);
             if($tipoXML == 'Emitido'){
-                $conceptoIA = substr('IVA Acreditable cobrado de la factura '.$infoPoliza['factura'], 0,120);
-                $conceptoIP = substr('IVA Pendiente de cobro de la factura '.$infoPoliza['factura'], 0,120);
+                $conceptoIA = substr($obs." ".'IVA Acreditable cobrado de la factura '.$infoPoliza['factura'], 0,120);
+                $conceptoIP = substr($obs." ".'IVA Pendiente de cobro de la factura '.$infoPoliza['factura'], 0,120);
             }
             /// Proveedor 2001-001-031  Debe
             $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
@@ -1596,7 +1601,7 @@ class CoiDAO extends DataBaseCOI {
 
         foreach($cabecera as $pol){
             $con='Egreso '.$pol->CUENTA_BANCARIA;
-            $concepto = substr($con.', '.$pol->DOC.', '.$proveedorf.' -- '.$pol->REFERENCIA, 0, 110);
+            $concepto = substr($con.', '.$proveedorf.' -- '.$pol->REFERENCIA, 0, 110);
             $cuenta = $pol->CTA_BANCO;
             if($tipo=='Eg'){
                 $nat0 = 'H';
@@ -1604,11 +1609,11 @@ class CoiDAO extends DataBaseCOI {
                 $nat0 = 'D';
             }
             $this->query="INSERT INTO $tbPol(TIPO_POLI, NUM_POLIZ, PERIODO, EJERCICIO, FECHA_POL, CONCEP_PO, NUM_PART, LOGAUDITA, CONTABILIZ, NUMPARCUA, TIENEDOCUMENTOS, PROCCONTAB, ORIGEN, UUID, ESPOLIZAPRIVADA, UUIDOP) 
-                                values ('$tipo','$folio', $periodo, $ejercicio, '$pol->FECHA_EDO_CTA', '$concepto', 0, '', 'N', 0, 1, 0, substring('PHP $usuario' from 1 for 15),'', 0, '')";
+                                values ('$tipo','$folio', $periodo, $ejercicio, '$pol->FECHA_EDO_CTA', '$pol->DOC'||' $concepto', 0, '', 'N', 0, 1, 0, substring('PHP $usuario' from 1 for 15),'', 0, '')";
             $this->grabaBD();
             //echo '<br/>Inserta Poliza:'.$this->query.'<br/>';
             $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
-                                values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$pol->FECHA_EDO_CTA', '$concepto', '$nat0' , $pol->MONTO_PAGO, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
+                                values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$pol->FECHA_EDO_CTA', '$pol->DOC'||'  $concepto', '$nat0' , $pol->MONTO_PAGO, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
             $this->grabaBD();  
             //echo '<br/> Inserta Primer Partida'.$this->query.'<br/>';
             /// Validacion para la insercion de UUID.
@@ -1629,9 +1634,9 @@ class CoiDAO extends DataBaseCOI {
                 }else{
                     $con = 'Compra';
                 }
-                $this->query="UPDATE $tbAux SET CONCEP_PO = '$con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
+                $this->query="UPDATE $tbAux SET CONCEP_PO = '$pol->DOC'||' $con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
                 $this->queryActualiza();
-                $this->query="UPDATE $tbPol SET CONCEP_PO = '$con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
+                $this->query="UPDATE $tbPol SET CONCEP_PO = '$pol->DOC'||' $con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
                 $this->queryActualiza();
             }
             $cuenta = '';
@@ -1640,7 +1645,7 @@ class CoiDAO extends DataBaseCOI {
             $cuenta = $aux->CUENTA_CONTABLE;
             $documento = $aux->DOCUMENTO;
             $proveedor = $aux->PROV;
-            $concepto = substr($aux->DESCRIPCION.', '.$documento.', '.$proveedor, 0, 120);
+            $concepto = substr($pol->DOC.' '.$aux->DESCRIPCION.', '.$documento.', '.$proveedor, 0, 120);
                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto', '$nat1', $aux->APLICADO, 0, $tc, 0, $partida, 0,0, null, null)";
                 $this->EjecutaQuerySimple();   
@@ -1679,7 +1684,7 @@ class CoiDAO extends DataBaseCOI {
                          /// IVA Acreditable pagado 1180-001-000 Debe
                         $ctaIVAap =$rimp->CUENTA_CONTABLE;
                         $par++;
-                        $conceptoIA = $rimp->NOMBRE;
+                        $conceptoIA = $pol->DOC.' '.$rimp->NOMBRE;
                         $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                     VALUES ('$subTipo', '$folio', $par, $periodo, $ejercicio, '$ctaIVAap', '$fecha', '$conceptoIA', '$dhimppc', $impt->MONTO, 0, 1, 0, $par, 0,0, null , null)";
                         //echo $this->query;
@@ -1692,7 +1697,7 @@ class CoiDAO extends DataBaseCOI {
                         //// IVA pendiente de pago  1190-001-000 haber 
                         $ctaIVApp =$rimpCP->CUENTA_CONTABLE;//'119000100000000000002';
                         $par++;
-                        $conceptoIP=$rimpCP->NOMBRE;
+                        $conceptoIP=$pol->DOC.' '.$rimpCP->NOMBRE;
                         $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                         VALUES ('$subTipo', '$folio', $par, $periodo, $ejercicio, '$ctaIVApp', '$fecha', '$conceptoIP', '$dhimppe', $impt->MONTO, 0, 1, 0, $par, 0,0, null , null)";
                         $this->grabaBD();

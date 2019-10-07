@@ -34,7 +34,8 @@
                                             <input type="hidden" name="saldoPago" value="<?php echo $key->SALDO?>" id="sp">
                                             <td> <?php echo $key->ID ?> </td>
                                             <td><?php echo $key->FECHA_CREACION?></td>
-                                            <td><?php echo '<font color="blue">'.$key->REFERENCIA.'</font><br/><font color="red">'.$key->DOC.'</font>'?></td>
+                                            <td><?php echo '<font color="blue">'.$key->REFERENCIA.'</font>'?>
+                                            <br/><font color="red"><input type="text" id="obs" value="<?php echo $key->DOC?>"></font></td>
                                             <td><?php echo $key->FECHA_EDO_CTA;?> </td>
                                             <td><?php echo $usuario;?></td>
                                             <td><?php echo $key->PROV;?></td>
@@ -97,11 +98,11 @@
                                             $color= $app->STATUS==0? 'blue':'red'; 
                                             $color2 = $color=='red'? 'lightsalmon':'lawngreen';
                                         ?>
-                                        <tr class="odd gradeX" style='background-color:<?php echo $color2?>;'">
+                                        <tr class="odd gradeX" style='background-color:<?php echo $color2?>;'>
                                             <td><?php echo $app->ID?></td>
                                             <td><?php echo $app->FECHA?></td>
                                             <td><?php echo $app->USUARIO?></td>
-                                            <td><?php echo $app->DOCUMENTO.'<br/>'.$app->UUID;?> </td>
+                                            <td><?php echo $app->DOCUMENTO.'<br/>'.$app->UUID;?></td>
                                             <td><?php echo $app->PROV;?><br/><a href="index.php?action=verXML&uuid=<?php echo $app->UUID?>&ide=Recibidos" class="btn-sm btn-info" target="popup" onclick="window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar UUID</a></td>
                                             <td align="right"><font color="<?php echo $color?>"><b><?php echo '$ '.number_format($app->APLICADO,2);?></b></font> </td>
                                             <td>
@@ -304,6 +305,8 @@
         var tipo ='gasto'
         var idp =  $(this).attr('idp')
         var a = ''
+        var obs = document.getElementById('obs').value
+        alert('La Observacion es: ' + obs)
         if(saldo>0.001){
             a = document.getElementById("cuens").value
             if(a.length==0){
@@ -321,7 +324,7 @@
                     url:'index.coi.php',
                     type:'post', 
                     dataType:'json', 
-                    data:{contabiliza:1, tipo, idp, a}
+                    data:{contabiliza:1, tipo, idp, a, obs}
                 }).done(function(response){
                     self.setContentAppend('<div>Done</div>')
                 }).fail(function(){

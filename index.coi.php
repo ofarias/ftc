@@ -59,7 +59,7 @@ if (isset($_POST['usuario'])){
 	echo json_encode($res);
 	exit();
 }elseif (isset($_POST['contabiliza'])) {
-	$res=$controller_coi->contabiliza($_POST['tipo'], $_POST['idp'], $_POST['a']);
+	$res=$controller_coi->contabiliza($_POST['tipo'], $_POST['idp'], $_POST['a'], $_POST['obs']);
 	echo json_encode($res);
 	exit();
 }elseif(isset($_POST['borraCuenta'])){

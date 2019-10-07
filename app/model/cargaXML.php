@@ -210,6 +210,9 @@ class cargaXML extends database {
 		}
 		$zip=new ZipArchive();
 		$dir="C:\\xampp\\htdocs\\zipFiles\\";
+		if(!file_exists($dir){
+			mkdir($dir);
+		}
 		$zip->open($dir.$rfc."_".$mes."_".$anio."_".$ide."_".$doc."_".$date.".zip", ZipArchive::CREATE);
 		$d="$rfc";
 			foreach ($data as $k){
