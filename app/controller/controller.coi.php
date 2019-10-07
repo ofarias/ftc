@@ -304,8 +304,8 @@ class controller_coi{
 			$data_coi= new CoiDAO;
 			$data= new pegaso;
 			$acmd_coi=$data_coi->acmd($mes, $anio);
-			$acmd_ftc=$data->acmd($acmd_coi);
-			return $res;
+			$acmd_ftc=$data->acmd_xml($acmd_coi);
+			return $acmd_ftc;
 		}
 	}
 

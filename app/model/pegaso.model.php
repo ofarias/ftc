@@ -27423,11 +27423,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    //exit('Revisar');
     }
 
-    function acmd_xml($data){
-    	foreach ($data as $k) {
-    		if($k->TIPO_POLI == 'Dr'){
-    			$this->query="UPDATE XML_POLIZAS SET tipo ";
-    		}
+    function acmd_xml($acmd_coi){
+    	foreach ($acmd_coi as $k) {
+    		$this->query="UPDATE XML_POLIZAS SET poliza= LPAD('$k->NUM_POLIZ', 5) where UUID = '$k->UUID' and tipo = '$k->TIPO_POLI' AND periodo = $k->PERIODO";
+    		$this->EjecutaQuerySimple();
     	}
+    	return array("status"=>'ok');
     }
 }?>

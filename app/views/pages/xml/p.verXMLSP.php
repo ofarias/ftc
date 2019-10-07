@@ -233,7 +233,7 @@
                 dataType:'json',
                 data:{acmd:1, mes, anio},
                 success:function(data){
-                    alert("Listo se acomodaron las polizas")
+                    alert("Listo se acomodaron las polizas, favor de revisar los cambios")
                 },
                 error:function(){
 
