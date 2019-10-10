@@ -12,6 +12,7 @@ require_once 'app/model/pegasoqr.php';
 require_once('app/model/pegaso.model.recoleccion.php');
 require_once('app/model/pegaso.model.cxc.php');
 require_once('app/model/facturacion.php');
+require_once ('app/Classes/PHPExcel.php');
 
 class controller_coi{
 	var $contexto_local = "http://SERVIDOR:8081/pegasoFTC/app/";
@@ -306,6 +307,14 @@ class controller_coi{
 			$acmd_coi=$data_coi->acmd($mes, $anio);
 			$acmd_ftc=$data->acmd_xml($acmd_coi);
 			return $acmd_ftc;
+		}
+	}
+
+	function upl_param($file){
+		if($_SESSION['user']){
+			$data= new CoiDAO;
+			$act = $data->upl_param($file);
+			return $act;
 		}
 	}
 

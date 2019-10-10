@@ -2160,5 +2160,35 @@ class CoiDAO extends DataBaseCOI {
         }
         return $data;
     }
+
+    function upl_param($file){
+        $d = new pegaso;
+        $inputFileType=PHPExcel_IOFactory::identify($file);
+        $objReader=PHPExcel_IOFactory::createReader($inputFileType);
+        $objPHPExcel=$objReader->load($file);
+        $sheet=$objPHPExcel->getSheet(0);
+        $highestRow = $sheet->getHighestRow(); 
+        $highestColumn = $sheet->getHighestColumn();
+        for ($row=2; $row <= $highestRow; $row++){ 
+            $cta=$sheet->getCell("O".$row)->getValue();
+            $ctacoi=$sheet->getCell("Z".$row)->getValue();
+            echo $sheet->getCell("A".$row)->getValue()." - ";
+            echo $sheet->getCell("B".$row)->getValue()." - ";
+            echo $sheet->getCell("C".$row)->getValue()." - ";
+            echo $sheet->getCell("I".$row)->getValue()." - ";
+            echo $sheet->getCell("O".$row)->getValue()." - ";
+            echo $sheet->getCell("Z".$row)->getValue()." - ";
+            echo "<br>";
+            $this->query="SELECT * FROM CUENTAS_FTC WHERE CUENTA = '$cta' or CUENTA_COI = '$ctacoi'";
+            $res=$this->EjecutaQuerySimple();
+            $row=ibase_fetch_object($res);
+            if(isset($row->CUENTA_COI)){
+                $r=$d->actParam();
+                if($r['status'] =='ok'){
+                    $this->query="";/// Crea Parametro;
+                }
+            }
+        }
+    }
 }      
 ?>

@@ -15,6 +15,7 @@
                             <font color="red"><input type="button"  value="Revision Contabilizacion" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'z')"></font>
                             <font color="green"><input type="button"  value="Polizas Automaticas" onclick="pAuto(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
                             <font color="#DC143C"><input type="button"  value="Acomodar Pólizas" onclick="pAcomodo(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
+                            <font color="#1a8cff"><input type="button"  value="Carga Parametros" onclick="cargaParam()"></font>
                         <?php }else{?>
                             <font color="black"><input type="button" value="Consolidar Polizas" onclick="info()"></font>
                             <font color="red"><input type="button"  value="Revision Contabilizacion" onclick="info()"></font>
@@ -163,6 +164,50 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
+
+   
+
+
+    function cargaParam(){
+        $.confirm({
+            columnClass: 'col-md-8',
+            title: 'Carga de parametros',
+            content: 'Favor de seleccionar un archivo' + 
+            '<form action="upload_param.php" method="post" enctype="multipart/form-data" class="upl">' +
+            '<div class="form-group">'+
+            '<br/>Archivo: <input type="file" name="fileToUpload" class="cl" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"> <br/>'+
+            '</form>',
+                buttons: {
+                formSubmit: {
+                text: 'Cargar Archivo',
+                btnClass: 'btn-blue',
+                action: function () {
+                    var cliente = this.$content.find('.cl').val();
+                    var form = this.$content.find('.upl')
+                    if(cliente==''){
+                        $.alert('Debe de seleccionar un archivo...');
+                        return false;
+                    }else{
+                        form.submit()
+                    }
+                   }
+            },
+            cancelar: function () {
+            },
+        },
+        //onContentReady: function () {
+        //    // bind to events
+        //    var jc = this;
+        //    //alert(jc);
+        //    this.$content.find('form').on('submit', function (e) {
+        //        // if the user submits the form by pressing enter in the field.
+        //        e.preventDefault();
+        //        jc.$$formSubmit.trigger('click'); // reference the button and click it
+        //    });
+        //}
+    });
+    }
+
     function excel(mes, anio, ide, doc, t){
         if(mes==0 & t=='c'){
             $.alert('Este proceso solo se puede realizar por periodo y no de forma anual.')
@@ -281,5 +326,7 @@
     function info(){
         $.alert('No se encontro la conexion a la BD de COI, favor de comunicarse con Soporte Tecnico al 55-5055-3392')
     }
+
+
 
 </script>
