@@ -17070,14 +17070,12 @@ function ImpSolicitud2($idsol){
 
 
 	function actFecha($tipo, $docu, $fecha){
-		
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$actualiza = $data->actFecha($tipo, $docu, $fecha);
 			//$actualiza = array('status'=>"OK", "response"=>$tipo,"fecha"=>$fecha);
 			return $actualiza; 
 		}
-
 	}
 
 	function guardaEdoCta($pagos, $compras, $gastos, $anio, $mes, $cuenta, $banco){
@@ -20645,6 +20643,14 @@ function ImprimeFacturaPegaso($factura, $destino){
     		$e = "Favor de iniciar Sesión";
     		header('Location: index.php?action=login&e='.urlencode($e)); exit;
     	}		
+    }
+
+    function delEdoCta($id, $tipo){
+    	if($_SESSION['user']){
+    		$data= new pegaso;
+    		$res=$data->delEdoCta($id, $tipo);
+    		return $res;
+    	}
     }
 }?>
 

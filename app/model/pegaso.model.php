@@ -10738,9 +10738,9 @@ function Pagos() {
     }
  
 	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio){
-	   	 /// Pendientes edo de cuenta 
-    	 /// Ordenar por fecha.
-    	 /// cambiar el formato de los numero 
+	   	/// Pendientes edo de cuenta 
+    	/// Ordenar por fecha.
+    	/// cambiar el formato de los numero 
 		$data = array();
 		######### Ajustes de Manejo de dia de corte##########
 		####
@@ -10789,8 +10789,6 @@ function Pagos() {
     		$data[]=$tsArray;
     	}
 
-
-
     	$this->query="SELECT 8 as s, iif(edocta_fecha is null, fecha_oc, edocta_fecha) AS sort, 'Compra' AS TIPO, OC AS CONSECUTIVO, iif(edocta_fecha is null, fecha_oc, edocta_fecha) AS FECHAMOV, 0 AS ABONO, PAGO_TES AS CARGO, 0 AS SALDO, BANCO AS BANCO, usuario_conta AS USUARIO, 'Compra' as TP, oc as identificador, registro as registro, 'FA' as FA, edocta_fecha as fe, fecha_edo_cta_ok as comprobado, contabilizado , SELECCIONADO, tp_tes, '' as obs 
     			FROM FTC_POC 
     			WHERE BANCO = ('$banco'||' - '||'$cuenta') and extract(month from edocta_fecha) = $mes and extract(year from edocta_fecha) = $anio  and (seleccionado = 1 or seleccionado = 0 or seleccionado is null) order by edocta_fecha asc";
@@ -10799,7 +10797,6 @@ function Pagos() {
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
-
     	/*
 			gastos     ---> tipo_pago
 			compo01     ---> tp_tes
@@ -10807,8 +10804,6 @@ function Pagos() {
 			deudores    --->   tipo
 			solicitud_pago ---> tp_tes_final
     	*/
-
-
     	$this->query="SELECT 3 as s, fecha_edo_cta as sort, 'Compra' as TIPO, (id||'-'||factura) as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA , fecha_edo_cta as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado, seleccionado, tp_tes, REFERENCIA as obs
     		FROM CR_DIRECTO
     		where BANCO = '$banco' and cuenta = '$cuenta' and extract(month from fecha_EDO_CTA) = $mes and extract(year from fecha_edo_cta) = $anio and (tipo = 'compra' or tipo='Anticipo'  or tipo='otro' or tipo='gasto') and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  order by fecha_edo_cta asc ";
@@ -18799,10 +18794,6 @@ function cerrarRecepcion($doco){
     }
 
     function actFecha($tipo, $docu, $fecha){
-
-
-    	
-   
     	$a= array("status"=>"NO","response"=>"No se pudo Actualizar", "fecha"=>$fecha);
     		 switch ($tipo){
                 case 1:
@@ -18850,7 +18841,6 @@ function cerrarRecepcion($doco){
                     $tabla = 'Solicitud_pago';
                     $campo1 = 'fecha_edo_cta';
                     $campo2 = 'idsol';
-
                     substr($docu,4, 10 );
                     substr($docu,2,10);
                     break;
@@ -27119,7 +27109,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$this->query="SELECT * FROM gastos where id = $idp";
 			$res=$this->EjecutaQuerySimple();
 			$row = ibase_fetch_object($res);
-			if( ($row->SALDO+.05) >= $valor){ // Valida que el saldo sea mayor a lo que se va a aplicar.
+			if( ($row->SALDO+.05) >= $valor and $row->STATUS != 'C'){ // Valida que el saldo sea mayor a lo que se va a aplicar.
 				$this->query="UPDATE GASTOS SET SALDO = SALDO - $valor where id = $idp";
 				$res=$this->queryActualiza();
 				if($res == 1){
@@ -27143,6 +27133,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						}
 					}
 				}
+			}else{
+				$mensaje= array("status"=>'no', "mensaje"=>'El documento no tiene saldo o esta cancelado....');
 			}	
 		}else{
 			if($valor == 0){
@@ -27433,5 +27425,51 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$this->EjecutaQuerySimple();
     	}
     	return array("status"=>'ok');
+    }
+
+    function delEdoCta($id, $tipo){
+    	$res=array("status"=>'ok', "mensaje"=>'Se elimino correctamente el registro');
+    	switch ($tipo) {
+    		case '1':/// Abono venta
+    			$this->query="SELECT * FROM CARGA_PAGOS WHERE ID = $id";
+    			$r=$this->EjecutaQuerySimple();
+    			$row=ibase_fetch_object($r);
+    			if(($row->MONTO - $row->SALDO) == 0 and $row->STATUS != 'C' and $row->POLIZA_INGRESO==''){
+    				$this->query="UPDATE CARGA_PAGOS SET STATUS = 'C' WHERE ID =$id";
+    				$this->queryActualiza();
+    			}else{
+    				$res=array("status"=>'ok', "mensaje"=>'El pago ya ha sido aplicado o se encuentra contabilizado o esta cancelado, y no se puede eliminar, favor de cancelar las aplicaciones.');
+    			}
+    			break;
+    		case '3':
+    			
+    			break;
+    		case '4':/// Cargo gasto
+    			$idg = substr($id,3); 
+    			$this->query="SELECT g.*, p.*, COALESCE((SELECT SUM(APLICADO) FROM APLICACIONES_GASTOS WHERE IDG= $idg and STATUS = 0), 0) AS APLICACIONES FROM GASTOS g left join pago_gasto p on p.idgasto = g.id WHERE g.id = $idg ";
+    			$r=$this->EjecutaQuerySimple();
+    			$row=ibase_fetch_object($r);
+    			if($row->APLICACIONES == 0 AND $row->STATUS == 'V' and $row->TOTAL == $row->SALDO){
+    				$this->query="UPDATE GASTOS SET STATUS = 'C' WHERE ID = $idg";
+    				$this->queryActualiza();	
+    			}else{
+    				$res=array("status"=>'ok', "mensaje"=>'El gasto no se pudo cancelar, ya que ha sido cancelado o tiene aplicaciones pendientes...');
+    			}	
+    			break;
+    		case '5':
+    			# code...
+    			break;
+    		case '6':
+    			# code...
+    			break;
+    		case '7':
+    			# code...
+    			break;
+    		
+    		default:
+    			$res = array("status"=>'no', "mensaje"=>'No se puede eliminar el registro de una Compra...');
+    			break;
+    	}
+    	return $res;
     }
 }?>

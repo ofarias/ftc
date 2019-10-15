@@ -268,17 +268,18 @@
                             <div class="table-responsive">                                                 
                                 <table class="table table-striped table-bordered table-hover" >
                                     <thead>
-                                        <tr>
-                                            <th>TIPO</th>
-                                            <th>FOLIO / UUID </th>
-                                            <th>FECHA REGISTRO</th>
-                                            <th>ABONO</th>
-                                            <th>CARGO</th>
-                                            <th>POR CONCILIAR/APLICAR</th>
-                                            <th>TIPO PAGO</th>
-                                            <th>REGISTRAR</th>
-                                            <th>USUARIO QUE REGISTRO</th>
-                                            <th>TIPO</th>
+                                        <tr style='background:yellow'>
+                                            <th>Tipo</th>
+                                            <th>Folio / UUID </th>
+                                            <th>Fecha Registro</th>
+                                            <th>Abono</th>
+                                            <th>Cargo</th>
+                                            <th>Por Conciliar/Aplicar</th>
+                                            <th>Tipo Pago</th>
+                                            <th>Registrar</th>
+                                            <th>Usuario Registro</th>
+                                            <th>Tipo</th>
+                                            <th>Eliminar</th>
                                         </tr>
                                     </thead>
                                   <tbody>
@@ -369,6 +370,8 @@
                                             <td><?php echo $datos->USUARIO;?></td>
                                             <td><?php echo $datos->TP_TES?></td>
                                             </form>
+                                            <td><input type="button" value="Eliminar" class="btn btn-sm btn-danger eliminar" tipo="<?php echo $datos->S?>" iden="<?php echo $datos->IDENTIFICADOR?>" ></td>
+                                            
                                         <?php endforeach ?>
                                         </tr>
                                  </tbody>
@@ -432,6 +435,33 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script>
 
+  $(".eliminar").click(function(){
+    var id = $(this).attr("iden")
+    var tipo = $(this).attr("tipo")
+    $.confirm({
+      title: 'Eliminar Registro',
+      content: 'Desea Elminiar el Registro?',
+      buttons: {
+          Si: function () {
+              $.ajax({
+                url:'index.php',
+                type:'post',
+                dataType:'json',
+                data:{delEdoCta:1, tipo, id},
+                success:function(data){
+                  $.alert(data.mensaje)
+                },
+                error:function(){
+                  $.alert('No se pudo eliminar el registro, favor de revisar la informacion o reportar a sistemas')
+                }
+              })
+          },
+          No: function () {
+              $.alert('No se realizo ningun cambio');
+          },
+      }
+    });
+  })
 
   $(document).ready(function() {
     $(".date1").datepicker({dateFormat: 'yy-mm-dd'});
@@ -504,16 +534,14 @@
      document.getElementById('ccierre').value=totalCompras;
      document.getElementById('fcierre').value=saldoFinal;
 
-
   });
 
-function actFecha(docu, tipo, nuevaFecha, identificador){
 
+  function actFecha(docu, tipo, nuevaFecha, identificador){
         var value= document.getElementById('caja_'+identificador);
         var banco = document.getElementById('banco').value;
         var cuenta = document.getElementById('cuenta').value;
         var fo = document.getElementById('fo_'+identificador).value;
-          
         if(value.checked == true){
           alert('No se puede carmbiar la fecha en registros seleccionados');
           document.getElementById('fn_'+identificador).value=fo;
@@ -531,7 +559,6 @@ function actFecha(docu, tipo, nuevaFecha, identificador){
                 document.getElementById('fn_'+identificador).value=fo;
                 alert('El mes a donde quieres mover el movimiento se encuentra auditado por contabilidad');
               }else if(data.status=='ok'){
-
                   $.ajax({
                        type: 'POST',
                        url: 'index.php',
@@ -542,6 +569,7 @@ function actFecha(docu, tipo, nuevaFecha, identificador){
                                   renglon = document.getElementById(identificador);
                                       renglon.style.background="#BEF4BB";
                                       document.getElementById('caja_'+identificador).checked=true;
+                                      var actSaldo = actualizaSaldo()
                                       alert("El Registro se Actualizo correctamente");
                                       
                               }else if(data.status == "NO"){
@@ -642,8 +670,8 @@ function test(a, docu, tipo){
     if(a != 'j'){
     alert('Actualizando el Saldo...');
     }
-              var abonos = 0;
-              var pagos = '';         
+            var abonos = 0;
+            var pagos = '';         
             $(document).ready(function() {
             $("input:checkbox:checked.abono").each(function() {
                      var  docs = $(this).attr("docu");
@@ -726,7 +754,75 @@ function test(a, docu, tipo){
         $("#formGuardar").submit();
       }
 }
- function currency(value, decimals, separators) {
+
+function actualizaSaldo(){
+    var abonos = 0;
+    var pagos = '';         
+    $(document).ready(function() {
+    $("input:checkbox:checked.abono").each(function() {
+             var  docs = $(this).attr("docu");
+             var a = parseFloat(this.value,2);
+             abonos = abonos + a;
+             pagos = pagos +','+ docs;
+        });
+      });
+     var abonosActuales = document.getElementById('abonos_a').value; 
+    abonos = parseFloat(abonos,2) + parseFloat(abonosActuales,2);
+    var tete = currency(abonos);
+    document.getElementById('pagosA').value=pagos;
+    var compras = 0;
+    var docCompras= '';
+    $(document).ready(function() {
+    $("input:checkbox:checked.compra").each(function() {
+             var comp = $(this).attr("docu");
+             var tipo = $(this).attr("tipo");
+             var a = parseFloat(this.value,2);
+             compras = compras + a;
+             docCompras = docCompras + ',' + comp;
+        });
+      });
+      document.getElementById('comprasA').value  = docCompras;
+    var gastos = 0;
+    var docGastos = '';
+    $(document).ready(function() {
+    $("input:checkbox:checked.gasto").each(function() {
+             var gtos =  $(this).attr("docu"); 
+             var tipo = $(this).attr("tipo");
+             var a = parseFloat(this.value,2);
+             gastos = gastos + a;
+             docGastos = docGastos + ',' + gtos;
+        });
+      });
+      //alert('Documentos de Gastos' +  docGastos);
+    document.getElementById('gastosA').value = docGastos;
+      //var gastos = currency(gastos);
+      //document.getElementById('total_gastos').innerHTML='$ '+ gastos;
+    var saldoInicial = document.getElementById('saldo_inicial').value;
+        //var saldoInicial = currency(saldoInicial);
+        var comprasActuales = document.getElementById('cargos_a').value;
+        //alert('compras Actuales');
+        var totalAbonos  = abonos;
+        var totalCompras = parseFloat(compras,2) + parseFloat(gastos,2) + parseFloat(comprasActuales,2);
+        var saldoFinal  = parseFloat(saldoInicial) + parseFloat((totalAbonos - totalCompras),2);
+        var totalCompras = currency(totalCompras);
+        var saldoFinal = currency(saldoFinal);
+        var saldoInicial = currency(saldoInicial);  
+        //document.getElementById('saldo_inicial').innerHTML = '$ ' +  saldoInicial;
+        document.getElementById('total_abonos').innerHTML = '$ '+ tete;
+        //document.getElementById('total_abonos').innerHTML = '$ ' + tete;
+        document.getElementById('total_cargos').innerHTML='$ '+ totalCompras;
+        document.getElementById('saldoFinal').innerHTML = '$' + saldoFinal; 
+      document.getElementById('saldo_inicial_header').innerHTML = saldoInicial;
+      document.getElementById('abonos_header').innerHTML = tete;
+      document.getElementById('cargos_header').innerHTML = totalCompras;
+      document.getElementById('saldo_final').innerHTML =  saldoFinal;
+  document.getElementById('icierre').value=saldoInicial;
+  document.getElementById('acierre').value=tete;
+  document.getElementById('ccierre').value=totalCompras;
+  document.getElementById('fcierre').value=saldoFinal;
+}
+
+function currency(value, decimals, separators) {
     decimals = decimals >= 0 ? parseInt(decimals, 0) : 2;
     separators = separators || [',', ",", '.'];
     var number = (parseFloat(value) || 0).toFixed(decimals);

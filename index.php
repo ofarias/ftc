@@ -2675,6 +2675,10 @@ exit();
 	$res=$controller->canapl($_POST['idp'], $_POST['ida'], $_POST['valor'], $_POST['uuid']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['delEdoCta'])){
+	$res=$controller->delEdoCta($_POST['id'], $_POST['tipo']);
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($action){
