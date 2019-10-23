@@ -3,23 +3,57 @@
        width: 100px;
     }
 </style>    
+<!--- Area del cliente -->
+    <?php if(isset($cabecera)){?>
+        <?php foreach ($cabecera as $cbc){
+                $nombre = $cbc->NOMBRE;
+                $cliente = $cbc->CLAVE.':'.$cbc->NOMBRE;
+                $dir = $cbc->CALLE.', '.$cbc->NUMEXT.'.';
+                $int = $cbc->NUMINT;
+                $colonia = $cbc->COLONIA;
+                $delegacion = $cbc->MUNICIPIO;
+                $cp = $cbc->CODIGO;
+                $estado = $cbc->ESTADO;
+                $pais = $cbc->PAIS;
+                if($cbc->STATUS == 'C'){
+                    $sta = 'CANCELADO';
+                }elseif ($cbc->STATUS == 'P') {
+                    $sta = 'PENDIENTE';
+                }elseif ($cbc->STATUS == 'E') {
+                    $sta = 'EMITIDA';
+                }elseif ($cbc->STATUS == 'F') {
+                    $sta = 'FACTURADA';
+                }
+        } ?>
+    <?php }?>
 <br/>
 <?php echo 'Usuario:<b>'.$_SESSION['user']->NOMBRE.'</b>&nbsp;&nbsp;&nbsp;&nbsp;Fecha: &nbsp;&nbsp;'.date("d-m-Y H:i:s")?>
 <br/>
 <div>
     <input type="hidden" id="doc" value="<?php echo $doc?>">
     <input type="hidden" id="idf" value="<?php echo $idf?>">
+    <?php if(empty($doc)){?>
     <p>Tipo De Documento:&nbsp;&nbsp;
         <select id="tipo">
             <option value="nv">Nota de Venta</option>
             <option value="fac">Factura</option>    
         </select>
+        <input type="text" placeholder="Traer NV" id="traeNV" oninput="this.value = this.value.toUpperCase()">
     </p>
-    <p><b>Cliente:</b><input type="text" name="doc" placeholder="Nombre, Clave, RFC o Telefono" size="50" class="clinv" id="clie"></p>
-    <p><b>Direccion: </b><input type="text" name="doc" placeholder="Calle y Numero" size="40" class="bf" tipo="A">&nbsp;&nbsp;&nbsp;Interior:&nbsp;&nbsp;<input type="" name="" placeholder="Interior"></p>
-    <p>Colonia: <input type="text" name="">&nbsp;&nbsp; Delegacion\Municipio:&nbsp;&nbsp; <input type="" name="" placeholder="Delegacion o Municipio">&nbsp;&nbsp;C.P.<input type="" name="" placeholder="Codigo Postal"></p>
-    <p>Estado:&nbsp;&nbsp;<input type="" name="" placeholder="Estado">&nbsp;&nbsp;&nbsp;Pais:&nbsp;&nbsp;<input type="" name="" placeholder="Pais">&nbsp;&nbsp; Descuento Global: <input type="number" value="0" id="descf" min="0" max="100" step="any">
+    <?php }else{?>
+        <p><font color="red" size="5pxs">Documento: <?php echo $doc?> --> Estado: <?php echo $sta?> </font></p>
+        <input type="text" placeholder="Traer NV" id="traeNV" oninput="this.value = this.value.toUpperCase()">
+    <?php }?>
+    <br/><br/>
+         
+    <p><b>Cliente:</b><input type="text" name="doc" placeholder="Nombre, Clave, RFC o Telefono" size="100" class="clinv" id="clie" value = "<?php echo (!empty($cliente))? $cliente:''?>" <?php echo (!empty($cliente) and $sta == 'PENDIENTE')? 'onchange="revisarCambio()"':''?>></p>
+    <p><b>Direccion: </b><input type="text" name="doc" placeholder="Calle y Numero" size="40" class="bf" tipo="A" value="<?php echo (!empty($dir)? $dir:'')?>" readonly>&nbsp;&nbsp;&nbsp;Interior:&nbsp;&nbsp;<input type="" name="" placeholder="Interior" value="<?php echo (!empty($int))? $int:''?>" readonly></p>
+    <p>Colonia: <input type="text" name="" value="<?php echo !empty($colonia)? $colonia:'' ?>" size="80" readonly>&nbsp;&nbsp; Delegacion\Municipio:&nbsp;&nbsp; <input type="" name="" placeholder="Delegacion o Municipio" value="<?php echo !empty($delegacion)? $delegacion:''?>" readonly>&nbsp;&nbsp;C.P.<input type="" name="" placeholder="Codigo Postal" value="<?php echo !empty($cp)? $cp:''?>" readonly></p>
+    <p>Estado:&nbsp;&nbsp;<input type="" name="" placeholder="Estado" value="<?php echo !empty($estado)? $estado:''?>" readonly>&nbsp;&nbsp;&nbsp;Pais:&nbsp;&nbsp;<input type="" name="" placeholder="Pais" value="<?php echo !empty($pais)? $pais:''?>" readonly>&nbsp;&nbsp; Descuento Global: <input type="number" value="0" id="descf" min="0" max="100" step="any">
     </p>
+
+    <!-- Finaliza el area del cliente -->
+<?php if(!isset($sta) or $sta == 'PENDIENTE'){ ?>
 </div>
 <div class="row">
                 <div class="col-lg-12">
@@ -63,6 +97,7 @@
             </div>
         </div>
 </div>
+<?php }?>
 
 <?php if(count($partidas)>0){?>
     <div class="row">
@@ -142,26 +177,147 @@
                                         <tr>
                                             <td align="right" colspan="8">Total:</td>
                                             <td align="right"><?php echo "$ ".number_format($tt,2)?></td>
+                                            <input type="hidden" id="imp" value="<?php echo number_format($tt,2)?>">
                                         </tr>
                                     </tbody>  
                                 </table>
-                                <input type="button" name="" value="Guardar"  class="btn btn-warning demo">
-                                <input type="button" name="" value="Cancelar" class="btn btn-danger demo">
-                                <input type="button" name="" value="Pagar"    class="btn btn-success demo">
-                                <input type="button" name="" value="Facturar" class="btn btn-info demo">
+                                <input type="button" name="" value="Nueva"  class="btn btn-warning nuevo">
+                                <?php if(!isset($sta) or $sta == 'PENDIENTE'){?>
+                                    <input type="button" name="" value="Cancelar" class="btn btn-danger cancelar">
+                                    <input type="button" name="" value="Pagar"    class="btn btn-success pagar">
+                                    <input type="button" name="" value="Facturar" class="btn btn-info demo">
+                                <?php }?>
+                                <input type="button" name="" value="Re-Imprimir" class="reimpresion">
                             </div>
                       </div>
             </div>
         </div>
     </div>
 <?php }?>
+
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
 <link rel="stylesheet" href="/resources/demos/style.css">
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
-<script type="text/javascript">    
+<script type="text/javascript">   
+
+    function pago(){
+        //$.alert('Se realiza el calculo y se intenta actualizar')
+        var importe = parseFloat( document.getElementById("imp").value.replace(",",""))
+        var tcc = parseFloat(document.getElementById("tcc").value)
+        var tcd = parseFloat(document.getElementById("tcd").value)
+        var efe = parseFloat(document.getElementById("efe").value)
+        var tef = parseFloat(document.getElementById("tef").value)
+        var val = parseFloat(document.getElementById("val").value)
+        var cupon = parseFloat(document.getElementById("cupon").value)
+        var pago = tcc + tcd + efe + tef + cupon
+        var cambio = pago - importe
+        document.getElementById('pagado').innerHTML= '$ ' + pago 
+        document.getElementById('cambio').innerHTML = '$ ' + cambio
+        document.getElementById('c1').value = cambio
+    } 
+
+    $(".pagar").click(function(){
+        var doc = document.getElementById("doc").value
+        var importe = document.getElementById("imp").value
+        var cambio = 0
+        $.confirm({
+            title: 'Pagar Nota de Venta',
+            content: '' +
+            '<form action="index.v.php" method="post" class="formName">' +
+            '<div class="fcol-xs-3">' +
+            '<label>Pagar la Nota de Venta: </label>'+ doc + '<br/>' +
+            '<label><b>Importe:</b></label><font color="blue" size="8pxs">  <p id="calc">$ ' + importe + '</p></font><br/>' +
+            '<label><b>Pagado:</b><font color="red" size="8pxs"><p id="pagado"></p></font></label><br/'+
+            '<label><b>Cambio:</b><font color="green" size="8pxs"><p id="cambio"></p></font></label><br/>'+
+            '<input type="hidden" class="cambio" value="'+cambio +'" id="c1" value="" name="cambio">'+
+            '<input type="hidden" value="enviar" name="pagaNV">'+
+            '<input type="hidden" value="'+doc+'" name="doc">'+
+            'Tarjeta de Credito: <input type="number" step="any" class="tccre form-control" required value="0" onchange="pago()" id ="tcc" name="tcc"/><br/>' +
+            'Tarjeta de Debito: <input type="number" step="any" class="tcdeb form-control" required value="0" id="tcd" onchange="pago()" name="tcd"/>'+
+            'Efectivo: <input type="number" step="any" class="efe form-control" required value="0" id="efe" onchange="pago()" name="efe"/>'+
+            'Deposito: <input type="number" step="any" class="tef form-control" required value="0" id="tef" onchange="pago()" name="tef"/>'+
+            'Vales: <input type="number" step="any" class="val form-control" required value="0" id="val" onchange="pago()" name="val"/>'+
+            'Cupon / Otros: <input type="number" step="any" class="cupon form-control" required value="0" id="cupon" onchange="pago()" name="cupon"/>'+
+            '</div>' +
+            '</form>',
+            buttons: {
+                formSubmit: {
+                    text: 'Pagar',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        var name = this.$content.find('.tccre').val();
+                        var cambio = parseFloat(this.$content.find('.cambio').val());
+                        if(cambio < 0  || cambio==""){
+                            $.alert('Debe de saldar la nota para poder proceder');
+                            return false;   
+                        }else if(cambio > 0){
+                            $.alert('Recuerda entregar el cambio al momento...');
+                            var form = this.$content.find('form')
+                            form.submit()
+                        }
+                    }
+                },
+                cancelar:{
+                    text:'Cancelar',
+                    btnClass:'btn-danger',
+                    action: function(){
+                    }
+                },
+            },
+            ///onContentReady: function () {
+            ///    // bind to events
+            ///    var jc = this;
+            ///    this.$content.find('form').on('submit', function (e) {
+            ///        // if the user submits the form by pressing enter in the field.
+            ///        e.preventDefault();
+            ///        jc.$$formSubmit.trigger('click'); // reference the button and click it
+            ///    });
+            ///}
+        });
+    })
+
+    $(".nuevo").click(function(){
+        if(confirm("Se cerrara la Nota de venta actual, Los Cambios se guardaran en Automatico")){
+           window.open("index.v.php?action=ventasMostrador", "_self")
+        }
+    })
+    $(".cancelar").click(function(){
+        var doc= document.getElementById("doc").value
+        if(confirm("Desea cancelar la Nota de Venta "+ doc+"?, no se podra recuperar...")){
+            $.ajax({
+                url:'index.v.php',
+                type:'post',
+                dataType:'json',
+                data:{cancelaNV:doc},
+                succcess:function(data){                    
+                    alert(data.mensaje)
+                },
+                error:function(){
+
+                }
+            })
+        }  
+    })
+
+    $(".reimpresion").click(function(){
+        var doc = document.getElementById('doc').value
+        alert('Se reimprime el ticket: ' + doc)
+        $.ajax({
+            url:'index.v.php',
+            type:'post',
+            dataType:'json',
+            data:{impresionTicket:doc},
+            succcess:function(){
+                
+            },
+            error:function(){
+            }
+        })
+    })
+
     $("#bprod").autocomplete({
         source: "index.v.php?prodVM=1",
         minLength: 2,
@@ -358,6 +514,34 @@
                     alert(data.motivo);
                 }
             });
+        }
+    }
+
+    $("#traeNV").change(function(){
+        var nv= $(this).val()
+        window.open("index.v.php?action=nv2&doc="+nv+"&idf=0", "_self")
+    })
+
+    function revisarCambio(){
+        var clie = document.getElementById('clie').value
+        var doc = document.getElementById('doc').value
+        if(confirm('Desea cambiar el cliente a: '+clie +'?')){
+            $.ajax({
+                url:'index.v.php',
+                type:'post',
+                dataType:'json',
+                data:{cambioCliente:clie, doc},
+                success:function(data){
+                    location.reload(true)
+
+                },
+                error:function(){
+                    alert('Revise que la informacion sea correcta he intentelo de nuevo...')
+                }
+            })
+        }else{
+            alert('No se procede el cambio')
+            location.reload(true)
         }
     }
 

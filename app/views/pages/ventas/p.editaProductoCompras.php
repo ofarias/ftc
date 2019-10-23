@@ -143,7 +143,7 @@
 			</div>
 
 			 <div class="form-group">
-                <label for="Codigo prov1" class="col-lg-2 control-label">Codigo Fabricante: </label>
+                <label for="Codigo prov1" class="col-lg-2 control-label">Codigo Fabricante (sku):  </label>
                     <div class="col-lg-10">
                         <input type="text" class="form-control" name="sku" placeholder ="Codigo Fabricante" value="<?php echo $data->SKU?>"/><br>
                     </div>
@@ -224,7 +224,25 @@
 					<input type="text" class="form-control" name="costo_oc" id="costo_oc" min="0" value="<?php echo ($data->COSTO_OC == 0)? '':$data->COSTO_OC ?>" placeholder ="Costo Oden de Compra" readonly/><br>
 				</div>
 			</div>
-
+			<div class="form-group">
+				<label for="costo_total" class="col-lg-2 control-label">IVA:</label> 
+				<div class="col-lg-10">	
+					<input type="text" class="form-control" name="iva_v" min="0" value="<?php echo ($data->IVA_V == 0)? '':$data->IVA_V ?>" placeholder="%"/><br>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="costo_total" class="col-lg-2 control-label">IEPS:</label> 
+				<div class="col-lg-10">	
+					<input type="text" class="form-control" name="ieps_v" min="0" value="<?php echo ($data->IEPS_V == 0)? '':$data->IEPS_V ?>" placeholder ="0%"/><br>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="costo_total" class="col-lg-2 control-label">Precio de Venta:</label> 
+				<div class="col-lg-10">	
+					<input type="text" class="form-control" name="precio_v" min="0" value="<?php echo ($data->PRECIO_V == 0)? '':$data->PRECIO_V ?>" placeholder ="Precio Venta"/><br>
+				</div>
+			</div>
+			
 			<div class="form-group">
     			<div class="col-lg-offset-2 col-lg-10">
     				<input type="hidden" name="guardaFTCART" value="guardaFTCART">

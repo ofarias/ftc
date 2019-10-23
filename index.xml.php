@@ -42,6 +42,12 @@ else{
 	case 'zipXML':
 		$controller->zipXML($_GET['mes'], $_GET['anio'], $_GET['ide'], $_GET['doc']);
 		break;
+	case 'verCEP':
+		$controller->verCEP($_GET['cep']);
+		break;
+	case 'verRelacion':
+		$controller->verRelacion($_GET['uuid']);
+		break;
 	default: 
 		header('Location: index.php?action=login');
 		break;

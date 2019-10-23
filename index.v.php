@@ -236,6 +236,11 @@ if (isset($_POST['usuario'])){
 			$impuesto=number_format($_POST['impuesto'],2,".","");
 		}
 		$clave = $_POST['clave'];
+
+		$iva_v = empty($_POST['iva_v'])? '0':$_POST['iva_v'];
+		$ieps_v = empty($_POST['ieps_v'])? '0':$_POST['ieps_v'];
+		$precio_v = empty($_POST['precio_v'])? '0':$_POST['precio_v'];
+
 		//echo 'desc-.'.$desc1.'<p>';
 		//echo 'desc2-.'.$desc2.'<p>';
 		//echo $desc3.'<p>';
@@ -245,7 +250,7 @@ if (isset($_POST['usuario'])){
 		//break;
 		//$cotizacion =$_POST['cotizacion'];
 		//$cliente=$_POST['cliente'];
-		$controller->creaProductoFTC($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $clave, $costo_t, $costo_oc);
+		$controller->creaProductoFTC($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $clave, $costo_t, $costo_oc, $iva_v, $ieps_v, $precio_v);
 }elseif (isset($_POST['verMarcasxCategoria'])) {
 	$idcat = $_POST['idcat'];
 	if(isset($_POST['marca'])){
@@ -277,6 +282,10 @@ elseif(isset($_POST['buscaClienteProveedor'])){
 	$ids=$_POST['ids'];
 	$aguja=$_POST['aguja'];
 	$controller_v->buscaCliente($ids, $aguja);
+}elseif (isset($_POST['pagaNV'])) {
+	$res=$controller_v->pagaNV($_POST['tcc'],$_POST['tcd'],$_POST['efe'],$_POST['tef'],$_POST['val'],$_POST['cupon'],$_POST['doc'], $_POST['cambio']);
+	echo json_encode($res);
+	exit();
 }
 elseif (isset($_POST['proveedorXproducto'])) {
 	$ids = $_POST['ids'];
@@ -526,6 +535,18 @@ elseif (isset($_POST['proveedorXproducto'])) {
 }elseif (isset($_POST['dropP'])) {
 	$par=$controller_v->dropP($_POST['doc'], $_POST['idf'], $_POST['p']);
 	echo json_encode($par);
+	exit();
+}elseif (isset($_POST['impresionTicket'])){
+	$res=$controller_v->impresionTicket($_POST['impresionTicket'], $cambio=0);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['cancelaNV'])){
+	$res=$controller_v->cancelaNV($_POST['cancelaNV']);
+	echo json_encode($res);
+	exit();
+}elseif(isset($_POST['cambioCliente'])){
+	$res=$controller_v->cambioCliente($_POST['cambioCliente'], $_POST['doc']);
+	echo json_encode($res);
 	exit();
 }
 else{switch ($_GET['action']){

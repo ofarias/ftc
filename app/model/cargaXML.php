@@ -234,4 +234,33 @@ class cargaXML extends database {
 		readfile($dir.$x);
 		//unlink('miarchivo.zip');//Destruye el archivo temporal
 	}
+
+	function verCEP($cep){
+		$cep = explode("|", $cep);
+		$this->query="SELECT X.*, cpd.serie||cpd.folio as doc, CP.MONTO, CP.FORMA, CP.CTA_BENEFICIARIO, CP.NUMOPERACION, CP.RFC_BANCO_ORDENANTE, CP.CTA_ORDENANTE, CP.RFC_BANCO_BENEFICIARIO, CPD.ID_DOCUMENTO, CPD.SALDO AS SALDO_ANTERIOR, CPD.PAGO AS APLICACION, CPD.SALDO_INSOLUTO,  (SELECT FECHA FROM XML_DATA X1 WHERE X1.UUID = CPD.ID_DOCUMENTO) AS FECHA_DOC FROM XML_DATA X LEFT JOIN XML_COMPROBANTE_PAGO CP ON CP.UUID = X.UUID LEFT JOIN XML_COMPROBANTE_PAGO_DETALLE CPD ON CPD.UUID_PAGO = CP.UUID where x.documento = '$cep[0]' and x.uuid = '$cep[2]'";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function verRelacion($uuid){
+		$this->query="SELECT * FROM XML_DATA WHERE UUID= '$uuid'";
+		$r=$this->EjecutaQuerySimple();
+		$data=array();
+		/// traemos Notas de credito, sustituciones etc....
+		$this->query="SELECT * FROM XML_RELACIONES r LEFT JOIN XML_DATA x on x.uuid = r.uuid WHERE r.UUID_DOC_REL = '$uuid' AND x.STATUS != 'C'";
+		$r=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($r)) {
+			$data[]=$tsArray;
+		}
+		/// traemos pagos.
+		$this->query="SELECT * FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA X ON X.UUID = CPD.ID_DOCUMENTO WHERE CPD.ID_DOCUMENTO = '$uuid' AND X.STATUS != 'C'";
+		$r=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($r)) {
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
 }

@@ -6,10 +6,14 @@ require_once('app/model/pegaso.model.coi.php');
 require_once('app/model/pegaso.model.ventas.php');
 require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
+require 'app/Classes/pos/autoload.php';
+use Mike42\Escpos\EscposImage;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+use Mike42\Escpos\Printer;
 
 class pegaso_controller_ventas{
 
-	var $contexto = "http://SERVIDOR:8081/pegasoFTC/app/";
+	var $contexto = "http://ofa.dyndns.org:8888/ftc/app/";
 	
 	function load_template($title='Sin Titulo'){
 		$pagina = $this->load_page('app/views/master.php');
@@ -1592,8 +1596,12 @@ class pegaso_controller_ventas{
             $html=$this->load_page('app/views/pages/ventas/p.ventasMostrador.php');
             ob_start();
             $partidas=array();
-            if($doc<>'0' and $idf<>'0'){
-                $partidas=$datav->nvPartidas($doc, $idf);
+            if($doc<>'0'){
+                $cabecera=$datav->nvCabecera($doc);
+                foreach ($cabecera as $s) {
+                    $idf = $s->IDF;
+                }
+                $partidas=$datav->nvPartidas($doc);
             }
             include 'app/views/pages/ventas/p.ventasMostrador.php';
             $table = ob_get_clean();
@@ -1627,6 +1635,258 @@ class pegaso_controller_ventas{
         $datav=new pegaso_ventas;
         $par=$datav->dropP($doc, $idf , $p);
         return $par;   
+    }
+
+    function cancelaNV($doc){
+        if($_SESSION['user']){
+            $data = new pegaso_ventas;
+            $cancelar = $data->cancelaNV($doc);
+            return $cancelar;
+        }
+    }
+
+    function cambioCliente($clie, $doc){
+        if($_SESSION['user']){
+            $data = new pegaso_ventas;
+            $cambio = $data->cambioCliente($clie, $doc);
+            return $cambio;
+        }
+    }
+
+    function pagaNV($tcc,$tcd,$efe,$tef,$val,$cupon,$doc, $cambio){
+        if($_SESSION['user']){
+            $data = new pegaso_ventas;
+            $paga = $data->pagaNV($tcc,$tcd,$efe,$tef,$val,$cupon,$doc, $cambio);
+            $this->impresionTicket($doc, $cambio);
+            return $paga;
+        }
+    }
+
+    function impresionTicket($doc, $cambio){
+        if($_SESSION['user']){
+            $contexto = "http://ofa.dyndns.org:8888/ftc/app/";
+            $datav = new pegaso_ventas;
+            $cabecera=$datav->nvCabecera($doc);
+            $partidas=$datav->nvPartidas($doc);
+            $aplicaciones = $datav->traeAplicaciones($doc, $cambio);
+            //echo "<script>window.open('".$this->contexto."reports/ticket_am.php', '_blank');</script>";
+            $this->impresionPOS($doc, $cabecera, $partidas, $aplicaciones);
+            return ($cabecera);        
+        }
+    }
+
+    function impresionPOS($doc, $cabecera, $partidas, $aplicaciones){
+        $data = new pegaso;
+        $pagina = "http://www.sat2app.com";
+        $telefono ="55- 5055-3392";
+        $empresa = $data->traeDF($ide=1);
+        /*
+            Este ejemplo imprime un hola mundo en una impresora de tickets
+            en Windows.
+            La impresora debe estar instalada como genérica y debe estar
+            compartida
+        */
+        /*
+            Conectamos con la impresora
+        */
+        /*
+            Aquí, en lugar de "POS-58" (que es el nombre de mi impresora)
+            escribe el nombre de la tuya. Recuerda que debes compartirla
+            desde el panel de control
+        */
+        $nombre_impresora = "TM-T88V"; 
+        $connector = new WindowsPrintConnector($nombre_impresora);
+        $printer = new Printer($connector);
+        /*
+            Imprimimos un mensaje. Podemos usar
+            el salto de línea o llamar muchas
+            veces a $printer->text()
+        */
+        # Vamos a alinear al centro lo próximo que imprimamos
+        $printer->setJustification(Printer::JUSTIFY_CENTER);
+        $printer->text($empresa->RAZON_SOCIAL."\n".$empresa->NOM_COMERCIAL."\n".$empresa->RFC."\n REGIMEN FISCAL:".$empresa->REGIMEN_FISCAL."\n ExpediciÓn: ".$empresa->LUGAR_EXPEDICION);
+        /*
+            Hacemos que el papel salga. Es como 
+            dejar muchos saltos de línea sin escribir nada
+        */
+        $printer->feed(); 
+        /*
+            Intentaremos cargar e imprimir
+            el logo
+        */
+        try{
+            $logo = EscposImage::load("app/views/images/Logos/LogoFTC.jpg", false);
+            $printer->bitImage($logo);
+        }catch(Exception $e){/*No hacemos nada si hay error*/}
+        /*
+            Ahora vamos a imprimir un encabezado
+        */
+        $printer->setJustification(Printer::JUSTIFY_LEFT);
+        $linea = str_pad("\n", 43, "-", STR_PAD_LEFT);
+        foreach ($cabecera as $c) {
+            $vendedor = substr($c->VENDEDOR, 0, 20);
+            switch ($c->STATUS) {
+                case 'P':
+                    $status="Esta Nota esta: PENDIENTE\n";
+                    break;
+                case 'C':
+                    $status="Esta Nota esta: CANCELADA\n";
+                    break;
+                case 'E':
+                    $status="Esta Nota esta: PAGADA\n";
+                    break;
+                case 'F':
+                    $status="Esta Nota esta: FACTURADA\n";
+                    break;
+                default:
+                    break;
+            }
+                $printer->text($linea);
+                $printer->text($status);
+                $printer->text($linea);   
+
+            $printer->text("Cliente: " . $c->NOMBRE."\n");
+            $printer->text("Direccion: " . $c->CALLE." No. ".$c->NUMEXT.", ".$c->NUMINT."\n");
+            $printer->text("Colonia: ".$c->COLONIA." C.P.: ".$c->CODIGO."\n");
+            $printer->text("Municipio: ".$c->MUNICIPIO."\n");
+            $printer->text("Estado: ".$c->ESTADO." Pais: ".$c->PAIS."\n");
+        } 
+        #La fecha también
+        $printer->text($linea);
+        $printer->text("Nota No: ".$doc." Vendedor: ".$vendedor."\n");
+        $printer->text("Fecha Nota: ".$c->FECHA_DOC."\n");
+        $printer->text("Elabora: ".$c->USUARIO."\n");
+        $printer->text($linea);
+        //$printer->feed(); 
+        /*Alinear a la izquierda para la cantidad y el nombre*/
+        //$printer->setJustification(Printer::JUSTIFY_LEFT);
+        /*
+            Ahora vamos a imprimir los
+            productos
+        */
+        $printer->text("Ln   Articulo   "."      Cantidad   "." Unitario"."\n");
+        $printer->setFont(Printer::FONT_B);
+        $printer->text("SKU   "."   UPC   "."           Unidad          SAT"."\n");
+        $printer->setFont(Printer::FONT_A);
+        $printer->text($linea);
+        //$printer->feed();
+        foreach ($partidas as $p){
+            $printer->setFont(Printer::FONT_A);
+            $des=substr($p->DESCRIPCION,0,20);
+            $des = str_pad($des, 20, " ");
+            $cant = str_pad($p->CANTIDAD, 5," ",STR_PAD_LEFT );
+            $precio = str_pad("$ ".number_format($p->SUBTOTAL,2), 11," ",STR_PAD_LEFT);
+            $printer->text($p->PARTIDA."  ".$des."  ".$cant."".$precio."\n");
+            $printer->setFont(Printer::FONT_B);
+            $printer->setJustification(Printer::JUSTIFY_RIGHT);
+            if($p->CANTIDAD > 1 ){
+                $printer->text($p->CANTIDAD." X $ ".number_format($p->PRECIO,2)."\n");
+            }
+            $printer->setJustification(Printer::JUSTIFY_LEFT);
+            $sku = str_pad($p->ARTICULO,5," ");
+            $upc = str_pad($p->SKU,20," ");
+            $um = str_pad($p->UM,10, " ");
+            $sat = str_pad($p->CLAVE_SAT." ".$p->MEDIDA_SAT, 15, " "); 
+            $printer->text($sku." ".$upc." ".$um." ".$sat."\n");
+
+        }
+        $printer->setFont(Printer::FONT_A);
+
+        #### Totales ####
+        $printer->text($linea);
+        $printer->setJustification(Printer::JUSTIFY_RIGHT);
+        $printer->text("SUBTOTAL: $".number_format($c->SUBTOTAL,2)."\n");
+        $printer->text("IVA: $".number_format($c->IVA,2)."\n");
+        if($c->DESCF >0){
+            $printer->text("DESCUENTO FINANCIERO: $".number_format($c->DESCF,2)."\n");
+        }
+        if( ($c->DESC1 + $c->DESC2) > 0 ){
+            $printer->text("DESCUENTO: $".number_format($c->DESC1 + $c->DESC2,2)."\n");
+        }
+        $printer->text("TOTAL: $".number_format($c->TOTAL,2)."\n");
+        $printer->text($linea);
+
+        #### formas de pago ####
+
+        if(count($aplicaciones)){
+            foreach ($aplicaciones as $pg){
+                switch ($pg->FORMA_PAGO){
+                    case 'TCC':
+                        $tipo = 'Tarjeta de Credito: ';
+                        break;
+                    case 'TCD':
+                        $tipo = 'Tarjeta de Debito: ';
+                        break;
+                    case 'EFE':
+                        $tipo = 'Efectivo: ';
+                        break;
+                    case 'TEF':
+                        $tipo = 'Transferencia electrónica: ';
+                        break;
+                    case 'VAL':
+                        $tipo = 'Vales: ';
+                        break;
+                    case 'CUPON':
+                        $tipo = 'Cupones: ';
+                        break;
+                default:
+                    break;
+                }
+                if($pg->FORMA_PAGO != 'EFE'){ 
+                    $printer->text($tipo.' $ '.number_format($pg->MONTO_APLICADO)."\n");
+                }elseif($pg->CAMBIO > 0 ){
+                    $printer->text($tipo.' $ '.number_format($pg->MONTO_APLICADO + $pg->CAMBIO)."\n");
+                    $printer->text('Cambio: '.' $ '.number_format($pg->CAMBIO)."\n");
+                }else{
+                    $printer->text($tipo.' $ '.number_format($pg->MONTO_APLICADO)."\n");
+                }
+            }
+        }
+
+        #### Finaliza las formas de pago ####
+
+
+        $printer->text($linea);
+        $printer->setJustification(Printer::JUSTIFY_CENTER);
+        $printer->text("Fecha de Impresión: ".date("Y-m-d H:i:s") . "\n");
+        $printer->text("GRACIAS POR SU COMPRA. VUELVA PRONTO...\n");
+        $printer->text("DISFRUTE SU PRODUCTO!!!!\n");
+        $printer->setJustification(Printer::JUSTIFY_LEFT);
+        $printer->setFont(Printer::FONT_B);
+        $printer->text("Telefono: ".$telefono."\n");
+        $printer->text("Visitenos en ".$pagina." para conocer nuestro aviso de privacidad\n");
+        $printer->feed();
+        /*Y a la derecha para el importe*/
+        //$printer->setJustification(Printer::JUSTIFY_RIGHT);
+        /* 
+            Tipos de Letras
+            $fonts = array(Printer::FONT_A, Printer::FONT_B, Printer::FONT_C);
+            for ($i = 0; $i < count($fonts); $i++) {
+                $printer->setFont($fonts[$i]);
+                $printer->text("The quick brown fox jumps over the lazy dog\n");
+            }
+        */
+
+        /*
+            Cortamos el papel. Si nuestra impresora
+            no tiene soporte para ello, no generará
+            ningún error
+        */
+        $printer->cut();
+         
+        /*
+        Por medio de la impresora mandamos un pulso.
+            Esto es útil cuando la tenemos conectada
+            por ejemplo a un cajón
+        */
+        $printer->pulse();
+         
+        /*
+            Para imprimir realmente, tenemos que "cerrar"
+            la conexión con la impresora. Recuerda incluir esto al final de todos los archivos
+        */
+
+        $printer->close();
     }
 }
 ?>

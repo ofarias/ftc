@@ -1660,6 +1660,11 @@ elseif (isset($_POST['imprimeValidacion'])) {
 		}else {
 			$costo_oc=$_POST['costo_oc'];
 		}
+		
+		$iva_v = empty($_POST['iva_v'])? '0':$_POST['iva_v'];
+		$ieps_v = empty($_POST['ieps_v'])? '0':$_POST['ieps_v'];
+		$precio_v = empty($_POST['precio_v'])? '0':$_POST['precio_v'];
+		
 		$costo_total=$_POST['costo_total'];
 		$cotizacion =$_POST['cotizacion'];
 		$cliente=$_POST['cliente'];
@@ -1672,7 +1677,7 @@ elseif (isset($_POST['imprimeValidacion'])) {
 			$doco = $_POST['doco'];
 			$par =$_POST['par'];
 		}
-		$controller->guardaFTCART($ids, $clave, $categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $cotizacion, $cliente,  $costo_t, $costo_oc, $tipo, $doco, $par);	
+		$controller->guardaFTCART($ids, $clave, $categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $cotizacion, $cliente,  $costo_t, $costo_oc, $tipo, $doco, $par, $iva_v, $ieps_v, $precio_v);	
 }elseif (isset($_POST['produccionFTCART'])) {
 	$ids=$_POST['ids'];
 	$controller->produccionFTCART($ids);

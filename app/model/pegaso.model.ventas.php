@@ -2190,7 +2190,7 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
     } 
 
     function prodVM($b){
-        $this->query="SELECT A.*, (SELECT coalesce(SUM(b.RESTANTE), 0) FROM ingresobodega b where b.producto = 'PGS'||A.ID ) as Existencia  FROM FTC_Articulos A WHERE (A.GENERICO||' '||A.SINONIMO||' '|| A.CALIFICATIVO||' '||A.CLAVE_PROD) CONTAINING('$b')";
+        $this->query="SELECT A.*, (SELECT coalesce(SUM(b.RESTANTE), 0) FROM ingresobodega b where b.producto = 'PGS'||A.ID ) as Existencia  FROM FTC_Articulos A WHERE (A.GENERICO||' '||A.SINONIMO||' '|| A.CALIFICATIVO||' '||A.CLAVE_PROD||' '||A.SKU) CONTAINING('$b')";
         $r=$this->QueryDevuelveAutocompleteProd();
         return $r;
     }
@@ -2214,13 +2214,15 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
     function cabeceraNV($clie){
         $usuario=$_SESSION['user']->NOMBRE;
         $letra = $_SESSION['user']->LETRA_NUEVA;
+        $clie = explode(":", $clie);
+        $cliente = $clie[0];
+        $cliente = !empty($cliente)? $cliente:'999999';
         $this->query="INSERT INTO FTC_NV 
             ( 
             IDF, DOCUMENTO, SERIE, FOLIO, FORMADEPAGOSAT, VERSION, TIPO_CAMBIO, METODO_PAGO, REGIMEN_FISCAL, LUGAR_EXPEDICION, MONEDA, TIPO_COMPROBANTE, CONDICIONES_PAGO, SUBTOTAL, IVA, IEPS, DESC1, DESC2, TOTAL, SALDO_FINAL, ID_PAGOS, ID_APLICACIONES, NOTAS_CREDITO, MONTO_NC, MONTO_PAGOS, MONTO_APLICACIONES, CLIENTE, USO_CFDI, STATUS, USUARIO, FECHA_DOC, FECHAELAB, IDIMP, UUID, DESCF, IDCAJA, CONTABILIZADO, POLIZA, FECHA_CANCELACION, USUARIO_CANCELACION
             ) 
-            VALUES (null, '$letra'||(SELECT COALESCE(MAX(FOLIO), 0) + 1 FROM FTC_NV WHERE SERIE = '$letra'),'$letra', (SELECT COALESCE(MAX(FOLIO), 0) + 1 FROM FTC_NV WHERE SERIE = '$letra'), '', 1.1, 1, '', '', '', 1,'NV', 'Contado', 0,0,0,0,0,0,0,'','','',0,0,0,'$clie', '', 'P', '$usuario', current_date, current_timestamp, 0, null, 0, null, 0, null, null, '' 
+            VALUES (null, '$letra'||(SELECT COALESCE(MAX(FOLIO), 0) + 1 FROM FTC_NV WHERE SERIE = '$letra'),'$letra', (SELECT COALESCE(MAX(FOLIO), 0) + 1 FROM FTC_NV WHERE SERIE = '$letra'), '', 1.1, 1, '', '', '', 1,'NV', 'Contado', 0,0,0,0,0,0,0,'','','',0,0,0,'$cliente', '', 'P', '$usuario', current_date, current_timestamp, 0, null, 0, null, 0, null, null, '' 
             ) RETURNING IDF, SERIE, FOLIO, DOCUMENTO";
-            echo $this->query;
         $res=$this->grabaBD();
         $row=ibase_fetch_object($res);
         return $row;
@@ -2252,14 +2254,105 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return array("doc"=>$doc, "idf"=>$idf);
     }
 
-    function nvPartidas($docf, $idf){
+
+    function nvCabecera($docf){
         $data=array();
-        $this->query="SELECT F.*,(SELECT SUM(RESTANTE) FROM ingresobodega I WHERE I.PRODUCTO='PGS'||F.ARTICULO) AS EXISTENCIA FROM FTC_NV_DETALLE F WHERE IDF=$idf and Documento = '$docf'";
+        $this->query="SELECT F.*, C.*, (SELECT FIRST 1 NOMBRE FROM PG_USERS P WHERE F.SERIE = P.LETRA_NUEVA) AS VENDEDOR FROM FTC_NV F left join CLIE01 C ON C.CLAVE = F.CLIENTE WHERE F.DOCUMENTO='$docf'";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsarray=ibase_fetch_object($res)) {
+            $data[]=$tsarray;
+        }
+        return $data;
+    }
+
+    function nvPartidas($docf){
+        $data=array();
+        $this->query="SELECT F.*,(SELECT SUM(RESTANTE) FROM ingresobodega I WHERE I.PRODUCTO='PGS'||F.ARTICULO) AS EXISTENCIA, (SELECT SKU FROM FTC_Articulos A WHERE A.ID = F.ARTICULO) FROM FTC_NV_DETALLE F WHERE IDF=(select idf from ftc_nv where documento='$docf')and Documento = '$docf'";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
         }
         return $data;
+    }
+
+    function traeAplicaciones($doc, $cambio){
+        $data = array();
+        $this->query="SELECT A.*, $cambio as cambio FROM APLICACIONES A WHERE DOCUMENTO = '$doc' and cancelado = 0";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsarray=ibase_fetch_object($res)) {
+            $data[]=$tsarray;
+        }
+        return $data;
+    }
+
+    function pagaNV($tcc,$tcd,$efe,$tef,$val,$cupon,$doc,$cambio){
+        $pagos = array($tcc,$tcd,$efe,$tef,$val,$cupon);
+        $usuario = $_SESSION['user']->NOMBRE;
+        for ($i=0; $i < count($pagos); $i++){ 
+            switch ($i){
+                case 0:
+                    $tipo = 'TCC';
+                    break;
+                case 1:
+                    $tipo = 'TCD';
+                    break;
+                case 2:
+                    $tipo = 'EFE';
+                    break;
+                case 3:
+                    $tipo = 'TEF';
+                    break;
+                case 4:
+                    $tipo = 'VAL';
+                    break;
+                case 5:
+                    $tipo = 'CUPON';
+                    break;
+                default:
+                    break;
+            }
+            $monto = $pagos[$i];
+            if($pagos[$i] > 0){
+                if($tipo == 'EFE' and $cambio > 0){
+                    $monto=$pagos[$i]-$cambio;
+                }
+                //echo 'El pago es: '.$tipo.' por un monto de: '.$pagos[$i].'<br/>';
+                $this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, FECHA_APLI, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, TIPO_PAGO) values (NULL, (SELECT CLIENTE FROM FTC_NV WHERE DOCUMENTO = '$doc'), current_date, $monto, 0, '$usuario', current_timestamp, current_timestamp,'$tipo'||'-'||'$doc', (SELECT RFC FROM CLIE01 WHERE CLAVE = (SELECT CLIENTE FROM FTC_NV WHERE DOCUMENTO = '$doc')), 1, '$tipo') RETURNING ID";
+                $res=$this->grabaBD();
+                $row=ibase_fetch_object($res);
+                if(!empty($row->ID)){
+                    $this->query="INSERT INTO APLICACIONES (ID, FECHA, IDPAGO, DOCUMENTO, MONTO_APLICADO, SALDO_DOC, SALDO_PAGO, USUARIO, STATUS, RFC, FORMA_PAGO, CANCELADO, OBSERVACIONES) VALUES (NULL, current_timestamp, $row->ID, '$doc', $monto, (SELECT SALDO_FINAL FROM FTC_NV F WHERE F.DOCUMENTO = '$doc') - $monto, 0, '$usuario', 'E',  (SELECT RFC FROM CLIE01 WHERE CLAVE = (SELECT CLIENTE FROM FTC_NV WHERE DOCUMENTO = '$doc')), '$tipo', 0, 'Nota Venta: '||'$doc')";
+                    $this->grabaBD();
+
+                    $this->query="UPDATE FTC_NV SET SALDO_FINAL = SALDO_FINAL - $monto, status = 'E' where DOCUMENTO = '$doc'";
+                    $this->queryActualiza();
+                }
+            }
+        }
+        return array("status"=>'ok');
+    }
+
+    function cancelaNV($doc){
+        $this->query="UPDATE FTC_NV SET STATUS= 'C' WHERE DOCUMENTO = '$doc' and status='P'";
+        $res=$this->queryActualiza();
+        //echo $res;
+        if($res == 1){
+            return array("status"=>'ok', "mensaje"=>'Revise la informacion');
+        }else{
+            return array("status"=>'ok', "mensaje"=>'La Nota ya ha sido cancelada o facturada');
+        }
+    }
+
+    function cambioCliente($clie, $doc){
+        $cliente = explode(":", $clie);
+        $cliente = $cliente[0];
+        $this->query="UPDATE FTC_NV SET CLIENTE = (SELECT CLAVE FROM CLIE01 WHERE TRIM(CLAVE) = TRIM('$cliente')) where documento = '$doc'";
+        $res=$this->queryActualiza();
+        if($res == 1){
+            return array("status"=>'ok', "mensaje"=>'Se ha efectuado el cambio de cliente');
+        }else{
+            return array("status"=>'no', "mensaje"=>'Ocurrio un error, favor de revisar la informacion');
+        }
     }
 
     function dropP($doc, $idf, $p){

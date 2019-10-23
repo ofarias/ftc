@@ -262,7 +262,24 @@
 					<input type="text" class="form-control" name="costo_oc" id="costo_oc" min="0" placeholder ="Costo Oden de Compra" readonly/><br>
 				</div>
 			</div>
-
+			<div class="form-group">
+				<label for="costo_total" class="col-lg-2 control-label">IVA:</label> 
+				<div class="col-lg-10">	
+					<input type="text" class="form-control" name="iva_v" min="0" placeholder="%"  value=""/><br>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="costo_total" class="col-lg-2 control-label">IEPS:</label> 
+				<div class="col-lg-10">	
+					<input type="text" class="form-control" name="ieps_v" min="0" placeholder ="0%" value=""/><br>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="costo_total" class="col-lg-2 control-label">Precio de Venta:</label> 
+				<div class="col-lg-10">	
+					<input type="text" class="form-control" name="precio_v" min="0" placeholder ="Precio Venta" value=""/><br>
+				</div>
+			</div>
 			<div class="form-group">
     			<div class="col-lg-offset-2 col-lg-10">
 					<button name="creaProductoFTC" type="submit" value="enviar" class="btn btn-warning"> Guardar <i class="fa fa-floppy-o"></i></button>

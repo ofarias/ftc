@@ -105,9 +105,31 @@
                                         <tr class="<?php echo $test?> odd gradeX " <?php echo $color ?> title="<?php echo $descSta?>" id="ln_<?php echo $ln?>" >
                                             <td><?php echo $ln?></td>
                                             <td><?php echo $test.'<br/><font color="blue">'.$key->POLIZA.'</font>'?></td>
-                                            <td><a href="index.coi.php?action=verPolizas&uuid=<?php echo $key->UUID ?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=1320'); return false"> <?php echo $key->UUID ?></a> </td>
+                                            <td <?php echo ($key->CEPA!='')? 'title="Ver el CEP"':'' ?>>
+                                                <a href="index.coi.php?action=verPolizas&uuid=<?php echo $key->UUID ?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=1320'); return false"> <?php echo $key->UUID ?></a> <br/> <font color="purple" face="verdana"><b>
+                                                    <?php if(strpos($key->CEPA,",")){
+                                                        $val = explode(",", $key->CEPA);
+                                                        for ($i=0; $i <count($val) ; $i++) { 
+                                                            $cep = explode("|",$val[$i]);
+                                                            echo '<a href="index.xml.php?action=verCEP&cep='.$val[$i].'" target="_blank">'.$cep[0].' <font color="red"> $ '.number_format($cep[1],2).'</font></a><br/>';
+                                                        }
+                                                    }else{
+                                                        if(!empty($key->CEPA)){
+                                                        $cep = explode("|",$key->CEPA);
+                                                        echo '<a href="index.xml.php?action=verCEP&cep='.$key->CEPA.'" target="_blank">'.$cep[0].' <font color="red"> $ '.number_format($cep[1],2).'</font></a><br/>';
+                                                        }
+                                                    }
+                                                    ?>
+                                                </b></font> </td>
                                             <td><?php echo $tipo?></td>
-                                            <td><?php echo $key->SERIE.$key->FOLIO?></td>
+                                            <td title="01--> Nota de crédito de los documentos relacionados&#10;02 --> Nota de débito de los documentos relacionados&#10;03 --> Devolución de mercancía sobre facturas o traslados previos&#10;04 --> Sustitución de los CFDI previos&#10;05 --> Traslados de mercancias facturados previamente&#10;06 --> Factura generada por los traslados previos&#10;07 --> CFDI por aplicación de anticipo "><?php echo $key->SERIE.$key->FOLIO?><br/>
+                                                <?php if(!empty($key->RELACIONES)){?>
+                                                <a href="index.xml.php?action=verRelacion&uuid=<?php echo $key->UUID?>" target="_blank"><font color="blue">
+                                                    <b><?php  
+                                                        $rel=explode("|",$key->RELACIONES); 
+                                                        echo $rel[1].'-->'.$rel[2].'<font color="red"> $ '.number_format($rel[3],2).'</font>'?></b></font></a>
+                                                <?php }?>
+                                            </td>
                                             <td><?php echo $key->FECHA;?> </td>
                                             <td><?php echo '('.$key->CLIENTE.')  <br/><b>'.utf8_encode($key->NOMBRE).'<b/>';?></td>
                                             <td><?php echo '('.$key->RFCE.')  <br/><b>'.$key->EMISOR.'<b/>'?></td>

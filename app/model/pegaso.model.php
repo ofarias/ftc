@@ -10750,7 +10750,10 @@ function Pagos() {
 			$corte = $bn->DIA_CORTE;
 			$fechaIni=$corte.'.'.$mes.'.'.$anio;
 			if($corte == 1){
-				$fechafin=($corte).'.'.($mes+1).'.'.$anio;
+				$month = $anio.'-'.$mes;
+				$aux = date('Y-m-d', strtotime("{$month} + 1 month"));
+				$last_day = date('d.m.Y', strtotime("{$aux} - 1 day"));
+				$fechafin=($last_day);/// extraer el ultimo dia del mes. 
 			}else{
 				$fechafin=($corte-1).'.'.($mes+1).'.'.$anio;
 			}
@@ -15228,7 +15231,7 @@ function Pagos() {
     	return @$data;
     }
 
-    function guardaFTCART($ids, $clave, $categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $cotizacion, $cliente, $costo_t, $costo_oc, $tipo, $doco, $par){
+    function guardaFTCART($ids, $clave, $categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $cotizacion, $cliente, $costo_t, $costo_oc, $tipo, $doco, $par, $iva_v, $ieps_v, $precio_v){
 
     	$usuario = $_SESSION['user']->NOMBRE;
 
@@ -15299,11 +15302,13 @@ function Pagos() {
     			desc2 = $desc2,
     			desc3 = $desc3,
     			desc4 = $desc4,
-    			descf = $desc5
+    			descf = $desc5, 
+    			iva_v = $iva_v, 
+    			ieps_v = $ieps_v,
+    			precio_v = $precio_v
     			where id = $ids
     			";
     	//echo $this->query;
-    	//break;
     	$rs=$this->EjecutaQuerySimple();
     	return $tipo;
     }
@@ -15435,9 +15440,9 @@ function Pagos() {
     	return @$data;
     }
 
-    function creaProductoFTC($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $clave, $costo_t, $costo_oc){
+    function creaProductoFTC($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $clave, $costo_t, $costo_oc, $iva_v, $ieps_v, $precio_v){
     	$this->query="INSERT INTO FTC_ARTICULOS VALUES(
-    			NULL,'$linea','$categoria','$generico','$sinonimos','$calificativo','$medidas','$clave','$marca','$unidadmedida',$empaque,'$prov1','$codigo_prov1','','$sku',$costo_total,$costo_prov1,0,'A','DIRECTO COMPRAS',0, $desc1,$desc2,$desc3,$desc4,$desc5,'$descripcion','$iva',current_date,$impuesto,$costo_t,$costo_oc,0,NULL, NULL,'')";
+    			NULL,'$linea','$categoria','$generico','$sinonimos','$calificativo','$medidas','$clave','$marca','$unidadmedida',$empaque,'$prov1','$codigo_prov1','','$sku',$costo_total,$costo_prov1,0,'A','DIRECTO COMPRAS',0, $desc1,$desc2,$desc3,$desc4,$desc5,'$descripcion','$iva',current_date,$impuesto,$costo_t,$costo_oc,0,NULL, NULL,'', $iva_v, $ieps_v, $precio_v)";
     	$rs=$this->EjecutaQuerySimple();
     	$this->query="SELECT MAX(ID) AS ID FROM FTC_Articulos";
     	$res=$this->QueryObtieneDatosN();
@@ -24563,7 +24568,16 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(200)),'') as poliza
     					,'' as tp_tes
     					, fecha_recep as fecha_edo_cta
+    					,COALESCE( 
+    						CAST(
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID) 
+    						AS VARCHAR(300)) , '') AS CEPA
+    					,COALESCE(
+    						CAST( (SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL WHERE R.UUID = X.UUID) AS VARCHAR(200)
+    						), ''
+    						) AS RELACIONES
 						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F' or x.status = 'C') $uuid";
+						
     	}else{
     				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
@@ -24571,8 +24585,17 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = rfce and tipo = 'Proveedor') as cuenta_Contable,
     					COALESCE(CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(200)),'') as poliza
+    					, COALESCE( 
+    						CAST(
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID) 
+    						AS VARCHAR(300)) , '') AS CEPA
+    					,COALESCE(
+    						CAST( (SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL WHERE R.UUID = X.UUID) AS VARCHAR(200)
+    						), ''
+    						) AS RELACIONES
 						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
 						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
+						
     	}
     	$res=$this->EjecutaQuerySimple();
     	while($tsArray = ibase_fetch_object($res)){

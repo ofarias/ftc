@@ -784,5 +784,40 @@ class controller_xml{
 		}
 	}
 
+	function verCEP($cep){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$info=$data->verCEP($cep);
+			$pagina =$this->load_template();
+			$html=$this->load_page('app/views/pages/xml/p.verCEP.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.verCEP.php';
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
+	function verRelacion($uuid){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$info = $data->verRelacion($uuid);
+			$relaciones=$data->ver;
+			$pagina =$this->load_template();
+			$html=$this->load_page('app/views/pages/xml/p.verRelacion.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.verRelacion.php';
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}	
+
 }?>
 
