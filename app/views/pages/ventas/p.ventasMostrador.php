@@ -88,7 +88,7 @@
                                            <td id="iep"><br/> </td>
                                            <td id="ST"></td>
                                            <td id="T"></td>
-                                           <td><input type="button" value="Agregar" class="add"><br/><input type="button" value="Cancelar" class="drop"></td>
+                                           <td><input type="button" value="Agregar" class="add"><br/><input type="button" value="Cancelar" class="act"></td>
                                         </tr>
                                     </tbody>  
                                 </table>
@@ -203,6 +203,10 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">   
 
+    $(".act").click(function(){
+        location.reload(true)
+    })
+
     function pago(){
         //$.alert('Se realiza el calculo y se intenta actualizar')
         var importe = parseFloat( document.getElementById("imp").value.replace(",",""))
@@ -281,7 +285,7 @@
 
     $(".nuevo").click(function(){
         if(confirm("Se cerrara la Nota de venta actual, Los Cambios se guardaran en Automatico")){
-           window.open("index.v.php?action=ventasMostrador", "_self")
+           window.open("index.v.php?action=ventasMostrador", "_blank")
         }
     })
     $(".cancelar").click(function(){
@@ -441,10 +445,10 @@
         var p = $(this)
         var prod = p.val().split(":")
         document.getElementById("desc").innerHTML=prod[1]+"<br/><font color='blue'><b>"+prod[6]+"</b></font>"
-        document.getElementById("prc").innerHTML='<input type="number" step="any" value ='+prod[2]+' id="precio" class="calc" onchange="calculo()"> <br/><label id="bprc"></label>'  
+        document.getElementById("prc").innerHTML='<input type="number" step="any" value="'+prod[2]+'" id="precio" class="calc" onchange="calculo()"> <br/><label id="bprc"></label>'  
         document.getElementById("des").innerHTML='<input type="number" step="any" value="0" id="descuento" class="calc" onchange="calculo()"> <br/><label id="bdes"></label>'
-        document.getElementById("iv").innerHTML='<input type="number" step="any" value="0" id="iva" class="calc" onchange="calculo()"> <br/><label id="biv"></label>'
-        document.getElementById("iep").innerHTML='<input type="number" step="any" value="0" id="ieps" class="calc" onchange="calculo()"> <br/><label id="biep"></label>'
+        document.getElementById("iv").innerHTML='<input type="number" step="any" id="iva" class="calc" onchange="calculo()" value="'+prod[5]+'" readonly> <br/><label id="biv"></label>'
+        document.getElementById("iep").innerHTML='<input type="number" step="any" value="0" id="ieps" class="calc" onchange="calculo()" readonly> <br/><label id="biep"></label>'
         //document.getElementById("bprod").value=prod[0]
         //$.ajax({
         //    url:"index    .v.php",

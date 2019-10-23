@@ -89,7 +89,8 @@
 			$this->AbreCnx();
 			$rs = ibase_query($this->cnx, $this->query);
 			while($row = ibase_fetch_object($rs)){
-				$row_set[] = utf8_encode($row->ID)." : ".utf8_encode($row->GENERICO.' '.$row->SINONIMO.' '.$row->CALIFICATIVO).":".$row->PRECIO.":".$row->DESC1.":".$row->DESC2.":".$row->IVA.":".$row->EXISTENCIA;
+				$iva = empty($row->IVA_V)? 0:$row->IVA_V;
+				$row_set[] = utf8_encode($row->ID)." : ".utf8_encode($row->GENERICO.' '.$row->SINONIMO.' '.$row->CALIFICATIVO).":".$row->PRECIO_V.":".$row->DESC1.":".$row->DESC2.":".$iva.":".$row->EXISTENCIA;
 			}
 			return $row_set;
 			unset($this->query);	
