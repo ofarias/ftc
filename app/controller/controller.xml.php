@@ -110,7 +110,7 @@ class controller_xml{
             }
             $count = 0;
             $respuesta = 0;
-			foreach ($_FILES['files']['name'] as $f => $name) {	
+            foreach ($_FILES['files']['name'] as $f => $name) {	
                 if ($_FILES['files']['error'][$f] == 4) {
                     continue; // Skip file if any error found
                 }

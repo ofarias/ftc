@@ -13,6 +13,7 @@ require_once 'app/model/pegasoqr.php';
 require_once('app/model/pegaso.model.recoleccion.php');
 require_once('app/model/pegaso.model.cxc.php');
 require_once('app/model/facturacion.php');
+require_once('app/Classes/PHPExcel.php');
 require_once('app/controller/pegaso.controller.cobranza.php');
 
 class pegaso_controller{
@@ -6970,13 +6971,13 @@ function liberaPendientes($doco, $id_preoc, $pxr, $par){
     }
     
     function CatDocumentosXCliente(){
-        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
             $html=$this->load_page('app/views/pages/Clientes/p.catalogo_documentosxcliente.php'); 
             ob_start();
             $exec=$data->traeClientesParaDocs(); 
+            //$carga=$this->CargaExcel();/// Carga Excel para Artes de Mexico.
             include 'app/views/pages/Clientes/p.catalogo_documentosxcliente.php';
             $table = ob_get_clean();     
             if (count($exec)){
@@ -6988,6 +6989,62 @@ function liberaPendientes($doco, $id_preoc, $pxr, $par){
         }else{
             $e = "Favor de iniciar Sesión";
             header('Location: index.php?action=login&e='.urlencode($e)); exit;
+        }
+    }
+
+    function CargaExcel(){
+    	$d = new pegaso;
+    	$archivo= "Clientes_Artes de Mexico Tienda excel.xlsx";
+    	$ruta = "C:\\xampp\\htdocs\\clientes\\";
+    	$a= $ruta.$archivo;
+        $inputFileType=PHPExcel_IOFactory::identify($a);
+        $objReader=PHPExcel_IOFactory::createReader($inputFileType);
+        $objPHPExcel=$objReader->load($a);
+        $sheet=$objPHPExcel->getSheet(0);
+        $highestRow = $sheet->getHighestRow(); 
+        $highestColumn = $sheet->getHighestColumn();
+        for ($row=5; $row <= $highestRow; $row++){ 
+            $cta=$sheet->getCell("O".$row)->getValue();
+            $ctacoi=$sheet->getCell("Z".$row)->getValue();
+            /*echo $sheet->getCell("A".$row)->getValue()." - ";
+            echo $sheet->getCell("B".$row)->getValue()." - ";
+            echo $sheet->getCell("C".$row)->getValue()." - ";
+            echo $sheet->getCell("D".$row)->getValue()." - ";
+            echo $sheet->getCell("E".$row)->getValue()." - ";
+            echo $sheet->getCell("F".$row)->getValue()." - ";
+            echo $sheet->getCell("G".$row)->getValue()." - ";
+            echo $sheet->getCell("H".$row)->getValue()." - ";
+            echo $sheet->getCell("I".$row)->getValue()." - ";
+            echo $sheet->getCell("J".$row)->getValue()." - ";
+            echo $sheet->getCell("K".$row)->getValue()." - ";
+            echo "<br>";
+            */
+            $inserta=$d->insertaClienteXls(
+            				$clave = $sheet->getCell("A".$row)->getValue(), 	
+            				$nombre = utf8_encode($sheet->getCell("B".$row)->getValue()), 
+            				$direccionC=$sheet->getCell("F".$row)->getValue(), 
+            				$direccionE=$sheet->getCell("G".$row)->getValue(),
+            				$colonia=utf8_encode($sheet->getCell("I".$row)->getValue()), 
+            				$ciudad=utf8_encode($sheet->getCell("M".$row)->getValue()), 
+            				$rfc=$sheet->getCell("C".$row)->getValue(), 
+            				$motivo=$sheet->getCell("D".$row)->getValue(),
+            				$direccionI=$sheet->getCell("H".$row)->getValue(),
+            				$cp=$sheet->getCell("J".$row)->getValue(),
+            				$tel=$sheet->getCell("K".$row)->getValue(),
+            				$correo=$sheet->getCell("P".$row)->getValue(),
+            				$pais = 'MX',
+            				$estado = utf8_encode($sheet->getCell("L".$row)->getValue()),
+            				$municipio = $sheet->getCell("M".$row)->getValue()
+            				);
+            //$this->query="SELECT * FROM CUENTAS_FTC WHERE CUENTA = '$cta' or CUENTA_COI = '$ctacoi'";
+            //$res=$this->EjecutaQuerySimple();
+            //$row=ibase_fetch_object($res);
+            //if(isset($row->CUENTA_COI)){
+            //    $r=$d->actParam();
+            //    if($r['status'] =='ok'){
+            //        $this->query="";/// Crea Parametro;
+            //    }
+            //}
         }
     }
     
@@ -14484,6 +14541,7 @@ function ImpSolicitud2($idsol){
         	$html=$this->load_page('app/views/pages/ventas/p.verCatalogoProductosFTC.php');
         	ob_start();
         	$catProductos = $data->catalogoProductosFTC($descripcion);
+        	//$carga = $this->cargaProductosXls();
 	        include 'app/views/pages/ventas/p.verCatalogoProductosFTC.php';
 	        $table = ob_get_clean();
             if (count($catProductos)>0){
@@ -14497,6 +14555,79 @@ function ImpSolicitud2($idsol){
                 header('Location: index.php?action=login&e='.urlencode($e)); exit;
         }
     }
+
+    function cargaProductosXls(){
+    	$d = new pegaso;
+    	$archivo= "Todos los Productos.xlsx";
+    	$ruta = "C:\\xampp\\htdocs\\productos\\";
+    	$a= $ruta.$archivo;
+        $inputFileType=PHPExcel_IOFactory::identify($a);
+        $objReader=PHPExcel_IOFactory::createReader($inputFileType);
+        $objPHPExcel=$objReader->load($a);
+        $sheet=$objPHPExcel->getSheet(0);
+        $highestRow = $sheet->getHighestRow(); 
+        $highestColumn = $sheet->getHighestColumn();
+        for ($row=6; $row <= $highestRow; $row++){ 
+            $cta=$sheet->getCell("O".$row)->getValue();
+            $ctacoi=$sheet->getCell("Z".$row)->getValue();
+            /*
+            echo $sheet->getCell("A".$row)->getValue()." - ";
+            echo $sheet->getCell("B".$row)->getValue()." - ";
+            echo $sheet->getCell("C".$row)->getValue()." - ";
+            echo $sheet->getCell("D".$row)->getValue()." - ";
+            echo $sheet->getCell("E".$row)->getValue()." - ";
+            echo $sheet->getCell("F".$row)->getValue()." - ";
+            echo $sheet->getCell("G".$row)->getValue()." - ";
+            echo $sheet->getCell("H".$row)->getValue()." - ";
+            echo $sheet->getCell("I".$row)->getValue()." - ";
+            echo $sheet->getCell("J".$row)->getValue()." - ";
+            echo $sheet->getCell("K".$row)->getValue()." - ";
+            echo "<br>";
+            */
+            $categoria= 	utf8_encode($sheet->getCell("R".$row)->getValue()); ///Clasificación Producto 1
+            $linea= 		utf8_encode($sheet->getCell("K".$row)->getValue()); // Abreviatura Clasif Producto 1
+            $descripcion= 	utf8_encode($sheet->getCell("B".$row)->getValue());  // Nombre del producto 
+            $marca= 		'Artes de Mexico';//$sheet->getCell("".$row)->getValue();   // 
+            $generico= 		utf8_encode($sheet->getCell("B".$row)->getValue());
+            $sinonimos= 	utf8_encode($sheet->getCell("S".$row)->getValue());
+            $calificativo= 	utf8_encode($sheet->getCell("S".$row)->getValue());
+            $medidas= 		utf8_encode($sheet->getCell("S".$row)->getValue());
+            $unidadmedida= 	'Pza';///$sheet->getCell("".$row)->getValue();
+            $empaque= 		1;//$sheet->getCell("".$row)->getValue();
+            $prov1= 		'         1 : Artes de Mexico Adminpaq';//$sheet->getCell("".$row)->getValue();
+            $codigo_prov1= 	utf8_encode($sheet->getCell("A".$row)->getValue());
+            $sku= 			utf8_encode($sheet->getCell("G".$row)->getValue());
+            $costo_prov1= 	1;//$sheet->getCell("".$row)->getValue();
+            $iva= 			'No';//$sheet->getCell("".$row)->getValue();
+            $desc1= 		0;//$sheet->getCell("".$row)->getValue();
+            $desc2= 		0;//$sheet->getCell("".$row)->getValue();
+            $desc3= 		0;//$sheet->getCell("".$row)->getValue();
+            $desc4= 		0;//$sheet->getCell("".$row)->getValue();
+            $desc5= 		0;//$sheet->getCell("".$row)->getValue();
+            $impuesto= 		.16;//$sheet->getCell("".$row)->getValue();
+            $costo_total= 	1.16;//$sheet->getCell("".$row)->getValue();
+            $clave= 		utf8_encode($sheet->getCell("A".$row)->getValue());
+            $costo_t= 		utf8_encode($sheet->getCell("M".$row)->getValue());
+            $costo_oc= 		1.16;//$sheet->getCell("".$row)->getValue();
+            $iva_v= 		utf8_encode($sheet->getCell("D".$row)->getValue());
+            $ieps_v= 		0;//$sheet->getCell("".$row)->getValue();
+            $precio_v= 		utf8_encode($sheet->getCell("C".$row)->getValue());            
+
+            $inserta=$d->creaProductoFTC($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $clave, $costo_t, $costo_oc, $iva_v, $ieps_v, $precio_v);
+	    	
+	    	/*
+            //$this->query="SELECT * FROM CUENTAS_FTC WHERE CUENTA = '$cta' or CUENTA_COI = '$ctacoi'";
+            //$res=$this->EjecutaQuerySimple();
+            //$row=ibase_fetch_object($res);
+            //if(isset($row->CUENTA_COI)){
+            //    $r=$d->actParam();
+            //    if($r['status'] =='ok'){
+            //        $this->query="";/// Crea Parametro;
+            //    }
+            //}
+            */
+        }
+    }	
 
     function altaProductoFTC($marca, $categoria, $desc1, $generico, $unidadmedida, $prov1, $desc2){
         

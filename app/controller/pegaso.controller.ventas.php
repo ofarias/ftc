@@ -1694,7 +1694,8 @@ class pegaso_controller_ventas{
             escribe el nombre de la tuya. Recuerda que debes compartirla
             desde el panel de control
         */
-        $nombre_impresora = "TM-T88V"; 
+        //$nombre_impresora = "TM-T88V";
+        $nombre_impresora = "ECLine";
         $connector = new WindowsPrintConnector($nombre_impresora);
         $printer = new Printer($connector);
         /*
@@ -1887,6 +1888,14 @@ class pegaso_controller_ventas{
         */
 
         $printer->close();
+    }
+
+    function chgTipo($tipo, $id){
+        if($_SESSION['user']){
+            $data = new pegaso_ventas;
+            $cambio = $data->chgTipo($tipo, $id);
+            return $cambio; 
+        }
     }
 }
 ?>

@@ -2387,4 +2387,79 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return array("status"=>'ok');
     }
 
+    function chgTipo($tipo, $id){
+        switch ($tipo) {
+            case 1:
+                $tabla = '';
+                $campo = '';
+                $campo3 = '';
+                $tipo2 = '';
+                break;
+            case 1:
+                $tabla = '';
+                $campo = '';
+                $campo3 = '';
+                $tipo2 = '';
+                break;
+            case 1:
+                $tabla = '';
+                $campo = '';
+                $campo3 = '';
+                $tipo2 = '';
+                break;
+            case 1:
+                $tabla = '';
+                $campo = '';
+                $campo3 = '';
+                $tipo2 = '';
+                break;
+            case 1:
+                $tabla = '';
+                $campo = '';
+                $campo3 = '';
+                $tipo2 = '';
+                break;
+            case 1:
+                $tabla = '';
+                $campo = '';
+                $campo3 = '';
+                $tipo2 = '';
+                break;
+            case 1:
+                $tabla = '';
+                $campo = '';
+                $campo3 = '';
+                $tipo2 = '';
+                break;
+            case 1:
+                $tabla = '';
+                $campo = '';
+                $campo3 = '';
+                $tipo2 = '';
+                break;
+            case 1:
+                $tabla = '';
+                $campo = '';
+                $campo3 = '';
+                $tipo2 = '';
+                break;
+            case 1:
+                $tabla = '';
+                $campo = '';
+                $campo3 = '';
+                $tipo2 = '';
+                break;         
+            default:
+                break;
+        }
+        $this->query="UPDATE $tabla set $campo = '$tipo2' where $campo3 = $id";
+        $res=$this->queryActualiza();
+        if($res > 0){
+            $m='Se ha realizado el cambio. :)';
+        }else{
+            $m='No se pudo realizar el cambio, actualice la pantalla antes de intentarlo nuevamente. :( ';
+        }
+        return $r=array("status"=>'ok', "mensaje"=>$m);
+    }
+
 }?>

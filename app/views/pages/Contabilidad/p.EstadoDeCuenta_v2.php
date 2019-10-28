@@ -365,7 +365,8 @@
                                                docu="<?php echo $datos->S.'+'.$datos->IDENTIFICADOR;?>"
                                                <?php echo $datos->S > 1? 'class="compra"':''?>
                                                <?php echo $datos->S == 1? 'class="abono"':''?>
-                                                >                                             
+                                              >
+                                              <input type="button" class="chgTipo" v="<?php echo $datos->ABONO+$datos->CARGO-$datos->SALDO?>" ln="<?php echo $i?>" tipo="<?php echo $datos->S?>" iden="<?php echo $datos->IDENTIFICADOR?>">                                             
                                               </td>
                                             <td><?php echo $datos->USUARIO;?></td>
                                             <td><?php echo $datos->TP_TES?></td>
@@ -434,6 +435,70 @@
 <script src="http://bootboxjs.com/bootbox.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script>
+
+  $(".chgTipo").click(function(){
+      var v = parseFloat($(this).attr('v'))
+      var ln = $(this).attr('ln')
+      var tipo = $(this).attr('tipo')
+      var id = $(this).attr('iden')
+      renglon = document.getElementById(ln);
+      renglon.style.background="#ACD6E5";
+      $.confirm({
+        title: 'Cambio de tipo',
+        content: 'Desea Cambiar el tipo de Registro?' +
+        '<form action="" class="formName">' +
+        '<div class="form-group">' +
+        '<label>Seleccione el nuevo tipo:</label>' +
+        //'<input type="text" placeholder="Your name" class="name form-control" required />' +
+        '<select name="sel" class="sel from-control" required>' +
+          '<option value="trc">Transferencia entre Cuentas</option>'+
+          '<option value="dc">Devolucion de Compra</option>'+
+          '<option value="dv">Devolucion de Venta</option>'+
+          '<option value="ot">Otros Ingresos</option>'+
+        '</select>'+
+        '</div>' +
+        '</form>',
+        buttons: {
+            formSubmit: {
+                text: 'Cambiar',
+                btnClass: 'btn-blue',
+                action: function () {
+                    var name = this.$content.find('.sel').val();
+                    if(v != 0){
+                        $.alert('Solo se puede cambiar Movimientos sin aplicaciones...');
+                        return false;
+                    }
+                    $.alert('Procede al cambio... a ' + name + ' del tipo: '+ tipo + ' identificador: ' + id);
+                    $.ajax({
+                      url:'index.v.php',
+                      type:'post',
+                      dataType:'json',
+                      data:{chgTipo:1, tipo, id},
+                      success:function(){
+                        $.alert('Se efectuo el cambio')
+                      },
+                      error:function(){
+                        $.alert('No se pudo efectuar el cambio')
+                      } 
+                    })
+                }
+            },
+            cancelar: function () {
+                //close
+                renglon.style.background="";
+            },
+        },
+        onContentReady: function () {
+            // bind to events
+            var jc = this;
+            this.$content.find('form').on('submit', function (e) {
+                // if the user submits the form by pressing enter in the field.
+                e.preventDefault();
+                jc.$$formSubmit.trigger('click'); // reference the button and click it
+            });
+        }
+    });
+  })
 
   $(".eliminar").click(function(){
     var id = $(this).attr("iden")

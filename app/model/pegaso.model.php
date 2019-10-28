@@ -10809,7 +10809,7 @@ function Pagos() {
     	*/
     	$this->query="SELECT 3 as s, fecha_edo_cta as sort, 'Compra' as TIPO, (id||'-'||factura) as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA , fecha_edo_cta as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado, seleccionado, tp_tes, REFERENCIA as obs
     		FROM CR_DIRECTO
-    		where BANCO = '$banco' and cuenta = '$cuenta' and extract(month from fecha_EDO_CTA) = $mes and extract(year from fecha_edo_cta) = $anio and (tipo = 'compra' or tipo='Anticipo'  or tipo='otro' or tipo='gasto') and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  order by fecha_edo_cta asc ";
+    		where BANCO = '$banco' and cuenta = '$cuenta' and extract(month from fecha_EDO_CTA) = $mes and extract(year from fecha_edo_cta) = $anio and (tipo = 'compra' or tipo='Anticipo'  or tipo='otro') and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  order by fecha_edo_cta asc ";
     	//echo 'Esta es de tipo compra(CR): '.$this->query;
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray = ibase_fetch_object($rs)){
@@ -13381,7 +13381,8 @@ function Pagos() {
     		extract(month from edocta_fecha) = $mes 
     		and extract(year from edocta_fecha) = $anio
     		and banco = ('$banco'||' - ' ||'$cuenta')
-    		and (seleccionado = 1 or seleccionado = 2) ";
+    		and (seleccionado = 1 or seleccionado = 2) 
+    		and guardado = 1";
     	$rs=$this->QueryObtieneDatosN();
     	$row2=ibase_fetch_object($rs);
    		$totcn=$row2->TOTCOMPRAS;
@@ -15441,17 +15442,24 @@ function Pagos() {
     }
 
     function creaProductoFTC($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $clave, $costo_t, $costo_oc, $iva_v, $ieps_v, $precio_v){
-    	$this->query="INSERT INTO FTC_ARTICULOS VALUES(
+    	$this->query="INSERT INTO FTC_ARTICULOS VALUES (
     			NULL,'$linea','$categoria','$generico','$sinonimos','$calificativo','$medidas','$clave','$marca','$unidadmedida',$empaque,'$prov1','$codigo_prov1','','$sku',$costo_total,$costo_prov1,0,'A','DIRECTO COMPRAS',0, $desc1,$desc2,$desc3,$desc4,$desc5,'$descripcion','$iva',current_date,$impuesto,$costo_t,$costo_oc,0,NULL, NULL,'', $iva_v, $ieps_v, $precio_v)";
-    	$rs=$this->EjecutaQuerySimple();
+    	$a=$this->query;
+    	$rs=$this->grabaBD();
+    	$row= ibase_fetch_object($rs);
+    	if(empty($row->ID)){
+    		echo '<br/> Fallo al insertar el producto '.$codigo_prov1.'<br/>';
+    		echo $a;
+    		return;
+    	}
     	$this->query="SELECT MAX(ID) AS ID FROM FTC_Articulos";
     	$res=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($res);
     	$ids = $row->ID;
     	$res+=$this->produccionFTCART($ids);
     	return;
-    	/// enviamos a produccion:
     }
+    
     function cancelarCargaPago($idtrans){
     	$this->query = "UPDATE CARGA_PAGOS SET STATUS = 'C' WHERE ID = $idtrans";
     	echo $this->query;
@@ -18869,6 +18877,7 @@ function cerrarRecepcion($doco){
     	
     	}elseif($fecha == 'aaa'){
     			$this->query="UPDATE $tabla set seleccionado = 1 where $campo2 = '$docu'";
+    			echo $this->query;
     			$rs=$this->EjecutaQuerySimple();
     			
     	}else{
@@ -26133,6 +26142,23 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return;
 	}
 
+	function insertaClienteXls($clave, $nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo, $direccionI, $cp, $tel, $correo, $pais, $estado, $municipio){
+		$this->query="INSERT INTO CLIE01 (CLAVE, NOMBRE, STATUS, RFC, CALLE, NUMEXT, COLONIA, ESTADO, CLAVE_TRIM, MODELO, NUMINT, CODIGO, TELEFONO, EMAILPRED, PAIS, MUNICIPIO, cve_maestro) 
+					VALUES ('$clave', '$nombre', 'A', '$rfc', '$direccionC', '$direccionE', '$colonia', '$ciudad', trim('$clave'),'$motivo', '$direccionI', '$cp', '$tel', '$correo', '$pais', '$municipio', 'VEN1') RETURNING CLAVE ";
+		$a = $this->query;
+		$res=$this->grabaBD();
+		$row = ibase_fetch_object($res);
+		if(empty($row->CLAVE)){
+			echo '<br/> Fallo la insercion del cliente: '.$clave.'<br/>';
+			echo $a;
+		}
+		return;
+	}
+
+	function insertaProductosXls(){
+		$this->query="INSERT INTO FTC_ARTICULOS () VALUES ()";
+			
+	}
 
 	function verFactura($docf){
 		$this->query="SELECT DF.*, F.*, (SELECT NOMBRE FROM CLIE01 WHERE CLAVE_TRIM = F.CLIENTE) AS NOMBRE_cliente  FROM DETALLE_FACTURAS_FP DF LEFT JOIN FTC_FACTURAS F ON F.DOCUMENTO = DF.CVE_DOC WHERE CVE_DOC = '$docf'";

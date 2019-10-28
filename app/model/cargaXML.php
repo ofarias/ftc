@@ -173,9 +173,9 @@ class cargaXML extends database {
 		    // Nombre del archivo
 		    $fileName = $data[0];
 		    // Extensión del archivo 
-		    $fileExtension = $data[1];
+		    @$fileExtension = $data[1];
 		    if($fileExtension=='txt'){
-		        echo $file.'<br/>';
+		        //echo $file.'<br/>';
 		        $f=fopen($path.$file, 'r');
 		        $l=1;
 		         while(!feof($f)) {
@@ -183,7 +183,7 @@ class cargaXML extends database {
 					$lin=explode('~', $linea);
 					//echo $linea.'<br/>';
 					$nf=$lin[1]."-".$lin[3].".txt";
-					if($l == 2) echo $lin[1]."-".$lin[3]."<br />";
+					if($l == 2); //echo $lin[1]."-".$lin[3]."<br />";
 					$l++;
 					if($l>2)break;
 				}

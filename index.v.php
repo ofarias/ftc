@@ -548,6 +548,10 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	$res=$controller_v->cambioCliente($_POST['cambioCliente'], $_POST['doc']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['chgTipo'])){
+	$res=$controller_v->chgTipo($_POST['tipo'], $_POST['id']);
+	echo json_encode($res);
+	exit();
 }
 else{switch ($_GET['action']){
 		case 'login':
