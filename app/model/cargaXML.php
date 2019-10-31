@@ -103,10 +103,8 @@ class cargaXML extends database {
 				$rfcr=$d[3];
 				$rfc=$_SESSION['rfc'];
 				if($rfce == $rfc or $rfcr == $rfc){
-					//echo 'Pertenece a la empresa actual <br/>';
 					return array("status"=>'ok', "lineas"=>$l,"mensaje"=>'Se encontro el rfc en la primer linea.',"rfce"=>$rfce, "rfcr"=>$rfcr);
 				}else{
-					//echo 'El Arvhivo NO  Pertenece a la empresa actual<br/>';
 					return array("status"=>'No', "lineas"=>$l,"mensaje"=>'Al parecer el archivo no es de la empresa seleccionada',"rfce"=>$rfce, "rfcr"=>$rfcr);
 				}
 			}
@@ -160,6 +158,17 @@ class cargaXML extends database {
 			$l++;
 		}
 		fclose($fp);
+		$borrados = array();
+		$this->query="SELECT * FROM FTC_META_DATOS WHERE archivo = '$archivo' and FECHA_CANCELACION IS NOT NULL";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$borrados[] =$tsArray;
+		}
+		if(count($borrados) >0){
+			//echo 'arma el correo';
+			return array("status"=>'borrados', "data"=>$borrados);
+		}
+		return array("status"=>'ok', "data"=>'0');
 	}
 
 	function nomMeta(){

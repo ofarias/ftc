@@ -32,6 +32,9 @@
                             $color='';
                             $aviso='';
                             $color = "style='background-color:#DCE7F9';";
+                            if(!empty($row->FECHA_CANCELACION)){
+                                $color = "style='background-color:#DC8496';";
+                            }
                             $aviso = '';
                                 //$color="style='background-color:brown;'";
                             ?>

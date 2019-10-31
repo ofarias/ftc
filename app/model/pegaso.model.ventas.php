@@ -296,17 +296,19 @@ class pegaso_ventas extends database{
             $cve_doc = $letra.$consecutivo;
         }
 
-        $serie='A';
-        $consecutivo = 6;
+        $serie=$letra;
+        $consecutivo = $consecutivo;
         $bitacora = 123125;
         
         $insert = "INSERT INTO FACTP01 ";
         $insert.="(TIP_DOC, CVE_DOC, CVE_CLPV, STATUS, DAT_MOSTR, CVE_VEND, CVE_PEDI, FECHA_DOC, FECHA_ENT, CAN_TOT, IMP_TOT1, IMP_TOT2, IMP_TOT3, IMP_TOT4, DES_TOT, DES_FIN, COM_TOT, CONDICION, IMPORTE, CVE_OBS, NUM_ALMA, ACT_CXC, ACT_COI, NUM_MONED, TIPCAMB, ENLAZADO, TIP_DOC_E, NUM_PAGOS, FECHAELAB, SERIE, FOLIO, CTLPOL, ESCFD, CONTADO, CVE_BITA, BLOQ, DES_FIN_PORC, DES_TOT_PORC, TIP_DOC_ANT, DOC_ANT, TIP_DOC_SIG, DOC_SIG, FORMAENVIO, REALIZA)";
         $insert.="VALUES";
         $insert.="('P' ,'$docp', (SELECT CLAVE FROM CLIE01 WHERE TRIM(CLAVE) = TRIM('$cliente')), 'O' ,0,'    1', '$pedido' , CAST('Now' as date), CAST('Now' as date), $subtotal, 0, 0, 0 , $impuesto, $descuento, 0,0,'', $total, 0, 99,'S','N', 1, 1, 'O', 'O',1, CAST('Now' as date),'$serie', $consecutivo, 0, 'N', 'N','$bitacora' ,'N', 0 , 0, '', '',  '', '', 'I', '$usuario')";
-        //echo "insert: ".$insert;
         $this->query = $insert;
-        $rs = $this->EjecutaQuerySimple();
+        $rs = $this->grabaBD();
+        if(empty($rs)){
+            echo '<br/> NO Se ha insertado correctamente en FACTP01';
+        }
          
         $this->query = "SELECT CVE_ART, DBIMPCOS, FLCANTID, DBIMPPRE, DBIMPDES FROM FTC_COTIZACION_DETALLE WHERE CDFOLIO = $folio";
         $result = $this->QueryObtieneDatosN();
@@ -349,7 +351,11 @@ class pegaso_ventas extends database{
                         (SELECT COALESCE(ENVIO, 'Local') FROM CARTERA WHERE TRIM(idcliente) = TRIM('$cliente')),
                          0, 
                         (SELECT COALESCE(COSTO,1) FROM FTC_Articulos WHERE ID = $cve_art) * 1.2)";
-                $rs=$this->EjecutaQuerySimple();
+                //echo $this->query;
+                $rs=$this->grabaBD();
+                if(empty($rs)){
+                    echo '<br/> NO Se ha insertado correctamente en PREOC01';
+                }
                 $this->query="SELECT MAX(ID) as idp FROM PREOC01";
                 $rs=$this->QueryObtieneDatosN();
                 $row=ibase_fetch_object($rs);
@@ -361,14 +367,15 @@ class pegaso_ventas extends database{
                 ('$docp',(SELECT COALESCE(MAX(NUM_PAR), 0) FROM PAR_FACTP01 where cve_doc = '$docp') + 1,'PGS$cve_art',$cantidad,$precio,$costo,0,0,0,16,0,0,0,0,0,0,0,$impuesto,$descuentoPartida,'N',1,
                 (SELECT UNI_MED FROM INVE01 WHERE CVE_ART = 'PGS$cve_art'),
                 'N','P',0,0,9,NULL,($subtotalPartida),'$usuario', 'S', $idpreoc,0,0)";
+                //echo '<br/>'.$actualiza.'<br/>';
                 $this->query = $actualiza;
-                $rs = $this->EjecutaQuerySimple();
-
-
+                $rs=$this->grabaBD();
+                if(empty($rs)){
+                    echo '<br/> NO Se ha insertado correctamente la partida ';
+                }
                 ///echo 'Inserta en preoc01:'.$this->query.'<p>';
                 // Inserta la nueva Liberacion de los productos.
             }
-
 
             $this->query="SELECT iif(MAX(CP_FOLIO) is null, 0, max(CP_FOLIO)) AS FOLIO FROM CAJAS_ALMACEN WHERE CP_SERIE = '$serie_pegaso'";
             $rs=$this->EjecutaQuerySimple();
@@ -376,8 +383,6 @@ class pegaso_ventas extends database{
             $folio_cp_folio= $row->FOLIO + 1; 
             $caja_pegaso = 'L'.$serie_pegaso.$folio_cp_folio;
 
-
-            //break;
             $this->query= "INSERT INTO CAJAS_ALMACEN (IDCA, PEDIDO, COTIZACION, VENDEDOR, PRESUP_COMPRA, PRESUP_VENTA, NUM_PROD, STATUS, FECHA_VENTAS, CCC, MAESTRO, caja_pegaso, cp_folio, cp_serie) VALUES(NULL, '$docp', $folio, '$usuario', 
                     (select sum(DBIMPCOS) from FTC_COTIZACION_DETALLE WHERE CDFOLIO = $folio),
                     (select sum(DBIMPPRE) FROM FTC_COTIZACION_DETALLE WHERE CDFOLIO =$folio),
@@ -390,10 +395,11 @@ class pegaso_ventas extends database{
                     null,
                     null
                     )";
-                $rs=$this->EjecutaQuerySimple();
-                //echo $this->query;
+                $rs=$this->grabaBD();
+                if(empty($rs)){
+                    echo '<br/> NO Se ha insertado correctamente en CAJAS_ALMACEN. <br/>';
+                }
         }
-        //break;
         return $rs;
     }
         
