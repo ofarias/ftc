@@ -10766,6 +10766,7 @@ function Pagos() {
     		   		and extract(year from fecha_recep) = $anio 
     		   		AND STATUS <> 'C' and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  
     		   		order by fecha_recep asc";
+    	//echo $this->query;
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;

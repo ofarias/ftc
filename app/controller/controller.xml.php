@@ -130,8 +130,11 @@ class controller_xml{
                         if($leeMetadatos['status']== 'ok'){
                         	if(move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name)){
                             	$count++;
-								$respuesta+=$data->insertarMetaDatos($archivo);
+								$resp=$data->insertarMetaDatos($archivo);
 								//unlink($_FILES["files"]["tmp_name"][$f]);
+								if($resp['status']== 'borrados'){
+									$this->correoCancelados($resp['data']);
+								}
                         	}	
                         }else{
                         	move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name);
@@ -147,6 +150,18 @@ class controller_xml{
             header('Location: index.php?action=login&e=' . urlencode($e));
             exit;
         }	
+	}
+
+	function correoCancelados($data){
+		$_SESSION['info']=$data;
+		$_SESSION['titulo']='Envio de Reporte de Documentos Cancelados';   //// guardamos los datos en la variable global $_SESSION
+        include 'app/mailer/documentosCancelados.php';   ///  se incluye la classe Contrarecibo     
+        if($mensaje == ''){
+            
+        }else{
+            echo '<script> alert("Se ha enviado el correo favor de confirmar con el remitente..."); </script>';
+        }
+        return;
 	}
 
 	function verMetaDatos(){

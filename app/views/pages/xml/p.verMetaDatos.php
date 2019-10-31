@@ -19,8 +19,7 @@
                                 <th>Cancelados</th>
                                 <th>Usuario</th>
                                 <th>Fecha de Carga</th>
-                                <th>Ver Detalle</th>
-                                
+                                <th>Ver Detalle</th>   
                             </tr>
                         </thead>
                         <tbody>
@@ -29,9 +28,9 @@
                             $color='';
                             $aviso='';
                             $color = "style='background-color:#D5F3DE';";
+                           
                             $aviso = "title='Los Metadados se cargan Cada fin de semana de forma en automatica y reflejan los Documentos cancelados en el SAT'";
                                 //$color="style='background-color:brown;'";
-                             
                             ?>
                             <tr class="odd gradeX" <?php echo $color?> <?php echo $aviso?>>
                                 <td><?php echo $ln;?></td>
@@ -40,7 +39,7 @@
                                 <td><b><?php echo $row->FECHA_FIN?></b></td>
                                 <td><?php echo $row->REGISTROS;?></td>
                                 <td><?php echo $row->FECHA_CANCELACION;?></td>
-                                <td><?php echo $row->CANCELADOS;?></td>
+                                <td><b><?php echo $row->CANCELADOS;?></b></td>
                                 <td><?php echo $row->USUARIO;?></td>
                                 <td><?php echo $row->FECHA_CARGA?></td>
                                 <td><a href="index.xml.php?action=verMetaDatosDet&archivo=<?php echo $row->ARCHIVO?>" target="popup" onclick="window.open(this.href, this.target, 'width=2000, heigth=800')" class="btn btn-info">Ver Detalle</a></td>
