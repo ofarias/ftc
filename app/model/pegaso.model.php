@@ -26955,7 +26955,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 								//echo '<br/>'.$e.' Abono: '.$abono.'-->'.$tipo;
 								//echo '<br/>Cargo: '.$cargo;
 								//echo '<br/>Monto de la transaccion: '.($abono + $cargo);
-								if(($abono + $cargo) > 0 and !empty($tipo) and ($tipo == 'EFE' or $tipo == 'CHQ' or $tipo =='TNS' or $tipo == 'TDC')){
+								if(($abono + $cargo) > 0 and !empty($tipo) and ($tipo == 'EFE' or $tipo == 'CHQ' or $tipo =='TNS' or $tipo == 'TDC' or $tipo == 'TDD' or $tipo == 'OTROS')){
 									$ca = ($abono>0)? 'a':'c';
 									$monto = ($abono>0)? $abono:$cargo;
 									//echo $clave.' <b>Inserta el '.$ca.' con la informacion</b> de tipo : '.$tipo.'<br/>';
