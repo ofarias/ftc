@@ -18878,7 +18878,6 @@ function cerrarRecepcion($doco){
     	
     	}elseif($fecha == 'aaa'){
     			$this->query="UPDATE $tabla set seleccionado = 1 where $campo2 = '$docu'";
-    			echo $this->query;
     			$rs=$this->EjecutaQuerySimple();
     			
     	}else{
