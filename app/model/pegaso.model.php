@@ -18885,10 +18885,10 @@ function cerrarRecepcion($doco){
     			$rs = $this->EjecutaQuerySimple();
     	}
       
-      	//if($rs){
+      	if($rs){
     		//$consulta = $this->EjecutaQuerySimple();
     		$a = array("status"=>"OK","reponse"=>$docu,"fecha"=>$fecha);
-    	//}
+    	}
     	return $a;
     }
 
