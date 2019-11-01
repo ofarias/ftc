@@ -18884,11 +18884,11 @@ function cerrarRecepcion($doco){
 				$this->query="UPDATE $tabla SET $campo1 = '$fecha', seleccionado = 1 where  $campo2 = '$docu'";
     			$rs = $this->EjecutaQuerySimple();
     	}
-      //echo $this->query;
-    	if($rs){
-    		$consulta = $this->EjecutaQuerySimple();
+      
+      	//if($rs){
+    		//$consulta = $this->EjecutaQuerySimple();
     		$a = array("status"=>"OK","reponse"=>$docu,"fecha"=>$fecha);
-    	}
+    	//}
     	return $a;
     }
 
