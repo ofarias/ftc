@@ -24,7 +24,10 @@
                                 <tr class="odd gradeX" onmousemove="this.style.fontWeight = 'bold';
                                         this.style.cursor = 'pointer'" onmouseout="this.style.fontWeight = 'normal';
                                                 this.style.cursor = 'default';"
-                                    onclick="seleccionaCuenta('<?php echo $data->ID; ?>','<?php echo $data->BANCO;?>','<?php echo $data->NUM_CUENTA;?>');">
+                                    onclick="seleccionaCuenta();">
+                                    <input name="identificador" id="identificador" type="hidden" value="<?php echo $data->ID; ?>"/>
+                                    <input name="numero_cuenta" id="cuenta" type="hidden" value="<?php echo $data->NUM_CUENTA;?>"/>
+                                    <input name="banco" id="banco" type="hidden" value="<?php echo $data->BANCO;?>"/>
                                     <td><?php echo $data->BANCO; ?></td>
                                     <td><?php echo $data->NUM_CUENTA; ?></td>
                                     <td><?php echo $data->DESCR; ?></td>
@@ -40,19 +43,20 @@
         </div>
     </div>
 </div>
-<form action="index.php" method="POST" id="FORM_ACTION_ESTADOCUENTA">
+<!--<form action="index.php" method="POST" id="FORM_ACTION_ESTADOCUENTA">
     <input name="identificador" id="identificador" type="hidden" value=""/>
     <input name="numero_cuenta" id="cuenta" type="hidden" value=""/>
     <input name="banco" id="banco" type="hidden" value=""/>
     <input name="ESTADO_DE_CUENTA" type="hidden" value="ESTADO_DE_CUENTA"/>
 </form>
-
+-->
 <script language="javascript">
     function seleccionaCuenta(identificador, banco, cuenta) {
-        document.getElementById("identificador").value = identificador;
-        document.getElementById("banco").value = banco;
-        document.getElementById("cuenta").value = cuenta;
-        var form = document.getElementById("FORM_ACTION_ESTADOCUENTA");
-        form.submit();
+        var iden = document.getElementById("identificador").value 
+        var banco = document.getElementById("banco").value
+        var cuenta = document.getElementById("cuenta").value
+        window.open("index.php?action=ESTADO_DE_CUENTA&identificador="+iden+"&banco="+banco+"&cuenta="+cuenta, "_self")
+        //var form = document.getElementById("FORM_ACTION_ESTADOCUENTA");
+        //form.submit();
     }
 </script>

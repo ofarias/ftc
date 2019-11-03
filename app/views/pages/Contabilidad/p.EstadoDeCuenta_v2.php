@@ -70,9 +70,8 @@
                               </thead>
                               <tbody>
                                   <tr>
-                                  <form action="index.php" method = "POST">
                                     <td align="center">
-                                      <select name = "mes">
+                                      <select name="mes" id="fm">
                                         <?php foreach ($meses as $val):?>
                                         <option value = "<?php echo $val->NUMERO;?>"><?php echo $val->NOMBRE;?></option>
                                         <?php endforeach?>
@@ -82,19 +81,18 @@
                                       
                                     </td>
                                     <td align="center">
-                                        <select name = 'anio'>
+                                        <select name='anio' id="fa">
                                           <option value="2019">2019</option>
                                           <option value="2018">2018</option>
                                         </select>
                                     </td>
                                     <td>
                                     <?php foreach ($bancos as $data):?>
-                                          <input type="hidden" name="banco" value="<?php echo $data->BANCO?>">
-                                          <input type="hidden" name="cuenta" value="<?php echo $data->NUM_CUENTA?>">
+                                          <input type="hidden" name="banco" value="<?php echo $data->BANCO?>" id="fb">
+                                          <input type="hidden" name="cuenta" value="<?php echo $data->NUM_CUENTA?>" id="fc">
                                     <?php endforeach ?>
-                                        <button name='FiltrarEdoCta' type = "submit" value="enviar"> Aplicar </button>
+                                        <button name="FiltrarEdoCta" value="enviar" onclick="filtrar()"> Aplicar </button>
                                     </td>
-                                    </form>
                                     </tr>
                               </tbody>
                          </table>                             
@@ -435,6 +433,15 @@
 <script src="http://bootboxjs.com/bootbox.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script>
+
+  function filtrar(){
+    var mes = document.getElementById('fm').value
+    var anio = document.getElementById('fa').value
+    var cuenta = document.getElementById('fc').value
+    var banco = document.getElementById('fb').value
+    window.open("index.php?action=FiltrarEdoCta&mes="+mes+"&anio="+anio+"&cuenta="+cuenta+"&banco="+banco , "_self")
+
+  }
 
   $(".chgTipo").click(function(){
       var v = parseFloat($(this).attr('v'))
