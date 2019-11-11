@@ -9,7 +9,7 @@
             <!-- /.panel-heading -->
             <div class="panel-body">
                  <div class="table-responsive">                            
-                        <table class="table table-bordered" id="dataTables-facturas-maestro">
+                        <table class="table table-bordered" id="dataTables-empresas">
                             <thead>
                             <tr>
                                 <th></th>

@@ -121,7 +121,33 @@
 
 
 ///dataTables-repventas
+     
      $('#dataTables-repventas').DataTable({
+            responsive: true,
+            lengthMenu: [[1000,-1], [1000,"Todo"]],
+            columnDefs:[
+                {
+                    targets: [1],
+                    searchable: false
+                }
+            ],
+            language: {
+                lengthMenu: "Mostrando _MENU_ por pagina",
+                zeroRecords: "No hay dato para mostrar",
+                info: "Mostrando página _PAGE_ de _PAGES_",
+                sSearch: "Filtrar: ",
+                sInfoFiltered:   "(Filtrado de un total de _MAX_ registros)",                   
+                oPaginate: {
+                                "sFirst":    "Primero",
+                                "sLast":     "Último",
+                                "sNext":     "Siguiente",
+                                "sPrevious": "Anterior"
+                            }
+            }
+    });
+
+/// dataTables-Empresas 
+    $('#dataTables-empresas').DataTable({
             responsive: true,
             lengthMenu: [[1000,-1], [1000,"Todo"]],
             columnDefs:[
