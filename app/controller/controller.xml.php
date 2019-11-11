@@ -86,7 +86,7 @@ class controller_xml{
 	function cargaMetaDatos(){
 		if($_SESSION['user']){
 			$data = new cargaXML;
-			$pagina =$this->load_template('Pedidos');
+			$pagina =$this->load_template('Carga Metadatos');
 			$html=$this->load_page('app/views/pages/xml/p.cargaMetaDatos.php');
    			$nomMeta=$data->nomMeta();
    			ob_start();
@@ -835,5 +835,29 @@ class controller_xml{
 		}
 	}	
 
+	function actTablas(){
+		if($_SESSION['user']->USER_LOGIN == 'ofarias'){
+			$data = new cargaXML;
+			$act = $data->actTablas();
+			return;
+		}
+	}
+
+	function p_c($anio, $mes){
+		if($_SESSION['user']){
+			$data=new cargaXML;
+			$info=$data->p_c($anio, $mes);
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/xml/p.pagado_cobrado.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.pagado_cobrado.php';
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
 }?>
 

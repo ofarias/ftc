@@ -1,5 +1,7 @@
 <br /><br />
 <button id="clienteNuevo" class="btn btn-info">Crear Cliente nuevo</button>
+<button id="" class="btn btn-info">Crear Cliente nuevo</button>
+
 <br/><br/>
 <div class="row">
     <div class="col-lg-12">

@@ -10937,7 +10937,6 @@ function imprimirFacturasAcuse(){
 
 
 	function filtrarCompras(){
-		
 		if(isset($_SESSION['user'])){
 		$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -13408,6 +13407,7 @@ function ImpSolicitud2($idsol){
 	            if($x > $total){
 	       			$facturasP=$data->facturasMaestro($pago);
 	       		}
+
 	            $bancos = $data->traeBancosSAT();
 	            include 'app/views/pages/cobranza/p.pagoFacturas.php';
 	            $table = ob_get_clean();
@@ -13421,7 +13421,6 @@ function ImpSolicitud2($idsol){
      	}
 
      	function buscaContrarecibos(){
-     		
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');

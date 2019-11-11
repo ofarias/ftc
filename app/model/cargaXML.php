@@ -126,20 +126,24 @@ class cargaXML extends database {
 			echo 'El Archivo <b>'.$archivo.'</b> ya fue Cargado por <b>'.$row->USUARIO.'</b> el <b>'. $row->FECHA_CARGA.'</b><br/>';
 			return;
 		}							
-		while(!feof($fp)) {
+		while(!feof($fp)){
+
 			$linea = fgets($fp);
 			if($l > 0){
 				$d=explode("~", utf8_encode($linea));
-				//echo 'Valor de la linea '.count($d).'<br/>';
-				if(count($d)>2){
+				//echo 'Valor de la linea '.count($d).'<br/>'; el valor de una linea normal 10 y 11 si esta cancelado
+				if(count($d)>=10){
 					if(strlen($d[11]) > 2){
 						$fc = "'".trim($d[11])."'";
 					}else{
 						$fc = 'null';
 					}
+					$nombre_e=str_replace("'", "", $d[2]);
+					$nombre_r=str_replace("'", "", $d[4]);
 					$this->query="INSERT INTO FTC_META_DATOS (IDMD, UUID, RFCE, NOMBRE_EMISOR, RFCR, NOMBRE_RECEPTOR, RFCPAC, FECHA_EMISION, FECHA_CERTIFICACION, MONTO, EFECTO_COMPROBANTE, STATUS, FECHA_CANCELACION, ARCHIVO, FECHA_CARGA, USUARIO, PROCESADO) 
-									VALUES (NULL, '$d[0]', '$d[1]', '$d[2]', '$d[3]', '$d[4]', '$d[5]', '$d[6]','$d[7]', $d[8], '$d[9]', $d[10], ".$fc.", '$archivo', current_timestamp, '$usuario', 0)";
+									VALUES (NULL, '$d[0]', '$d[1]', '$nombre_e', '$d[3]', '$nombre_r', '$d[5]', '$d[6]','$d[7]', $d[8], '$d[9]', $d[10], ".$fc.", '$archivo', current_timestamp, '$usuario', 0)";
 					$res=$this->grabaBD();
+					
 					if($res==1){
 						$r+=$res;
 						if(strlen($d[11]) > 2){
@@ -153,6 +157,8 @@ class cargaXML extends database {
 					}else{
 						echo '<br/>'.$this->query.'<br/>';
 					}
+				}elseif(count($d)>2 and count($d)<10){/// esta linea esta incompleta y es caso de estudio.
+					echo '<br/>Registro en 2 lineas: '.$l.'en el archivo '.$archivo.' valor de la linea: '.count($d);
 				}
 			}
 			$l++;
@@ -176,7 +182,10 @@ class cargaXML extends database {
 		//exit();
 		if(file_exists($path)){
 			$files=array_diff(scandir($path), array('.', '..'));
+			//echo 'Cuantos Archivos: '.count($files);
+			$i = 0;
 			foreach($files as $file){
+				$i++;
 		    // Divides en dos el nombre de tu archivo utilizando el . 
 		    $data = explode(".", $file);
 		    // Nombre del archivo
@@ -184,14 +193,14 @@ class cargaXML extends database {
 		    // Extensión del archivo 
 		    @$fileExtension = $data[1];
 		    if($fileExtension=='txt'){
-		        //echo $file.'<br/>';
+		        //echo '<br/>'.$i.','.$file.'<br/>';
 		        $f=fopen($path.$file, 'r');
 		        $l=1;
 		         while(!feof($f)) {
-					$linea = fgets($f);
+					$linea=fgets($f);
 					$lin=explode('~', $linea);
 					//echo $linea.'<br/>';
-					$nf=$lin[1]."-".$lin[3].".txt";
+					$nf=$i.'_'.$lin[1]."_".$lin[3]."_".$fileName.".txt";
 					if($l == 2); //echo $lin[1]."-".$lin[3]."<br />";
 					$l++;
 					if($l>2)break;
@@ -271,5 +280,38 @@ class cargaXML extends database {
 			$data[]=$tsArray;
 		}
 		return $data;
+	}
+
+	function actTablas(){
+		$ruta="c:\\xampp\\htdocs\\upd\\";
+		$archivos=scandir($ruta);
+		for ($i=2; $i < count($archivos); $i++) { 
+			$info= new SplFileInfo($archivos[$i]);
+			$ext=$info->getExtension();
+			if(strtoupper($ext) == 'SQL'){
+				$contenido = file_get_contents($ruta.$archivos[$i]);
+				$cont = explode(";", $contenido);
+				for ($i=0; $i < count($cont) ; $i++) { 
+					$this->query=$cont[$i];
+					@$res=$this->grabaBD();
+				}
+			}else{
+				echo 'No se procesa el archivo'.$archivos[$i]; 
+			}
+			break;
+		}
+		//exit();
+	}
+
+	function p_c($anio, $mes){
+		if($mes == 0){
+			$data = array();
+			$this->query="SELECT * FROM XML_DATA WHERE TIPO='I' and extract(year from fecha) = $anio";
+			$res=$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)) {
+				$data[]=$tsArray;
+			}
+			return $data;
+		}
 	}
 }
