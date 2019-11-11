@@ -1,9 +1,8 @@
 <p>
 <div>&nbsp;</div>
 </p>
-
 <p>
-    <b>Carga de Meta Datos del SAT.</b>
+    <b>Carga de Meta Datos del SAT del RFC <?php echo $_SESSION['rfc']?></b>
 <form action="index.xml.php" method="post" enctype="multipart/form-data">
     <input type="file" id="filesToUpload" name="files[]" multiple="" onchange="makeFileList()" accept="text/plain" />
     <input type="hidden" name="UPLOAD_META_DATA" value="UPLOAD_META_DATA" />

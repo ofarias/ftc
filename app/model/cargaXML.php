@@ -126,19 +126,21 @@ class cargaXML extends database {
 			echo 'El Archivo <b>'.$archivo.'</b> ya fue Cargado por <b>'.$row->USUARIO.'</b> el <b>'. $row->FECHA_CARGA.'</b><br/>';
 			return;
 		}							
-		while(!feof($fp)) {
+		while(!feof($fp)){
 			$linea = fgets($fp);
 			if($l > 0){
 				$d=explode("~", utf8_encode($linea));
-				//echo 'Valor de la linea '.count($d).'<br/>';
-				if(count($d)>2){
+				//echo 'Valor de la linea '.count($d).'<br/>'; el valor de una linea normal 10 y 11 si esta cancelado
+				if(count($d)>=10){
 					if(strlen($d[11]) > 2){
 						$fc = "'".trim($d[11])."'";
 					}else{
 						$fc = 'null';
 					}
-					$this->query="INSERT INTO FTC_META_DATOS (IDMD, UUID, RFCE, NOMBRE_EMISOR, RFCR, NOMBRE_RECEPTOR, RFCPAC, FECHA_EMISION, FECHA_CERTIFICACION, MONTO, EFECTO_COMPROBANTE, STATUS, FECHA_CANCELACION, ARCHIVO, FECHA_CARGA, USUARIO, PROCESADO) 
-									VALUES (NULL, '$d[0]', '$d[1]', '$d[2]', '$d[3]', '$d[4]', '$d[5]', '$d[6]','$d[7]', $d[8], '$d[9]', $d[10], ".$fc.", '$archivo', current_timestamp, '$usuario', 0)";
+					$nombre_e=str_replace("'", "", $d[2]);
+					$nombre_r=str_replace("'", "", $d[4]);
+					$this->query="INSERT INTO FTC_META_DATOS (IDMD, UUID, RFCE, NOMBRE_EMISOR, RFCR, NOMBRE_RECEPTOR, RFCPAC, FECHA_EMISION, FECHA_CERTIFICACION, MONTO, EFECTO_COMPROBANTE, STATUS, FECHA_CANCELACION, ARCHIVO, FECHA_CARGA, USUARIO, PROCESADO, UUID_ORIGINAL) 
+									VALUES (NULL, '$d[0]', '$d[1]', '$nombre_e', '$d[3]', '$nombre_r', '$d[5]', '$d[6]','$d[7]', $d[8], '$d[9]', $d[10], ".$fc.", '$archivo', current_timestamp, '$usuario', 0, (SELECT UUID FROM XML_DATA X WHERE X.UUID CONTAINING('$d[0]')))";
 					$res=$this->grabaBD();
 					if($res==1){
 						$r+=$res;
@@ -153,6 +155,8 @@ class cargaXML extends database {
 					}else{
 						echo '<br/>'.$this->query.'<br/>';
 					}
+				}elseif(count($d)>2 and count($d)<10){/// esta linea esta incompleta y es caso de estudio.
+					echo '<br/>Registro en 2 lineas: '.$l.'en el archivo '.$archivo.' valor de la linea: '.count($d);
 				}
 			}
 			$l++;
@@ -173,35 +177,54 @@ class cargaXML extends database {
 
 	function nomMeta(){
 		$path="C:\\xampp\\htdocs\\meta\\";
-		//exit();
+		foreach($_SESSION['coi'] as $emp){
+			!empty($emp['rfc'])? $empr[]=$emp['rfc']:'';
+		}
 		if(file_exists($path)){
 			$files=array_diff(scandir($path), array('.', '..'));
+			$i=0;
 			foreach($files as $file){
-		    // Divides en dos el nombre de tu archivo utilizando el . 
+				$i++;
 		    $data = explode(".", $file);
-		    // Nombre del archivo
-		    $fileName = $data[0];
-		    // Extensión del archivo 
+		    $fileName=$data[0];
 		    @$fileExtension = $data[1];
-		    if($fileExtension=='txt'){
-		        //echo $file.'<br/>';
-		        $f=fopen($path.$file, 'r');
-		        $l=1;
-		         while(!feof($f)) {
-					$linea = fgets($f);
-					$lin=explode('~', $linea);
-					//echo $linea.'<br/>';
-					$nf=$lin[1]."-".$lin[3].".txt";
-					if($l == 2); //echo $lin[1]."-".$lin[3]."<br />";
-					$l++;
-					if($l>2)break;
-				}
-				fclose($f);
-				rename( $path.$file, $path.$nf);
-		        //echo 'Encontramos el archivo: '.$fileName.'.xml';
-		        // Realizamos un break para que el ciclo se interrumpa		        
-		    }
-		}
+		    	if($fileExtension=='txt'){
+		    	    $f=fopen($path.$file,'r');
+		    	    $l=1;
+		    	     while(!feof($f)) {
+						$linea=fgets($f);
+						$lin=explode('~', $linea);
+						$nf=$i.'_'.$lin[1]."_".$lin[3]."_".$fileName.".txt";
+						if($l == 2); //echo $lin[1]."-".$lin[3]."<br />";
+						$l++;
+						if($l>2)break;
+					}
+					fclose($f);
+					rename( $path.$file, $path.$nf);	
+
+					if(in_array($lin[1], $empr)){
+					//echo '<br/> Se encontro el rfc: '.$lin[1].' en el array de empresas';
+						if(file_exists($path.$lin[1])){
+							copy($path.$nf, $path.$lin[1].'\\'.$nf);
+							unlink($path.$nf);
+						}else{
+							mkdir($path.$lin[1]);
+							copy($path.$nf, $path.$lin[1].'\\'.$nf);
+							unlink($path.$nf);
+						}
+					}else{
+					//echo '<br/> No se encontro el rfc: '.$lin[1].' en el array de empresas';
+						if(file_exists($path.$lin[3])){
+							copy($path.$nf, $path.$lin[3].'\\'.$nf);
+							unlink($path.$nf);
+						}else{
+							mkdir($path.$lin[3]);
+							copy($path.$nf, $path.$lin[3].'\\'.$nf);
+							unlink($path.$nf);
+						}
+					}
+		    	}
+			}
 		}
 	}
 
@@ -271,5 +294,38 @@ class cargaXML extends database {
 			$data[]=$tsArray;
 		}
 		return $data;
+	}
+
+	function actTablas(){
+		$ruta="c:\\xampp\\htdocs\\upd\\";
+		$archivos=scandir($ruta);
+		for ($i=2; $i < count($archivos); $i++) { 
+			$info= new SplFileInfo($archivos[$i]);
+			$ext=$info->getExtension();
+			if(strtoupper($ext) == 'SQL'){
+				$contenido = file_get_contents($ruta.$archivos[$i]);
+				$cont = explode(";", $contenido);
+				for ($i=0; $i < count($cont) ; $i++) { 
+					$this->query=$cont[$i];
+					@$res=$this->grabaBD();
+				}
+			}else{
+				echo 'No se procesa el archivo'.$archivos[$i]; 
+			}
+			break;
+		}
+		//exit();
+	}
+
+	function p_c($anio, $mes){
+		if($mes == 0){
+			$data = array();
+			$this->query="SELECT * FROM XML_DATA WHERE TIPO='I' and extract(year from fecha) = $anio";
+			$res=$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)) {
+				$data[]=$tsArray;
+			}
+			return $data;
+		}
 	}
 }
