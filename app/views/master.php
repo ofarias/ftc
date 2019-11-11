@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Sitema para el control administrativo de flujos">
     <meta name="author" content="Oscar Gabriel Farias Ayala con la colaboracion de Leonel Geovany de Leon">
-
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>SAT 2 APP</title>
     <!--Jquery UI-->
     <!-- Bootstrap Core CSS -->
@@ -32,6 +32,8 @@
     <!--jQuery time-->
     <!--<link rel="stylesheet" href="app/views/dist/css/bootstrap-timepicker.css" />-->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css" />
+    
+
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -1456,7 +1458,7 @@ $('#dataTables-ocf').DataTable({
     });
   });
         </script>
-        <script>
+<script>
               
   $(function() {
     $( "#dialogAP" ).dialog({
@@ -1477,7 +1479,7 @@ $('#dataTables-ocf').DataTable({
       $( "#dialogAP" ).dialog( "open" );
     });
   });
-        </script>
+</script>
 
 
 

@@ -4320,6 +4320,21 @@ else{
 			$idg=$_GET['idg'];
 			$controller->detalleGasto($idg);
 			break;
+		case 'FiltrarEdoCta':
+			$mes=$_GET['mes'];
+			$banco=$_GET['banco'];
+			$cuenta=$_GET['cuenta'];
+			$anio=$_GET['anio'];
+			if(isset($_GET['nvaFechComp'])){
+   				$nvaFechComp=$_GET['nvaFechComp'];
+   			}else{
+   				$nvaFechComp = '01.01.2016';
+   			}
+   			$controller->estado_de_cuenta_mes($mes,$banco,$cuenta, $anio, $nvaFechComp);
+   		case 'ESTADO_DE_CUENTA':
+   			$banco = $_GET['banco'];
+			$cuenta = $_GET['cuenta'];
+			$controller->estado_de_cuenta($banco, $cuenta);
 		default: 
 			$controller->login();
 			break;

@@ -113,9 +113,11 @@
                 <div class="panel-body">
                     <p>Descargas de XML</p>
                     <center><a href="index_xml.php?action=''" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
+                    <p><a href="index.xml.php?action=actTablas">Actualizar Tablas</a></p>
                 </div>
             </div>
         </div>
+
     <?php }?>
         <!--
          <div class="col-md-4">

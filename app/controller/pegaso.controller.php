@@ -10668,7 +10668,6 @@ function imprimirFacturasAcuse(){
     }
 
       function estado_de_cuenta($banco, $cuenta){
-    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10686,6 +10685,7 @@ function imprimirFacturasAcuse(){
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION PARA MOSTRAR</h2><center></div>', $pagina);
         	}
         	$this->view_page($pagina);
+        	exit();
     	} else {
         	$e = "Favor de Iniciar Sesión";
         	header('Location: index.php?action=login&e=' . urlencode($e));
@@ -10720,12 +10720,10 @@ function imprimirFacturasAcuse(){
     	}			    	
     }
 
-
-
  	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $nvaFechComp){
-    	if (isset($_SESSION['user'])){
+ 		if (isset($_SESSION['user'])){
         	$data = new pegaso;
-        	$pagina = $this->load_template('Pagos');        	
+        	$pagina = $this->load_template('Menu Admin');        	
         	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta_v2.php');
         	ob_start();
         	$meses=$data->traeMeses();
@@ -10758,8 +10756,9 @@ function imprimirFacturasAcuse(){
             	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION PARA MOSTRAR</h2><center></div>', $pagina);
         	}
         	$this->view_page($pagina);
-    	} else {
-        	$e = "Favor de Iniciar Sesión";
+        	exit();
+    	}else{
+        	$e="Favor de Iniciar Sesión";
         	header('Location: index.php?action=login&e=' . urlencode($e));
         	exit;
     	}			   
@@ -10938,7 +10937,6 @@ function imprimirFacturasAcuse(){
 
 
 	function filtrarCompras(){
-		
 		if(isset($_SESSION['user'])){
 		$data = new pegaso;				
 		$pagina=$this->load_template('Alta Unidades');				
@@ -13409,6 +13407,7 @@ function ImpSolicitud2($idsol){
 	            if($x > $total){
 	       			$facturasP=$data->facturasMaestro($pago);
 	       		}
+
 	            $bancos = $data->traeBancosSAT();
 	            include 'app/views/pages/cobranza/p.pagoFacturas.php';
 	            $table = ob_get_clean();
@@ -13422,7 +13421,6 @@ function ImpSolicitud2($idsol){
      	}
 
      	function buscaContrarecibos(){
-     		
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -19501,13 +19499,18 @@ function ImprimeFacturaPegaso($factura, $destino){
 		//$qr= new qrpegaso;
 		$letras=new NumberToLetterConverter;
 		$usuario=$_SESSION['user']->NOMBRE;
-		$DF=$data->traeDF($ide= 1);
+		@$DF=$data->traeDF($ide= 1);
 		$cabecera=$data->cabeceraUUID($uuid);
 		$partidas=$data->detalleUUID($uuid);
 		$impuestos=$data->impuestosUUID($uuid);
 		$pdf=new FPDF('P','mm','Letter');
        	$pdf->AddPage();
-       	$pdf->Image('app/views/images/logos/'.$DF->RUTA_LOGO,10,3,60,30);
+       	if(isset($DF->RUTA_LOGO)){
+	       	if(file_exists('app/views/images/logos/'.$DF->RUTA_LOGO)){
+	       		$pdf->Image('app/views/images/logos/'.$DF->RUTA_LOGO,10,3,60,30);	
+	       	}       		
+       	}
+
        	$pdf->Ln(35);
         foreach ($cabecera as $dataF) {
         	$uuid = $dataF->UUID;

@@ -176,10 +176,10 @@
                 </div>
             </div>
 
-        <div class="col-md-3">
-          <div class="panel panel-default">
+        <div class="col-md-2">
+          <div class="panel panel-default cu-panel-clie">
               <div class="panel-heading">
-                  <h4><i class="fa fa-list-alt"></i>Ver Pagos Estado de Cuenta</h4>
+                  <h4>Ver Pagos Estado de Cuenta</h4>
               </div>
               <div class="panel-body">
                   <p>Pagos Edo Cuenta</p>

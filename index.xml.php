@@ -48,6 +48,12 @@ else{
 	case 'verRelacion':
 		$controller->verRelacion($_GET['uuid']);
 		break;
+	case 'actTablas':
+		$controller->actTablas();
+		break;
+	case 'p_c':
+		$controller->p_c($_GET['anio'],$_GET['mes']);
+		break;
 	default: 
 		header('Location: index.php?action=login');
 		break;
