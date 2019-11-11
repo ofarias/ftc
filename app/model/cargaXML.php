@@ -127,7 +127,6 @@ class cargaXML extends database {
 			return;
 		}							
 		while(!feof($fp)){
-
 			$linea = fgets($fp);
 			if($l > 0){
 				$d=explode("~", utf8_encode($linea));
@@ -140,10 +139,9 @@ class cargaXML extends database {
 					}
 					$nombre_e=str_replace("'", "", $d[2]);
 					$nombre_r=str_replace("'", "", $d[4]);
-					$this->query="INSERT INTO FTC_META_DATOS (IDMD, UUID, RFCE, NOMBRE_EMISOR, RFCR, NOMBRE_RECEPTOR, RFCPAC, FECHA_EMISION, FECHA_CERTIFICACION, MONTO, EFECTO_COMPROBANTE, STATUS, FECHA_CANCELACION, ARCHIVO, FECHA_CARGA, USUARIO, PROCESADO) 
-									VALUES (NULL, '$d[0]', '$d[1]', '$nombre_e', '$d[3]', '$nombre_r', '$d[5]', '$d[6]','$d[7]', $d[8], '$d[9]', $d[10], ".$fc.", '$archivo', current_timestamp, '$usuario', 0)";
+					$this->query="INSERT INTO FTC_META_DATOS (IDMD, UUID, RFCE, NOMBRE_EMISOR, RFCR, NOMBRE_RECEPTOR, RFCPAC, FECHA_EMISION, FECHA_CERTIFICACION, MONTO, EFECTO_COMPROBANTE, STATUS, FECHA_CANCELACION, ARCHIVO, FECHA_CARGA, USUARIO, PROCESADO, UUID_ORIGINAL) 
+									VALUES (NULL, '$d[0]', '$d[1]', '$nombre_e', '$d[3]', '$nombre_r', '$d[5]', '$d[6]','$d[7]', $d[8], '$d[9]', $d[10], ".$fc.", '$archivo', current_timestamp, '$usuario', 0, (SELECT UUID FROM XML_DATA X WHERE X.UUID CONTAINING('$d[0]')))";
 					$res=$this->grabaBD();
-					
 					if($res==1){
 						$r+=$res;
 						if(strlen($d[11]) > 2){
@@ -179,38 +177,54 @@ class cargaXML extends database {
 
 	function nomMeta(){
 		$path="C:\\xampp\\htdocs\\meta\\";
-		//exit();
+		foreach($_SESSION['coi'] as $emp){
+			!empty($emp['rfc'])? $empr[]=$emp['rfc']:'';
+		}
 		if(file_exists($path)){
 			$files=array_diff(scandir($path), array('.', '..'));
-			//echo 'Cuantos Archivos: '.count($files);
-			$i = 0;
+			$i=0;
 			foreach($files as $file){
 				$i++;
-		    // Divides en dos el nombre de tu archivo utilizando el . 
 		    $data = explode(".", $file);
-		    // Nombre del archivo
-		    $fileName = $data[0];
-		    // Extensión del archivo 
+		    $fileName=$data[0];
 		    @$fileExtension = $data[1];
-		    if($fileExtension=='txt'){
-		        //echo '<br/>'.$i.','.$file.'<br/>';
-		        $f=fopen($path.$file, 'r');
-		        $l=1;
-		         while(!feof($f)) {
-					$linea=fgets($f);
-					$lin=explode('~', $linea);
-					//echo $linea.'<br/>';
-					$nf=$i.'_'.$lin[1]."_".$lin[3]."_".$fileName.".txt";
-					if($l == 2); //echo $lin[1]."-".$lin[3]."<br />";
-					$l++;
-					if($l>2)break;
-				}
-				fclose($f);
-				rename( $path.$file, $path.$nf);
-		        //echo 'Encontramos el archivo: '.$fileName.'.xml';
-		        // Realizamos un break para que el ciclo se interrumpa		        
-		    }
-		}
+		    	if($fileExtension=='txt'){
+		    	    $f=fopen($path.$file,'r');
+		    	    $l=1;
+		    	     while(!feof($f)) {
+						$linea=fgets($f);
+						$lin=explode('~', $linea);
+						$nf=$i.'_'.$lin[1]."_".$lin[3]."_".$fileName.".txt";
+						if($l == 2); //echo $lin[1]."-".$lin[3]."<br />";
+						$l++;
+						if($l>2)break;
+					}
+					fclose($f);
+					rename( $path.$file, $path.$nf);	
+
+					if(in_array($lin[1], $empr)){
+					//echo '<br/> Se encontro el rfc: '.$lin[1].' en el array de empresas';
+						if(file_exists($path.$lin[1])){
+							copy($path.$nf, $path.$lin[1].'\\'.$nf);
+							unlink($path.$nf);
+						}else{
+							mkdir($path.$lin[1]);
+							copy($path.$nf, $path.$lin[1].'\\'.$nf);
+							unlink($path.$nf);
+						}
+					}else{
+					//echo '<br/> No se encontro el rfc: '.$lin[1].' en el array de empresas';
+						if(file_exists($path.$lin[3])){
+							copy($path.$nf, $path.$lin[3].'\\'.$nf);
+							unlink($path.$nf);
+						}else{
+							mkdir($path.$lin[3]);
+							copy($path.$nf, $path.$lin[3].'\\'.$nf);
+							unlink($path.$nf);
+						}
+					}
+		    	}
+			}
 		}
 	}
 
