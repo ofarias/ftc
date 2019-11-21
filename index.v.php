@@ -549,7 +549,7 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	echo json_encode($res);
 	exit();
 }elseif (isset($_POST['chgTipo'])){
-	$res=$controller_v->chgTipo($_POST['tipo'], $_POST['id']);
+	$res=$controller_v->chgTipo($_POST['tipo'], $_POST['id'], $_POST['nt']);
 	echo json_encode($res);
 	exit();
 }
