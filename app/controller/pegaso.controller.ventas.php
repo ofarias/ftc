@@ -4,6 +4,7 @@
 require_once('app/model/pegaso.model.php');
 require_once('app/model/pegaso.model.coi.php');
 require_once('app/model/pegaso.model.ventas.php');
+require_once('app/model/imi.php');
 require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
 require 'app/Classes/pos/autoload.php';
@@ -1584,7 +1585,9 @@ class pegaso_controller_ventas{
     function cargaSae($doc, $folio, $serie, $uuid, $ruta, $rfcr, $tipo){
         if($_SESSION['user']){
             $datav = new pegaso_ventas;
+            $dataimi = new imi;
             $ins=$datav->cargaSae($doc, $folio, $serie, $uuid, $ruta, $rfcr, $tipo);
+            $ins=$dataimi->cargaSaeImi($doc, $folio, $serie, $uuid, $ruta, $rfcr, $tipo);
             return $ins;
         }
     }
@@ -1890,10 +1893,10 @@ class pegaso_controller_ventas{
         $printer->close();
     }
 
-    function chgTipo($tipo, $id){
+    function chgTipo($tipo, $id, $nt){
         if($_SESSION['user']){
             $data = new pegaso_ventas;
-            $cambio = $data->chgTipo($tipo, $id);
+            $cambio = $data->chgTipo($tipo, $id, $nt);
             return $cambio; 
         }
     }

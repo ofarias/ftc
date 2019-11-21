@@ -291,16 +291,16 @@
                                                 $tipo = $datos->TP;  
                                               }
                                               $i++;  
-                                              if($tipo == 'DC'){
+                                              if($tipo == 'DC' or $datos->TIPO == 'DC'){
                                               $desc = 'DEVOLUCION DE COMPRA.';
-                                              }elseif ($tipo =='DG'){
+                                              }elseif ($tipo =='DG' or $datos->TIPO == 'DG'){
                                               $desc = 'DEVOLUCION DE GASTO.';
-                                              }elseif ($tipo == 'oTEC'){
-                                              $desc = 'TRANSFERENCIA ENTRE CUENTAS PROPIAS.';
-                                              }elseif ($tipo == 'oPCC'){
+                                              }elseif ($tipo == 'oTEC' or $datos->TIPO == 'oTEC'){
+                                              $desc = 'TRANSFERENCIA ENTRE CUENTAS PROPIAS.' ;
+                                              }elseif ($tipo == 'oPCC' or $datos->TIPO == 'oPCC'){
                                               $desc = 'PRESTAMO CAJA CHICA,';
                                               }elseif ($tipo == 'Venta'){
-                                                $desc = 'Pago de Factura';
+                                                $desc = 'Aplicacion de Factura';
                                               }elseif($tipo == 'Compra'){
                                                $desc = 'Compra'; 
                                               }elseif(substr($tipo,0,3)== 'GTR' or (substr($tipo,0,3))== 'GEF' or (substr($tipo,0,3)== 'GCH')){
@@ -308,7 +308,10 @@
                                                 $desc1 = 'gasto';
                                               }elseif ($tipo == 'Deudor') {
                                                 $desc = 'Deudor';
+                                              }elseif ($tipo == 'DV') {
+                                                $desc = 'DEVOLUCION DE VENTA';
                                               }
+
                                               if($datos->FA >= 1){
                                                 $desc = 'Acreedor-'.$datos->FA;
                                               }
@@ -319,17 +322,17 @@
 
                                           ?>
                                        <tr class="odd gradeX" <?php echo $color;?> id="<?php echo $i;?>">
-                                            <td><?php echO $datos->TIPO;?></td>
+                                            <td><?php echo $datos->S==4? 'Gasto':$datos->TIPO;?></td>
                                             <td><?php echo $datos->CONSECUTIVO.' / '.$datos->TP_TES.'<br/>'.$datos->OBS;?></td>
                                             <td><?php echo substr($datos->FECHAMOV,0, 10) ;?></td>
                                             <td align="right"><?php echo '$ '.number_format($datos->ABONO,2);?></td>
                                             <td align="right"><?php echo '$ '.number_format($datos->CARGO,2);?></td>
                                             <td align="right"><?php echo '$ '.number_format($datos->SALDO,2);?></td>
                                             <td>
-                                              <?php if($desc == "Pago de Factura"){?>
+                                              <?php if($datos->S == 1 ){?>
                                               <a href="index.php?action=pagoFacturas&idp=<?php echo $datos->IDENTIFICADOR?>" target="_blank"?> <?php echo $desc;?> </a>
-                                            <?php }elseif($datos->TIPO == 'Gasto'){?>
-                                              <a href="index.php?action=detalleGasto&idg=<?php echo $datos->CONSECUTIVO?>" target="_blank">Detalle <?php echo $datos->TIPO?></a>
+                                            <?php }elseif($datos->S == 4){?>
+                                              <a href="index.php?action=detalleGasto&idg=<?php echo $datos->CONSECUTIVO?>" target="_blank">Aplicar <?php echo $desc?></a>
                                               <?php }else{?>
                                               <?php echo $desc;?> 
                                               <?php }?>
@@ -456,12 +459,15 @@
         '<form action="" class="formName">' +
         '<div class="form-group">' +
         '<label>Seleccione el nuevo tipo:</label>' +
-        //'<input type="text" placeholder="Your name" class="name form-control" required />' +
         '<select name="sel" class="sel from-control" required>' +
-          '<option value="trc">Transferencia entre Cuentas</option>'+
-          '<option value="dc">Devolucion de Compra</option>'+
-          '<option value="dv">Devolucion de Venta</option>'+
-          '<option value="ot">Otros Ingresos</option>'+
+          '<option value="oTEC">Transferencia entre Cuentas</option>'+
+          '<option value="DC">Devolucion de Compra</option>'+
+          '<option value="DG">Devolucion de Gasto</option>'+
+          '<option value="DV">Devolucion de Venta</option>'+
+          '<option value="oPCC">Otros Ingresos</option>'+
+          '<option value="oPCC">Otros Egresos</option>'+
+          '<option value="venta">Venta</option>'+
+          '<option value="gasto">Gasto</option>'+ 
         '</select>'+
         '</div>' +
         '</form>',
@@ -470,22 +476,23 @@
                 text: 'Cambiar',
                 btnClass: 'btn-blue',
                 action: function () {
-                    var name = this.$content.find('.sel').val();
+                    var nt = this.$content.find('.sel').val();
                     if(v != 0){
                         $.alert('Solo se puede cambiar Movimientos sin aplicaciones...');
                         return false;
                     }
-                    $.alert('Procede al cambio... a ' + name + ' del tipo: '+ tipo + ' identificador: ' + id);
+                    //$.alert('Procede al cambio... a ' + name + ' del tipo: '+ nt + ' identificador: ' + id);
                     $.ajax({
                       url:'index.v.php',
                       type:'post',
                       dataType:'json',
-                      data:{chgTipo:1, tipo, id},
-                      success:function(){
-                        $.alert('Se efectuo el cambio')
+                      data:{chgTipo:1, tipo, id, nt},
+                      success:function(data){
+                        location.reload(true)
+                        //$.alert(data.mensaje)
                       },
-                      error:function(){
-                        $.alert('No se pudo efectuar el cambio')
+                      error:function(data){
+                        $.alert(data.mensaje)
                       } 
                     })
                 }

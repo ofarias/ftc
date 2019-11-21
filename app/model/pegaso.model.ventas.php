@@ -2020,7 +2020,7 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         if($tipo != 'P'){
             $myFile = fopen("$ruta2", "r") or die("No se ha logrado abrir el archivo ($ruta2)!");
             $myXMLData = fread($myFile, filesize($ruta2));
-            $doc = $serie.'0'.$folio;
+            $doc = $serie.$folio;
             $this->query="EXECUTE PROCEDURE SP_CARGA_CFDI_SAE($folio,'$serie','$doc', '123', '$tipo')";
             $this->EjecutaQuerySimple();
             $this->query = "UPDATE CFDI01 SET XML_DOC = '$myXMLData' WHERE CVE_DOC = '$doc'";
@@ -2393,73 +2393,53 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return array("status"=>'ok');
     }
 
-    function chgTipo($tipo, $id){
+    function chgTipo($tipo, $id, $nt){
         switch ($tipo) {
-            case 1:
-                $tabla = '';
-                $campo = '';
-                $campo3 = '';
-                $tipo2 = '';
+            case 1: //// El tipo define la tabla de donde viene la informacion, el numero 1 es Carga Pagos 
+                if($nt == 'DV' or $nt == 'gasto'){
+                    $res=0;
+                    $m='No se pude Cambiar un ingreso a Devolucion de Venta';
+                    break;
+                }elseif($nt == 'venta'){
+                    $this->query="UPDATE CARGA_PAGOS SET TIPO_PAGO = null where id= $id";
+                }else{
+                    $this->query="UPDATE CARGA_PAGOS SET TIPO_PAGO = '$nt' where id= $id";
+                }    
+                $res=$this->queryActualiza();
                 break;
-            case 1:
-                $tabla = '';
-                $campo = '';
-                $campo3 = '';
-                $tipo2 = '';
+            case 2:
+                /// ESTE TIPO NO SE PUEDE CAMBIAR POR QUE VIENE DE UNA COMPRA DE MATERIAL.
                 break;
-            case 1:
-                $tabla = '';
-                $campo = '';
-                $campo3 = '';
-                $tipo2 = '';
+            case 3:
+                $id = substr($id, 3);
+                $this->query="UPDATE CR_DIRECTO SET TIPO = '$nt' where id=$id";
+                $res = $this->queryActualiza();
                 break;
-            case 1:
-                $tabla = '';
-                $campo = '';
-                $campo3 = '';
-                $tipo2 = '';
+            case 4:
+                $id=substr($id, 3);
+                $this->query="UPDATE GASTOS SET TIPO='$nt' where id=$id";
+                $res = $this->queryActualiza();
                 break;
-            case 1:
-                $tabla = '';
-                $campo = '';
-                $campo3 = '';
-                $tipo2 = '';
+            case 5:
+                $id = substr($id, 3);
+                $this->query="UPDATE CR_DIRECTO SET TIPO = '$nt' where id=$id";
+                $res = $this->queryActualiza();
                 break;
-            case 1:
-                $tabla = '';
-                $campo = '';
-                $campo3 = '';
-                $tipo2 = '';
+            case 6:
+                /// Deudores... esto no se puede cambiar.
                 break;
-            case 1:
-                $tabla = '';
-                $campo = '';
-                $campo3 = '';
-                $tipo2 = '';
+            case 7:
+                /// SOLICITUD DE PAGO. 
+                $id = substr($id, 4);
+                $this->query="UPDATE SOLICITUD_PAGO SET TIPO = '$nt' where idsol = $id";
+                $res = $this->queryActualiza();
                 break;
-            case 1:
-                $tabla = '';
-                $campo = '';
-                $campo3 = '';
-                $tipo2 = '';
+            case 8:
+                /// FTC_POC  no se pueden cambiar las compras. 
                 break;
-            case 1:
-                $tabla = '';
-                $campo = '';
-                $campo3 = '';
-                $tipo2 = '';
-                break;
-            case 1:
-                $tabla = '';
-                $campo = '';
-                $campo3 = '';
-                $tipo2 = '';
-                break;         
             default:
                 break;
         }
-        $this->query="UPDATE $tabla set $campo = '$tipo2' where $campo3 = $id";
-        $res=$this->queryActualiza();
         if($res > 0){
             $m='Se ha realizado el cambio. :)';
         }else{

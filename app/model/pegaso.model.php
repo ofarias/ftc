@@ -9990,8 +9990,8 @@ function VerCobranzaC($cc){
         	$autorizacion = '1';
         	$estatus = 'P';
     	}
-    	$this->query = "INSERT INTO GASTOS(STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, AUTORIZACION, PRESUPUESTO, TIPO_PAGO, MONTO_PAGO, MOV_PAR, NUM_PAR, USUARIO, IVA_GEN, IVA_RET, ISR_RET, FLETE_RET, FECHA_DOC, VENCIMIENTO,TOTAL,SALDO,CLASIFICACION)
-                        	VALUES ('$estatus',$concepto,'$proveedor','$referencia','$autorizacion',$presupuesto,'$tipopago',$monto,'$movpar',$numpar,'$usuario',$iva_generado,$iva_retenido,$isr_retenido,$flete_retenido,'$fechadoc','$fechaven',$total,$monto,$clasificacion);";
+    	$this->query = "INSERT INTO GASTOS(STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, AUTORIZACION, PRESUPUESTO, TIPO_PAGO, MONTO_PAGO, MOV_PAR, NUM_PAR, USUARIO, IVA_GEN, IVA_RET, ISR_RET, FLETE_RET, FECHA_DOC, VENCIMIENTO,TOTAL,SALDO,CLASIFICACION,TIPO)
+                        	VALUES ('$estatus',$concepto,'$proveedor','$referencia','$autorizacion',$presupuesto,'$tipopago',$monto,'$movpar',$numpar,'$usuario',$iva_generado,$iva_retenido,$isr_retenido,$flete_retenido,'$fechadoc','$fechaven',$total,$monto,$clasificacion, 'Gasto');";
     	$resultado = $this->EjecutaQuerySimple();
     	//echo $this->query;
     	return $resultado;
@@ -10772,7 +10772,7 @@ function Pagos() {
     		$data[]=$tsArray;
     	}
     	
-    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort, 'Gasto' AS TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, TIPO_PAGO as tp_tes, REFERENCIA as obs
+    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort,  TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, TIPO_PAGO as tp_tes, REFERENCIA as obs
     			FROM GASTOS g
     			left join pago_gasto pg on pg.idgasto = g.id
     			WHERE pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') 
@@ -27024,7 +27024,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs' ) ";
 				$this->grabaBD();
 			}elseif($key['ca']=='c'){
-				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha') RETURNING ID";
+				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto') RETURNING ID";
 				$foliog=$this->grabaBD();
 				$row=ibase_fetch_object($foliog);
 				switch ($tipo) {

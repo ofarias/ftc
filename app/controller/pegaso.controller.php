@@ -20110,6 +20110,7 @@ function ImprimeFacturaPegaso($factura, $destino){
 	function facturacionCargaXML($files2upload, $tipo){
         if (isset($_SESSION['user'])) {            
             $data = new pegaso;
+            $data2 = new imi;
             $valid_formats = array("xml", "XML");
             $max_file_size = 1024 * 1000; //1000 kb
             if($tipo == 'F'){
@@ -20146,6 +20147,7 @@ function ImprimeFacturaPegaso($factura, $destino){
                         	    if (move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name)){
                         	        $count++; // Number of successfully uploaded file
 									$respuesta += $data->insertarArchivoXMLCargado($archivo, $tipo, $a);
+									$res= $data2->insertarArchivoXMLCargado($archivo, $tipo, $a);
 									//unlink($_FILES["files"]["tmp_name"][$f]);
                         	    }
                         	} else {
