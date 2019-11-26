@@ -7,7 +7,11 @@
                         <p><?php echo 'Usuario: '.$_SESSION['user']->NOMBRE?></p>
                         <p><?php echo 'RFC seleccionado: '.$_SESSION['rfc']?></p>
                         <p><?php echo 'Empresa Seleccionada: <b>'.$_SESSION['empresa']['nombre']."</b>"?></p>  
-                        <p><?php echo 'Se muestran los XML '.$ide." del mes ".$mes." del ".$anio?></p>
+                        <?php if($mes == 0 ){?>
+                            <p><?php echo 'Se muestran los XML '.$ide.' del ejercicio '.$anio?></p>    
+                        <?php }else{?>
+                            <p><?php echo 'Se muestran los XML '.$ide." del mes ".$mes." del ".$anio?></p>
+                        <?php }?>
                         <p>Ver impuestos &nbsp;&nbsp;Si: <input type="radio" name="verImp" id="verImp" class="imp" value="si"> &nbsp;&nbsp;No: <input type="radio" name="verImp" id="NoverImp" class="imp" value="no">&nbsp;&nbsp;&nbsp;&nbsp; <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descargar a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','x')"></font>
                             <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descarga Partidas a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','xp')"></font>
                             <?php if($cnxcoi=='si'){?>
@@ -143,10 +147,32 @@
                                             <td><?php echo '$ '.number_format($key->IMPORTEXML,2);?> </td>
                                             <td><?php echo '<b>'.$key->MONEDA.'<b/>';?> </td>
                                             <td><?php echo '$ '.number_format($key->TIPOCAMBIO,2);?> </td>
-                                            <td>
+                                            <td align="center">
                                                 <a href="index.php?action=verXML&uuid=<?php echo $key->UUID?>&ide=<?php echo $ide?>" class="btn btn-info" target="popup" onclick="marcar(<?php echo $ln?>, 'c'); window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar </a>
                                                 <center><input type="checkbox" name="revision" id="<?php echo $ln?>" value="<?php echo $ln?>" color="<?php echo $color2?>" onclick="marcar(this.value, 'cb')" ></center>
                                                 <br/>
+                                                <?php if($ide == 'Recibidos'){?>
+                                                    <select name="tipo" >
+                                                        <option value="">¿Tipo?</option>
+                                                        <option value="c">Compra</option>
+                                                        <option value="g">Gasto</option>
+                                                        <option value="i">Intereses Pagados</option>
+                                                        <option value="c">Comisiones</option>
+                                                        <option value="m">Mixto</option>
+                                                        <option value="eo">Otros</option>
+                                                        <option value="il">Pago de Impuestos</option>
+                                                        <option value="sg">Pago IMSS</option>
+                                                        <option value="en">No Deducible</option>
+                                                    </select>
+                                                <?php }else{?>
+                                                    <select name="tipo">
+                                                        <option value="">¿Tipo?</option>
+                                                        <option value="v">Venta</option>
+                                                        <option value="a">Anticipo</option>
+                                                        <option value="io">Otros</option>
+                                                        <option value="in">No Deducible</option>
+                                                    </select>
+                                                <?php }?>
                                             </td>
                                             <form action="index.php" method="POST">
                                                     <input type="hidden" name="factura" value="<?php echo $key->SERIE.$key->FOLIO?>">
@@ -163,6 +189,7 @@
                                                     <?php }?>
                                                     &nbsp;&nbsp;
                                                     <a href="index.php?action=imprimeUUID&uuid=<?php echo $key->UUID?>" onclick="alert('Se ha descargar tu factura, revisa en tu directorio de descargas')"><img border='0' src='app/views/images/pdf.jpg' width='25' height='30'></a>
+                                                
                                                 <?php if($_SESSION['rfc']== 'IMI161007SY7'){?>
                                                     <input type="button" value="" class="btn-sm btn-info cargaSAE" doc="<?php echo $key->SERIE.$key->FOLIO?>" ruta="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->CLIENTE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" serie="<?php echo $key->SERIE?>" folio ="<?php echo $key->FOLIO?>" uuid="<?php echo $key->UUID?>" rfcr="<?php echo $key->CLIENTE?>" ln="<?php echo $ln?>" tipo="<?php echo $doc?>">
                                                 <?php }?>

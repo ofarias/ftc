@@ -80,7 +80,8 @@
                         <p>Monto Anual: </p>
                         <p>Sub Total: <?php echo '$ '.number_format($a->EGRESOSS,2)?></p>
                         <p>Total: <?php echo '$ '.number_format($a->EGRESOST,2)?></p>
-                        <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $a->TIPO?>" class="btn btn-info" title="Ver XMLs">Ver</a>&nbsp;&nbsp;&nbsp;<a href="index.xml.php?action=zipXML&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $a->TIPO?>" class="btn btn-success" title="Descarga de XML en ZIP">Zip</a></a>&nbsp;&nbsp;&nbsp;<a href="index.xml.php?action=p_c&anio=<?php echo $a->ANIO?>&mes=0?>" target="_blank" title="Pagado & Cobrado" class="btn btn-warning">P / C</a></center>
+                        <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $a->TIPO?>" class="btn btn-info" title="Ver XMLs">Ver</a>&nbsp;&nbsp;&nbsp;<a href="index.xml.php?action=zipXML&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $a->TIPO?>" class="btn btn-success" title="Descarga de XML en ZIP">Zip</a></a>&nbsp;&nbsp;&nbsp;<a href="index.xml.php?action=p_c&anio=<?php echo $a->ANIO?>&mes=0?>" target="_blank" title="Pagado & Cobrado" class="btn btn-warning">P / C</a>
+                            <a href="index.e.php?action=stat&mes=0&anio=<?php echo $a->ANIO?>&tipo=<?php echo $a->TIPO?>">E</a></center>
                     </div>
                 </div>
             </div>                 
