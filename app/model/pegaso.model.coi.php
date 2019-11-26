@@ -1609,12 +1609,13 @@ class CoiDAO extends DataBaseCOI {
             }else{
                 $nat0 = 'D';
             }
+
             $this->query="INSERT INTO $tbPol(TIPO_POLI, NUM_POLIZ, PERIODO, EJERCICIO, FECHA_POL, CONCEP_PO, NUM_PART, LOGAUDITA, CONTABILIZ, NUMPARCUA, TIENEDOCUMENTOS, PROCCONTAB, ORIGEN, UUID, ESPOLIZAPRIVADA, UUIDOP) 
-                                values ('$tipo','$folio', $periodo, $ejercicio, '$pol->FECHA_EDO_CTA', '$pol->DOC'||' $concepto', 0, '', 'N', 0, 1, 0, substring('PHP $usuario' from 1 for 15),'', 0, '')";
+                                values ('$tipo','$folio', $periodo, $ejercicio, '$pol->FECHA_EDO_CTA', substring( ('$pol->DOC'||' $concepto') from 1 for 120), 0, '', 'N', 0, 1, 0, substring('PHP $usuario' from 1 for 15),'', 0, '')";
             $this->grabaBD();
             //echo '<br/>Inserta Poliza:'.$this->query.'<br/>';
             $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
-                                values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$pol->FECHA_EDO_CTA', '$pol->DOC'||'  $concepto', '$nat0' , $pol->MONTO_PAGO, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
+                                values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$pol->FECHA_EDO_CTA', substring( ('$pol->DOC'||'  $concepto') from 1 for 120), '$nat0' , $pol->MONTO_PAGO, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
             $this->grabaBD();  
             //echo '<br/> Inserta Primer Partida'.$this->query.'<br/>';
             /// Validacion para la insercion de UUID.
@@ -1635,9 +1636,9 @@ class CoiDAO extends DataBaseCOI {
                 }else{
                     $con = 'Compra';
                 }
-                $this->query="UPDATE $tbAux SET CONCEP_PO = '$pol->DOC'||' $con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
+                $this->query="UPDATE $tbAux SET CONCEP_PO = substring('$pol->DOC'||' $con'||' '||CONCEP_PO from 1 for 120) where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
                 $this->queryActualiza();
-                $this->query="UPDATE $tbPol SET CONCEP_PO = '$pol->DOC'||' $con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
+                $this->query="UPDATE $tbPol SET CONCEP_PO = substring('$pol->DOC'||' $con'||' '||CONCEP_PO from 1 for 120) where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
                 $this->queryActualiza();
             }
             $cuenta = '';
