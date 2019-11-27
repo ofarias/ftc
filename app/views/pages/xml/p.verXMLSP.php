@@ -158,19 +158,21 @@
                                                         <option value="g">Gasto</option>
                                                         <option value="i">Intereses Pagados</option>
                                                         <option value="c">Comisiones</option>
-                                                        <option value="m">Mixto</option>
+                                                        <option value="cm">Mixto</option>
                                                         <option value="eo">Otros</option>
                                                         <option value="il">Pago de Impuestos</option>
                                                         <option value="sg">Pago IMSS</option>
-                                                        <option value="en">No Deducible</option>
+                                                        <option value="en">No Deducible / Desconocido</option>
                                                     </select>
                                                 <?php }else{?>
                                                     <select name="tipo">
                                                         <option value="">¿Tipo?</option>
-                                                        <option value="v">Venta</option>
+                                                        <option value="p">Producto</option>
+                                                        <option value="p">Servicio</option>
+                                                        <option value="vx">Mixto</option>
                                                         <option value="a">Anticipo</option>
                                                         <option value="io">Otros</option>
-                                                        <option value="in">No Deducible</option>
+                                                        <option value="in">No Deducible / Desconocido</option>
                                                     </select>
                                                 <?php }?>
                                             </td>

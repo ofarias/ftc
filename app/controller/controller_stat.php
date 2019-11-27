@@ -29,10 +29,10 @@ class statics_c{
 	}
 
 	
-	function verEstadistica($mes, $anio, $tipo){
+	function verEstadistica($mes, $anio, $tipo, $t){
 		if($_SESSION['user']){
 			$data = new statics;
-			$info=$data->verEstadistica($mes, $anio, $tipo);
+			$info=$data->verEstadistica($mes, $anio, $tipo, $t);
 			$pagina =$this->load_template2('Estadistica de '.$tipo);
 			$html=$this->load_page('app/views/pages/Estadistica/p.verEstadistica.php');
 	   		ob_start();

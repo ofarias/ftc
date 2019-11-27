@@ -20,7 +20,7 @@ if (isset($_POST['e'])){
 }
 else{switch ($_GET['action']){
 	case 'stat':
-		$controller_stat->verEstadistica($_GET['mes'], $_GET['anio'], $_GET['tipo']);
+		$controller_stat->verEstadistica($_GET['mes'], $_GET['anio'], $_GET['tipo'], $_GET['t']);
 		break;
 	case 'detStat':
 		$controller_stat->detStat($_GET['cliente'], $_GET['mes'], $_GET['anio'],$_GET['tipo']);
