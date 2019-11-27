@@ -264,11 +264,8 @@ if (empty($exec)){
             </div>
         </div>
 </div>
-<?php }
-else
-
-{ 
-?>
+<!-- No cerrado -->
+<?php }else{ ?>
 <br /><br />
 <div class="row">
                 <div class="col-lg-12">

@@ -10728,9 +10728,12 @@ function Pagos() {
     	//echo $this->query;
     	$row=ibase_fetch_object($rs);
     	if(empty($row)){
-    		$inicial = 0;
+    		$this->CuentasBancarias($banco, $cuenta);
+    		$rs=$this->EjecutaQuerySimple();
+    		$row= ibase_fetch_object($rs);
+    		$inicial = $row->SALDOI;
     	}else{
-    		$inicial =$row->INICIAL;
+    		$inicial = $row->INICIAL;
     	}
     	//exit($inicial);
     	return $inicial;
@@ -10764,7 +10767,7 @@ function Pagos() {
     		   where BANCO = ('$banco'||' - '||'$cuenta') 
     		   		and fecha_recep between '$fechaIni' and '$fechafin'
     		   		and extract(year from fecha_recep) = $anio 
-    		   		AND STATUS <> 'C' and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  
+    		   		AND STATUS <> 'C' and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  and (guardado = 0 or guardado is null)
     		   		order by fecha_recep asc";
     	//echo $this->query;
     	$rs=$this->QueryObtieneDatosN();
@@ -10879,9 +10882,9 @@ function Pagos() {
     		   where BANCO = ('$banco'||' - '||'$cuenta') 
     		   		and fecha_recep between '$fechaIni' and '$fechafin'
     		   		and extract(year from fecha_recep) = $anio 
-    		   		AND STATUS <> 'C' and (seleccionado = 2)  
+    		   		AND STATUS <> 'C' and guardado =1  
     		   		order by fecha_recep asc";
-    	//echo $this->query;
+    	//echo '<br/>'.$this->query.'<br/>';
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
@@ -13235,17 +13238,21 @@ function Pagos() {
 			$corte = $bn->DIA_CORTE;
 			$fechaIni=$corte.'.'.$mes.'.'.$anio;
 			if($corte == 1){
-				$fechafin=($corte).'.'.($mes+1).'.'.$anio;
+				$month = $anio.'-'.$mes;
+				$aux = date('Y-m-d', strtotime("{$month} + 1 month"));
+				$last_day = date('d.m.Y', strtotime("{$aux} - 1 day"));
+				$fechafin=($last_day);/// extraer el ultimo dia del mes. 
 			}else{
 				$fechafin=($corte-1).'.'.($mes+1).'.'.$anio;
 			}
+
 		###########################################################
     	$this->query="SELECT SUM(MONTO) AS MONTO FROM CARGA_PAGOS 
     				WHERE Banco = (trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' 
     				and fecha_recep between '$fechaIni' and '$fechafin'
     		   		and extract(year from fecha_recep) = $anio ";
     	$rs=$this->QueryObtieneDatosN();
-    	//echo $this->query;
+    	//echo '<br/>'.$this->query.'<br/>';
     	$row=ibase_fetch_object($rs);
     	$data = $row->MONTO;
     	return @$data;
@@ -13253,6 +13260,7 @@ function Pagos() {
 
     function ventasMensual($mes, $banco, $cuenta, $anio){
     	$this->query="SELECT iif(SUM(MONTO) is null, 0, sum(monto)) AS MONTO FROM CARGA_PAGOS WHERE EXTRACT(MONTH FROM FECHA_RECEP) = $mes and extract(year from fecha_recep) = $anio and Banco = (trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago is null and (seleccionado >= 1 or seleccionado = 2) and guardado = 1" ;
+    	//echo $this->query;
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
     	$data=$row->MONTO;
