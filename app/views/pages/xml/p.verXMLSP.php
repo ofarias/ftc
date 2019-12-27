@@ -107,6 +107,7 @@
                                             }
                                         ?>
                                         <tr class="<?php echo $test?> odd gradeX " <?php echo $color ?> title="<?php echo $descSta?>" id="ln_<?php echo $ln?>" >
+
                                             <td><?php echo $ln?></td>
                                             <td><?php echo $test.'<br/><font color="blue">'.$key->POLIZA.'</font>'?></td>
                                             <td <?php echo ($key->CEPA!='')? 'title="Ver el CEP"':'' ?>>
@@ -125,7 +126,7 @@
                                                     }
                                                     ?>
                                                 </b></font> </td>
-                                            <td><?php echo $tipo?></td>
+                                            <td><?php echo $tipo?><br/><font color='blue'><?php echo $key->METODOPAGO.'<br/>'.$key->FORMAPAGO.'<br/>'.$key->USO?></font></td>
                                             <td title="01--> Nota de crédito de los documentos relacionados&#10;02 --> Nota de débito de los documentos relacionados&#10;03 --> Devolución de mercancía sobre facturas o traslados previos&#10;04 --> Sustitución de los CFDI previos&#10;05 --> Traslados de mercancias facturados previamente&#10;06 --> Factura generada por los traslados previos&#10;07 --> CFDI por aplicación de anticipo "><?php echo $key->SERIE.$key->FOLIO?><br/>
                                                 <?php if(!empty($key->RELACIONES)){?>
                                                 <a href="index.xml.php?action=verRelacion&uuid=<?php echo $key->UUID?>" target="_blank"><font color="blue">
@@ -147,7 +148,7 @@
                                             <td><?php echo '$ '.number_format($key->IMPORTEXML,2);?> </td>
                                             <td><?php echo '<b>'.$key->MONEDA.'<b/>';?> </td>
                                             <td><?php echo '$ '.number_format($key->TIPOCAMBIO,2);?> </td>
-                                            <td align="center">
+                                            <td align="center" title="" id="ia_<?php echo $ln?>" class="infoAdicional" >
                                                 <a href="index.php?action=verXML&uuid=<?php echo $key->UUID?>&ide=<?php echo $ide?>" class="btn btn-info" target="popup" onclick="marcar(<?php echo $ln?>, 'c'); window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar </a>
                                                 <center><input type="checkbox" name="revision" id="<?php echo $ln?>" value="<?php echo $ln?>" color="<?php echo $color2?>" onclick="marcar(this.value, 'cb')" ></center>
                                                 <br/>
@@ -215,9 +216,10 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
-
-   
-
+    $(".infoAdicional").mouseover(function(){
+        var id =$(this).attr('id')
+        document.getElementById(id).
+    })
 
     function cargaParam(){
         $.confirm({

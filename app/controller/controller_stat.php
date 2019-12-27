@@ -50,6 +50,7 @@ class statics_c{
 			$data = new statics;
 			$info = $data->detStat($cliente, $mes, $anio , $tipo);
 			$meses=array("Enero"=>1, "Febrero"=>2, "Marzo"=>3, "Abril"=>4, "Mayo"=>5, "Junio"=>6, "Julio"=>7,"Agosto"=>8,"Septiembre"=>9, "Octubre"=>10, "Noviembre"=>11,"Diciembre"=>12,);
+
 			$pagina =$this->load_template2('Estadistica de '.$cliente);
 			$html=$this->load_page('app/views/pages/Estadistica/p.detalleEstadistica.php');
 	   		ob_start();

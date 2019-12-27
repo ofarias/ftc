@@ -21,7 +21,8 @@
             }
         } 
     ?>
-    
+    <img src="app/views/pages/graphs/blocks.graph.php" width="200px" height="200px" />
+
 </div>
 
 <!--
