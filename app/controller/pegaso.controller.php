@@ -14469,13 +14469,10 @@ function ImpSolicitud2($idsol){
 
 
     function guardaFTCART($ids, $clave, $categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $cotizacion, $cliente,  $costo_t, $costo_oc, $tipo, $doco, $par, $iva_v, $ieps_v, $precio_v){
-    	
     	if($_SESSION['user']){
     		$data = new pegaso;
     		ob_start();
-
     		$guarda=$data->guardaFTCART($ids, $clave, $categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $cotizacion, $cliente,  $costo_t, $costo_oc, $tipo,  $doco, $par, $iva_v, $ieps_v, $precio_v);
-
     		if($tipo == 'costo' or $cotizacion == 0){
     			$pagina=$this->load_template('Pedidos');
             	$html = $this->load_page('app/views/pages/p.cerrarventana.php');
@@ -14491,7 +14488,6 @@ function ImpSolicitud2($idsol){
     }
 
     function produccionFTCART($ids){
-    	
     	if($_SESSION['user']){
     		$data= new pegaso;
     		$datav = new pegaso_ventas;
@@ -19091,7 +19087,7 @@ function ImpSolicitud2($idsol){
   		}
   	}
 
-function ImprimeFacturaPegaso($factura, $destino){
+	function ImprimeFacturaPegaso($factura, $destino){
   		$data= new pegaso;
 		$qr= new qrpegaso;	
 		$letras=new NumberToLetterConverter;

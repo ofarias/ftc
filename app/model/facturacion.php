@@ -301,7 +301,12 @@ class factura extends database {
 										"rfc"=>"$cl->RFC",
 										"correo"=>"ofarias@ftcenlinea.com"
 										);
-					$df =array( "conceptos"=>$conceptos,
+					$df =array( "id_transaccion"=>0,
+					  			"cuenta"=>strtolower($rowDF->RFC),
+					  			"user"=>'administrador',
+					  			"password"=>$rowDF->CONTRASENIA,
+					  			"getPdf"=>true,
+					  			"conceptos"=>$conceptos,
 								"datos_factura"=>$datos_factura,
 								"method"=>'nueva_factura', 
 								"cliente"=>$json_cliente
@@ -740,14 +745,15 @@ class factura extends database {
 			$fp=fwrite($fp, $t);
 			
 			
-			$df=array("client"=>"cfdfactura",
+			$df=array(
+					  "id_transaccion"=>0,
+					  "cuenta"=>strtolower($rowDF->RFC),
+					  "user"=>'administrador',
+					  "password"=>$rowDF->CONTRASENIA,
+					  "getPdf"=>true,
+					  "client"=>"cfdfactura",
 					  "include_stamps"=>"true",
 					  "xml_version"=>"3.3",
-					  "cuenta"=>"fpe980326gh9",
-					  "method"=>"cfd2cfdi",
-					  "user"=>"administrador",
-					  "password"=>"$3PAue75",
-					  "RFC"=>"FPE980326GH9",
 					  "xml_data"=>$xmlData
 						);
 

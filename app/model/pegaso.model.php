@@ -10728,9 +10728,12 @@ function Pagos() {
     	//echo $this->query;
     	$row=ibase_fetch_object($rs);
     	if(empty($row)){
-    		$inicial = 0;
+    		$this->CuentasBancarias($banco, $cuenta);
+    		$rs=$this->EjecutaQuerySimple();
+    		$row= ibase_fetch_object($rs);
+    		$inicial = $row->SALDOI;
     	}else{
-    		$inicial =$row->INICIAL;
+    		$inicial = $row->INICIAL;
     	}
     	//exit($inicial);
     	return $inicial;
@@ -10764,7 +10767,7 @@ function Pagos() {
     		   where BANCO = ('$banco'||' - '||'$cuenta') 
     		   		and fecha_recep between '$fechaIni' and '$fechafin'
     		   		and extract(year from fecha_recep) = $anio 
-    		   		AND STATUS <> 'C' and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  
+    		   		AND STATUS <> 'C' and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  and (guardado = 0 or guardado is null)
     		   		order by fecha_recep asc";
     	//echo $this->query;
     	$rs=$this->QueryObtieneDatosN();
@@ -10879,9 +10882,9 @@ function Pagos() {
     		   where BANCO = ('$banco'||' - '||'$cuenta') 
     		   		and fecha_recep between '$fechaIni' and '$fechafin'
     		   		and extract(year from fecha_recep) = $anio 
-    		   		AND STATUS <> 'C' and (seleccionado = 2)  
+    		   		AND STATUS <> 'C' and guardado =1  
     		   		order by fecha_recep asc";
-    	//echo $this->query;
+    	//echo '<br/>'.$this->query.'<br/>';
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
@@ -13235,17 +13238,21 @@ function Pagos() {
 			$corte = $bn->DIA_CORTE;
 			$fechaIni=$corte.'.'.$mes.'.'.$anio;
 			if($corte == 1){
-				$fechafin=($corte).'.'.($mes+1).'.'.$anio;
+				$month = $anio.'-'.$mes;
+				$aux = date('Y-m-d', strtotime("{$month} + 1 month"));
+				$last_day = date('d.m.Y', strtotime("{$aux} - 1 day"));
+				$fechafin=($last_day);/// extraer el ultimo dia del mes. 
 			}else{
 				$fechafin=($corte-1).'.'.($mes+1).'.'.$anio;
 			}
+
 		###########################################################
     	$this->query="SELECT SUM(MONTO) AS MONTO FROM CARGA_PAGOS 
     				WHERE Banco = (trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' 
     				and fecha_recep between '$fechaIni' and '$fechafin'
     		   		and extract(year from fecha_recep) = $anio ";
     	$rs=$this->QueryObtieneDatosN();
-    	//echo $this->query;
+    	//echo '<br/>'.$this->query.'<br/>';
     	$row=ibase_fetch_object($rs);
     	$data = $row->MONTO;
     	return @$data;
@@ -13253,6 +13260,7 @@ function Pagos() {
 
     function ventasMensual($mes, $banco, $cuenta, $anio){
     	$this->query="SELECT iif(SUM(MONTO) is null, 0, sum(monto)) AS MONTO FROM CARGA_PAGOS WHERE EXTRACT(MONTH FROM FECHA_RECEP) = $mes and extract(year from fecha_recep) = $anio and Banco = (trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago is null and (seleccionado >= 1 or seleccionado = 2) and guardado = 1" ;
+    	//echo $this->query;
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
     	$data=$row->MONTO;
@@ -15236,19 +15244,15 @@ function Pagos() {
     }
 
     function guardaFTCART($ids, $clave, $categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $cotizacion, $cliente, $costo_t, $costo_oc, $tipo, $doco, $par, $iva_v, $ieps_v, $precio_v){
-
     	$usuario = $_SESSION['user']->NOMBRE;
-
     	$this->query="SELECT ftca.*, ftcp.nombre, ftcp.clave as cveart FROM FTC_Articulos ftca left join PRODUCTO_FTC ftcp on ftcp.clave_ftc = ftca.id  WHERE ftca.ID = $ids";
     	$rs=$this->EjecutaQuerySimple();
     	$row=ibase_fetch_object($rs);
     	$nomprod = $row->NOMBRE;
     	$cveart = $row->CVEART;
-    	
     	$this->query="INSERT INTO REG_COSTOS (ID, CLAVE_PROV, NOMBRE_PROV, CLAVE_PROD, NOMBRE_PROD, COSTO_O, COSTO_N, DIF, TIPO, FECHA, USUARIO, CLAVE_PROV_NUEVO, NOMBRE_PROV_NUEVO )
     					VALUES (NULL, substring('$row->CLAVE_DISTRIBUIDOR' from 1 for 10) , substring('$row->CLAVE_DISTRIBUIDOR' from 13 for 80), '$cveart', '$nomprod', $row->COSTO_T, $costo_t , ($row->COSTO_T - $costo_prov1), '$tipo', current_timestamp, '$usuario',substring('$prov1' from 1 for 10) , substring('$prov1' from 13 for 80))";
     	$this->EjecutaQuerySimple();
-    	
     	if($descripcion == $generico or $generico == ''){
     		$desc = $descripcion;
     	}else{
@@ -15317,14 +15321,10 @@ function Pagos() {
     	return $tipo;
     }
 
-
-
     function produccionFTCART($ids){
     	$this->query="UPDATE FTC_Articulos SET STATUS = 'A', fecha_alta = current_timestamp WHERE ID = $ids";
     	$rs=$this->EjecutaQuerySimple();
-
     	// Inserta en Inventario
-
     	$this->query = "INSERT into inve01 (CVE_ART, DESCR, UNI_MED, UNI_ALT,CON_SERIE, TIP_COSTEO, NUM_MON, CON_LOTE, CON_PEDIMENTO, CVE_ESQIMPU, STATUS, MAN_IEPS, APL_MAN_IEPS, TIPO_ELE, fac_conv) 
     						values ('PGS$ids',
     		(SELECT substring( 
@@ -15370,7 +15370,7 @@ function Pagos() {
     	$this->query="INSERT INTO MULT01 VALUES('PGS$ids', 1, 'A','', 0, 0, 0, 0 , null, null)";
     	$rs=$this->EjecutaQuerySimple();
     	//echo 'Inserta Campos libres: '.$this->query;
-    	/// Inserta en los precios
+    	// Inserta en los precios
     	
     	$this->query="SELECT MAX(CVE_PRECIO) as precios FROM PRECIOS01";
     	$rs=$this->QueryObtieneDatosN();
@@ -15404,7 +15404,8 @@ function Pagos() {
 				$this->query="INSERT INTO FTC_COTIZACION_DETALLE (CDFOLIO, CVE_ART, FLCANTID, DBIMPPRE,DBIMPCOS, DBIMPDES ) VALUES($row->COTIZACION, $row->ID, $row->CANTSOL, $precSug, $row->COSTO_T, 0)";
 	   			$res=$this->EjecutaQuerySimple();
 	   		}
-	   		//// echo $this->query;
+	   		//echo $this->query;
+	   		//exit();
     	return $folio;
     }
     
@@ -15446,13 +15447,14 @@ function Pagos() {
 
     function creaProductoFTC($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $clave, $costo_t, $costo_oc, $iva_v, $ieps_v, $precio_v){
     	$this->query="INSERT INTO FTC_ARTICULOS VALUES (
-    			NULL,'$linea','$categoria','$generico','$sinonimos','$calificativo','$medidas','$clave','$marca','$unidadmedida',$empaque,'$prov1','$codigo_prov1','','$sku',$costo_total,$costo_prov1,0,'A','DIRECTO COMPRAS',0, $desc1,$desc2,$desc3,$desc4,$desc5,'$descripcion','$iva',current_date,$impuesto,$costo_t,$costo_oc,0,NULL, NULL,'', $iva_v, $ieps_v, $precio_v)";
+    			NULL,'$linea','$categoria','$generico','$sinonimos','$calificativo','$medidas','$clave','$marca','$unidadmedida',$empaque,'$prov1','$codigo_prov1','','$sku',$costo_total,$costo_prov1,0,'A','DIRECTO COMPRAS',0, $desc1,$desc2,$desc3,$desc4,$desc5,'$descripcion','$iva',current_date,$impuesto,$costo_t,$costo_oc,0,NULL, NULL,'', $iva_v, $ieps_v, $precio_v) RETURNING ID";
     	$a=$this->query;
     	$rs=$this->grabaBD();
     	$row= ibase_fetch_object($rs);
     	if(empty($row->ID)){
     		echo '<br/> Fallo al insertar el producto '.$codigo_prov1.'<br/>';
-    		echo $a;
+    		//echo $a;
+    		//exit();
     		return;
     	}
     	$this->query="SELECT MAX(ID) AS ID FROM FTC_Articulos";
@@ -24584,12 +24586,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID) 
     						AS VARCHAR(300)) , '') AS CEPA
     					,COALESCE(
-    						CAST( (SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL WHERE R.UUID = X.UUID) AS VARCHAR(200)
+    						CAST( (SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) AS VARCHAR(200)
     						), ''
     						) AS RELACIONES
 						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F' or x.status = 'C') $uuid";
-						
-    	}else{
+		}else{
     				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
     					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
@@ -24601,7 +24602,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID) 
     						AS VARCHAR(300)) , '') AS CEPA
     					,COALESCE(
-    						CAST( (SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL WHERE R.UUID = X.UUID) AS VARCHAR(200)
+    						CAST( (SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) AS VARCHAR(200)
     						), ''
     						) AS RELACIONES
 						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 

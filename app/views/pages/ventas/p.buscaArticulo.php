@@ -617,7 +617,7 @@
 
        //alert('Llegan las variables' + id +' , ' + porc  + ', ' + precio + ', ' + costo +  ', ' +  tipo +  ', '+ mm + ', ' + desc + ', ' + tipo2);
         
-       var porcentaje = 9.9;
+       var porcentaje = 5;
         if(mm != 0){
             porcentaje = mm;
         }
