@@ -226,7 +226,9 @@ class controller_coi{
 			$data_coi = new CoiDAO;
 			$cabecera = $data->detalleGasto($idp, $tip='z', $obs);
 			$detalle = $data->aplicacionesGasto($idp, $t='c');
-			$impuestos2=$data->impuestosPolizaFinal($uuid=$detalle['uuid']);
+			
+			$impuestos2=$data->impuestosPolizaFinalDetImp($uuid=$detalle['uuid'], $por=$detalle['por']); // $impuestos= $data2->impuestosPolizaFinalDetImp($uuid, $por);
+
 			$crear = $data_coi->creaPolizaGasto($cabecera , $detalle=$detalle['datos'], $tipo, $impuestos2, $z);
 			if($crear['status'] == 'ok' ){
 				$act=$data->actGasto($crear, $detalle, $idp);
