@@ -1320,6 +1320,8 @@ class CoiDAO extends DataBaseCOI {
                 }
         }
         $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo);
+        #### Revisa Cuadre de la poliza ####
+        $this->revisaCuadre($pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol);
         return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Dr'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
     }
 
@@ -1348,6 +1350,21 @@ class CoiDAO extends DataBaseCOI {
             }
         }
        return;
+    }
+
+    function revisaCuadre($pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x, $tbPol){
+        if($x=='I'){
+            $this->query="UPDATE $tbPol P SET  P.NUMPARCUA = 1 WHERE (select SUM(CASE WHEN A.DEBE_HABER = 'H' THEN A.MONTOMOV ELSE 0 END) - SUM(CASE WHEN A.DEBE_HABER = 'D' THEN A.MONTOMOV ELSE 0 END) FROM $tbAux A WHERE A.NUM_POLIZ = P.NUM_POLIZ AND A.PERIODO = P.PERIODO AND A.ejercicio = P.EJERCICIO AND A.tipo_poli = P.tipo_poli)  <> 0  
+                and P.TIPO_POLI = '$tipo'
+                and P.NUM_POLIZ = '$folio'
+                and P.EJERCICIO = $ejercicio
+                and P.periodo = $periodo";
+        }else{
+           $this->query="UPDATE $tbPol P SET  P.NUMPARCUA = 1 WHERE  (select SUM(CASE WHEN A.DEBE_HABER = 'H' THEN A.MONTOMOV ELSE 0 END) - SUM(CASE WHEN A.DEBE_HABER = 'D' THEN A.MONTOMOV ELSE 0 END) FROM $tbAux A WHERE A.NUM_POLIZ = P.NUM_POLIZ AND A.PERIODO = P.PERIODO AND A.ejercicio = P.EJERCICIO AND A.tipo_poli = P.tipo_poli)  <> 0";
+        }
+            //echo $this->query;
+            $this->EjecutaQuerySimple();
+        return;
     }
 
     function polizaFinal($uuid, $tipo, $idp, $infoPoliza, $impuestos2, $tipoXML, $cabecera){
