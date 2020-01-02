@@ -306,7 +306,7 @@
         var idp =  $(this).attr('idp')
         var a = ''
         var obs = document.getElementById('obs').value
-        alert('La Observacion es: ' + obs)
+        //alert('La Observacion es: ' + obs)
         if(saldo>0.001){
             a = document.getElementById("cuens").value
             if(a.length==0){

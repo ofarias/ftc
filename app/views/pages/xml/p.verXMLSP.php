@@ -218,7 +218,7 @@
 
     $(".infoAdicional").mouseover(function(){
         var id =$(this).attr('id')
-        document.getElementById(id).
+        document.getElementById(id).value
     })
 
     function cargaParam(){
@@ -266,7 +266,7 @@
             $.alert('Este proceso solo se puede realizar por periodo y no de forma anual.')
             return
         }
-        $.alert('El proceso busca las polizas en COI, si no la encuentra libera el XML para ser registrado nuevamente')
+        //$.alert('El proceso busca las polizas en COI, si no la encuentra libera el XML para ser registrado nuevamente')
         $.ajax({
             url:'index.xml.php',
             type:'post',

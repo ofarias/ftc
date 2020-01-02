@@ -24584,7 +24584,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					,COALESCE( 
     						CAST(
     						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID) 
-    						AS VARCHAR(300)) , '') AS CEPA
+    						AS VARCHAR(1500)) , '') AS CEPA
     					,COALESCE(
     						CAST( (SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) AS VARCHAR(200)
     						), ''
@@ -24600,7 +24600,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					, COALESCE( 
     						CAST(
     						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID) 
-    						AS VARCHAR(300)) , '') AS CEPA
+    						AS VARCHAR(1500)) , '') AS CEPA
     					,COALESCE(
     						CAST( (SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) AS VARCHAR(200)
     						), ''
@@ -24609,6 +24609,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
 						
     	}
+    	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while($tsArray = ibase_fetch_object($res)){
     		$data[]=$tsArray;
@@ -27132,7 +27133,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		if($tipo == 'c'){
 			$a = 'and ap.status = 0';
 		}
-		$this->query="SELECT AP.*, g.*, x.*,(SELECT xc.NOMBRE FROM XML_CLIENTES xc WHERE xc.RFC=(SELECT x.RFCE FROM XML_DATA x WHERE x.uuid = ap.uuid) and tipo ='Proveedor') as PROV, (SELECT xc.CUENTA_CONTABLE FROM XML_CLIENTES xc WHERE xc.RFC=(SELECT x.RFCE FROM XML_DATA x WHERE x.uuid = ap.uuid) and tipo ='Proveedor'), AP.DOCUMENTO AS DESCRIPCION FROM APLICACIONES_GASTOS AP left join gastos g on g.id = AP.IDG left join xml_data x on x.uuid = ap.uuid WHERE AP.IDG = $idg  $a";
+		$this->query="SELECT AP.*, g.*, x.*,(SELECT xc.NOMBRE FROM XML_CLIENTES xc WHERE xc.RFC=(SELECT x.RFCE FROM XML_DATA x WHERE x.uuid = ap.uuid) and tipo ='Proveedor') as PROV, (SELECT xc.CUENTA_CONTABLE FROM XML_CLIENTES xc WHERE xc.RFC=(SELECT x.RFCE FROM XML_DATA x WHERE x.uuid = ap.uuid) and tipo ='Proveedor'), AP.DOCUMENTO AS DESCRIPCION, AP.APLICADO / (SELECT XP.IMPORTE FROM XML_DATA XP WHERE XP.UUID = AP.UUID)  as por FROM APLICACIONES_GASTOS AP left join gastos g on g.id = AP.IDG left join xml_data x on x.uuid = ap.uuid WHERE AP.IDG = $idg  $a";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
@@ -27143,7 +27144,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$uuid .= "'".$key->UUID."',";
 			}
 			$uuid=substr($uuid,0, strlen($uuid)-1);
-			return array("datos"=>$data,"uuid"=>$uuid);
+			return array("datos"=>$data,"uuid"=>$uuid, "por"=>$key->POR);
 		}
 		return $data;
 	}
