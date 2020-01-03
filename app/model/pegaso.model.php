@@ -24586,9 +24586,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID) 
     						AS VARCHAR(1500)) , '') AS CEPA
     					,COALESCE(
-    						CAST( (SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) AS VARCHAR(200)
+    						CAST(
+    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID ) AS VARCHAR(300)
     						), ''
-    						) AS RELACIONES
+    						) AS RELACIONES,
+    					X.importe - coalesce((SELECT sum(monto_Aplicado) from aplicaciones ap where ap.observaciones = x.uuid AND STATUS != 'C'), 0) as saldo_xml 
 						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F' or x.status = 'C') $uuid";
 		}else{
     				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
@@ -24602,9 +24604,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID) 
     						AS VARCHAR(1500)) , '') AS CEPA
     					,COALESCE(
-    						CAST( (SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) AS VARCHAR(200)
+    						CAST( 
+    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) AS VARCHAR(300)
     						), ''
-    						) AS RELACIONES
+    						) AS RELACIONES, 
+    						x.importe - coalesce((SELECT SUM(AG.APLICADO) FROM APLICACIONES_GASTOS AG WHERE AG.UUID = x.UUID AND STATUS=0),0) AS SALDO_XML
 						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
 						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
 						
@@ -26728,7 +26732,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$res=$this->EjecutaQuerySimple();
 			$rowV=ibase_fetch_object($res);
 			if(empty($rowV->IDPAGO)){
-				$this->query="INSERT INTO CR_DIRECTO( FACTURA, FECHA_FACTURA, FECHA_MOV, PROVEEDOR, IMPORTE, FECHA_EDO_CTA, TP_TES, REFERENCIA, BANCO, CUENTA, TIPO, idgasto, usuario, seleccionado, guardado)
+				$this->query="INSERT INTO CR_DIRECTO( FACTURA, FECHA_FACTURA, FECHA_MOV, PROVEEDOR, IMPORTE, FECHA_EDO_CTA, TP_TES, REFERENCIA, BANCO, CUENTA, TIPO, idgasto, usuario, seleccionado, guardado, CR_UUID)
 	   							VALUES (
 	   								substring((SELECT FIRST 1 DOCUMENTO FROM XML_DATA WHERE UUID = '$uuid' and idpago is null) from 1 for 20), 
 	   								(SELECT FIRST 1 FECHA FROM XML_DATA WHERE UUID = '$uuid' and idpago is null),  
@@ -26742,13 +26746,15 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	   								(SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = $cta),
 	   								'$t',
 	   								9999,
-	   								'$usuario', 2, 1) RETURNING id";
+	   								'$usuario', 2, 1, '$uuid') RETURNING id";
 	   			$rs=$this->EjecutaQuerySimple();
 		  		$row = ibase_fetch_object($rs);
 		  		if($row->ID > 0){
 					$mensaje = array("status"=>'ok', "mensaje"=>"Se ha insertado el gasto".$row->ID);
 					$this->query="UPDATE XML_DATA SET IDPAGO = $row->ID where uuid = '$uuid'";
 					$this->queryActualiza();
+					$this->query="INSERT INTO APLICACIONES_GASTOS (ID, IDG, UUID, DOCUMENTO, APLICADO, FECHA, USUARIO, STATUS) VALUES (NULL, 999999, '$uuid',substring((SELECT FIRST 1 DOCUMENTO FROM XML_DATA WHERE UUID = '$uuid' and idpago = $row->ID) from 1 for 20), (SELECT FIRST 1 IMPORTE FROM XML_DATA WHERE UUID = '$uuid' and idpago = $row->ID),current_timestamp, '$usuario', 0)";
+					$this->grabaBD();
 				}else{
 					$mensaje = array("status"=>'no', "mensaje"=>"Favor de verificar los datos");
 				}	
@@ -26794,7 +26800,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	            $this->query="UPDATE XML_DATA SET IDPAGO = $ridp->ID WHERE UUID = '$uuid'";
 	            $res = $this->queryActualiza();
 	            if($res == 1){
-	            	$this->query="INSERT INTO APLICACIONES (ID, FECHA, IDPAGO, DOCUMENTO, MONTO_APLICADO, SALDO_DOC, SALDO_PAGO, USUARIO, STATUS, RFC, FORMA_PAGO, CANCELADO, PROCESADO, CIERRE_CC, REC_CONTA, FECHA_CIERRE_CC, USUARIO_CIERRE_CC, FECHA_REC_CONTA, FOLIO_REC_CONTA, USUARIO_REC_CONTA, OBSERVACIONES, CONTABILIZADO, TIPO, POLIZA_INGRESO) VALUES (NULL, CURRENT_TIMESTAMP, $ridp->ID, (SELECT SERIE||FOLIO FROM XML_DATA WHERE UUID = '$uuid'), (SELECT IMPORTE FROM XML_DATA WHERE uuid = '$uuid'), 0, 0, '$usuario', 'E', (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid'), '$tpago', 0, 1, 0, 0, null, null, null, 0,null, null, null,null,null)";
+	            	$this->query="INSERT INTO APLICACIONES (ID, FECHA, IDPAGO, DOCUMENTO, MONTO_APLICADO, SALDO_DOC, SALDO_PAGO, USUARIO, STATUS, RFC, FORMA_PAGO, CANCELADO, PROCESADO, CIERRE_CC, REC_CONTA, FECHA_CIERRE_CC, USUARIO_CIERRE_CC, FECHA_REC_CONTA, FOLIO_REC_CONTA, USUARIO_REC_CONTA, OBSERVACIONES, CONTABILIZADO, TIPO, POLIZA_INGRESO) VALUES (NULL, CURRENT_TIMESTAMP, $ridp->ID, (SELECT SERIE||FOLIO FROM XML_DATA WHERE UUID = '$uuid'), (SELECT IMPORTE FROM XML_DATA WHERE uuid = '$uuid'), 0, 0, '$usuario', 'E', (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid'), '$tpago', 0, 1, 0, 0, null, null, null, 0,null, '$uuid', null,null,null )";
 	            	$this->grabaBD();
 	            }
             }

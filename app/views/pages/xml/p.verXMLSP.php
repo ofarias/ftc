@@ -48,7 +48,7 @@
                                             <th class="impDet">RETENCION <br/>IEPS</th>
                                             <th class="impDet">RETENCION ISR</th>
                                             <th>DESCUENTO</th>
-                                            <th>TOTAL</th>
+                                            <th>TOTAL <br/> <font color="blue">SALDO</font></th>
                                             <th>MON</th>
                                             <th>TC</th>
                                             <th>CLASIFICAR</th>
@@ -130,10 +130,21 @@
                                             <td title="01--> Nota de crédito de los documentos relacionados&#10;02 --> Nota de débito de los documentos relacionados&#10;03 --> Devolución de mercancía sobre facturas o traslados previos&#10;04 --> Sustitución de los CFDI previos&#10;05 --> Traslados de mercancias facturados previamente&#10;06 --> Factura generada por los traslados previos&#10;07 --> CFDI por aplicación de anticipo "><?php echo $key->SERIE.$key->FOLIO?><br/>
                                                 <?php if(!empty($key->RELACIONES)){?>
                                                 <a href="index.xml.php?action=verRelacion&uuid=<?php echo $key->UUID?>" target="_blank"><font color="blue">
-                                                    <b><?php  
-                                                        $rel=explode("|",$key->RELACIONES); 
-                                                        echo $rel[1].'-->'.$rel[2].'<font color="red"> $ '.number_format($rel[3],2).'</font>'?></b></font></a>
-                                                <?php }?>
+                                                <b><?php
+                                                        $rel=explode(",",$key->RELACIONES);
+                                                        //echo '<br/> Valor de rel: '.count($rel).'<br/>'; 
+                                                        for($i=0; $i < count($rel); $i++){
+                                                            //echo '<br/>'.var_dump($rel).'<br/>';
+                                                            //echo $i.'<br/>'; 
+                                                            $rl=explode("|", $rel[$i]);
+                                                            //echo '<br/>'.var_dump($rl);
+                                                            echo '<br/>'.$rl[1].'-->'.$rl[2].'<font color="red"> $ '.number_format($rl[3],2).'</font>';
+                                                        }
+                                                    ?>   
+                                                </b>
+                                                </font>
+                                                </a>
+                                               <?php } ?>
                                             </td>
                                             <td><?php echo $key->FECHA;?> </td>
                                             <td><?php echo '('.$key->CLIENTE.')  <br/><b>'.utf8_encode($key->NOMBRE).'<b/>';?></td>
@@ -145,7 +156,8 @@
                                             <td class="impDet"><?php echo '$ '.number_format($key->IEPS_RET,2);?></td>
                                             <td class="impDet"><?php echo '$ '.number_format($key->ISR_RET,2);?></td>
                                             <td><?php echo '$ '.number_format($key->DESCUENTO,2);?></td>
-                                            <td><?php echo '$ '.number_format($key->IMPORTEXML,2);?> </td>
+                                            <td><?php echo '$ '.number_format($key->IMPORTEXML,2);?> <br/>
+                                            <font color="blue"><?php echo '$ '.number_format($key->SALDO_XML,2)?></font> </td>
                                             <td><?php echo '<b>'.$key->MONEDA.'<b/>';?> </td>
                                             <td><?php echo '$ '.number_format($key->TIPOCAMBIO,2);?> </td>
                                             <td align="center" title="" id="ia_<?php echo $ln?>" class="infoAdicional" >
