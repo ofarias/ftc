@@ -154,7 +154,10 @@
                                                if($datos->CEP > 0 and $datos->CEP<999999){
                                                $color="style='background-color:#A9F5A9'";
                                                $cep = 'CEP'.$datos->CEP;
-                                               }        
+                                               }
+                                               if($datos->DUPLICADOS > 1){
+                                                $color = "style='background-color:#F1E4FF' title='Se encontraron ".$datos->DUPLICADOS." posibles duplicados, favor de revisar la información.'";
+                                              }              
                                           ?>
                                        <tr class="odd gradeX" <?php echo $color;?> id="<?php echo $i;?>">
                                             <td><input type="checkbox" name="cep"></td>

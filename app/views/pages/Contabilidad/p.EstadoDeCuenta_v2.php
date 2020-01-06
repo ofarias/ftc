@@ -319,6 +319,9 @@
                                                $color = '';
                                               if($datos->COMPROBADO == '1'){
                                                 $color=""; 
+                                              }
+                                              if($datos->DUPLICADOS > 1){
+                                                $color = "style='background-color:#F1E4FF' title='Se encontraron ".$datos->DUPLICADOS." posibles duplicados, favor de revisar la información.'";
                                               }        
 
                                           ?>
