@@ -217,6 +217,7 @@ class controller_xml{
 				$res=$this->xmlExcelPar($mes, $anio, $ide, $doc, $t);
 				return $res;
 			}
+
 			$data = new pegaso();
 			$res=$data->verXMLSP($mes, $anio, $ide, $uuid=false, $doc);
 			$xls= new PHPExcel();
@@ -259,8 +260,9 @@ class controller_xml{
 	                ->setCellValue('N'.$ln,$key->ISR_RET)//number_format($key->ISR_RET,2,".",""))
 	                ->setCellValue('O'.$ln,$key->DESCUENTO)//number_format($key->DESCUENTO,2,".",""))
 	                ->setCellValue('P'.$ln,$key->IMPORTEXML)//number_format($key->IMPORTEXML,2,".",""))
-	                ->setCellValue('Q'.$ln,$key->MONEDA)//number_format($key->MONEDA),".","")
-	                ->setCellValue('R'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	                ->setCellValue('Q'.$ln,$key->SALDO_XML)
+	                ->setCellValue('R'.$ln,$key->MONEDA)//number_format($key->MONEDA),".","")
+	                ->setCellValue('S'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
 	                ;
 	            $ln++;
 	        }
@@ -295,8 +297,9 @@ class controller_xml{
 	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(5);
 	        
 	        // Hacer las cabeceras de las lineas;
 	        //->setCellValue('9','')
@@ -317,8 +320,9 @@ class controller_xml{
 	            ->setCellValue('N9','RETENCION ISR')
 	            ->setCellValue('O9','DESCUENTO')
 	            ->setCellValue('P9','TOTAL')
-	            ->setCellValue('Q9','MON')
-	            ->setCellValue('R9','TC')
+	            ->setCellValue('Q9','SALDO')
+	            ->setCellValue('R9','MON')
+	            ->setCellValue('S9','TC')
 	            ;
 	        $nom_mes = $this->nombreMes($mes);
 	        $xls->getActiveSheet()
