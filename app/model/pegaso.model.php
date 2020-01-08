@@ -10775,7 +10775,7 @@ function Pagos() {
     		$data[]=$tsArray;
     	}
     	
-    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort,  TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, TIPO_PAGO as tp_tes, REFERENCIA as obs, 0 as duplicados
+    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort,  TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, TIPO_PAGO as tp_tes, REFERENCIA as obs, NUM_PAR as duplicados
     			FROM GASTOS g
     			left join pago_gasto pg on pg.idgasto = g.id
     			WHERE pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') 
@@ -10811,7 +10811,7 @@ function Pagos() {
 			deudores    --->   tipo
 			solicitud_pago ---> tp_tes_final
     	*/
-    	$this->query="SELECT 3 as s, fecha_edo_cta as sort, 'Compra' as TIPO, (id||'-'||factura) as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA , fecha_edo_cta as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado, seleccionado, tp_tes, REFERENCIA as obs, 0 as duplicados
+    	$this->query="SELECT 3 as s, fecha_edo_cta as sort, 'Compra' as TIPO, (id||'-'||factura) as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA , fecha_edo_cta as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado, seleccionado, tp_tes, REFERENCIA as obs, CONTABILIZADO as duplicados
     		FROM CR_DIRECTO
     		where BANCO = '$banco' and cuenta = '$cuenta' and extract(month from fecha_EDO_CTA) = $mes and extract(year from fecha_edo_cta) = $anio and (tipo = 'compra' or tipo='Anticipo'  or tipo='otro') and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  order by fecha_edo_cta asc ";
     	//echo 'Esta es de tipo compra(CR): '.$this->query;
@@ -10819,7 +10819,7 @@ function Pagos() {
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
-       	$this->query="SELECT 5 as s, fecha_edo_cta as sort, 'Gasto Directo' as TIPO, (id||'-'||factura) as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA, fecha_edo_cta as fe , FECHA_EDO_CTA_OK as comprobado, contabilizado, SELECCIONADO, tp_tes, REFERENCIA as obs, 0 as duplicados
+       	$this->query="SELECT 5 as s, fecha_edo_cta as sort, 'Gasto Directo' as TIPO, (id||'-'||factura) as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA, fecha_edo_cta as fe , FECHA_EDO_CTA_OK as comprobado, contabilizado, SELECCIONADO, tp_tes, REFERENCIA as obs, CONTABILIZADO as duplicados
        		FROM CR_DIRECTO
     		where BANCO = '$banco' and cuenta = '$cuenta' and extract(month from fecha_EDO_CTA) = $mes and extract(year from fecha_EDO_CTA) = $anio and tipo = 'gasto'  and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  order by fecha_edo_cta asc ";
     	//echo 'Esta es de tipo Gasto Directo(CR): '.$this->query;
@@ -10906,7 +10906,7 @@ function Pagos() {
     				and iif(fecha_edo_cta is null,extract(month from g.FECHA_DOC), extract(month from fecha_edo_cta)) = $mes and iif(fecha_edo_cta is null, extract(year from g.FECHA_DOC), extract(year from fecha_edo_cta)) = $anio and g.status = 'V'  and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  ";
 
   */  	
-    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort, 'Gasto' AS TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, G.SALDO AS SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, tipo_pago as Tp_tes, '' AS CEP, referencia as obs, 0 as duplicados
+    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort, 'Gasto' AS TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, G.SALDO AS SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, tipo_pago as Tp_tes, '' AS CEP, referencia as obs, NUM_PAR as duplicados
     			FROM GASTOS g
     			left join pago_gasto pg on pg.idgasto = g.id
     			WHERE pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') and iif(fecha_edo_cta is null,extract(month from g.FECHA_DOC), extract(month from fecha_edo_cta)) = $mes and iif(fecha_edo_cta is null, extract(year from g.FECHA_DOC), extract(year from fecha_edo_cta)) = $anio and g.status = 'V'  and (seleccionado = 2 or guardado = 1) ";
@@ -10933,7 +10933,7 @@ function Pagos() {
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
-    	$this->query="SELECT 3 as s, fecha_edo_cta as sort, 'Compra' as TIPO, (id||'-'||factura) as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA , fecha_edo_cta as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado, seleccionado, tp_tes, '' AS CEP, '' AS ARCHIVO_CEP,  referencia as obs, 0 as duplicados
+    	$this->query="SELECT 3 as s, fecha_edo_cta as sort, 'Compra' as TIPO, (id||'-'||factura) as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA , fecha_edo_cta as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado, seleccionado, tp_tes, '' AS CEP, '' AS ARCHIVO_CEP,  referencia as obs, CONTABILIZADO as duplicados
     		FROM CR_DIRECTO
     		where BANCO = '$banco' and cuenta = '$cuenta' and extract(month from fecha_EDO_CTA) = $mes and extract(year from fecha_edo_cta) = $anio and (tipo = 'compra' or tipo='Anticipo'  or tipo='otro') and (seleccionado = 2 ) order by fecha_edo_cta asc ";
     	//echo 'Esta es de tipo compra(CR): '.$this->query;
@@ -10941,7 +10941,7 @@ function Pagos() {
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
-       	$this->query="SELECT 5 as s, fecha_edo_cta as sort, 'Gasto Directo' as TIPO, factura as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA, fecha_edo_cta as fe , FECHA_EDO_CTA_OK as comprobado, contabilizado, SELECCIONADO, tp_tes, '' AS CEP, '' AS ARCHIVO_CEP, referencia as obs, 0 as duplicados
+       	$this->query="SELECT 5 as s, fecha_edo_cta as sort, 'Gasto Directo' as TIPO, factura as consecutivo, fecha_edo_cta as fechamov, 0 as abono, importe as CARGO, 0 as saldo,  ('$banco'||' - '||'$cuenta') as BANCO, usuario as usuario, 'Compra' as TP, ('CD-'||id) as identificador,registro as registro, 'FA' as FA, fecha_edo_cta as fe , FECHA_EDO_CTA_OK as comprobado, contabilizado, SELECCIONADO, tp_tes, '' AS CEP, '' AS ARCHIVO_CEP, referencia as obs, CONTABILIZADO as duplicados
        		FROM CR_DIRECTO
     		where BANCO = '$banco' and cuenta = '$cuenta' and extract(month from fecha_EDO_CTA) = $mes and extract(year from fecha_EDO_CTA) = $anio and tipo = 'gasto'  and (seleccionado = 2 )  order by fecha_edo_cta asc ";
     	//echo 'Esta es de tipo Gasto Directo(CR): '.$this->query;
@@ -24578,7 +24578,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(select first 1 nombre from xml_clientes xc where xc.rfc = x.cliente) as nombre, 
     					(SELECT first 1 RAZON_SOCIAL FROM FTC_EMPRESAS WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = x.cliente and tipo = 'Cliente') as cuenta_Contable,
-    					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(200)),'') as poliza
+    					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(1000)),'') as poliza
     					,'' as tp_tes
     					, fecha_recep as fecha_edo_cta
     					,COALESCE( 
@@ -24587,7 +24587,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     						AS VARCHAR(1500)) , '') AS CEPA
     					,COALESCE(
     						CAST(
-    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID ) AS VARCHAR(300)
+    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID ) AS VARCHAR(1000)
     						), ''
     						) AS RELACIONES,
     					X.importe - coalesce((SELECT sum(monto_Aplicado) from aplicaciones ap where ap.observaciones = x.uuid AND STATUS != 'C'), 0) as saldo_xml 
@@ -24598,14 +24598,14 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
     					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = rfce and tipo = 'Proveedor') as cuenta_Contable,
-    					COALESCE(CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(200)),'') as poliza
+    					COALESCE(CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(1000)),'') as poliza
     					, COALESCE( 
     						CAST(
     						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID) 
     						AS VARCHAR(1500)) , '') AS CEPA
     					,COALESCE(
     						CAST( 
-    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) AS VARCHAR(300)
+    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) AS VARCHAR(1000)
     						), ''
     						) AS RELACIONES, 
     						x.importe - coalesce((SELECT SUM(AG.APLICADO) FROM APLICACIONES_GASTOS AG WHERE AG.UUID = x.UUID AND STATUS=0),0) AS SALDO_XML
@@ -26740,7 +26740,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	   								'xml_'||(SELECT FIRST 1 idcliente from xml_clientes where tipo='Proveedor' and RFC = (SELECT RFCE FROM XML_DATA WHERE UUID='$uuid'and idpago is null) ), 
 	   								(SELECT FIRST 1 IMPORTE FROM XML_DATA WHERE UUID = '$uuid' and idpago is null), 
 	   								'$fecha',
-	   								'$t', 
+	   								'$tpago', 
 	   								'$obs', 
 	   								(SELECT BANCO FROM PG_BANCOS WHERE ID = $cta),
 	   								(SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = $cta),
@@ -27051,15 +27051,16 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$this->query="INSERT INTO PAGO_GASTO (ID, IDGASTO, CUENTA_BANCARIA, MONTO, FECHA_REGISTRO, USUARIO_REGISTRA, FECHA_PAGO, CONCILIADO, FOLIO_PAGO) VALUES ((select coalesce(max(ID),0)+1 FROM PAGO_GASTO), '$row->ID','$banco'||' - '||'$cuenta', $monto, current_timestamp, '$usuario', '$fecha', 0, '$folio')";
 				//echo '<br/>'.$this->query;
 				$this->grabaBD();
+				$this->revisaGasto($row->ID);
 			}
 		}
-
-		$dup=$this->revisaDuplicado();
+		$dup=$this->revisaDuplicado(); /// Revisa los gastos vs cr_directos y actualiza ambos si encuentra un registro con la misma informacion de Fecha / Importe / Banco / Tipo.
 		return;
 	}
 
 	function revisaDuplicado(){
 		$data=array();
+		#### Revisa los Abonos ####
 		$this->query="SELECT COUNT(*) AS CANTIDAD_FILAS, FECHA_RECEP, MONTO, BANCO, CONTABILIZADO FROM CARGA_PAGOS GROUP BY FECHA_RECEP, MONTO, BANCO, CONTABILIZADO HAVING COUNT(*) >=2 ";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
@@ -27068,9 +27069,46 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		if(count($data)> 0 ){
 			foreach ($data as $key) {
 				$this->query="UPDATE CARGA_PAGOS SET MONTO_ACREEDOR = $key->CANTIDAD_FILAS WHERE FECHA_RECEP = '$key->FECHA_RECEP' AND MONTO = $key->MONTO and BANCO = '$key->BANCO' and CONTABILIZADO = '$key->CONTABILIZADO'";
-				echo $this->query;
+				//echo $this->query;
 				$this->queryActualiza();
 			}
+		}
+
+		### Revisa los Cargos ###
+		$this->query= "SELECT COUNT(*) AS CANTIDAD_FILAS, G.FECHA_EDO_CTA, G.TOTAL, PG.CUENTA_BANCARIA, G.TIPO, G.TIPO_PAGO FROM GASTOS G LEFT JOIN PAGO_GASTO PG ON PG.idgasto = G.ID GROUP BY G.FECHA_EDO_CTA, G.TOTAL, G.TIPO, PG.CUENTA_BANCARIA, G.TIPO_PAGO HAVING COUNT(*) >=2";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data2[]=$tsArray;
+		}
+		if(count($data2)>0){
+			foreach ($data2 as $key2) {
+				$this->query="UPDATE GASTOS SET num_par = $key2->CANTIDAD_FILAS WHERE FECHA_EDO_CTA = '$key2->FECHA_EDO_CTA' AND TOTAL = $key2->TOTAL and CUENTA_BANCARIA = '$key2->CUENTA_BANCARIA' and TIPO_PAGO = '$key2->TIPO_PAGO'";
+				//echo $this->query;
+				$this->queryActualiza();
+			}	
+		}
+
+		return;
+	}
+
+	function revisaGasto($id){
+		$this->query="SELECT COALESCE(COUNT(*), 0) AS D FROM CR_DIRECTO CR 
+			WHERE CR.fecha_edo_cta = (SELECT G.FECHA_EDO_CTA FROM GASTOS G LEFT JOIN PAGO_GASTO PG ON PG.IDGASTO = G.ID WHERE G.ID = $id)
+				and CR.IMPORTE = (SELECT G.MONTO_PAGO FROM GASTOS G LEFT JOIN PAGO_GASTO PG ON PG.IDGASTO = G.ID WHERE G.ID = $id)
+				AND TRIM(CR.BANCO)||' - '||TRIM(CR.CUENTA) = (SELECT PG.CUENTA_BANCARIA FROM GASTOS G LEFT JOIN PAGO_GASTO PG ON PG.IDGASTO = G.ID WHERE G.ID = $id)
+				and  upper(TRIM(TP_TES)) = (SELECT upper(TRIM(G.TIPO_PAGO)) FROM GASTOS G LEFT JOIN PAGO_GASTO PG ON PG.IDGASTO = G.ID WHERE G.ID = $id)";
+		$res=$this->EjecutaQuerySimple();
+		$row= ibase_fetch_object($res);
+		if($row->D > 0){
+			// Si existen registros duplicados. 
+			$this->query="UPDATE GASTOS SET NUM_PAR = $row->D WHERE ID= $id";
+			$this->queryActualiza();
+			$this->query = "UPDATE CR_DIRECTO CR SET CONTABILIZADO = '$row->D' 
+				where CR.fecha_edo_cta = (SELECT G.FECHA_EDO_CTA FROM GASTOS G LEFT JOIN PAGO_GASTO PG ON PG.IDGASTO = G.ID WHERE G.ID = $id)
+				and CR.IMPORTE = (SELECT G.MONTO_PAGO FROM GASTOS G LEFT JOIN PAGO_GASTO PG ON PG.IDGASTO = G.ID WHERE G.ID = $id)
+				AND TRIM(CR.BANCO)||' - '||TRIM(CR.CUENTA) = (SELECT PG.CUENTA_BANCARIA FROM GASTOS G LEFT JOIN PAGO_GASTO PG ON PG.IDGASTO = G.ID WHERE G.ID = $id)
+				and  UPPER(TRIM(TP_TES)) = (SELECT UPPER(TRIM(G.TIPO_PAGO)) FROM GASTOS G LEFT JOIN PAGO_GASTO PG ON PG.IDGASTO = G.ID WHERE G.ID = $id)";
+			$this->queryActualiza();
 		}
 		return;
 	}
