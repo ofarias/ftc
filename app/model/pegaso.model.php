@@ -27383,7 +27383,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function verMetaDatosDet($archivo){
 		$data=array();
-		$this->query="SELECT f.*, COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = f.uuid and status='A') AS VARCHAR(100)),'') as poliza FROM FTC_META_DATOS f WHERE f.ARCHIVO = '$archivo'";
+		$this->query="SELECT f.*, COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = f.uuid and status='A') AS VARCHAR(100)),'') as poliza, coalesce((select count(*) from xml_data xd where UPPER(xd.UUID) = UPPER(f.uuid)),0) as carga FROM FTC_META_DATOS f WHERE f.ARCHIVO = '$archivo'";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
