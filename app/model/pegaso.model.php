@@ -26451,7 +26451,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$u =  explode(",", $uuid);
 		 	$pr = explode(",", $por);
 		 	$p=1;
-
 		 	for ($i=0; $i < count($u); $i++) {
 		 		$uu=$u[$i]; 
 		 		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) * $pr[$i] AS MONTO, SUM(BASE) AS BASE, $p as partida FROM XML_IMPUESTOS WHERE UUID = $uu group by impuesto, tasa, tipofactor, Tipo";
