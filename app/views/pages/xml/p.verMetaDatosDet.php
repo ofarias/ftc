@@ -24,6 +24,7 @@
                                 <th>Status</th>
                                 <th>Fecha De Cancelacion</th>
                                 <th>Polizas</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -31,11 +32,16 @@
                             $ln++;
                             $color='';
                             $aviso='';
+                            $status = 'Cargado';
                             $color = "style='background-color:#DCE7F9';";
                             if(!empty($row->FECHA_CANCELACION)){
                                 $color = "style='background-color:#DC8496';";
                             }
                             $aviso = '';
+                            if($row->CARGA == 0){
+                                $color = "style='background-color:red';";
+                                $status = 'Falta';
+                            }
                                 //$color="style='background-color:brown;'";
                             ?>
                             <tr class="odd gradeX" <?php echo $color?> <?php echo $aviso?>>
@@ -53,6 +59,7 @@
                                 <td title="Cero es Cancelado, Uno es Vigente"><?php echo $row->STATUS?></td>
                                 <td><?php echo $row->FECHA_CANCELACION?></td>
                                 <td><?php echo $row->POLIZA?></td>
+                                <td><?php echo $status ?></td>
                             </tr>
                             <?php endforeach ?>
                         </tbody>
