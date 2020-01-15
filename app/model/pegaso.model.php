@@ -10752,6 +10752,12 @@ function Pagos() {
 			$bn=ibase_fetch_object($res);
 			$corte = $bn->DIA_CORTE;
 			$fechaIni=$corte.'.'.$mes.'.'.$anio;
+			//$mesf = $mes;
+			//$aniof= $anio;
+			//if($mesf == 12){
+			//	$mesf = 0;
+			//	$aniof = $anio + 1;
+			//}
 			if($corte == 1){
 				$month = $anio.'-'.$mes;
 				$aux = date('Y-m-d', strtotime("{$month} + 1 month"));
@@ -10870,11 +10876,18 @@ function Pagos() {
 			$bn=ibase_fetch_object($res);
 			$corte = $bn->DIA_CORTE;
 			$fechaIni=$corte.'.'.$mes.'.'.$anio;
-			if($corte == 1){
-				$fechafin=($corte).'.'.($mes+1).'.'.$anio;
-			}else{
-				$fechafin=($corte-1).'.'.($mes+1).'.'.$anio;
+			$mesf = $mes;
+			$aniof= $anio;
+			if($mesf == 12){
+				$mesf = 0;
+				$aniof = $anio + 1;
 			}
+			if($corte == 1){
+				$fechafin=($corte).'.'.($mesf+1).'.'.$aniof;
+			}else{
+				$fechafin=($corte-1).'.'.($mes+1).'.'.$aniof;
+			}
+			
 		###########################################################
 
 		$this->query="SELECT 1 as s, FECHA_RECEP AS sort, 'Venta' AS TIPO,  iif(FOLIO_X_BANCO = 'TR', (FOLIO_X_BANCO||id), FOLIO_X_BANCO) AS CONSECUTIVO, FECHA_RECEP AS FECHAMOV, MONTO AS ABONO, 0 AS CARGO, SALDO AS SALDO, BANCO AS BANCO, USUARIO AS USUARIO, tipo_pago as TP, id as identificador, registro as registro, folio_acreedor as FA , fecha_recep as fe, '' as comprobado, contabilizado, seleccionado, '' as tp_tes, CEP, ARCHIVO_CEP, obs, MONTO_ACREEDOR as duplicados 

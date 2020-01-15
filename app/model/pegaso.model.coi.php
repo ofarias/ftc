@@ -1729,7 +1729,7 @@ class CoiDAO extends DataBaseCOI {
             $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuentaProv','$fecha','Pago a: '||coalesce((SELECT NOMBRE FROM CUENTAS$eje where num_cta = '$cuentaProv'), 'Sin Proveedor,')||', el $fecha', '$nat1', $saldo, 0, $tc, 0, $partida, 0,0, null, null)";
             //echo $this->query;
-            //$this->EjecutaQuerySimple();   
+            $this->EjecutaQuerySimple();   
             $a++; 
         }
         /* Se reemplaza por el sistema de Impuestos de forma individual.
