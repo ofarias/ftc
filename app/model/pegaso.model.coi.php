@@ -1133,9 +1133,22 @@ class CoiDAO extends DataBaseCOI {
     }
 
 
+    function calculaFolio($mes, $anio, $tipo){
+        $a = substr($anio, 2,2);
+        $this->query="SELECT coalesce(max(num_poliz), 0) as poliza FROM POLIZAS$a where ejercicio= $anio and periodo = $mes and tipo_poli = '$tipo'";
+        $res=$this->EjecutaQuerySimple();
+        $row= ibase_fetch_object($res);
+        $poliza = trim($row->POLIZA);
+        $campo = 'FOLIO'.str_pad($mes, 2, '0', STR_PAD_LEFT);
+        $this->query="UPDATE FOLIOS SET $campo = $poliza where ejercicio = $anio AND tipPoL = '$tipo'"; 
+        $this->queryActualiza();
+        return;
+    }
+
     function creaPoliza($tipo, $uuid, $cabecera, $detalle, $impuestos){
         /// Obtenemos la fecha del documento
         $usuario=$_SESSION['user']->USER_LOGIN;
+
         foreach($cabecera as $cb){
             $periodo=$cb->PERIODO;
             $ejercicio=$cb->EJERCICIO;
@@ -1150,6 +1163,7 @@ class CoiDAO extends DataBaseCOI {
             $doc = $cb->DOCUMENTO;
             $ie=$cb->TIPO;
         }
+        $this->calculaFolio($acf = $periodo, $bcf= $ejercicio, $ccf= 'Dr');
         ///creamos el nuevo folio de la poliza y actualizamos para apartarlo
         $this->query="SELECT $campo FROM FOLIOS where tippol='$tipo' and Ejercicio=$ejercicio";
         $res=$this->EjecutaQuerySimple();
@@ -1235,11 +1249,16 @@ class CoiDAO extends DataBaseCOI {
         $partida = 1;
         foreach ($detalle as $aux) {
             if($partida == 1){
-                if( substr($aux->CUENTA_CONTABLE, 0,1) == '6'){
-                    $con = 'Gasto';
+                if($cb->CLIENTE == $_SESSION['rfc']){
+                    if(substr($aux->CUENTA_CONTABLE, 0,1) == '6'){
+                        $con = 'Gasto';
+                    }else{
+                        $con = 'Compra';
+                    }    
                 }else{
-                    $con = 'Compra';
+                    $con = '';
                 }
+                
                 $this->query="UPDATE $tbAux SET CONCEP_PO = '$con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
                 $this->queryActualiza();
                 $this->query="UPDATE $tbPol SET CONCEP_PO = '$con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
@@ -1304,17 +1323,18 @@ class CoiDAO extends DataBaseCOI {
                             //$partida++;
                         }
                     }
+                    //echo '<br/> Tipo de impuesto: '.$tf.' <br/>';
                     if($tf=='local'){
                         //$parImp = $partida + 1;
                         $cuenta = $aux->CUENTA_CONTABLE;
-                        $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
-                        $this->query="UPDATE $tbAux SET montomov = montomov + ($imp->MONTO*$TC) WHERE NUM_CTA = '$cuenta' and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo=$periodo and ejercicio=$ejercicio and num_part = (parImp -1)";
+                        //$concepto = substr($nom_1.' de la partida '.$partAux,0,120);
+                        $this->query="UPDATE $tbAux SET montomov = montomov + ($imp->MONTO*$TC) WHERE NUM_CTA = '$cuenta' and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo=$periodo and ejercicio=$ejercicio and num_part = ($parImp -1)";
+                        $this->EjecutaQuerySimple();   
                         /*
                         $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                         values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
                         */
                         //echo '<br/>'.$this->query.'<br/>';
-                        $this->EjecutaQuerySimple();   
                         //$partida++;
                     }   
                 }
@@ -1375,13 +1395,16 @@ class CoiDAO extends DataBaseCOI {
         $periodo = $infoPoliza['perido'];
         $periodo2 = str_pad($periodo, 2,'0',STR_PAD_LEFT);
         $fecha = $infoPoliza['fecha_edo'];
+        $fac=' ';
         if(strpos($infoPoliza["obs"], "--")){
             $obs=explode("--",$infoPoliza["obs"]);
+            @$fac=$obs[1];
             $obs=$obs[0];
         }else{
             $obs=$infoPoliza["obs"];
+            $fac = $infoPoliza["factura"];
         }
-        $concepto = substr($obs." ".$tipo." ".$infoPoliza['banco'].", pago factura ".$infoPoliza['factura'].", ".$infoPoliza['proveedor']." $ ".$infoPoliza['monto'], 0, 120);
+        $concepto = substr($obs." ".$tipo." ".$infoPoliza['banco'].", pago factura ".$fac.", ".$infoPoliza['proveedor'].$infoPoliza['monto'], 0, 120);
         if($tipo == 'Egreso'){
             $subTipo = 'Eg';
             $dhc = 'D';
@@ -1413,13 +1436,13 @@ class CoiDAO extends DataBaseCOI {
 
             $ctaBanco = $infoPoliza['cuentaCoi'];
             $montoB = $infoPoliza['importe'];
-            $conceptoA1 = substr($obs." ".'Pago Factura '.$infoPoliza['factura'].', '.$infoPoliza['proveedor'], 0,120);
+            $conceptoA1 = substr($obs." ".'Pago Factura '.$fac.', '.$infoPoliza['proveedor'], 0,120);
             $conceptoA2 = substr($obs." ".$tipo.' '.$infoPoliza['banco'].' '.$infoPoliza['monto'], 0,120);
-            $conceptoIA = substr($obs." ".'IVA Acreditable pagado de la factura '.$infoPoliza['factura'], 0,120);
-            $conceptoIP = substr($obs." ".'IVA Pendiente de pago de la factura '.$infoPoliza['factura'], 0,120);
+            $conceptoIA = substr($obs." ".'IVA Acreditable pagado de la factura '.$fac, 0,120);
+            $conceptoIP = substr($obs." ".'IVA Pendiente de pago de la factura '.$fac, 0,120);
             if($tipoXML == 'Emitido'){
-                $conceptoIA = substr($obs." ".'IVA Acreditable cobrado de la factura '.$infoPoliza['factura'], 0,120);
-                $conceptoIP = substr($obs." ".'IVA Pendiente de cobro de la factura '.$infoPoliza['factura'], 0,120);
+                $conceptoIA = substr($obs." ".'IVA Acreditable cobrado de la factura '.$fac, 0,120);
+                $conceptoIP = substr($obs." ".'IVA Pendiente de cobro de la factura '.$fac, 0,120);
             }
             /// Proveedor 2001-001-031  Debe
             $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
@@ -1477,7 +1500,7 @@ class CoiDAO extends DataBaseCOI {
         $data=array();
         $eje= substr($ejercicio,-2);
         //echo 'Insertar Informacion del UUID: ';
-        print_r($pol);
+        //print_r($pol);
         $folio= str_pad(trim($folio),5," ",STR_PAD_LEFT);
         $this->query="SELECT * FROM AUXILIAR$eje a left join cuentas$eje c on c.num_cta = a.num_cta where c.capturauuid = 1 and a.NUM_POLIZ='$folio' and a.periodo = $periodo and ejercicio = $ejercicio and TIPO_POLI = '$tipo'"; /// Anexar al ultima condicion.
         $res=$this->EjecutaQuerySimple();
@@ -1499,7 +1522,7 @@ class CoiDAO extends DataBaseCOI {
                 $fecha = $pol[0]->FECHA;
                 $this->query="INSERT INTO UUIDTIMBRES (NUMREG, UUIDTIMBRE, MONTO, SERIE, FOLIO, RFCEMISOR, RFCRECEPTOR, ORDEN, FECHA, TIPOCOMPROBANTE, TIPOCAMBIO, VERSIONCFDI, MONEDA)
                              VALUES ( (SELECT CTUUIDCOMP FROM CONTROL) + 1 , '$uuid', $monto, '$seried', '$foliod', '$rfce', '$cliente', $a->NUM_PART, '$fecha', 1,  $tc, '3.3', '$moneda')";       
-                echo $this->query;
+                //echo $this->query;
                 $r=$this->grabaBD();
                 if($r == 1 ){
                     $this->query="UPDATE CONTROL SET CTUUIDCOMP = CTUUIDCOMP + 1";
@@ -1604,9 +1627,6 @@ class CoiDAO extends DataBaseCOI {
 
         $rfcf=($rfcf=='')? $rfce:$rfcf;
         $proveedorf=($proveedorf=='')? $proveedor:$proveedorf;
-        //echo '<br/>Rfc: '.$rfcf.'<br/>';
-        //echo '<br/>Nombre: '.utf8_encode($proveedorf).'<br/>';
-        //exit();
         ///creamos el nuevo folio de la poliza y actualizamos para apartarlo
         $this->query="SELECT $campo FROM FOLIOS where tippol='$tipo' and Ejercicio=$ejercicio";
         $res=$this->EjecutaQuerySimple();
@@ -1619,7 +1639,7 @@ class CoiDAO extends DataBaseCOI {
 
         foreach($cabecera as $pol){
             $con='Egreso '.$pol->CUENTA_BANCARIA;
-            $concepto = substr($con.', '.$proveedorf.' -- '.$pol->REFERENCIA, 0, 110);
+            $concepto = substr($con.', '.$proveedorf.' -- '.$pol->REFERENCIA.', pago factura '.$pol->FACTURA, 0, 110);
             $cuenta = $pol->CTA_BANCO;
             if($tipo=='Eg'){
                 $nat0 = 'H';
@@ -1647,7 +1667,7 @@ class CoiDAO extends DataBaseCOI {
         }
         $nat1=($nat0=='H')? 'D':'H';
         foreach ($detalle as $aux) {
-            if($partida == 1){
+            /*if($partida == 1){
                 if( substr($aux->CUENTA_CONTABLE, 0,1) == '6'){
                     $con = 'Gasto';
                 }else{
@@ -1657,7 +1677,7 @@ class CoiDAO extends DataBaseCOI {
                 $this->queryActualiza();
                 $this->query="UPDATE $tbPol SET CONCEP_PO = substring('$pol->DOC'||' $con'||' '||CONCEP_PO from 1 for 120) where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
                 $this->queryActualiza();
-            }
+            }*/
             $cuenta = '';
             $partida++;
             $partAux=$partida;//$aux->PARTIDA;
@@ -1945,6 +1965,14 @@ class CoiDAO extends DataBaseCOI {
         $tbAux= 'AUXILIAR'.$eje;
         $campo= 'FOLIO'.str_pad($periodo, 2, '0', STR_PAD_LEFT);
         $ie=$tipo;  
+        $fac=' ';
+        if(strpos($cabecera->OBS, "--")){
+            $obs=explode("--",$cabecera->OBS);
+            @$fac=$obs[1];
+            $obs=$obs[0];
+        }else{
+            $obs=$cabecera->OBS;
+        }
         foreach($detalle as $dc){
             $rfcf= '';
             $clientef='';
@@ -1977,7 +2005,7 @@ class CoiDAO extends DataBaseCOI {
         $this->query="UPDATE FOLIOS SET $campo = $folion where tippol='$tipo' and Ejercicio=$ejercicio";
         $this->queryActualiza();
             $con= $cabecera->BANCO;
-            $concepto = substr($con.', '.$cabecera->CONTABILIZADO.', '.$clientef.' -- '.$cabecera->OBS.' $'.number_format($cabecera->MONTO,2), 0, 110);
+            $concepto = substr($obs.' Ingreso '.$con.', '.$cabecera->CONTABILIZADO.', pago de factura(s) '.$fac.' '.$clientef.' $'.number_format($cabecera->MONTO,2), 0, 110);
             $cuenta = $cabecera->CCOI;
             if($tipo=='gasto'){
                 $nat0='H';
@@ -1987,7 +2015,6 @@ class CoiDAO extends DataBaseCOI {
             $this->query="INSERT INTO $tbPol(TIPO_POLI, NUM_POLIZ, PERIODO, EJERCICIO, FECHA_POL, CONCEP_PO, NUM_PART, LOGAUDITA, CONTABILIZ, NUMPARCUA, TIENEDOCUMENTOS, PROCCONTAB, ORIGEN, UUID, ESPOLIZAPRIVADA, UUIDOP) 
                                 values ('$tipo','$folio', $periodo, $ejercicio, '$cabecera->FECHA_RECEP', '$concepto', 0, '', 'N', 0, 1, 0, substring('PHP $usuario' from 1 for 15),'', 0, '')";
             $this->grabaBD();
-            //echo '<br/>Inserta Poliza:'.$this->query.'<br/>';
             $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$cabecera->FECHA_RECEP', '$concepto', '$nat0' , $cabecera->MONTO, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
             $this->grabaBD();  
@@ -2002,13 +2029,6 @@ class CoiDAO extends DataBaseCOI {
         $partAux=0;//$aux->PARTIDA;
 
         foreach ($detalle as $aux){
-            if($partida == 1){
-                $con = 'Ingreso ';
-                $this->query="UPDATE $tbAux SET CONCEP_PO = '$con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
-                $this->queryActualiza();
-                $this->query="UPDATE $tbPol SET CONCEP_PO = '$con'||' '||CONCEP_PO where TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and PERIODO = $periodo and EJERCICIO = $ejercicio";
-                $this->queryActualiza();
-            }
             $nat1=($nat0=='H')? 'D':'H';
             $cuenta = '';
             $partida++;

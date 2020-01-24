@@ -7429,23 +7429,18 @@ function ReEnrutar($id_preoc, $pxr, $doco){
         	return $res;
         }
 
-
         function traeAplicaciones($folio){
-        	$this->query="SELECT f.cve_doc, cl.nombre, f.fechaelab, a.id, a.idpago, a.monto_Aplicado, f.saldofinal, a.fecha, f.importe, cp.monto, cp.banco 
+        	$this->query="SELECT f.cve_doc, cl.nombre, f.fechaelab, a.id, a.idpago, a.monto_Aplicado, f.saldofinal, a.fecha, f.importe, cp.monto, cp.banco, cp.obs 
         				from APLICACIONES a
         				left join factf01 f on f.cve_doc = a.documento
         				left join clie01 cl on cl.clave = f.cve_clpv
         				left join carga_pagos cp on cp.id = a.idpago 
         				WHERE CIERRE_CC = $folio";
-
         	$rs=$this->QueryObtieneDatosN();
-        	echo $this->query;
         	while($tsArray=ibase_fetch_object($rs)){
         		$data[]=$tsArray;
         	}
-
         	return @$data;
-
         }
         
         function verNoCobradosDia($cc){  //07072016
@@ -24149,7 +24144,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							}else{
 								foreach ($partidaImp as $key){
 									$base = empty($key[0])? 0:$key[0];;
-					            	$nombre = $key[1];
+					            	$nombre = substr($key[1], 0, 29) ;
 					            	$tasa = $key[3];
 					            	$importe = empty($key[4])? 0:$key[4];
 					            	$tipoFactor = $key[2];
@@ -24175,6 +24170,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						        	$ilretM= isset($il['Importe'])? $il['Importe']:0;
 						        	$iltrasF= isset($il['TipoFactor'])? $il['TipoFactor']:'';
 						        	$ilretF= isset($il['TipoFactor'])? $il['TipoFactor']:'';
+
 				            		$this->query="INSERT INTO XML_IMPUESTOS values (null,'$iltrasN', '', $iltrasM, $pi + 1, '$uuid', ('$serie'||'-'||'$folio'), '$iltrasF', 0, 'local')";
 				            		if($rs=$this->grabaBD() === false){
 					            		echo 'Fallo al insertar en la tabla de impuestos <br/>'; 
@@ -26837,7 +26833,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$this->query="SELECT C.*, (SELECT CTA_CONTAB FROM PG_BANCOS b WHERE b.BANCO =  C.banco and b.NUM_cuenta = c.cuenta) AS CCOI, (SELECT NOMBRE FROM XML_CLIENTES WHERE IDCLIENTE = substring(c.proveedor from 5) ) as nom_prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES WHERE IDCLIENTE = substring(c.proveedor from 5) ) as ctaCoiProv, extract(month from c.fecha_edo_cta) as periodo, extract(year from c.fecha_edo_cta) as ejercicio, C.REFERENCIA AS OBS FROM CR_DIRECTO C WHERE ID = $idp";
 			$res=$this->EjecutaQuerySimple();
 			$row=ibase_fetch_object($res);
-			return array("status"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->IMPORTE, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "proveedor"=>$row->NOM_PROV,"monto"=>"$ ".number_format($row->IMPORTE,2), "ctaProvCoi"=>$row->CTACOIPROV, "fecha_edo"=>$row->FECHA_EDO_CTA, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->FACTURA."-->".$row->OBS, "importe"=>$row->IMPORTE, "obs"=>$row->OBS);
+			return array("status"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->IMPORTE, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "proveedor"=>$row->NOM_PROV,"monto"=>"$ ".number_format($row->IMPORTE,2), "ctaProvCoi"=>$row->CTACOIPROV, "fecha_edo"=>$row->FECHA_EDO_CTA, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->FACTURA, "importe"=>$row->IMPORTE, "obs"=>$row->OBS);
 		}elseif($t = 'Ingreso'){
 			$this->query="SELECT C.*, 
                				(select CTA_CONTAB
@@ -27167,7 +27163,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		if($tipo == 'z'){
 			$x = "and (contabilizado is null or contabilizado = '')";
 		}
-		$this->query="SELECT G.*, Pg.CUENTA_BANCARIA, pg.FOLIO_PAGO, (select CTA_CONTAB FROM PG_BANCOS PB WHERE PB.BANCO||' - '||PB.NUM_CUENTA = pg.cuenta_bancaria ) as cta_banco, COALESCE((SELECT NOMBRE FROM XML_CLIENTES XC WHERE G.CVE_PROV = ('xml_'||XC.IDCLIENTE)),'Multi Proveedor') AS PROV , (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE AG.IDG = G.ID AND AG.STATUS = 0) AS APLICADO FROM GASTOS G left join PAGO_GASTO PG on pg.idgasto = g.id WHERE g.ID = $idg $x ";
+		$this->query="SELECT G.*, Pg.CUENTA_BANCARIA, pg.FOLIO_PAGO, (select CTA_CONTAB FROM PG_BANCOS PB WHERE PB.BANCO||' - '||PB.NUM_CUENTA = pg.cuenta_bancaria ) as cta_banco, COALESCE((SELECT NOMBRE FROM XML_CLIENTES XC WHERE G.CVE_PROV = ('xml_'||XC.IDCLIENTE)),'Multi Proveedor') AS PROV , (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE AG.IDG = G.ID AND AG.STATUS = 0) AS APLICADO, (SELECT FIRST 1 DOCUMENTO FROM APLICACIONES_GASTOS AG WHERE  AG.IDG = G.ID AND AG.STATUS = 0 ) AS FACTURA FROM GASTOS G left join PAGO_GASTO PG on pg.idgasto = g.id WHERE g.ID = $idg $x ";
 		$res=$this->EjecutaQuerySimple();
 		//echo $this->query;
 		while ($tsArray=ibase_fetch_object($res)) {
