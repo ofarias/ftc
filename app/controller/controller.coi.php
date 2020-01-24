@@ -69,6 +69,8 @@ class controller_coi{
 			$cabecera=$data->cabeceraPoliza($uuid, $ide);
 			$detalle=$data->detallePoliza($uuid, $ide);
 			$impuestos =$data->impuestosPoliza($uuid);
+			//var_dump($impuestos);
+			//exit();
 			//echo 'Cabecera: '.$cabecera.' Detalle: '.$detalle;
 			if($cabecera == 'error' or $detalle == 'error'){
 				if($cabecera == 'error'){
