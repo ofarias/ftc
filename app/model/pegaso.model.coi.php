@@ -2247,7 +2247,7 @@ class CoiDAO extends DataBaseCOI {
         return $data;
     }
 
-    function upl_param($file){
+    function upl_param($file, $x){
         $d = new pegaso;
         $inputFileType=PHPExcel_IOFactory::identify($file);
         $objReader=PHPExcel_IOFactory::createReader($inputFileType);
@@ -2255,9 +2255,11 @@ class CoiDAO extends DataBaseCOI {
         $sheet=$objPHPExcel->getSheet(0);
         $highestRow = $sheet->getHighestRow(); 
         $highestColumn = $sheet->getHighestColumn();
-        for ($row=2; $row <= $highestRow; $row++){ 
-            $cta=$sheet->getCell("O".$row)->getValue();
-            $ctacoi=$sheet->getCell("Z".$row)->getValue();
+        for ($row=12; $row <= $highestRow; $row++){ //10
+            $par = $sheet->getCell("I".$row)->getValue();
+            $ctaPar=$sheet->getCell("O".$row)->getValue();
+            $ctaCab=$sheet->getCell("Z".$row)->getValue();
+            $uuid = $sheet->getCell("C".$row)->getValue();
             echo $sheet->getCell("A".$row)->getValue()." - ";
             echo $sheet->getCell("B".$row)->getValue()." - ";
             echo $sheet->getCell("C".$row)->getValue()." - ";
@@ -2265,16 +2267,33 @@ class CoiDAO extends DataBaseCOI {
             echo $sheet->getCell("O".$row)->getValue()." - ";
             echo $sheet->getCell("Z".$row)->getValue()." - ";
             echo "<br>";
-            $this->query="SELECT * FROM CUENTAS_FTC WHERE CUENTA = '$cta' or CUENTA_COI = '$ctacoi'";
-            $res=$this->EjecutaQuerySimple();
-            $row=ibase_fetch_object($res);
-            if(isset($row->CUENTA_COI)){
-                $r=$d->actParam();
-                if($r['status'] =='ok'){
-                    $this->query="";/// Crea Parametro;
+            for ($i=0; $i <= 1; $i++) {
+                if($i == 0){
+                    $cta = $ctaPar;
+                }elseif($i == 1 ){
+                    $cta = $ctaCab;
+                }
+                $this->query="SELECT * FROM CUENTAS_FTC WHERE CUENTA = '$cta'";
+                $res=$this->EjecutaQuerySimple();
+                $lin=ibase_fetch_object($res);
+                if(isset($lin)){
+                    if($i == 0){
+                        $cuentaPartida=$lin->CUENTA_COI;                
+                        $a=$d->actCtaPar($cuentaPartida, $uuid, $par, $x);
+                    }elseif($i == 1){
+                        $cuentaCabecera=$lin->CUENTA_COI;
+                        $b=$d->actCtacab($cuentaCabecera, $uuid, $par, $x);
+                    }
+
+                }else{
+                    echo 'No tiene Valor y sigue con la siguiente Linea, podria poner un reporte por correo con los resultados';
                 }
             }
         }
+        return;
     }
+
+
+
 }      
 ?>

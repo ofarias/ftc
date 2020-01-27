@@ -27614,4 +27614,39 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	}
     	return $res;
     }
+
+    function actCtaPar($cta, $uuid, $p, $x){
+        $y='';
+        if($x == 'No'){
+            $y=" and (CUENTA_CONTABLE IS NULL OR CUENTA_CONTABLE = '')";    
+        }
+        $this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$cta' where UUID = '$uuid' and partida = $p $y";
+        $this->queryActualiza();
+        return;
+    }
+
+    function actCtacab($cta, $uuid, $p, $x){
+        $y='';
+        $campo='';
+        $campo2='';
+        $this->query="SELECT * FROM XML_DATA WHERE UUID= '$uuid'";
+        $res=$this->EjecutaQuerySimple();
+        $row = ibase_fetch_object($res);
+        if(@$row->RFCE == $_SESSION['rfc'] and $row){
+        	$campo = 'CLIENTE';
+        	$campo2 = 'Cliente';
+        }elseif($row){
+        	$campo = 'RFCE';
+        	$campo2 = 'Proveedor';
+        }else{
+        	return;
+        }
+        if($x =='No' ){
+            $y = " and (CUENTA_CONTABLE IS NULL OR CUENTA_CONTABLE = '')";
+        }
+        $this->query="UPDATE XML_CLIENTES XC SET XC.CUENTA_CONTABLE = '$cta' where XC.RFC = (SELECT $campo FROM XML_DATA X WHERE X.UUID = '$uuid') and XC.tipo = '$campo2' ";
+        $this->queryActualiza();
+        return;
+    }
+
 }?>
