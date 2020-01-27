@@ -27179,7 +27179,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		if($uuid){
 			$a =" and X.UUID = '".$uuid."'";
 		}
-		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') FROM XML_DATA X WHERE X.RFCE != '$rfc' and x.fecha >= '01.06.2019' and x.tipo ='I' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) $a";
+		$fi = $_SESSION['empresa']['fecha_inicio'];
+		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') FROM XML_DATA X WHERE X.RFCE != '$rfc' and x.fecha >= '$fi' and x.tipo ='I' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) $a";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
@@ -27614,4 +27615,39 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	}
     	return $res;
     }
+
+    function actCtaPar($cta, $uuid, $p, $x){
+        $y='';
+        if($x == 'No'){
+            $y=" and (CUENTA_CONTABLE IS NULL OR CUENTA_CONTABLE = '')";    
+        }
+        $this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$cta' where UUID = '$uuid' and partida = $p $y";
+        $this->queryActualiza();
+        return;
+    }
+
+    function actCtacab($cta, $uuid, $p, $x){
+        $y='';
+        $campo='';
+        $campo2='';
+        $this->query="SELECT * FROM XML_DATA WHERE UUID= '$uuid'";
+        $res=$this->EjecutaQuerySimple();
+        $row = ibase_fetch_object($res);
+        if(@$row->RFCE == $_SESSION['rfc'] and $row){
+        	$campo = 'CLIENTE';
+        	$campo2 = 'Cliente';
+        }elseif($row){
+        	$campo = 'RFCE';
+        	$campo2 = 'Proveedor';
+        }else{
+        	return;
+        }
+        if($x =='No' ){
+            $y = " and (CUENTA_CONTABLE IS NULL OR CUENTA_CONTABLE = '')";
+        }
+        $this->query="UPDATE XML_CLIENTES XC SET XC.CUENTA_CONTABLE = '$cta' where XC.RFC = (SELECT $campo FROM XML_DATA X WHERE X.UUID = '$uuid') and XC.tipo = '$campo2' ";
+        $this->queryActualiza();
+        return;
+    }
+
 }?>

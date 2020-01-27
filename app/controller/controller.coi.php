@@ -312,11 +312,12 @@ class controller_coi{
 		}
 	}
 
-	function upl_param($file){
+	function upl_param($file, $x){
 		if($_SESSION['user']){
 			$data= new CoiDAO;
-			$act = $data->upl_param($file);
+			$act = $data->upl_param($file, $x);
 			return $act;
+			
 		}
 	}
 
