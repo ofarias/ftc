@@ -1710,6 +1710,27 @@ class CoiDAO extends DataBaseCOI {
                                             VALUES ('$subTipo', '$folio', $partida, $periodo, $ejercicio, '$ctaIVAap', '$fecha', '$conceptoIA', '$dhimppc', $impInd->MONTO, 0, 1, 0, $partida, 0,0, null , null)";
                                 //echo $this->query;
                                 $this->grabaBD();
+                                $bimp = 1 + $tasa;
+                                //echo 'Base de impuesto: '.$bimp;
+                                $this->ingresaDIOT( 
+                                        $tipo = $impInd->TIPO,
+                                        $tipopol = $subTipo, 
+                                        $numpol = $folio, 
+                                        $fechapol = $fecha, 
+                                        $numpart = $partida, 
+                                        $numcta = $ctaIVAap, 
+                                        $rfcprove = $impInd->RFCE, 
+                                        $tipope = 85, 
+                                        $monconiva = $aux->APLICADO, 
+                                        $mondedisr = $aux->APLICADO / $bimp, 
+                                        $actos15 = $aux->APLICADO / $bimp, 
+                                        $ivaop15 = ($aux->APLICADO / $bimp) * $tasa, 
+                                        $ivatraslad = ($aux->APLICADO / $bimp) * $tasa, 
+                                        $percausac = $fecha, 
+                                        $ivageneral = $impInd->TASA * 100, 
+                                        $ivafronterizo = 11, 
+                                        $tasa*100
+                                        );
                                 /// Buscamos la cuenta de Dr para la contrapartida.
                                 $this->query="SELECT * FROM FTC_PARAM_COI WHERE IMPUESTO = '$impInd->IMPUESTO' AND round(TASA,3) = round($impInd->TASA,3) AND FACTOR = '$impInd->TIPOFACTOR' AND TIPO = '$impInd->TIPO' AND POLIZA  = 'Dr' and tipo_xml='$tipoXML'";
                                 $rs=$this->EjecutaQuerySimple();
@@ -1722,6 +1743,9 @@ class CoiDAO extends DataBaseCOI {
                                 $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 VALUES ('$subTipo', '$folio', $partida, $periodo, $ejercicio, '$ctaIVApp', '$fecha', '$conceptoIP', '$dhimppe', $impInd->MONTO, 0, 1, 0, $partida, 0,0, null , null)";
                                 $this->grabaBD();
+
+
+
                             }else{ // Si no, no hacemos nada.
                             }
                            
@@ -1795,6 +1819,20 @@ class CoiDAO extends DataBaseCOI {
         // Pendiente $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo);
         //exit();
         return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Eg'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
+    }
+
+    function ingresaDIOT($tipo,$tipopol, $numpol, $fechapol, $numpart, $numcta, $rfcprove, $tipope, $monconiva, $mondedisr, $actos15, $ivaop15, $ivatraslad, $percausac, $ivageneral, $ivafronterizo){
+        $ivaTras= 0;
+        $ivaRet = 0;
+        if($tipo == 'Traslado'){
+            $ivaTras = $ivatraslad;
+        }elseif($tipo == 'Retencion'){
+            $ivaRet = $ivatraslad;
+        }
+        $this->query="INSERT INTO OPETER (TIPOPOL, NUMPOL, FECHAPOL, NUMPART, NUMCTA, RFCPROVE, TIPOPE, MONCONIVA, MONDEDISR, ACTOS15, IVAOP15, ACTOS10, IVAOP10, ACTOSCERO, ACTOSEXENT, IVARETENID, IVATRASLAD, IVADEVOLU, PERCAUSAC, IVANOAC15, IVANOAC10, ESIMPORTA, OTRASRET, ESDEVOL, ISRRETENID, IVAGENERAL, IVAFRONTERIZO, IDCONCEPIVAA, DESDECFDI, IDOPTER) 
+                    VALUES ('$tipopol', '$numpol', '$fechapol', '$numpart', '$numcta', '$rfcprove', '$tipope', $monconiva, $mondedisr, $actos15, $ivaop15, 0, 0, 0, 0, $ivaRet, $ivaTras, 0, '$percausac', 0, null, 'N', 0, 0, 0, $ivageneral, $ivafronterizo, null, null, 0)";
+        $this->grabaBD();
+        return;
     }
 
     function creaPolizaIg($cabecera, $detalle, $tipo, $impuestos, $z){
