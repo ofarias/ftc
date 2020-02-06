@@ -1472,6 +1472,29 @@ class CoiDAO extends DataBaseCOI {
                                     VALUES ('$subTipo', '$row->NUM_POLIZ', $par, $periodo, $ejercicio, '$ctaIVAap', '$fecha', '$conceptoIA', '$dhimppc', $impt->MONTO, 0, 1, 0, $par, 0,0, null , null)";
                         //echo $this->query;
                         $this->grabaBD();
+                        if($subTipo == 'Eg'){
+                            $bimp = 1 + $impt->TASA;
+                                //echo 'Base de impuesto: '.$bimp;
+                                $this->ingresaDIOT( 
+                                        $tipo = $impt->TIPO,
+                                        $tipopol = $subTipo, 
+                                        $numpol = $row->NUM_POLIZ, 
+                                        $fechapol = $fecha, 
+                                        $numpart = $par, 
+                                        $numcta = $ctaIVAap, 
+                                        $rfcprove = $infoPoliza['rfc'], 
+                                        $tipope = 85, 
+                                        $monconiva = $montoB, 
+                                        $mondedisr = $montoB / $bimp, 
+                                        $actos15 = $montoB / $bimp, 
+                                        $ivaop15 = ($montoB / $bimp) * $impt->TASA, 
+                                        $ivatraslad = ($montoB / $bimp) * $impt->TASA, 
+                                        $percausac = $fecha, 
+                                        $ivageneral = $impt->TASA * 100, 
+                                        $ivafronterizo = 11, 
+                                        $impt->TASA*100
+                                        );
+                        }
 
                         /// Buscamos la cuenta de Dr para la contrapartida.
                         $this->query="SELECT * FROM FTC_PARAM_COI WHERE status = 1 and IMPUESTO = '$impt->IMPUESTO' AND round(TASA,3) = $impt->TASA AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = 'Dr' and tipo_xml='$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
@@ -1569,6 +1592,9 @@ class CoiDAO extends DataBaseCOI {
         }
         return;
     } 
+
+
+
 
     function sadPol($uuid, $tipo){
         $this->query="SELECT * FROM POLIZAS19 WHERE UUID ='$uuid' and origen containing('PHP')";
@@ -1831,6 +1857,7 @@ class CoiDAO extends DataBaseCOI {
         }
         $this->query="INSERT INTO OPETER (TIPOPOL, NUMPOL, FECHAPOL, NUMPART, NUMCTA, RFCPROVE, TIPOPE, MONCONIVA, MONDEDISR, ACTOS15, IVAOP15, ACTOS10, IVAOP10, ACTOSCERO, ACTOSEXENT, IVARETENID, IVATRASLAD, IVADEVOLU, PERCAUSAC, IVANOAC15, IVANOAC10, ESIMPORTA, OTRASRET, ESDEVOL, ISRRETENID, IVAGENERAL, IVAFRONTERIZO, IDCONCEPIVAA, DESDECFDI, IDOPTER) 
                     VALUES ('$tipopol', '$numpol', '$fechapol', '$numpart', '$numcta', '$rfcprove', '$tipope', $monconiva, $mondedisr, $actos15, $ivaop15, 0, 0, 0, 0, $ivaRet, $ivaTras, 0, '$percausac', 0, null, 'N', 0, 0, 0, $ivageneral, $ivafronterizo, null, null, 0)";
+        //echo $this->query;
         $this->grabaBD();
         return;
     }

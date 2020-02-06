@@ -54,6 +54,9 @@ else{
 	case 'p_c':
 		$controller->p_c($_GET['anio'],$_GET['mes']);
 		break;
+	case 'calculaSaldo':
+		$controller->cs();
+		break;
 	default: 
 		header('Location: index.php?action=login');
 		break;

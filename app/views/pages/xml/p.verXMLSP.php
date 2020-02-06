@@ -20,6 +20,7 @@
                             <font color="green"><input type="button"  value="Polizas Automaticas" onclick="pAuto(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
                             <font color="#DC143C"><input type="button"  value="Acomodar Pólizas" onclick="pAcomodo(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
                             <font color="#1a8cff"><input type="button"  value="Carga Parametros" onclick="cargaParam()"></font>
+                            <font color="red"><input type="button" value="Diot Batch" onclick="cargaBatch(<?php echo $mes ?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>')"> </font>
                         <?php }else{?>
                             <font color="black"><input type="button" value="Consolidar Polizas" onclick="info()"></font>
                             <font color="red"><input type="button"  value="Revision Contabilizacion" onclick="info()"></font>
@@ -232,6 +233,61 @@
         var id =$(this).attr('id')
         document.getElementById(id).value
     })
+
+    function cargaBatch(mes, anio, ide, doc){
+        $.confirm({
+            columnClass: 'col-md-8',
+            title: 'Carga Archivo Excel para Batch DIOT',
+            content: 'Favor de seleccionar un archivo de excel (xls o xlsx)' + 
+            '<form action="xls_diot.php" method="post" enctype="multipart/form-data" class="formdiot">' +
+            '<div class="form-group">'+
+            '<br/>Archivo: <input type="file" name="fileToUpload" class="xls" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"> <br/>'+
+            '<br/><font color ="red">Generar Archivo desde el sistema? </font> <input type="text" placeholder="Si o No" size="5" class="op1" name="x" value=""> '+
+            '<br/><a href="app/tmp/Layout_DIOT.xlsx" download>Layout</a>'+
+            '<br/>"Se genera un archivo con el formato de la DIOT carga Batch apartir de los datos que existen en el sistema"' +
+            '<input type="hidden" name ="mes" value="'+mes+'" > '+ 
+            '<input type="hidden" name ="anio" value="'+anio+'" > '+ 
+            '<input type="hidden" name ="ide" value="'+ide+'" > '+ 
+            '<input type="hidden" name ="doc" value="'+doc+'" > '+ 
+            '</form>',
+                buttons: {
+                formSubmit: {
+                text: 'Cargar Archivo de Excel',
+                btnClass: 'btn-blue',
+                action: function () {
+                    var archivo = this.$content.find('.xls').val();
+                    var form = this.$content.find('.formdiot')
+                    var op1= this.$content.find('.op1').val();
+                    if(op1 == 'Si'){
+                        //alert('Se genera el archivo desde el sistema, colocamos un ajax aqui...')
+                        $.ajax({
+                            url:'index.xml.php',
+                            type:'post',
+                            dataType:'json',
+                            data:{generaDiot:1, mes, anio},
+                            success:function(data){
+                                window.open('app/tmp/Layout_DIOT.xlsx', 'download')
+                            },  
+                            error:function(){
+                                alert('ocurrio un error al procesar la informacion.')
+                            }
+
+                        })
+                    }else{
+                        if(archivo==''){
+                            $.alert('Debe de seleccionar un archivo...');
+                            return false;
+                        }else{
+                            form.submit()
+                        }    
+                    }
+                }
+            },
+            cancelar: function () {
+            },
+        },
+    });
+    }
 
     function cargaParam(){
         $.confirm({

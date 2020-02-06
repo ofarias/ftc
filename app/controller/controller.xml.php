@@ -219,7 +219,7 @@ class controller_xml{
 			}
 
 			$data = new pegaso();
-			$res=$data->verXMLSP($mes, $anio, $ide, $uuid=false, $doc);
+			$res=$data->verXMLSP_xls($mes, $anio, $ide, $uuid=false, $doc);
 			$xls= new PHPExcel();
 	        //// insertamos datos a al objeto excel.
 	        // Fecha inicio y fecha fin
@@ -227,7 +227,7 @@ class controller_xml{
 	        $usuario =$_SESSION['user']->NOMBRE;
 	        $fecha = date('d-m-Y h:i:s');
 	        $ln = 10;
-	        $doc = $doc=='I'? 'Ingresos':'Egresos';
+	        $doc = $doc=='I'? 'Ingreso':'Egreso';
 	        //print_r($documentos);
 	        $totalSaldo=0;
 	        $i=0;
@@ -247,22 +247,29 @@ class controller_xml{
 	                ->setCellValue('A'.$ln,$i)
 	                ->setCellValue('B'.$ln,$key->POLIZA)
 	                ->setCellValue('C'.$ln,$key->UUID)
-	                ->setCellValue('D'.$ln,'Ingreso')
+	                ->setCellValue('D'.$ln,$doc)
 	                ->setCellValue('E'.$ln,$key->SERIE.$key->FOLIO)
 	                ->setCellValue('F'.$ln,$key->FECHA)
-	                ->setCellValue('G'.$ln,'('.$key->CLIENTE.')'.utf8_encode($key->NOMBRE))
-	                ->setCellValue('H'.$ln,'('.$key->RFCE.')'.$key->EMISOR)
-	                ->setCellValue('I'.$ln,$key->SUBTOTAL)//number_format($key->SUBTOTAL,2,".",""))
-	                ->setCellValue('J'.$ln,$key->IVA160)//number_format($key->IVA,2,".",""))
-	                ->setCellValue('K'.$ln,$key->IVA_RET)//number_format($key->IVA_RET,2,".",""))
-	                ->setCellValue('L'.$ln,$key->IEPS)//number_format($key->IEPS,2,".",""))
-	                ->setCellValue('M'.$ln,$key->IEPS_RET)//number_format($key->IEPS_RET,2,".",""))
-	                ->setCellValue('N'.$ln,$key->ISR_RET)//number_format($key->ISR_RET,2,".",""))
-	                ->setCellValue('O'.$ln,$key->DESCUENTO)//number_format($key->DESCUENTO,2,".",""))
-	                ->setCellValue('P'.$ln,$key->IMPORTEXML)//number_format($key->IMPORTEXML,2,".",""))
-	                ->setCellValue('Q'.$ln,$key->SALDO_XML)
-	                ->setCellValue('R'.$ln,$key->MONEDA)//number_format($key->MONEDA),".","")
-	                ->setCellValue('S'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	                ->setCellValue('G'.$ln,$key->CLIENTE)
+	                ->setCellValue('H'.$ln,utf8_encode($key->NOMBRE))
+	                ->setCellValue('I'.$ln,$key->RFCE)
+	                ->setCellValue('J'.$ln, utf8_encode($key->EMISOR))
+	                ->setCellValue('K'.$ln, $key->CONCEPTO)
+	                ->setCellValue('L'.$ln, $key->FORMAPAGO)
+	                ->setCellValue('M'.$ln, $key->METODOPAGO)
+	                ->setCellValue('N'.$ln, $key->CUENTA_CONTABLE)	                
+	                ->setCellValue('O'.$ln,$key->SUBTOTAL)//number_format($key->SUBTOTAL,2,".",""))
+	                ->setCellValue('P'.$ln,$key->IVA160)//number_format($key->IVA,2,".",""))
+	                ->setCellValue('Q'.$ln,$key->IVA_RET)//number_format($key->IVA_RET,2,".",""))
+	                ->setCellValue('R'.$ln,$key->IEPS)//number_format($key->IEPS,2,".",""))
+	                ->setCellValue('S'.$ln,$key->IEPS_RET)//number_format($key->IEPS_RET,2,".",""))
+	                ->setCellValue('T'.$ln,$key->ISR_RET)//number_format($key->ISR_RET,2,".",""))
+	                ->setCellValue('U'.$ln,$key->DESCUENTO)//number_format($key->DESCUENTO,2,".",""))
+	                ->setCellValue('V'.$ln,$key->IMPORTEXML)//number_format($key->IMPORTEXML,2,".",""))
+	                ->setCellValue('W'.$ln,$key->SALDO_XML)
+	                ->setCellValue('X'.$ln,$key->MONEDA)//number_format($key->MONEDA),".","")
+	                ->setCellValue('Y'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	                ->setCellValue('Z'.$ln, $key->RELACIONES)
 	                ;
 	            $ln++;
 	        }
@@ -287,20 +294,26 @@ class controller_xml{
 	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(10);
 	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(25);
 	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(17);
-	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth($l_g);
-	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth($l_h);
-	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth($l_g);
+	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth($l_h);
+	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(20);
 	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(25);
 	        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(5);
-	        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(5);
-	        
+	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('T')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('U')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('V')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('W')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('X')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('Y')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('Z')->setWidth(13);
 	        // Hacer las cabeceras de las lineas;
 	        //->setCellValue('9','')
 	        $xls->getActiveSheet()
@@ -311,19 +324,27 @@ class controller_xml{
 	            ->setCellValue('E9','FOLIO')
 	            ->setCellValue('F9','FECHA')
 	            ->setCellValue('G9','RFC RECEPTOR')
-	            ->setCellValue('H9','RFC EMISOR')
-	            ->setCellValue('I9','SUBTOTAL')
-	            ->setCellValue('J9','IVA')
-	            ->setCellValue('K9','RETENCION IVA')
-	            ->setCellValue('L9','IEPS')
-	            ->setCellValue('M9','RETENCION IEPS')
-	            ->setCellValue('N9','RETENCION ISR')
-	            ->setCellValue('O9','DESCUENTO')
-	            ->setCellValue('P9','TOTAL')
-	            ->setCellValue('Q9','SALDO')
-	            ->setCellValue('R9','MON')
-	            ->setCellValue('S9','TC')
+	            ->setCellValue('H9','NOMBRE RECEPTOR')
+	            ->setCellValue('I9','RFC EMISOR')
+	            ->setCellValue('J9','NOMBRE EMISOR')
+	            ->setCellValue('K9','CONCEPTO')
+	            ->setCellValue('L9','FORMA DE PAGO')
+	            ->setCellValue('M9','METODO DE PAGO')	            
+	            ->setCellValue('N9','CUENTA CONTABLE')
+	            ->setCellValue('O9','SUBTOTAL')
+	            ->setCellValue('P9','IVA')
+	            ->setCellValue('Q9','RETENCION')
+	            ->setCellValue('R9','IEPS')
+	            ->setCellValue('S9','RETENCION IEPS')
+	            ->setCellValue('T9','RETENCION ISR')
+	            ->setCellValue('U9','DESCUENTO')
+	            ->setCellValue('V9','TOTAL')
+	            ->setCellValue('W9','SALDO')
+	            ->setCellValue('X9','MON')
+	            ->setCellValue('Y9','TC')
+	            ->setCellValue('Z9','UUID RELACIONADOS')
 	            ;
+
 	        $nom_mes = $this->nombreMes($mes);
 	        $xls->getActiveSheet()
 	            ->setCellValue('A3','Resumen de Documentos XML '.$doc.' '.$ide. ' del mes de '.$nom_mes.' del '. $anio)
@@ -863,5 +884,18 @@ class controller_xml{
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}
 	}
+
+	function xls_diot($file, $x, $mes, $anio){
+		$data = new cargaXML; 
+		$genera = $data->xls_diot($file, $x, $mes, $anio);
+		return $genera;
+	}
+
+	function cs(){
+		$data = new cargaXML;
+		$calculo = $data->cs();
+		return;
+	}
+
 }?>
 

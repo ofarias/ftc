@@ -114,6 +114,7 @@
                     <p>Descargas de XML</p>
                     <center><a href="index_xml.php?action=''" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
                     <p><a href="index.xml.php?action=actTablas">Actualizar Tablas</a></p>
+                    <p><a href="index.xml.php?action=calculaSaldo">Calcula Saldos Mizco</p>
                 </div>
             </div>
         </div>

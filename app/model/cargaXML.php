@@ -332,4 +332,132 @@ class cargaXML extends database {
 			return $data;
 		}
 	}
+
+	function xls_diot($file, $x, $mes, $anio){
+		$rfc = $_SESSION['rfc'];
+		$usuario = $_SESSION['user']->NOMBRE;
+		$inputFileType=PHPExcel_IOFactory::identify($file);
+        $objReader=PHPExcel_IOFactory::createReader($inputFileType);
+        $objPHPExcel=$objReader->load($file);
+        $sheet=$objPHPExcel->getSheet(0);
+        $highestRow = $sheet->getHighestRow(); 
+        $highestColumn = $sheet->getHighestColumn();
+        $ruta="C:\\xampp\\htdocs\\diot\\";
+        if(!file_exists($ruta)){
+        	mkdir($ruta);
+        }
+        $d=date('s');
+        $diot = fopen($ruta.'diot_'.$rfc.'_'.$mes.'_'.$anio.'('.$usuario.')'.$d.'.txt', 'w');
+        $diot_archivo = 'diot_'.$rfc.'_'.$mes.'_'.$anio.'('.$usuario.')'.$d.'.txt';
+        for ($row=2; $row <= $highestRow; $row++){ //10
+            $A = $sheet->getCell("A".$row)->getValue();//1
+            $B = $sheet->getCell("B".$row)->getValue();//2
+            $C = $sheet->getCell("C".$row)->getValue();//3
+            $D = $sheet->getCell("D".$row)->getValue();//4
+            $E = $sheet->getCell("E".$row)->getValue();//5
+            $F = $sheet->getCell("F".$row)->getValue();//6
+            $G = $sheet->getCell("G".$row)->getValue();//7
+            $H = number_format($sheet->getCell("H".$row)->getValue(),0,'','' );//8 --> Monto sin decimales 
+            $I = $sheet->getCell("I".$row)->getValue();//9
+            $J = $sheet->getCell("J".$row)->getValue();//10
+            $K = $sheet->getCell("K".$row)->getValue();//11
+            $L = $sheet->getCell("L".$row)->getValue();//12
+            $M = $sheet->getCell("M".$row)->getValue();//13
+            $N = $sheet->getCell("N".$row)->getValue();//14
+            $O = $sheet->getCell("O".$row)->getValue();//15
+            $P = $sheet->getCell("P".$row)->getValue();//16
+            $Q = $sheet->getCell("Q".$row)->getValue();//17
+            $R = $sheet->getCell("R".$row)->getValue();//18
+            $S = $sheet->getCell("S".$row)->getValue();//19
+            $T = $sheet->getCell("T".$row)->getValue();//20
+            $U = $sheet->getCell("U".$row)->getValue();//21
+            $V = $sheet->getCell("V".$row)->getValue();//22
+            $X = $sheet->getCell("X".$row)->getValue();//23
+            $Y = $sheet->getCell("Y".$row)->getValue();//24
+            $info = $A.'|'.$B.'|'.$C.'|'.$D.'|'.$E.'|'.$F.'|'.$G.'|'.$H.'|'.$I.'|'.$J.'|'.$K.'|'.$L.'|'.$M.'|'.$N.'|'.$O.'|'.$P.'|'.$Q.'|'.$R.'|'.$S.'|'.$T.'|'.$U.'|'.$V.'|'.$X.'|'.$Y.'|';
+            fwrite($diot, $info.PHP_EOL);
+        }
+        fclose($diot);
+        return array("status"=>'ok', "m"=>'Se ha creado el arvivo'.$diot_archivo, "a"=>$diot_archivo);
+    }
+
+    function cs(){
+    	$data = array();
+    	$data2 = array();
+    	$this->query="SELECT f.*, c.nombre as cliente, c.rfc as rfc_clie FROM FACTF01 f left join clie01 c on c.clave = f.cve_clpv WHERE VALIDACION IS NULL";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		if(count($data) > 0 ){
+			foreach($data as $d){
+					$this->query="INSERT INTO FTC_SALDO (ID, FACTURA, FECHA, CLIENTE, IMPORTE, MONTO_PAGOS, MONTO_DESCUENTOS, MONTO_NC, MONTO_OTROS, MONTO_ND, SALDO, MONTO_CONCILIADO, PERIODO, EJERCICIO, STATUS, XML, rfc, clave_sae) 
+					VALUES (NULL, '$d->CVE_DOC', '$d->FECHA_DOC', '$d->CLIENTE', $d->IMPORTE, 0, 0, 0, 0, 0, $d->IMPORTE, 0, 0, 0, 0, 0,'$d->RFC_CLIE', '$d->CVE_CLPV') RETURNING ID";
+					$r = $this->grabaBD();
+					$row = ibase_fetch_object($r);
+					$this->query ="UPDATE FACTF01 SET VALIDACION = $row->ID WHERE CVE_DOC = '$d->CVE_DOC'";
+					$this->queryActualiza();
+			}
+		}
+
+		$this->query = "SELECT * FROM FTC_SALDO WHERE STATUS = 0";
+		$result = $this->EjecutaQuerySimple();
+		while ($tsarray = ibase_fetch_object($result)) {
+			$data2[] =$tsarray; 
+		}
+		if(count($data2) >0 ){
+			foreach ($data2 as $k) {
+    			$data3 = array();
+				$this->query="SELECT coalesce(sum(cd.importe),0) as aplicado, TIPO_FTC as tipo_ftc FROM CUEN_DET01 cd LEFT JOIN CONC01 C ON C.NUM_CPTO = cd.num_cpto WHERE REFER='$k->FACTURA' and fecha_apli < '01.10.2019'
+					group by C.TIPO_FTC"; //and c.es_fma_pag = 'S'
+				$rs=$this->EjecutaQuerySimple();
+				
+				while ($tsArray = ibase_fetch_object($rs)){
+					$data3[]=$tsArray;
+				}
+					if(count($data3)> 0){
+						foreach($data3 as $pp){
+							if(!empty($pp->TIPO_FTC) ){
+								$this->query="UPDATE FTC_SALDO SET  $pp->TIPO_FTC = $pp->APLICADO, STATUS = 1 where FACTURA = '$k->FACTURA'";
+								$this->EjecutaQuerySimple();
+							}else{
+								echo 'El tipo esta vacio: '.$k->FACTURA.'<BR/>';
+							}
+						}	
+					}else{
+						$this->query="UPDATE FTC_SALDO SET  STATUS = 1 where FACTURA = '$k->FACTURA'";
+						$this->EjecutaQuerySimple();
+					}
+				unset($data3);
+			}
+		}
+
+		$this->concialicion();
+    }
+
+    function concialicion(){
+    	$data = array();
+    	$this->query="SELECT  * FROM FTC_SALDO WHERE STATUS = 1 and clave_sae = '         3'";
+    	$rs=$this->EjecutaQuerySimple();
+    	while ($tsArray=ibase_fetch_object($rs)){
+    		$data[]=$tsArray;
+    	}
+
+    	foreach ($data as $k){
+    		$doc = substr($k->FACTURA, 1);
+    		//echo 'Valor del documento: '.$doc.'<br/>';
+    		$d = (int)$doc;
+    		$d1 = ' '.$d.' ';
+    		$this->query="SELECT coalesce( sum(MONTOMOV),0 ) AS conciliado FROM WALMART WHERE CONCEP_PO containing('$d1') AND NOT CONCEP_PO CONTAINING ('FE') AND NOT CONCEP_PO CONTAINING ('NB') AND NOT CONCEP_PO CONTAINING ('NC')";
+    		$res=$this->EjecutaQuerySimple();
+
+    		$row = ibase_fetch_object($res);
+    		if(isset($row->CONCILIADO)){
+    			$this->query="UPDATE FTC_SALDO SET MONTO_CONCILIADO = $row->CONCILIADO WHERE FACTURA = '$k->FACTURA'";
+    			$this->queryActualiza();
+    		}
+    		$this->query="UPDATE FTC_SALDO SET STATUS = 2 WHERE FACTURA = '$k->FACTURA'";
+    		$this->queryActualiza();
+    	}
+    }
 }
