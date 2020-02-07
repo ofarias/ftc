@@ -227,7 +227,21 @@ class controller_xml{
 	        $usuario =$_SESSION['user']->NOMBRE;
 	        $fecha = date('d-m-Y h:i:s');
 	        $ln = 10;
-	        $doc = $doc=='I'? 'Ingreso':'Egreso';
+	        
+	        switch ($doc) {
+	        	case 'I':
+	        		$doc = 'Ingreso';
+	        		break;
+	        	case 'E':
+	        		$doc = 'Egreso';
+	        		break;
+	        	case 'P':
+	        		$doc = 'Pago';
+	        		break;
+	        	default:
+	        		$doc = $doc;
+	        		break;
+	        }
 	        //print_r($documentos);
 	        $totalSaldo=0;
 	        $i=0;
@@ -241,35 +255,44 @@ class controller_xml{
 	            if($l_h < strlen('('.$key->RFCE.')'.$key->EMISOR)){
 	            	$l_h = strlen('('.$key->RFCE.')'.$key->EMISOR);
 	            }
+	            $rel = '';
+	            if($doc == 'Pago'){
+	            	$rel = $key->CEPA;
+	            }else{
+	            	$rel = $key->RELACIONES;
+	            }
+	            $status = $key->STATUS != 'C'? 'Vigente':'Cancelado';
 	            $maestro=$key->UUID;
 	            $totalSaldo += $key->IMPORTEXML;
 	            $xls->setActiveSheetIndex()
 	                ->setCellValue('A'.$ln,$i)
 	                ->setCellValue('B'.$ln,$key->POLIZA)
 	                ->setCellValue('C'.$ln,$key->UUID)
-	                ->setCellValue('D'.$ln,$doc)
-	                ->setCellValue('E'.$ln,$key->SERIE.$key->FOLIO)
-	                ->setCellValue('F'.$ln,$key->FECHA)
-	                ->setCellValue('G'.$ln,$key->CLIENTE)
-	                ->setCellValue('H'.$ln,utf8_encode($key->NOMBRE))
-	                ->setCellValue('I'.$ln,$key->RFCE)
-	                ->setCellValue('J'.$ln, utf8_encode($key->EMISOR))
-	                ->setCellValue('K'.$ln, $key->CONCEPTO)
-	                ->setCellValue('L'.$ln, $key->FORMAPAGO)
-	                ->setCellValue('M'.$ln, $key->METODOPAGO)
-	                ->setCellValue('N'.$ln, $key->CUENTA_CONTABLE)	                
-	                ->setCellValue('O'.$ln,$key->SUBTOTAL)//number_format($key->SUBTOTAL,2,".",""))
-	                ->setCellValue('P'.$ln,$key->IVA160)//number_format($key->IVA,2,".",""))
-	                ->setCellValue('Q'.$ln,$key->IVA_RET)//number_format($key->IVA_RET,2,".",""))
-	                ->setCellValue('R'.$ln,$key->IEPS)//number_format($key->IEPS,2,".",""))
-	                ->setCellValue('S'.$ln,$key->IEPS_RET)//number_format($key->IEPS_RET,2,".",""))
-	                ->setCellValue('T'.$ln,$key->ISR_RET)//number_format($key->ISR_RET,2,".",""))
-	                ->setCellValue('U'.$ln,$key->DESCUENTO)//number_format($key->DESCUENTO,2,".",""))
-	                ->setCellValue('V'.$ln,$key->IMPORTEXML)//number_format($key->IMPORTEXML,2,".",""))
-	                ->setCellValue('W'.$ln,$key->SALDO_XML)
-	                ->setCellValue('X'.$ln,$key->MONEDA)//number_format($key->MONEDA),".","")
-	                ->setCellValue('Y'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
-	                ->setCellValue('Z'.$ln, $key->RELACIONES)
+	                ->setCellValue('D'.$ln,$rel)
+	                ->setCellValue('E'.$ln, $status)
+	                ->setCellValue('F'.$ln,$doc)
+	                ->setCellValue('G'.$ln,$key->SERIE.$key->FOLIO)
+	                ->setCellValue('H'.$ln,$key->FECHA)
+	                ->setCellValue('I'.$ln,$key->CLIENTE)
+	                ->setCellValue('J'.$ln,utf8_encode($key->NOMBRE))
+	                ->setCellValue('K'.$ln,$key->RFCE)
+	                ->setCellValue('L'.$ln, utf8_encode($key->EMISOR))
+	                ->setCellValue('M'.$ln, $key->CONCEPTO)
+	                ->setCellValue('N'.$ln, $key->FORMAPAGO)
+	                ->setCellValue('O'.$ln, $key->METODOPAGO)
+	                ->setCellValue('P'.$ln, $key->CUENTA_CONTABLE)	                
+	                ->setCellValue('Q'.$ln,$key->SUBTOTAL)//number_format($key->SUBTOTAL,2,".",""))
+	                ->setCellValue('R'.$ln,$key->IVA160)//number_format($key->IVA,2,".",""))
+	                ->setCellValue('S'.$ln,$key->IVA_RET)//number_format($key->IVA_RET,2,".",""))
+	                ->setCellValue('T'.$ln,$key->IEPS)//number_format($key->IEPS,2,".",""))
+	                ->setCellValue('U'.$ln,$key->IEPS_RET)//number_format($key->IEPS_RET,2,".",""))
+	                ->setCellValue('V'.$ln,$key->ISR_RET)//number_format($key->ISR_RET,2,".",""))
+	                ->setCellValue('W'.$ln,$key->DESCUENTO)//number_format($key->DESCUENTO,2,".",""))
+	                ->setCellValue('X'.$ln,$key->IMPORTEXML)//number_format($key->IMPORTEXML,2,".",""))
+	                ->setCellValue('Y'.$ln,$key->SALDO_XML)
+	                ->setCellValue('Z'.$ln,$key->MONEDA)//number_format($key->MONEDA),".","")
+	                ->setCellValue('AA'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	                
 	                ;
 	            $ln++;
 	        }
@@ -314,35 +337,39 @@ class controller_xml{
 	        $xls->getActiveSheet()->getColumnDimension('X')->setWidth(5);
 	        $xls->getActiveSheet()->getColumnDimension('Y')->setWidth(5);
 	        $xls->getActiveSheet()->getColumnDimension('Z')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('AA')->setWidth(13);
+
 	        // Hacer las cabeceras de las lineas;
 	        //->setCellValue('9','')
 	        $xls->getActiveSheet()
 	            ->setCellValue('A9','Ln')
 	            ->setCellValue('B9','Sta')
 	            ->setCellValue('C9','UUID')
-	            ->setCellValue('D9','TIPO')
-	            ->setCellValue('E9','FOLIO')
-	            ->setCellValue('F9','FECHA')
-	            ->setCellValue('G9','RFC RECEPTOR')
-	            ->setCellValue('H9','NOMBRE RECEPTOR')
-	            ->setCellValue('I9','RFC EMISOR')
-	            ->setCellValue('J9','NOMBRE EMISOR')
-	            ->setCellValue('K9','CONCEPTO')
-	            ->setCellValue('L9','FORMA DE PAGO')
-	            ->setCellValue('M9','METODO DE PAGO')	            
-	            ->setCellValue('N9','CUENTA CONTABLE')
-	            ->setCellValue('O9','SUBTOTAL')
-	            ->setCellValue('P9','IVA')
-	            ->setCellValue('Q9','RETENCION')
-	            ->setCellValue('R9','IEPS')
-	            ->setCellValue('S9','RETENCION IEPS')
-	            ->setCellValue('T9','RETENCION ISR')
-	            ->setCellValue('U9','DESCUENTO')
-	            ->setCellValue('V9','TOTAL')
-	            ->setCellValue('W9','SALDO')
-	            ->setCellValue('X9','MON')
-	            ->setCellValue('Y9','TC')
-	            ->setCellValue('Z9','UUID RELACIONADOS')
+	            ->setCellValue('D9','UUID RELACIONADOS')
+	            ->setCellValue('E9','ESTATUS')
+	            ->setCellValue('F9','TIPO')
+	            ->setCellValue('G9','FOLIO')
+	            ->setCellValue('H9','FECHA')
+	            ->setCellValue('I9','RFC RECEPTOR')
+	            ->setCellValue('J9','NOMBRE RECEPTOR')
+	            ->setCellValue('K9','RFC EMISOR')
+	            ->setCellValue('L9','NOMBRE EMISOR')
+	            ->setCellValue('M9','CONCEPTO')
+	            ->setCellValue('N9','FORMA DE PAGO')
+	            ->setCellValue('O9','METODO DE PAGO')	            
+	            ->setCellValue('P9','CUENTA CONTABLE')
+	            ->setCellValue('Q9','SUBTOTAL')
+	            ->setCellValue('R9','IVA')
+	            ->setCellValue('S9','RETENCION')
+	            ->setCellValue('T9','IEPS')
+	            ->setCellValue('U9','RETENCION IEPS')
+	            ->setCellValue('V9','RETENCION ISR')
+	            ->setCellValue('W9','DESCUENTO')
+	            ->setCellValue('X9','TOTAL')
+	            ->setCellValue('Y9','SALDO')
+	            ->setCellValue('Z9','MON')
+	            ->setCellValue('AA9','TC')
+	            
 	            ;
 
 	        $nom_mes = $this->nombreMes($mes);
