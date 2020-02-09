@@ -153,6 +153,17 @@
                     </div>
                 </div>
             </div>    
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4>ADMINISTRACION DE SERVICIOS</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p><b>Servicios</b></p>
+                        <center><a href="index.servicios.php?action=mserv" class="btn btn-default"> <img src="app/views/images/AdminUsuarios/AdminUsr.png" width="58" height="60"></a></center>
+                    </div>
+                </div>
+            </div>    
     </div>
 </div>
     
