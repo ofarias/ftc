@@ -75,7 +75,6 @@ class CoiDAO extends DataBaseCOI {
             $numcta = "where (cuenta starting with ('1') or cuenta starting with ('11') or cuenta starting with ('1150')) and tipo = 'D' order by nombre";
         }
         $this->query="SELECT C.* FROM CUENTAS_FTC C $numcta";
-        //echo $this->query;
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;

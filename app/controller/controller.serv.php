@@ -1,6 +1,7 @@
 
 <?php
 require_once('app/model/model.serv.php');
+require_once('app/model/pegaso.model.ventas.php');
 require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
 
@@ -112,16 +113,17 @@ class ctrl_serv{
 		}
 	}
 
-	function nuevoTicket(){
+	function nuevoTicket($clie){
 		if($_SESSION['user']){
 			$data = new data_serv;
-			$pagina =$this->load_template('Tickets');
+			$pagina =$this->load_template2('Tickets');
 			$html=$this->load_page('app/views/pages/servicio/p.nuevoTicket.php');
 			$cl = $data->traeClientes();
-			$us = $data->traeUsuarios();
-			$eq = $data->traeEquipos();
-			//$sr = $data->traeServicios();
-			//$tp = $data->trarTipos();
+			$us = $data->traeUsuarios($clie);
+			$eq = $data->traeEquipos($clie);
+			$tp = $data->traeTipos();
+			$so = $data->traeSistemas();
+			$md = $data->traeModos();
    			ob_start();
    			include 'app/views/pages/servicio/p.nuevoTicket.php';
    			$table = ob_get_clean();
@@ -133,5 +135,147 @@ class ctrl_serv{
 		
 		}	
 	}
+
+	function invServ(){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$pagina =$this->load_template('Tickets');
+			$html=$this->load_page('app/views/pages/servicio/p.invServ.php');
+			$clie = '';
+			$eq = $data->traeEquipos($clie);
+			ob_start();
+   			include 'app/views/pages/servicio/p.invServ.php';
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}			
+	}
+
+	function usuarios(){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$data_p = new pegaso_ventas;
+			$pagina =$this->load_template('Alta de Usuarios');
+			$html=$this->load_page('app/views/pages/servicio/p.usuarios.php');
+			$clie= '';
+			$us = $data->traeUsuarios($clie);
+			ob_start();
+   			include 'app/views/pages/servicio/p.usuarios.php';
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
+	function altaUsuario($clie){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$data_p = new pegaso_ventas;
+			$pagina =$this->load_template2('Alta de Usuarios');
+			$html=$this->load_page('app/views/pages/servicio/p.altaUsuario.php');
+			$cl = $data->traeClientes();
+			ob_start();
+   			include 'app/views/pages/servicio/p.altaUsuario.php';
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
+	function nuevoUsuario($cliente, $nombre, $segundo, $paterno, $materno, $correo, $telefono, $extension, $cargo){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$nuevo = $data->nuevoUsuario($cliente, $nombre, $segundo, $paterno, $materno, $correo, $telefono, $extension, $cargo);
+			$pagina =$this->load_template('Alta de Equipos');
+			if($nuevo['status']== 'ok'){
+				echo "<script>alert('Se ha creado el usuario')</script>";
+			}else{
+				echo "<script>alert('Encontramos un error al procesar el Alta, Favor de revisar la informacion')</script>";
+			}
+			ob_start();
+			$redireccionar = "altaUsuario&cliente={$cliente}";
+			$html = $this->load_page('app/views/pages/servicio/p.redirectform.serv.php');
+			include 'app/views/pages/servicio/p.redirectform.serv.php';
+			$this->view_page($pagina);
+		}
+		return;
+	}
+
+	function altaEquipo($clie){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$data_p = new pegaso_ventas;
+			$pagina =$this->load_template2('Alta Equipos');
+			$html=$this->load_page('app/views/pages/servicio/p.altaEquipo.php');
+			$cl = $data->traeClientes();
+			$us = $data->traeUsuarios($clie);
+			$mc = $data_p->traeMarcas();
+			$pr = $data->traeProcesadores();
+			$so = $data->traeSistemas();
+			ob_start();
+   			include 'app/views/pages/servicio/p.altaEquipo.php';
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}			
+	}
+
+	function nuevoEquipo($cliente,$usuario,$equipo,$ad_name,$marca,$modelo,$procesador,$so,$dom,$senia,$hdd_inst,$dd_principal,$mem_inst,$mem_max,$t_memoria,$ns,$correo,$tv,$tvc,$t_ip,$ip,$mac,$rdp,$area,$anio,$eth,$obs){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$pagina =$this->load_template('Alta de Equipos');
+			$alta=$data->nuevoEquipo($cliente,$usuario,$equipo,$ad_name,$marca,$modelo,$procesador,$so,$dom,$senia,$hdd_inst,$dd_principal,$mem_inst,$mem_max,$t_memoria,$ns,$correo,$tv,$tvc,$t_ip,$ip,$mac,$rdp,$area,$anio,$eth,$obs);
+			ob_start();
+			if($alta['status'] == 'ok'){
+				echo "<script>alert('Se ha ingresado correctamente')</script>";
+			}else{
+				echo "<script>alert('Encontramos un error al procesar el Alta, Favor de revisar la informacion')</script>";
+			}
+			$redireccionar = "altaEquipo&cliente={$cliente}";
+			$html = $this->load_page('app/views/pages/servicio/p.redirectform.serv.php');
+			include 'app/views/pages/servicio/p.redirectform.serv.php';
+			$this->view_page($pagina);
+   			//echo "<script>alert('Se guardo la informacion')</script>";
+   			//echo "<script>window.close()</script>";
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+
+	}
+
+	function creaTicket($cliente, $reporta, $usuario, $equipo, $fecha, $tipo, $sistema, $corta, $completa, $solucion, $modo, $cierre){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$crea = $data->creaTicket($cliente, $reporta, $usuario, $equipo, $fecha, $tipo, $sistema, $corta, $completa, $solucion, $modo, $cierre);
+			$x = $crea['mensaje'];
+			if($crea['status']== 'ok'){
+				echo "<script>alert('$x')</script>";
+				$_SESSION['info'] = $crea['info'];
+				include 'app/views/pages/servicio/send.aviso.php';
+				$redireccionar = "nuevoTicket&cli={$cliente}";
+				$pagina =$this->load_template('Alta de Equipos');
+				$html = $this->load_page('app/views/pages/servicio/p.redirectform.serv.php');
+				include 'app/views/pages/servicio/p.redirectform.serv.php';
+				$this->view_page($pagina);
+			}else{
+
+			}
+			return;
+		}
+	}
+
 }?>
 

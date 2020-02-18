@@ -31,18 +31,18 @@
                             $color='';
                             $aviso='';
                             $color = "style='background-color:#D5F3DE';";
-                            $aviso = "title='Los Metadados se cargan Cada fin de semana de forma en automatica y reflejan los Documentos cancelados en el SAT'";
+                            $aviso = "title=''";
                             ?>
                             <tr class="odd gradeX" <?php echo $color?> <?php echo $aviso?>>
-                                <td><?php echo $ln;?></td>
-                                <td><?php echo $row->ARCHIVO;?></td>
-                                <td><?php echo $row->FECHA_INI;?></td>
-                                <td><b><?php echo $row->FECHA_FIN?></b></td>
-                                <td><?php echo $row->REGISTROS;?></td>
-                                <td><?php echo $row->FECHA_CANCELACION;?></td>
-                                <td><b><?php echo $row->CANCELADOS;?></b></td>
-                                <td><?php echo $row->USUARIO;?></td>
-                                <td><?php echo $row->FECHA_CARGA?></td>
+                                <td><?php echo $row->ID;?></td>
+                                <td><?php echo $row->NOMBRE_CLIENTE;?></td>
+                                <td><?php echo $row->NOMBRE_USUARIO_REP;?></td>
+                                <td><b><?php echo $row->FECHA?></b></td>
+                                <td><?php echo $row->DESC_EQUIPO;?></td>
+                                <td><?php echo $row->DESC_CORTA;?></td>
+                                <td><b><?php echo $row->USUARIO_REGISTRA;?></b></td>
+                                <td><?php echo $row->STATUS;?></td>
+                                <td><?php echo $row->DESC_COMPLETA?></td>
                                 <td><a href="index.xml.php?action=verMetaDatosDet&archivo=<?php echo $row->ARCHIVO?>" target="popup" onclick="window.open(this.href, this.target, 'width=2000, heigth=800')" class="btn btn-info">Ver Detalle</a></td>
                             </tr>
                             <?php endforeach ?>
