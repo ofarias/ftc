@@ -115,7 +115,9 @@ class pegaso_controller{
 						case 'revision':
 						$this->MenuRevision();
 						break;
-
+						case 'servicio':
+						$this->MenuServicio ();
+						break;
 						default:
 						$e = "Error en acceso 1, favor de revisar usuario y/o contraseña";
 						header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -165,6 +167,9 @@ class pegaso_controller{
 				break;
 				case 'revision':
 				$this->MenuRevision();
+				break;
+				case 'servicio':
+				$this->MenuServicio();
 				break;
 				default:
 				$e = "Error en acceso 1, favor de revisar usuario y/o contraseña";
@@ -349,6 +354,20 @@ class pegaso_controller{
 		}
 	}
 
+	function MenuServicio(){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'servicio'){
+			$pagina = $this->load_template('Menu Admin');
+            ob_start();
+            $table =ob_get_clean();
+            $usuario=$_SESSION['user']->NOMBRE;    
+            include 'app/views/modules/m.mSERV.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            $this-> view_page($pagina);
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
 /// Finaliza Menus 
 
 	function CambiarSenia(){	
@@ -9305,13 +9324,6 @@ function imprimirFacturasAcuse(){
         $_SESSION['exec'] = $exec;    //// guardamos los datos en la variable goblar $_SESSION.
         $_SESSION['titulo'] = 'Aviso de Devolucion de Mercancia';   //// guardamos los datos en la variable global $_SESSION
         include 'app/mailer/send.avisoDev.php';   ///  se incluye la classe Contrarecibo     
-        //echo "Registro actualizado:$act";
-        /*$redireccionar="recibirCajaNC";
-        $pagina=$this->load_template('Pedidos');
-        $html = $this->load_page('app/views/pages/p.redirectform.php');
-        include 'app/views/pages/p.redirectform.php';
-        echo 'Intenta Redireccionar';
-        $this->view_page($pagina);                    */
    	 }
 
    	 function generaDevolucion($idc, $docf){

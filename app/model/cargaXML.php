@@ -448,16 +448,30 @@ class cargaXML extends database {
     		//echo 'Valor del documento: '.$doc.'<br/>';
     		$d = (int)$doc;
     		$d1 = ' '.$d.' ';
-    		$this->query="SELECT coalesce( sum(MONTOMOV),0 ) AS conciliado FROM WALMART WHERE CONCEP_PO containing('$d1') AND NOT CONCEP_PO CONTAINING ('FE') AND NOT CONCEP_PO CONTAINING ('NB') AND NOT CONCEP_PO CONTAINING ('NC')";
+    		$this->query="SELECT coalesce(sum(MONTOMOV),0 ) AS conciliado, count(TIPO_POLI) AS POL, 
+    				cast(
+    						coalesce(
+    								list(idp), ''
+    								)
+    					 as varchar(50)
+    					) as polizas
+    				 FROM WALMART 
+    				 WHERE CONCEP_PO containing('$d1') AND NOT CONCEP_PO CONTAINING ('FE') AND NOT CONCEP_PO CONTAINING ('NB') AND NOT CONCEP_PO CONTAINING ('NC') and FECHA_POL < '01.10.2019'";
     		$res=$this->EjecutaQuerySimple();
 
     		$row = ibase_fetch_object($res);
     		if(isset($row->CONCILIADO)){
-    			$this->query="UPDATE FTC_SALDO SET MONTO_CONCILIADO = $row->CONCILIADO WHERE FACTURA = '$k->FACTURA'";
+    			$this->query="UPDATE FTC_SALDO SET MONTO_CONCILIADO = $row->CONCILIADO, PERIODO=$row->POL, CONTABILIDAD = '$row->POLIZAS' WHERE FACTURA = '$k->FACTURA'";
     			$this->queryActualiza();
     		}
     		$this->query="UPDATE FTC_SALDO SET STATUS = 2 WHERE FACTURA = '$k->FACTURA'";
     		$this->queryActualiza();
     	}
     }
+
+    function creaExcel($datos){
+
+    }
+
+
 }
