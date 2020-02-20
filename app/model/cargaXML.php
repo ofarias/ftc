@@ -467,10 +467,24 @@ class cargaXML extends database {
     		$this->query="UPDATE FTC_SALDO SET STATUS = 2 WHERE FACTURA = '$k->FACTURA'";
     		$this->queryActualiza();
     	}
+    	return;
     }
 
-    function creaExcel($datos){
+    function creaExcel(){
+    	$data = array();
+    	$this->query ="SELECT * FROM FTC_SALDO WHERE STATUS  = 2 ";
+    	$res=$this->EjecutaQuerySimple();
+    	while ($tsArray = ibase_fetch_object($res)){
+    		$data[]=$tsArray;
+    	}
+    	return $data;
+    }
 
+    function traePolizas($ids){
+    	$this->query = "SELECT CAST (list(TIPO_POLI||'|'||NUM_POLIZ||'|'||PERIODO||'|'||EJERCICIO||'|'||NUM_CTA||'|'||REPLACE(CONCEP_PO, ',',' ')||'|'||MONTOMOV) AS VARCHAR (2000)) AS POLIZAS from walmart where idp in ($ids)";
+    	$res = $this->EjecutaQuerySimple();
+    	$row = ibase_fetch_object($res);
+    	return $row->POLIZAS;
     }
 
 

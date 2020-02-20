@@ -1,5 +1,6 @@
 <br/>
 <br/>
+<input type="hidden" id="anio" value="<?php echo $a?>" >
 <?php if($cnxcoi == 'si'){?>
 <?php foreach($infoCabecera as $pol){
     $polizas=$pol->POLIZA;
@@ -59,8 +60,8 @@
 <?php if($cnxcoi=='si'){?>
     <?php $dig=$param->NIVELACTU;
         for ($i=1; $i <= $dig ; $i++) { 
-            $a = "DIGCTA".$i;
-            $c=$param->$a;    
+            $b = "DIGCTA".$i;
+            $c=$param->$b;    
             $p[]=($c);
         }                                                         
     ?>
@@ -69,6 +70,7 @@
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
+                                
                                 <p><?php echo 'Usuario: '.$_SESSION['user']->NOMBRE?><br/><?php echo 'XMLs '.$ide?></p>
                                 <p><?php echo 'RFC seleccionado: '.$_SESSION['rfc']?>
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -242,8 +244,11 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
+    var a = document.getElementById('anio').value;
+    //var b =19;    
+
     $(".cuencont").autocomplete({
-        source: "index.coi.php?cuentas=1",
+        source: "index.coi.php?cuentas=1&anio=" + a,
         minLength: 3,
         select: function(event, ui){
         }

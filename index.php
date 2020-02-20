@@ -4189,7 +4189,8 @@ else{
 			break;
 		case 'facturaUploadFile':
 			$tipo = $_GET['tipo'];
-			$controller->facturacionSeleccionaCargaXML($tipo);
+			$opcion = isset($_GET['opcion'])? $_GET['opcion']:'';
+			$controller->facturacionSeleccionaCargaXML($tipo, $opcion);
 			break;
 		case 'calcularImpuestos':
 			$controller->calcularImpuestos();
@@ -4203,7 +4204,7 @@ else{
 			break;
 		case 'verXML':
 			$uuid=$_GET['uuid'];
-			$controller->verXML($uuid, $_GET['ide']);
+			$controller->verXML($uuid, $_GET['ide'], $_GET['anio']);
 			break;
 		case 'verificaPreOC':
 			

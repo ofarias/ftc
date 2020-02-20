@@ -39,7 +39,7 @@ if (isset($_POST['usuario'])){
 	exit();
 }elseif(isset($_GET['term']) && isset($_GET['cuentas'])){
 		$buscar = $_GET['term'];
-		$nombres = $controller_coi->traeCuentasContables($buscar);
+		$nombres = $controller_coi->traeCuentasContables($buscar, $_GET['anio']);
 		echo json_encode($nombres);
 		exit;
 }elseif (isset($_POST['actCuentaImp'])) {
