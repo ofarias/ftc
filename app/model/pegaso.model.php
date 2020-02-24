@@ -24441,26 +24441,30 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	#### Marca con un status 9 los impuestos que esta repetidos por partida y que tienen monto 0 ####
     	$this->query="SELECT coalesce(COUNT(id), 0) AS PARTIDAS FROM XML_PARTIDAS WHERE uuid = '$uid'";
     	$par=$this->EjecutaQuerySimple();
-    	$rowp = ibase_fetch_object($par);
-
-    	for ($i=1; $i <= $rowp->PARTIDAS ; $i++) { 
-    		$this->query="SELECT COUNT(*) AS VAL FROM XML_IMPUESTOS WHERE UUID = '$uid' and partida = $i and status = 0 and GROUP BY IMPUESTO, tipo";
-    		$res=$this->EjecutaQuerySimple();
-    		$rimp =ibase_fetch_object($res);
-    		while ($tsArray=ibase_fetch_object($rimp)) {
-    			$dimp[]=$tsArray;		
-    		}
-    		foreach ($dimp as $k){
-    			if($k->VAL > 1){
-    				$this->query ="UPDATE FTC_IMPUESTOS SET STATUS = 9 WHERE UUID= '$uid' and partida = $i and monto = 0 and status = 0";
-    				$res=$this->queryActualiza();
-    				if(ibase_fetch_object($res)){
-    					$this->query="INSERT INTO XML_EXCEPCION (ID, UUID, TIPO) VALUES (NULL, '$uuid', 'IMP')";
-    					$this->grabaBD(); 
+    	if($rowp = ibase_fetch_object($par)){
+    		for ($i=1; $i <= $rowp->PARTIDAS ; $i++) { 
+    			$this->query="SELECT COUNT(*) AS VAL FROM XML_IMPUESTOS WHERE UUID = '$uid' and partida = $i and status = 0 and GROUP BY IMPUESTO, tipo";
+    			$res=$this->EjecutaQuerySimple();
+    			$rimp =ibase_fetch_object($res);
+    			while ($tsArray=ibase_fetch_object($rimp)) {
+    				$dimp[]=$tsArray;		
+    			}
+    			foreach ($dimp as $k){
+    				if($k->VAL > 1){
+    					$this->query ="UPDATE FTC_IMPUESTOS SET STATUS = 9 WHERE UUID= '$uid' and partida = $i and monto = 0 and status = 0";
+    					$res=$this->queryActualiza();
+    					if(ibase_fetch_object($res)){
+    						$this->query="INSERT INTO XML_EXCEPCION (ID, UUID, TIPO) VALUES (NULL, '$uuid', 'IMP')";
+    						$this->grabaBD(); 
+    					}
     				}
     			}
-    		}
+    		}	
+    	}else{
+    		echo '<br/>Error en la limpieza de Impuestos: '.$this->query;
     	}
+
+    	
     	#### Finaliza la limpieza de impuestos#######
 
     	$this->query="SELECT  *  FROM XML_DATA  WHERE STATUS = 'S' $uuid  ";
