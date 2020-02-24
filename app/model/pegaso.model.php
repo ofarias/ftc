@@ -24451,7 +24451,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			}
     			foreach ($dimp as $k){
     				if($k->VAL > 1){
-    					$this->query ="UPDATE FTC_IMPUESTOS SET STATUS = 9 WHERE UUID= '$uid' and partida = $i and monto = 0 and status = 0";
+    					$this->query ="UPDATE XML_IMPUESTOS SET STATUS = 9 WHERE UUID= '$uid' and partida = $i and monto = 0 and status = 0";
     					$res=$this->queryActualiza();
     					if(ibase_fetch_object($res)){
     						$this->query="INSERT INTO XML_EXCEPCION (ID, UUID, TIPO) VALUES (NULL, '$uuid', 'IMP')";
