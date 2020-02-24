@@ -24443,7 +24443,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$par=$this->EjecutaQuerySimple();
     	if($rowp = ibase_fetch_object($par)){
     		for ($i=1; $i <= $rowp->PARTIDAS ; $i++) { 
-    			$this->query="SELECT COUNT(*) AS VAL FROM XML_IMPUESTOS WHERE UUID = '$uid' and partida = $i and status = 0 and GROUP BY IMPUESTO, tipo";
+    			$this->query="SELECT COUNT(*) AS VAL FROM XML_IMPUESTOS WHERE UUID = '$uid' and partida = $i and status = 0 GROUP BY IMPUESTO, tipo";
+    			echo '<br/>Seleccionando impuestos: '.$this->query;
     			$res=$this->EjecutaQuerySimple();
     			$rimp =ibase_fetch_object($res);
     			while ($tsArray=ibase_fetch_object($rimp)) {
