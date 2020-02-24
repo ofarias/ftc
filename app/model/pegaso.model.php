@@ -24443,10 +24443,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$par=$this->EjecutaQuerySimple();
     	if($rowp = ibase_fetch_object($par)){
     		for ($i=1; $i <= $rowp->PARTIDAS ; $i++) { 
+    			$dimp=array();
     			$this->query="SELECT COUNT(*) AS VAL FROM XML_IMPUESTOS WHERE UUID = '$uid' and partida = $i and status = 0 GROUP BY IMPUESTO, tipo";
-    			echo '<br/>Seleccionando impuestos: '.$this->query;
     			$res=$this->EjecutaQuerySimple();
-    			//$rimp =ibase_fetch_object($res);
     			while ($tsArray=ibase_fetch_object($res)) {
     				$dimp[]=$tsArray;		
     			}
@@ -24460,12 +24459,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					}
     				}
     			}
+    			unset($dimp);
     		}	
     	}else{
     		echo '<br/>Error en la limpieza de Impuestos: '.$this->query;
     	}
-
-    	
     	#### Finaliza la limpieza de impuestos#######
 
     	$this->query="SELECT  *  FROM XML_DATA  WHERE STATUS = 'S' $uuid  ";
