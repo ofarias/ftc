@@ -24446,7 +24446,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			$this->query="SELECT COUNT(*) AS VAL FROM XML_IMPUESTOS WHERE UUID = '$uid' and partida = $i and status = 0 GROUP BY IMPUESTO, tipo";
     			echo '<br/>Seleccionando impuestos: '.$this->query;
     			$res=$this->EjecutaQuerySimple();
-    			$rimp =ibase_fetch_object($res);
+    			//$rimp =ibase_fetch_object($res);
     			while ($tsArray=ibase_fetch_object($rimp)) {
     				$dimp[]=$tsArray;		
     			}
