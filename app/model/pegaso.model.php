@@ -24151,7 +24151,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					            	$tipoImp = $key[5];
 					            	$pi = $key[6];
 					            	//$partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte); 
-					            	$this->query = "INSERT INTO XML_IMPUESTOS values (null,'$nombre', '$tasa', $importe, $pi, '$uuid', ('$serie'||'-'||'$folio'), '$tipoFactor', $base, '$tipoImp')";
+					            	$this->query = "INSERT INTO XML_IMPUESTOS values (null,'$nombre', '$tasa', $importe, $pi, '$uuid', ('$serie'||'-'||'$folio'), '$tipoFactor', $base, '$tipoImp', 0)";
 					            	if($rs=$this->grabaBD() === false){
 					            		echo 'Fallo al insertar en la tabla de impuestos <br/>'; 
 					            		echo $this->query.'<br/>';
@@ -24171,7 +24171,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						        	$iltrasF= isset($il['TipoFactor'])? $il['TipoFactor']:'';
 						        	$ilretF= isset($il['TipoFactor'])? $il['TipoFactor']:'';
 
-				            		$this->query="INSERT INTO XML_IMPUESTOS values (null,'$iltrasN', '', $iltrasM, $pi + 1, '$uuid', ('$serie'||'-'||'$folio'), '$iltrasF', 0, 'local')";
+				            		$this->query="INSERT INTO XML_IMPUESTOS values (null,'$iltrasN', '', $iltrasM, $pi + 1, '$uuid', ('$serie'||'-'||'$folio'), '$iltrasF', 0, 'local', 0)";
 				            		if($rs=$this->grabaBD() === false){
 					            		echo 'Fallo al insertar en la tabla de impuestos <br/>'; 
 					            		echo $this->query.'<br/>';
@@ -24300,6 +24300,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	            			}
 	
 			            	$this->calcularImpuestos($uuid);
+			         
 			            }elseif($tipo2 == 'C'){
 			            	$this->query = "INSERT INTO XML_DATA_CANCELADOS (UUID, CLIENTE, SUBTOTAL, IMPORTE, FOLIO, SERIE, FECHA, RFCE, DESCUENTO, STATUS, TIPO, FILE )";
 				            $this->query.= "VALUES ('$uuid', '$rfc', '$subtotal', '$total', '$folio', '$serie', '$fecha', '$rfce', $descuento, 'C', '$tipo2', '$archivo')";
@@ -24435,16 +24436,39 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	}else{
     		$uuid = '';
     	}	
+    	#### Limpieza de impuestos ### 
+    	#### Marca con un status 9 los impuestos que esta repetidos por partida y que tienen monto 0 ####
+    	$this->query="SELECT COUNT(id) AS PARTIDAS FROM XML_PARTIDAS WHERE uuid = '$uuid'";
+    	$par=$this->EjecutaQuerySimple();
+    	$rowp = ibase_fetch_object($par);
+    	for ($i=1; $i <= $rowp->PARTIDAS ; $i++) { 
+    		$this->query="SELECT COUNT(*) AS VAL FROM XML_IMPUESTOS WHERE UUID = '$uuid' and partida = $i and status = 0 and GROUP BY IMPUESTO, tipo";
+    		$res=$this->EjecutaQuerySimple();
+    		$rimp =ibase_fetch_object($res);
+    		while ($tsArray=ibase_fetch_object($rimp)) {
+    			$dimp[]=$tsArray;		
+    		}
+    		foreach ($dimp as $k){
+    			if($k->VAL > 1){
+    				$this->query ="UPDATE FTC_IMPUESTOS SET STATUS = 9 WHERE UUID= '$uuid' and partida = $i and monto = 0 and status = 0";
+    				$res=$this->queryActualiza();
+    				if(ibase_fetch_object($res)){
+    					$this->query="INSERT INTO XML_EXCEPCION (ID, UUID, TIPO) VALUES (NULL, '$uuid', 'IMP')";
+    					$this->grabaBD(); 
+    				}
+    			}
+    		}
+    	}
+    	#### Finaliza la limpieza de impuestos#######
 
     	$this->query="SELECT  *  FROM XML_DATA  WHERE STATUS = 'S' $uuid  ";
     	$rs=$this->EjecutaQuerySimple();
-    	//echo $this->query;
     	while ($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
     	foreach ($data as $key) {
     		$data2 = array();
-    		$this->query="SELECT IMPUESTO, rpad(tasa, 8, '0') as TASA, SUM(MONTO) as monto, TIPOFACTOR,  tipo FROM XML_IMPUESTOS I WHERE I.UUID = '$key->UUID' group by IMPUESTO, TASA, TIPOFACTOR, tipo";
+    		$this->query="SELECT IMPUESTO, rpad(tasa, 8, '0') as TASA, SUM(MONTO) as monto, TIPOFACTOR,  tipo FROM XML_IMPUESTOS I WHERE I.UUID = '$key->UUID' and status = 0 group by IMPUESTO, TASA, TIPOFACTOR, tipo";
     		$res = $this->EjecutaQuerySimple();
     		//echo '<br/>'.$this->query.'<br/>';
     		while ($tsArray2 = ibase_fetch_object($res)) {
@@ -24722,9 +24746,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor'), (SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE ID = 1) AS EMISOR, xp.*, xd.*, xp.importe as pimporte, xp.descuento as pdescuento,
     			(SELECT cs.DESCRIPCION FROM CLAVES_SAT cs WHERE cs.CVE_PROD_SERV = xp.clave_sat) as desc_Clave, 
     			(SELECT us.DESCRIPCION FROM UNIDADES_SAT us WHERE us.CLAVE = xp.UNIDAD_SAT) as desc_Unidad, 
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' GROUP BY IMPUESTO),0) AS PIVA,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' GROUP BY IMPUESTO),0) AS PIEPS,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' GROUP BY IMPUESTO),0) AS PISR 
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 GROUP BY IMPUESTO),0) AS PIVA,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 GROUP BY IMPUESTO),0) AS PIEPS,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 GROUP BY IMPUESTO),0) AS PISR 
     			from xml_partidas xp 
     				left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor') is not null  
     				and extract(year from xd.fecha)=$anio 
@@ -24734,9 +24758,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente'), (SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE ID = 1) AS EMISOR, xp.*, xd.*, xp.importe as pimporte,xp.descuento as pdescuento,
     			(SELECT cs.DESCRIPCION FROM CLAVES_SAT cs WHERE cs.CVE_PROD_SERV = xp.clave_sat) as desc_Clave, 
     			(SELECT us.DESCRIPCION FROM UNIDADES_SAT us WHERE us.CLAVE = xp.UNIDAD_SAT) as desc_Unidad, 
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' GROUP BY IMPUESTO),0) AS PIVA,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' GROUP BY IMPUESTO),0) AS PIEPS,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' GROUP BY IMPUESTO),0) AS PISR
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0  GROUP BY IMPUESTO),0) AS PIVA,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 GROUP BY IMPUESTO),0) AS PIEPS,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 GROUP BY IMPUESTO),0) AS PISR
     			from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente') is not null and extract(year from xd.fecha)= $anio and xd.tipo= '$doc' $periodo order by xd.fecha, xd.documento";
     	}
     	//echo $this->query;
@@ -24821,30 +24845,30 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$this->query="SELECT x.*,
     						(select RFCE FROM XML_DATA WHERE UUID = '$uuid') as RFC_E, 
     						(select descripcion from claves_sat where cve_prod_serv = CLAVE_SAT) as DescSAT,
-    						(select sum(monto) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as ISR,
-    						(select sum(monto) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as IVA, 
-    						(select sum(monto) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as IEPS,
-     						(select TASA from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as TASA_ISR,
-    						(select TASA from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as TASA_IVA, 
-    						(select TASA from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as TASA_IEPS,
-     						(select TIPOFACTOR from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as FACT_ISR,
-    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as FACT_IVA, 
-    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado')  as FACT_IEPS,
-    						(select BASE from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as B_ISR,
-    						(select BASE from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as B_IVA, 
-    						(select BASE from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado') as B_IEPS,
-    						(select sum(monto) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as ISR_R,
-    						(select sum(monto) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as IVA_R, 
-    						(select sum(monto) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as IEPS_R,
-    						(select TASA from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as TASA_ISR_R,
-    						(select TASA from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as TASA_IVA_R, 
-    						(select TASA from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as TASA_IEPS_R,
-     						(select TIPOFACTOR from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as FACT_ISR_R,
-    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as FACT_IVA_R, 
-    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as FACT_IEPS_R,
-    						(select BASE from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as B_ISR_R,
-    						(select BASE from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as B_IVA_R, 
-    						(select BASE from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion') as B_IEPS_R
+    						(select sum(monto) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as ISR,
+    						(select sum(monto) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as IVA, 
+    						(select sum(monto) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as IEPS,
+     						(select TASA from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as TASA_ISR,
+    						(select TASA from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as TASA_IVA, 
+    						(select TASA from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as TASA_IEPS,
+     						(select TIPOFACTOR from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as FACT_ISR,
+    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as FACT_IVA, 
+    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0)  as FACT_IEPS,
+    						(select BASE from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as B_ISR,
+    						(select BASE from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as B_IVA, 
+    						(select BASE from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as B_IEPS,
+    						(select sum(monto) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as ISR_R,
+    						(select sum(monto) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as IVA_R, 
+    						(select sum(monto) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as IEPS_R,
+    						(select TASA from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as TASA_ISR_R,
+    						(select TASA from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as TASA_IVA_R, 
+    						(select TASA from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as TASA_IEPS_R,
+     						(select TIPOFACTOR from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as FACT_ISR_R,
+    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as FACT_IVA_R, 
+    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as FACT_IEPS_R,
+    						(select BASE from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_ISR_R,
+    						(select BASE from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_IVA_R, 
+    						(select BASE from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_IEPS_R
      						FROM  XML_PARTIDAS x where uuid = '$uuid'";
     	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
@@ -26521,7 +26545,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function impuestosPoliza($uuid){
 		$data = array();
-		$this->query="SELECT partida, max(tasa) as tasa, max(monto) as monto, uuid, impuesto, factura, tipoFactor, max(base) as base, tipo   FROM XML_IMPUESTOS WHERE UUID = '$uuid' group by partida, impuesto, uuid, factura, tipoFactor, tipo";
+		$this->query="SELECT partida, max(tasa) as tasa, max(monto) as monto, uuid, impuesto, factura, tipoFactor, max(base) as base, tipo   FROM XML_IMPUESTOS WHERE UUID = '$uuid'  and status = 0 group by partida, impuesto, uuid, factura, tipoFactor, tipo";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
@@ -26531,7 +26555,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function impuestosPolizaFinal($uuid){
 		$data = array();	
-		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) AS MONTO, SUM(BASE) AS BASE  FROM XML_IMPUESTOS WHERE UUID in ($uuid) group by impuesto, tasa, tipofactor, Tipo";
+		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) AS MONTO, SUM(BASE) AS BASE  FROM XML_IMPUESTOS WHERE UUID in ($uuid) and status = 0 group by impuesto, tasa, tipofactor, Tipo";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
@@ -26555,7 +26579,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		 		$uu=$u[$i];
 		 		//echo '<br/>Index: '.$i.' Valor: '.$uu.'<br/>'; 
 		 		//echo '<br/>Valor de los porcentajes '.$pr[$i].'<br/>';
-		 		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) * $pr[$i] AS MONTO, SUM(BASE) AS BASE, $p as partida, MAX(UUID) AS UUID, (select max(RFCE) from xml_data xd where xd.UUID = $uu) AS RFCE,  (select max(CLIENTE) from xml_data xd where xd.UUID = $uu ) AS CLIENTE FROM XML_IMPUESTOS WHERE UUID = $uu group by impuesto, tasa, tipofactor, Tipo";
+		 		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) * $pr[$i] AS MONTO, SUM(BASE) AS BASE, $p as partida, MAX(UUID) AS UUID, (select max(RFCE) from xml_data xd where xd.UUID = $uu) AS RFCE,  (select max(CLIENTE) from xml_data xd where xd.UUID = $uu ) AS CLIENTE FROM XML_IMPUESTOS WHERE UUID = $uu and status= 0 group by impuesto, tasa, tipofactor, Tipo";
 				//echo '<br/>Consula por UUID: '.$this->query.'<br/>';
 				$res=$this->EjecutaQuerySimple();
 
@@ -26822,7 +26846,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function impuestosUUID($uuid){
 		$data = array();
-		$this->query="SELECT * FROM XML_IMPUESTOS WHERE UUID = '$uuid'";
+		$this->query="SELECT * FROM XML_IMPUESTOS WHERE UUID = '$uuid' and status = 0";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
@@ -27733,6 +27757,59 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
         $this->query="UPDATE XML_CLIENTES XC SET XC.CUENTA_CONTABLE = '$cta' where XC.RFC = (SELECT $campo FROM XML_DATA X WHERE X.UUID = '$uuid') and XC.tipo = '$campo2' ";
         $this->queryActualiza();
         return;
+    }
+
+    function leeDirectorio($ruta, $opcion){
+    	$archivos = scandir($ruta);
+    	$ln=0;
+    	$files=0;
+    	$xmls=0;
+    	$car=0;
+    	$dup=0;
+    	$ruta_cargados = $ruta.'\\Cargados\\';
+    	if(!file_exists($ruta_cargados)){
+    		mkdir($ruta_cargados);
+    	}
+    	$ruta_dup = $ruta.'\\duplicados\\';
+    	if(!file_exists($ruta_dup)){
+    		mkdir($ruta_dup);
+    	}
+    	foreach ($archivos as $b){
+    		$file = $ruta.$b;
+    		$tipo = filetype($file);
+    		$info = pathinfo($file);
+    		$tipo == 'file'? $files++:0;
+    		if($files < 200){
+	    		if($tipo == 'file' and strtoupper($info['extension']) == strtoupper('xml')){
+	    			$xmls++;
+	    			$res=array("status"=> 'no');
+	    			$a=$this->leeXML($file);
+	    			$val=$this->seleccionarArchivoXMLCargado($file, $a['uuid']);
+	    			if($val==null){
+	    				$file_charge = $ruta_cargados.$b;
+	    				$f = $this->insertarArchivoXMLCargado($file, $tipo='F', $a);
+	    				if($f == 1){
+	    					$car++;
+	    					rename($file, $file_charge);
+	    				}else{
+
+	    				}
+	    			}else{
+	    				echo 'El Archivo '.$file.'  ya existe...<br/>';
+	    				$dup++;
+	    				$file_dup = $ruta_dup.$b;
+	    				rename($file,$file_dup);
+	    			}
+	    		}
+    		}
+       	}
+       	if($files > 0){
+	    	echo '<br/>Total de Archivos detectados: '.$files;
+	    	echo '<br/>Archivos xml: '.$xmls;
+	    	echo '<br/>Archivos duplicados: '.$dup;
+	    	echo '<br/>Archivos cargagos: '.$car;
+	    	echo '<br/>Pendientes: '. ($files - ($dup + $car));
+       	}
     }
 
 }?>

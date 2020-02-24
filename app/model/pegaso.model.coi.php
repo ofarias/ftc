@@ -27,7 +27,7 @@ class CoiDAO extends DataBaseCOI {
         return $data; 
     }
 
-    function traeCuentaCliente($info, $ide){
+    function traeCuentaCliente($info, $ide, $anio){
         foreach ($info as $key) {
             if($ide == 'Emitidos'){
                 $rfce=$key->CLIENTE;
@@ -36,7 +36,7 @@ class CoiDAO extends DataBaseCOI {
             }
             $cuenta=$key->CUENTA_CONTABLE;       
         }
-        $this->query="SELECT * FROM CUENTAS19 WHERE TRIM(NUM_CTA)=TRIM('$cuenta')";
+        $this->query="SELECT * FROM CUENTAS$anio WHERE TRIM(NUM_CTA)=TRIM('$cuenta')";
         $res=$this->EjecutaQuerySimple();
         $row=ibase_fetch_object($res);
         if($row){
@@ -48,14 +48,14 @@ class CoiDAO extends DataBaseCOI {
         }
     }
 
-    function traeCuentasSAT($info){
+    function traeCuentasSAT($info, $anio){
         $data=array();
         foreach ($info as $key) {
             $rfc=$key->RFC;       
             $cveSat=$key->CLAVE_SAT;
             $uniSat=$key->UNIDAD_SAT;
             $cuenta=$key->CUENTA_CONTABLE;
-            $this->query="SELECT * FROM CUENTAS19 WHERE TRIM(NUM_CTA)=TRIM('$cuenta') ";
+            $this->query="SELECT * FROM CUENTAS$anio WHERE TRIM(NUM_CTA)=TRIM('$cuenta') ";
             $res=$this->EjecutaQuerySimple();
             while($tsArray=ibase_fetch_object($res)){
                 $data[]=$tsArray;
@@ -64,7 +64,8 @@ class CoiDAO extends DataBaseCOI {
         return $data;
     }
 
-    function traeCatalogoCuentas($tipo, $ide){
+
+    function traeCatalogoCuentas($tipo, $ide, $anio){
         $data=array();
         $numcta="";
         if($tipo == 'V' and $ide == 'Recibidos'){
@@ -74,8 +75,39 @@ class CoiDAO extends DataBaseCOI {
         }elseif($tipo =='V' and $ide == 'Emitidos'){
             $numcta = "where (cuenta starting with ('1') or cuenta starting with ('11') or cuenta starting with ('1150')) and tipo = 'D' order by nombre";
         }
-        $this->query="SELECT C.* FROM CUENTAS_FTC C $numcta";
-        $res=$this->EjecutaQuerySimple();
+        $this->query="SELECT count(*) FROM CUENTAS_FTC_$anio ";
+        if(@$res=$this->EjecutaQuerySimple()){
+
+        }else{
+            $this->query = "CREATE OR ALTER VIEW CUENTAS_FTC_$anio(
+                            CUENTA,
+                            NOMBRE,
+                            CUENTA_COI,
+                            NIVEL,
+                            RFC,
+                            TIPO)
+                        AS
+                        select
+                             substring(num_cta from 1 for (select DIGCTA1 FROM paramemp))||
+                             iif((select DIGCTA2 FROM paramemp) = 0, '', '-')|| substring(num_cta from (select DIGCTA1 FROM paramemp) + 1 for (select DIGCTA2 FROM paramemp))
+                             || iif((select DIGCTA3 FROM paramemp) = 0,'','-')|| substring(num_cta from (select DIGCTA1 FROM paramemp) + (select DIGCTA2 FROM paramemp) + 1 for (select DIGCTA3 FROM paramemp))
+                             || iif((select DIGCTA4 FROM paramemp) = 0,'','-')|| iif((select DIGCTA3 FROM paramemp) = 0,'', substring(num_cta from (select DIGCTA3 FROM paramemp) for (select DIGCTA4 FROM paramemp)))
+                             || iif((select DIGCTA5 FROM paramemp) = 0,'','-')|| iif((select DIGCTA4 FROM paramemp) = 0,'', substring(num_cta from (select DIGCTA4 FROM paramemp)  for (select DIGCTA5 FROM paramemp)))
+                             || iif((select DIGCTA6 FROM paramemp) = 0,'','-')|| iif((select DIGCTA5 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA5 FROM paramemp)  for (select DIGCTA6 FROM paramemp)))
+                             || iif((select DIGCTA7 FROM paramemp) = 0,'','-')|| iif((select DIGCTA6 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA6 FROM paramemp)  for (select DIGCTA7 FROM paramemp)))
+                             || iif((select DIGCTA8 FROM paramemp) = 0,'','-')|| iif((select DIGCTA7 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA7 FROM paramemp)  for (select DIGCTA8 FROM paramemp)))
+                             || iif((select DIGCTA8 FROM paramemp) = 0,'','-')|| iif((select DIGCTA8 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA8 FROM paramemp)  for (select DIGCTA9 FROM paramemp)))
+                             As CUENTA
+                             , NOMBRE
+                             ,NUM_CTA AS CUENTA_COI
+                             ,NIVEL
+                             ,RFC
+                             ,tipo
+                            from cuentas$anio";
+            @$this->grabaBD();
+        }
+        $this->query="SELECT C.* FROM CUENTAS_FTC_$anio C $numcta";
+        @$res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
         }
@@ -1105,8 +1137,8 @@ class CoiDAO extends DataBaseCOI {
         return $actualizacion;
     }
 
-    function traeCuentasContables($buscar){
-        $this->query="SELECT * FROM cuentas_FTC where UPPER(cuenta) containing(UPPER('$buscar')) or UPPER(nombre) containing(UPPER('$buscar')) or UPPER(cuenta_coi) containing(UPPER('$buscar')) and tipo = 'D'";
+    function traeCuentasContables($buscar, $anio){
+        $this->query="SELECT * FROM cuentas_FTC_$anio where UPPER(cuenta) containing(UPPER('$buscar')) or UPPER(nombre) containing(UPPER('$buscar')) or UPPER(cuenta_coi) containing(UPPER('$buscar')) and tipo = 'D'";
         $rs=$this->QueryDevuelveAutocompleteCuenta();
         return @$rs;
     }

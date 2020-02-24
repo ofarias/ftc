@@ -724,8 +724,8 @@ class controller_xml{
 	                //->setCellValue('H'.$ln,$key->CVE_PEDI)
 	                //->setCellValue('I'.$ln,$key->OC);
 	        /// 
-	            $xls->getActiveSheet()
-	                ->setCellValue('A1',$df->RAZON_SOCIAL);
+	        $xls->getActiveSheet()
+	            ->setCellValue('A1',$df->RAZON_SOCIAL);
 	        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
 	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(5);
 	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(5);
@@ -919,9 +919,106 @@ class controller_xml{
 	}
 
 	function cs(){
+		$usuario = $_SESSION['user']->NOMBRE;
 		$data = new cargaXML;
 		$calculo = $data->cs();
-		return;
+		$datos = $data->creaExcel();
+		$xls= new PHPExcel();
+		$ln = 10;
+		$i = 0;
+		foreach ($datos as $key){
+			$i++;
+			if(!empty($key->CONTABILIDAD)){
+				$dc=$data->traePolizas($key->CONTABILIDAD);
+			}else{
+				$dc='';
+			}
+			echo 'Linea: '.$i.'<br/>';
+			$xls->setActiveSheetIndex()
+		            ->setCellValue('A'.$ln,$i)
+		            ->setCellValue('B'.$ln,$key->FACTURA)
+		            ->setCellValue('C'.$ln,$key->FECHA)
+		            ->setCellValue('D'.$ln,$key->CLIENTE)
+		            ->setCellValue('E'.$ln,$key->IMPORTE)
+		            ->setCellValue('F'.$ln,$key->SALDO)
+		            ->setCellValue('G'.$ln,$key->MONTO_CONCILIADO)
+		            ->setCellValue('H'.$ln,$dc)
+		            ->setCellValue('I'.$ln,'')//number_format($key->SUBTOTAL,2,".",""))
+		            ->setCellValue('J'.$ln,'')//number_format($key->IVA,2,".",""))
+		            ->setCellValue('K'.$ln,'')//number_format($key->IVA_RET,2,".",""))
+		            ->setCellValue('L'.$ln,'')
+		            ;
+		        $ln++;
+		}
+
+			$xls->getActiveSheet()
+		        ->setCellValue('A1','Reporte de conciliacion Excel');
+	        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(25);
+	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(50);
+	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth(25);
+	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(25);
+	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(13);
+	        
+	        // Hacer las cabeceras de las lineas;
+	        //->setCellValue('9','')
+	        $xls->getActiveSheet()
+	            ->setCellValue('A9','Ln')
+	            ->setCellValue('B9','FACTURA')
+	            ->setCellValue('C9','FECHA')
+	            ->setCellValue('D9','CLIENTE')
+	            ->setCellValue('E9','IMPORTE')
+	            ->setCellValue('F9','SALDO')
+	            ->setCellValue('G9','CONTABILIZADO')
+	            ->setCellValue('H9','POLIZAS')
+	            ->setCellValue('I9','')
+	            ->setCellValue('J9','')
+	            ->setCellValue('K9','')
+	            ->setCellValue('L9','')
+	            ;
+
+	        $nom_mes = $this->nombreMes($mes);
+	        $xls->getActiveSheet()
+	            ->setCellValue('A3','Conciliacion contable Walmart')
+	            ->setCellValue('A4','Fecha de Emision del Reporte: ')
+	            ->setCellValue('A5','Total de Movimientos: ')
+	            ->setCellValue('A6','')
+	            ->setCellValue('A7','Usuario Elabora')
+	            ->setCellValue('A8','')
+	            ;
+	        $xls->getActiveSheet()
+	            ->setCellValue('E3','')
+	            ->setCellValue('E4',date('d-m-Y H:i:s'))
+	            ->setCellValue('E5',count($datos))
+	            ->setCellValue('E6','')
+	            ->setCellValue('E7',$usuario)
+	            ->setCellValue('E8','')
+	            ;
+	        /// Unir celdas
+	        $xls->getActiveSheet()->mergeCells('A1:L1');
+	        // Alineando
+	        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+	        /// Estilando
+	        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>20,
+	                )
+	            )
+	        );
+	        
+
+		$ruta='C:\\xampp\\htdocs\\EdoCtaXLS\\';
+	    $nom='Reporte de Conciliacion Walmart.xlsx';
+	    $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+		$x->save($ruta.$nom);
+	    ob_end_clean();
 	}
 
 }?>

@@ -162,7 +162,7 @@
                                             <td><?php echo '<b>'.$key->MONEDA.'<b/>';?> </td>
                                             <td><?php echo '$ '.number_format($key->TIPOCAMBIO,2);?> </td>
                                             <td align="center" title="" id="ia_<?php echo $ln?>" class="infoAdicional" >
-                                                <a href="index.php?action=verXML&uuid=<?php echo $key->UUID?>&ide=<?php echo $ide?>" class="btn btn-info" target="popup" onclick="marcar(<?php echo $ln?>, 'c'); window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar </a>
+                                                <a href="index.php?action=verXML&uuid=<?php echo $key->UUID?>&ide=<?php echo $ide?>&anio=<?php echo substr($anio,2)?>" class="btn btn-info" target="popup" onclick="marcar(<?php echo $ln?>, 'c'); window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar </a>
                                                 <center><input type="checkbox" name="revision" id="<?php echo $ln?>" value="<?php echo $ln?>" color="<?php echo $color2?>" onclick="marcar(this.value, 'cb')" ></center>
                                                 <br/>
                                                 <?php if($ide == 'Recibidos'){?>

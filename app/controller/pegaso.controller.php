@@ -20097,9 +20097,13 @@ function ImpSolicitud2($idsol){
   		}
 	}
 	
-	function facturacionSeleccionaCargaXML($tipo){
+	function facturacionSeleccionaCargaXML($tipo, $opcion){
         if (isset($_SESSION['user'])) {            
             $data = new pegaso;
+            $rfc = $_SESSION['rfc'];
+            $ruta = 'C:\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descargas\\'.$rfc.'\\';
+            //$ruta = '\\\\192.168.100.33\\C:\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descarga'; Ruta remota.
+            $archivos = $data->leeDirectorio($ruta, $opcion);
             $pagina = $this->load_template('Pagos');        	            
             $html = $this->load_page('app/views/pages/p.factura.upload.xml.php');            
             ob_start();            
@@ -20149,13 +20153,15 @@ function ImpSolicitud2($idsol){
                         $ar = $name;
                         $a=$data->leeXML($_FILES['files']['tmp_name'][$f]);
                         if($a['tcf'] == 'falso'){
-                    }else{
+                    	}else{
                         $exec=$data->seleccionarArchivoXMLCargado($archivo, $a['uuid']); 
                         	if($exec==null){
                         	    if (move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name)){
                         	        $count++; // Number of successfully uploaded file
 									$respuesta += $data->insertarArchivoXMLCargado($archivo, $tipo, $a);
-									$res= $data2->insertarArchivoXMLCargado($archivo, $tipo, $a);
+									if($_SESSION['rfc'] == 'IMI161007SY7'){
+										$res= $data2->insertarArchivoXMLCargado($archivo, $tipo, $a);
+									}
 									//unlink($_FILES["files"]["tmp_name"][$f]);
                         	    }
                         	} else {
@@ -20235,7 +20241,7 @@ function ImpSolicitud2($idsol){
     	}
     }
 
-    function verXML($uuid, $ide){
+    function verXML($uuid, $ide, $a){
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$coi = new CoiDAO;
@@ -20252,10 +20258,10 @@ function ImpSolicitud2($idsol){
   			$infoCabecera=$data->verXMLSP($mes=false, $anio= false, $ide, $uuid, $doc=false);
     		$info=$data->verXML($uuid, $ide);
     		if($cnxcoi=='si'){
-    			$cccliente=$coi->traeCuentaCliente($infoCabecera, $ide);
-    			$ccC=$coi->traeCatalogoCuentas($tipo='V', $ide);
+    			$cccliente=$coi->traeCuentaCliente($infoCabecera, $ide, $a);
+    			$ccC=$coi->traeCatalogoCuentas($tipo='V', $ide, $a);
     			//$ccG=$coi->traeCatalogoCuentas($tipo='G');
-    			$ccpartidas=$coi->traeCuentasSAT($info);
+    			$ccpartidas=$coi->traeCuentasSAT($info, $a);
     			$cimpuestos=array("iva"=>'0101010101010',"ieps"=>'0202020202020', "isr"=>'0303030303030');
     			$param=$coi->traeParametros();
     		}
