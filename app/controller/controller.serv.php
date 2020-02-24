@@ -277,5 +277,29 @@ class ctrl_serv{
 		}
 	}
 
+	function verDetalleTicket($id){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$pagina =$this->load_template('Detalle Ticket');
+			$t=$data->verDetalleTicket($id);
+			foreach ($t as $key) {
+				$clie = $key->ID_CLIE;
+			}
+			$cl = $data->traeClientes();
+			$us = $data->traeUsuarios($clie);
+			$eq = $data->traeEquipos($clie);
+			$tp = $data->traeTipos();
+			$so = $data->traeSistemas();
+			$md = $data->traeModos();
+			ob_start();
+			$html = $this->load_page('app/views/pages/servicio/p.verDetalleTicket.php');
+			include 'app/views/pages/servicio/p.verDetalleTicket.php';
+			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}		
+	}
+
 }?>
 

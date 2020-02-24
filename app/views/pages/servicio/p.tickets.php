@@ -43,7 +43,7 @@
                                 <td><b><?php echo $row->USUARIO_REGISTRA;?></b></td>
                                 <td><?php echo $row->STATUS;?></td>
                                 <td><?php echo $row->DESC_COMPLETA?></td>
-                                <td><a href="index.xml.php?action=verMetaDatosDet&archivo=<?php echo $row->ARCHIVO?>" target="popup" onclick="window.open(this.href, this.target, 'width=2000, heigth=800')" class="btn btn-info">Ver Detalle</a></td>
+                                <td><a href="index.serv.php?action=verDetalleTicket&id=<?php echo $row->ID?>" target="popup" onclick="window.open(this.href, this.target, 'width=2000, heigth=800')" class="btn btn-info">Ver Detalle</a></td>
                             </tr>
                             <?php endforeach ?>
                         </tbody>

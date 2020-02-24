@@ -58,6 +58,9 @@ else{
 		$clie= isset($_GET['cliente'])? $_GET['cliente']:'';
 		$controller->altaEquipo($clie);
 		break;
+	case 'verDetalleTicket':
+		$controller->verDetalleTicket($_GET['id']);
+		break;
 	default: 
 		header('Location: index.php?action=login');
 		break;
