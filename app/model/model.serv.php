@@ -149,4 +149,12 @@ class data_serv extends database {
 			}
 		}
 
+		function verDetalleTicket($id){
+			$this->query="SELECT * FROM Ticket WHERE ID = $id";
+			$rs=$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($rs)) {
+				$data[]=$tsArray;
+			}
+			return $data;
+		}
 }
