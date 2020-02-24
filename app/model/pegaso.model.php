@@ -24447,7 +24447,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			echo '<br/>Seleccionando impuestos: '.$this->query;
     			$res=$this->EjecutaQuerySimple();
     			//$rimp =ibase_fetch_object($res);
-    			while ($tsArray=ibase_fetch_object($rimp)) {
+    			while ($tsArray=ibase_fetch_object($res)) {
     				$dimp[]=$tsArray;		
     			}
     			foreach ($dimp as $k){
