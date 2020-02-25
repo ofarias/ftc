@@ -39,6 +39,7 @@ if (isset($_POST['usuario'])){
 	exit();
 }elseif(isset($_GET['term']) && isset($_GET['cuentas'])){
 		$buscar = $_GET['term'];
+		//exit($_GET['anio']);
 		$nombres = $controller_coi->traeCuentasContables($buscar, $_GET['anio']);
 		echo json_encode($nombres);
 		exit;

@@ -114,6 +114,41 @@ class CoiDAO extends DataBaseCOI {
         return $data;
     }
 
+    function validaCuentaContable($anio){
+        echo '<br/> Validamos la cuenta contable';
+        $this->query="SELECT count(*) FROM CUENTAS_FTC_$anio ";
+        if(@$res=$this->EjecutaQuerySimple()){
+
+        }else{
+            $this->query = "CREATE OR ALTER VIEW CUENTAS_FTC_$anio(
+                            CUENTA,
+                            NOMBRE,
+                            CUENTA_COI,
+                            NIVEL,
+                            RFC,
+                            TIPO)
+                        AS
+                        select
+                             substring(num_cta from 1 for (select DIGCTA1 FROM paramemp))||
+                             iif((select DIGCTA2 FROM paramemp) = 0, '', '-')|| substring(num_cta from (select DIGCTA1 FROM paramemp) + 1 for (select DIGCTA2 FROM paramemp))
+                             || iif((select DIGCTA3 FROM paramemp) = 0,'','-')|| substring(num_cta from (select DIGCTA1 FROM paramemp) + (select DIGCTA2 FROM paramemp) + 1 for (select DIGCTA3 FROM paramemp))
+                             || iif((select DIGCTA4 FROM paramemp) = 0,'','-')|| iif((select DIGCTA3 FROM paramemp) = 0,'', substring(num_cta from (select DIGCTA3 FROM paramemp) for (select DIGCTA4 FROM paramemp)))
+                             || iif((select DIGCTA5 FROM paramemp) = 0,'','-')|| iif((select DIGCTA4 FROM paramemp) = 0,'', substring(num_cta from (select DIGCTA4 FROM paramemp)  for (select DIGCTA5 FROM paramemp)))
+                             || iif((select DIGCTA6 FROM paramemp) = 0,'','-')|| iif((select DIGCTA5 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA5 FROM paramemp)  for (select DIGCTA6 FROM paramemp)))
+                             || iif((select DIGCTA7 FROM paramemp) = 0,'','-')|| iif((select DIGCTA6 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA6 FROM paramemp)  for (select DIGCTA7 FROM paramemp)))
+                             || iif((select DIGCTA8 FROM paramemp) = 0,'','-')|| iif((select DIGCTA7 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA7 FROM paramemp)  for (select DIGCTA8 FROM paramemp)))
+                             || iif((select DIGCTA8 FROM paramemp) = 0,'','-')|| iif((select DIGCTA8 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA8 FROM paramemp)  for (select DIGCTA9 FROM paramemp)))
+                             As CUENTA
+                             , NOMBRE
+                             ,NUM_CTA AS CUENTA_COI
+                             ,NIVEL
+                             ,RFC
+                             ,tipo
+                            from cuentas$anio";
+            @$this->grabaBD();
+        }
+    }
+
     function creaParam($cliente, $partidas){
         $usuario=$_SESSION['user']->NOMBRE;
         $cliente = explode(":", $cliente);
@@ -1138,6 +1173,9 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function traeCuentasContables($buscar, $anio){
+        $this->validaCuentaContable($anio);
+        echo 'hola';
+        exit();
         $this->query="SELECT * FROM cuentas_FTC_$anio where UPPER(cuenta) containing(UPPER('$buscar')) or UPPER(nombre) containing(UPPER('$buscar')) or UPPER(cuenta_coi) containing(UPPER('$buscar')) and tipo = 'D'";
         $rs=$this->QueryDevuelveAutocompleteCuenta();
         return @$rs;

@@ -20727,6 +20727,10 @@ function ImpSolicitud2($idsol){
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$datos = $data->detalleGasto($idg, $tipo=false, $obs=false);
+			foreach ($datos as $i){
+				$a = $i->FECHA_EDO_CTA;
+			}
+			$a=date("y", strtotime($a));
 			$aplicaciones =$data->aplicacionesGasto($idg, $tipo=false);
 			$facturas = $data->facturasProvPendientes($uuid = false);
 			$pagina = $this->load_template_popup();
