@@ -167,9 +167,7 @@ class controller_coi{
 
 	function traeCuentasContables($buscar, $anio){
 		$data_coi= new CoiDAO;
-		//echo "Anio: ";
-		//exit($anio);
-        $exec=$data_coi->traeCuentasContables($buscar, $anio);
+		$exec=$data_coi->traeCuentasContables($buscar, $anio);
         return $exec;
 	}
 

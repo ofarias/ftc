@@ -115,7 +115,6 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function validaCuentaContable($anio){
-        echo '<br/> Validamos la cuenta contable';
         $this->query="SELECT count(*) FROM CUENTAS_FTC_$anio ";
         if(@$res=$this->EjecutaQuerySimple()){
 
@@ -1174,8 +1173,6 @@ class CoiDAO extends DataBaseCOI {
 
     function traeCuentasContables($buscar, $anio){
         $this->validaCuentaContable($anio);
-        echo 'hola';
-        exit();
         $this->query="SELECT * FROM cuentas_FTC_$anio where UPPER(cuenta) containing(UPPER('$buscar')) or UPPER(nombre) containing(UPPER('$buscar')) or UPPER(cuenta_coi) containing(UPPER('$buscar')) and tipo = 'D'";
         $rs=$this->QueryDevuelveAutocompleteCuenta();
         return @$rs;
