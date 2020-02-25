@@ -114,6 +114,40 @@ class CoiDAO extends DataBaseCOI {
         return $data;
     }
 
+    function validaCuentaContable($anio){
+        $this->query="SELECT count(*) FROM CUENTAS_FTC_$anio ";
+        if(@$res=$this->EjecutaQuerySimple()){
+
+        }else{
+            $this->query = "CREATE OR ALTER VIEW CUENTAS_FTC_$anio(
+                            CUENTA,
+                            NOMBRE,
+                            CUENTA_COI,
+                            NIVEL,
+                            RFC,
+                            TIPO)
+                        AS
+                        select
+                             substring(num_cta from 1 for (select DIGCTA1 FROM paramemp))||
+                             iif((select DIGCTA2 FROM paramemp) = 0, '', '-')|| substring(num_cta from (select DIGCTA1 FROM paramemp) + 1 for (select DIGCTA2 FROM paramemp))
+                             || iif((select DIGCTA3 FROM paramemp) = 0,'','-')|| substring(num_cta from (select DIGCTA1 FROM paramemp) + (select DIGCTA2 FROM paramemp) + 1 for (select DIGCTA3 FROM paramemp))
+                             || iif((select DIGCTA4 FROM paramemp) = 0,'','-')|| iif((select DIGCTA3 FROM paramemp) = 0,'', substring(num_cta from (select DIGCTA3 FROM paramemp) for (select DIGCTA4 FROM paramemp)))
+                             || iif((select DIGCTA5 FROM paramemp) = 0,'','-')|| iif((select DIGCTA4 FROM paramemp) = 0,'', substring(num_cta from (select DIGCTA4 FROM paramemp)  for (select DIGCTA5 FROM paramemp)))
+                             || iif((select DIGCTA6 FROM paramemp) = 0,'','-')|| iif((select DIGCTA5 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA5 FROM paramemp)  for (select DIGCTA6 FROM paramemp)))
+                             || iif((select DIGCTA7 FROM paramemp) = 0,'','-')|| iif((select DIGCTA6 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA6 FROM paramemp)  for (select DIGCTA7 FROM paramemp)))
+                             || iif((select DIGCTA8 FROM paramemp) = 0,'','-')|| iif((select DIGCTA7 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA7 FROM paramemp)  for (select DIGCTA8 FROM paramemp)))
+                             || iif((select DIGCTA8 FROM paramemp) = 0,'','-')|| iif((select DIGCTA8 FROM paramemp) = 0,'',substring(num_cta from (select DIGCTA8 FROM paramemp)  for (select DIGCTA9 FROM paramemp)))
+                             As CUENTA
+                             , NOMBRE
+                             ,NUM_CTA AS CUENTA_COI
+                             ,NIVEL
+                             ,RFC
+                             ,tipo
+                            from cuentas$anio";
+            @$this->grabaBD();
+        }
+    }
+
     function creaParam($cliente, $partidas){
         $usuario=$_SESSION['user']->NOMBRE;
         $cliente = explode(":", $cliente);
@@ -1138,6 +1172,7 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function traeCuentasContables($buscar, $anio){
+        $this->validaCuentaContable($anio);
         $this->query="SELECT * FROM cuentas_FTC_$anio where UPPER(cuenta) containing(UPPER('$buscar')) or UPPER(nombre) containing(UPPER('$buscar')) or UPPER(cuenta_coi) containing(UPPER('$buscar')) and tipo = 'D'";
         $rs=$this->QueryDevuelveAutocompleteCuenta();
         return @$rs;
@@ -1660,6 +1695,7 @@ class CoiDAO extends DataBaseCOI {
             $campo = 'FOLIO'.str_pad($periodo, 2, '0', STR_PAD_LEFT);
             $ie=$tipo;  
         }
+
         foreach($detalle as $dc){
             $rfcf= '';
             $proveedorf='';
@@ -1723,6 +1759,7 @@ class CoiDAO extends DataBaseCOI {
             $dhimppe = 'H';
         }
         $nat1=($nat0=='H')? 'D':'H';
+
         foreach ($detalle as $aux) {
             /*if($partida == 1){
                 if( substr($aux->CUENTA_CONTABLE, 0,1) == '6'){
@@ -1770,7 +1807,7 @@ class CoiDAO extends DataBaseCOI {
                                 $bimp = 1 + $tasa;
                                 //echo 'Base de impuesto: '.$bimp;
                                 $this->ingresaDIOT( 
-                                        $tipo = $impInd->TIPO,
+                                        //$tipo = $impInd->TIPO,
                                         $tipopol = $subTipo, 
                                         $numpol = $folio, 
                                         $fechapol = $fecha, 
@@ -1800,12 +1837,8 @@ class CoiDAO extends DataBaseCOI {
                                 $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 VALUES ('$subTipo', '$folio', $partida, $periodo, $ejercicio, '$ctaIVApp', '$fecha', '$conceptoIP', '$dhimppe', $impInd->MONTO, 0, 1, 0, $partida, 0,0, null , null)";
                                 $this->grabaBD();
-
-
-
                             }else{ // Si no, no hacemos nada.
-                            }
-                           
+                            } 
                         }
                     }
                 }

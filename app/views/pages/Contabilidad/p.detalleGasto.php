@@ -1,4 +1,5 @@
 <br/>
+<input type="hidden" value="<?php echo $a?>" id="anio" >
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
@@ -19,8 +20,7 @@
                                             <th>Importe</th>
                                             <th>Aplicado</th>
                                             <th style="background-color:'#ccffe6'">Saldo</th>
-                                            <th>Contabilizar</th> 
-                                           
+                                            <th>Contabilizar</th>   
                                        </tr>
                                     </thead>                                   
                                   <tbody>
@@ -342,9 +342,9 @@
             }   
         })
     });
-
+    var a = document.getElementById('anio').value
     $(".cuencont").autocomplete({
-        source: "index.coi.php?cuentas=1",
+        source: "index.coi.php?cuentas=1&anio="+a,
         minLength: 3,
         select: function(event, ui){
         }

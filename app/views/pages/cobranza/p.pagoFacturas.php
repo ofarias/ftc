@@ -1,3 +1,4 @@
+<input type="hidden" value="<?php echo $a?>" id="anio">
 <?php 
     foreach ($facturas as $data){
         $cliente = $data->CLAVE;
@@ -297,8 +298,9 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
+var a = document.getElementById('anio').value
     $(".cuencont").autocomplete({
-        source: "index.coi.php?cuentas=1",
+        source: "index.coi.php?cuentas=1&anio="+a,
         minLength: 3,
         select: function(event, ui){
         }

@@ -13409,6 +13409,9 @@ function ImpSolicitud2($idsol){
 	            $fin=$data->entidades();
 	            $total=$data->montoAplicado($idp);
 	            $pago=$data->infoPago($idp);
+	            foreach ($pago as $i) {
+	            	$a=date("y", strtotime($i->FECHA_RECEP));
+	            }
 	            $facturas=$data->pagoFacturas($idp);
 	            foreach ($pago as $x) {
 	            	$x=$x->MONTO;
@@ -20727,6 +20730,10 @@ function ImpSolicitud2($idsol){
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$datos = $data->detalleGasto($idg, $tipo=false, $obs=false);
+			foreach ($datos as $i){
+				$a = $i->FECHA_EDO_CTA;
+			}
+			$a=date("y", strtotime($a));
 			$aplicaciones =$data->aplicacionesGasto($idg, $tipo=false);
 			$facturas = $data->facturasProvPendientes($uuid = false);
 			$pagina = $this->load_template_popup();
