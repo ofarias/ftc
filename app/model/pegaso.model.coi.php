@@ -1695,6 +1695,7 @@ class CoiDAO extends DataBaseCOI {
             $campo = 'FOLIO'.str_pad($periodo, 2, '0', STR_PAD_LEFT);
             $ie=$tipo;  
         }
+
         foreach($detalle as $dc){
             $rfcf= '';
             $proveedorf='';
@@ -1758,6 +1759,7 @@ class CoiDAO extends DataBaseCOI {
             $dhimppe = 'H';
         }
         $nat1=($nat0=='H')? 'D':'H';
+
         foreach ($detalle as $aux) {
             /*if($partida == 1){
                 if( substr($aux->CUENTA_CONTABLE, 0,1) == '6'){
@@ -1805,7 +1807,7 @@ class CoiDAO extends DataBaseCOI {
                                 $bimp = 1 + $tasa;
                                 //echo 'Base de impuesto: '.$bimp;
                                 $this->ingresaDIOT( 
-                                        $tipo = $impInd->TIPO,
+                                        //$tipo = $impInd->TIPO,
                                         $tipopol = $subTipo, 
                                         $numpol = $folio, 
                                         $fechapol = $fecha, 
@@ -1835,12 +1837,8 @@ class CoiDAO extends DataBaseCOI {
                                 $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 VALUES ('$subTipo', '$folio', $partida, $periodo, $ejercicio, '$ctaIVApp', '$fecha', '$conceptoIP', '$dhimppe', $impInd->MONTO, 0, 1, 0, $partida, 0,0, null , null)";
                                 $this->grabaBD();
-
-
-
                             }else{ // Si no, no hacemos nada.
-                            }
-                           
+                            } 
                         }
                     }
                 }
