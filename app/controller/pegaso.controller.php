@@ -13409,6 +13409,9 @@ function ImpSolicitud2($idsol){
 	            $fin=$data->entidades();
 	            $total=$data->montoAplicado($idp);
 	            $pago=$data->infoPago($idp);
+	            foreach ($pago as $i) {
+	            	$a=date("y", strtotime($i->FECHA_RECEP));
+	            }
 	            $facturas=$data->pagoFacturas($idp);
 	            foreach ($pago as $x) {
 	            	$x=$x->MONTO;
