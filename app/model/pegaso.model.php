@@ -23626,58 +23626,62 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function leeXML($archivo){
     	$myFile = fopen("$archivo", "r") or die ("No se ha logrado abrir el archivo ($file)!");
-		$myXMLData = fread($myFile, filesize($archivo));
-        $xml = @simplexml_load_string($myXMLData) or die ("Error: No se ha logrado crear el objeto XML ($file)");
-        $ns = $xml->getNamespaces(true);
-        $xml->registerXPathNamespace('c', $ns['cfdi']);
-        $xml->registerXPathNamespace('t', $ns['tfd']);   
-        foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
-            $version = $cfdiComprobante['version'];
-			if($version == ''){
-			$version = $cfdiComprobante['Version'];
-			}
+    	if(filesize("$archivo") <= 3999){
+
+    	}else{
+				$myXMLData = fread($myFile, filesize($archivo));
+		        $xml = @simplexml_load_string($myXMLData) or die ("Error: No se ha logrado crear el objeto XML ($file)");
+		        $ns = $xml->getNamespaces(true);
+		        $xml->registerXPathNamespace('c', $ns['cfdi']);
+		        $xml->registerXPathNamespace('t', $ns['tfd']);   
+		        foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
+		            $version = $cfdiComprobante['version'];
+					if($version == ''){
+					$version = $cfdiComprobante['Version'];
+					}
+				}
+		        foreach ($xml->xpath('//t:TimbreFiscalDigital') as $tfd) {
+				    if($version == '3.2'){
+				    	$uuid = $tfd['UUID'];
+				    }else{
+				    	$uuid = $tfd['UUID'];
+				    }
+				}
+				if($version == '3.2'){
+					$tipo = $cfdiComprobante['tipoDeComprobante'];
+				}elseif($version == '3.3'){
+					$tipo = $cfdiComprobante['TipoDeComprobante'];
+				}
+				foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
+					if($version == '3.2'){
+						$rfc= $Receptor['rfc'];
+					 	$nombre_recep = utf8_encode($Receptor['nombre']);
+						$usoCFDI = '';
+					}elseif($version == '3.3'){
+						$rfc= $Receptor['Rfc'];
+						$nombre_recep=utf8_encode($Receptor['Nombre']);
+						$usoCFDI =$Receptor['UsoCFDI'];
+					 }
+				}
+				foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $Emisor){
+					if($version == '3.2'){
+						$rfce = $Emisor['rfc'];
+						$nombreE = '';
+						$regimen = '';	
+					}elseif($version == '3.3'){
+						$rfce = $Emisor['Rfc'];
+						$nombreE = utf8_encode($Emisor['Nombre']);
+						$regimen = $Emisor['RegimenFiscal'];
+					}
+				}
+				$rfcEmpresa = $_SESSION['rfc'];
+				//echo '<br/>'.utf8_decode($nombre_recep);
+				if($rfcEmpresa != $rfce and $rfcEmpresa!=$rfc){
+					echo ('<br/><font color="red">El RFC '.$rfce.' NO CORRESPONDE A LA EMPRESA '.$rfcEmpresa.' SELECCIONADA, SOLO SE PUEDEN SUBIR RFC DE LA EMPRESA SELECCIONA....'.$uuid.'</font><br/>');
+					$tipo = 'falso';
+				}
+			return array("uuid"=>$uuid, "tcf"=>$tipo);
 		}
-        foreach ($xml->xpath('//t:TimbreFiscalDigital') as $tfd) {
-		    if($version == '3.2'){
-		    	$uuid = $tfd['UUID'];
-		    }else{
-		    	$uuid = $tfd['UUID'];
-		    }
-		}
-		if($version == '3.2'){
-			$tipo = $cfdiComprobante['tipoDeComprobante'];
-		}elseif($version == '3.3'){
-			$tipo = $cfdiComprobante['TipoDeComprobante'];
-		}
-		foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
-			if($version == '3.2'){
-				$rfc= $Receptor['rfc'];
-			 	$nombre_recep = utf8_encode($Receptor['nombre']);
-				$usoCFDI = '';
-			}elseif($version == '3.3'){
-				$rfc= $Receptor['Rfc'];
-				$nombre_recep=utf8_encode($Receptor['Nombre']);
-				$usoCFDI =$Receptor['UsoCFDI'];
-			 }
-		}
-		foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $Emisor){
-			if($version == '3.2'){
-				$rfce = $Emisor['rfc'];
-				$nombreE = '';
-				$regimen = '';	
-			}elseif($version == '3.3'){
-				$rfce = $Emisor['Rfc'];
-				$nombreE = utf8_encode($Emisor['Nombre']);
-				$regimen = $Emisor['RegimenFiscal'];
-			}
-		}
-		$rfcEmpresa = $_SESSION['rfc'];
-		//echo '<br/>'.utf8_decode($nombre_recep);
-		if($rfcEmpresa != $rfce and $rfcEmpresa!=$rfc){
-			echo ('<br/><font color="red">El RFC '.$rfce.' NO CORRESPONDE A LA EMPRESA '.$rfcEmpresa.' SELECCIONADA, SOLO SE PUEDEN SUBIR RFC DE LA EMPRESA SELECCIONA....'.$uuid.'</font><br/>');
-			$tipo = 'falso';
-		}
-		return array("uuid"=>$uuid, "tcf"=>$tipo);
     }
 
 	function seleccionarArchivoXMLCargado($archivo, $uuid){
@@ -24106,8 +24110,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             					return;
 							}
 							/// creamos el folder para el movimiento de las facturas a nuestro sistema. 
-				            if($rfce == 'FPE980326GH9'){
-                                copy($archivo, "C:\\xampp\\htdocs\\Facturas\\facturaPegaso\\".$serie.$folio.".xml");    
+				            if($rfce == 'XAXX010101000'){
+                                $this->query="INSERT INTO XML_UUID_GENERICO (ID_UUID_GEN, NOMBRE) VALUES ('$uuid', '$nombre_recep')";
+    							@$this->grabaBD();
                             }else{
                             	if($rfce == $rfcEmpresa){
                             		$carpeta = 'Emitidos';
@@ -24129,7 +24134,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
                             	}else{	
                                    copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serie).utf8_encode($folio).'-'.$uuid.".xml");
                             	}
-                            	
                             }
 
                             /// Insertamos en la tabla de CFIDsss
@@ -24599,6 +24603,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
     function verXMLSP($mes, $anio, $ide, $uuid, $doc){
     	$data=array();
+    	//$this->uuid_generico(); Funcion para actulizar los nombres de los rfcs genericos del sat.
     	if(!empty($uuid)){
     		$uuid = "and uuid = '".$uuid."'"; 
     	}elseif ($mes == 0 and $ide == 'Emitidos') {
@@ -24613,7 +24618,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	if($ide== 'Emitidos'){
 					$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
-    					(select first 1 nombre from xml_clientes xc where xc.rfc = x.cliente) as nombre, 
+    					CASE x.cliente
+    						when 'XAXX010101000' then (SELECT NOMBRE FROM XML_UUID_GENERICO XUG WHERE XUG.ID_UUID_GEN = x.uuid )
+    						else (select first 1 nombre from xml_clientes xc where xc.rfc = x.cliente) 
+    						end  as nombre,
     					(SELECT first 1 RAZON_SOCIAL FROM FTC_EMPRESAS WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = x.cliente and tipo = 'Cliente') as cuenta_Contable,
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(2000)),'') as poliza
@@ -24665,6 +24673,68 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	return ($data);
     }
 
+    /* Actualiza razones sociales con RFC XAXX010101000
+    function uuid_generico(){
+    	$data= array();
+    	$this->query="SELECT * FROM XML_DATA WHERE CLIENTE = 'XAXX010101000'";
+    	$res=$this->EjecutaQuerySimple();
+    	while ($tsArray = ibase_fetch_object($res)) {
+    		$data[]=$tsArray;
+    	}
+    	foreach ($data as $u) {
+    		$uuid = $u->UUID; 
+    		$doc = $u->DOCUMENTO;
+    		$rfc = $u->CLIENTE;
+    		if($rfc=='XAXX010101000'){
+            	$z=$_SESSION['rfc'];
+            	$file="C:\\xampp\\htdocs\\uploads\\xml\\".$z."\\Emitidos\\XAXX010101000\\".$_SESSION['rfc'].'-'.$doc.'-'.$uuid.'.xml';
+            	//echo 'El rfc es generico debemos de obtener el nombre desde el xml: '.$uuid;
+            	$myFile = fopen("$file", "r") or die("No se ha logrado abrir el archivo ($file)!");
+            	$myXMLData = fread($myFile, filesize($file));
+            	$xml = @simplexml_load_string($myXMLData) or die("Error: No se ha logrado crear el objeto XML ($file)");
+            	$ns = $xml->getNamespaces(true);
+            	$xml->registerXPathNamespace('c', $ns['cfdi']);
+            	$xml->registerXPathNamespace('t', $ns['tfd']);
+            	@$xml->registerXPathNamespace('impl', $ns['implocal']);
+            	@$xml->registerXPathNamespace('p10',$ns['pago10']);
+            	foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
+            	      $version = $cfdiComprobante['version'];
+            	      if($version == ''){
+            	        $version = $cfdiComprobante['Version'];
+            	      }
+            	      foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
+            	                if($version == '3.2'){
+            	                    $rfc= $Receptor['rfc'];
+            	                    $nombre_recep = utf8_encode($Receptor['nombre']);
+            	                    $usoCFDI = '';
+            	                }elseif($version == '3.3'){
+            	                    $rfc= $Receptor['Rfc'];
+            	                    $nombre_recep=utf8_encode($Receptor['Nombre']);
+            	                    $usoCFDI =$Receptor['UsoCFDI'];
+            	                 }
+            	            }
+            	    foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $Emisor){
+            	        if($version == '3.2'){
+            	            $rfce = $Emisor['rfc'];
+            	            $nombreE = '';
+            	            $regimen = '';  
+            	        }elseif($version == '3.3'){
+            	            $rfce = $Emisor['Rfc'];
+            	            $nombreE = utf8_encode($Emisor['Nombre']);
+            	            $regimen = $Emisor['RegimenFiscal'];
+            	        }
+            	    }
+            	}
+            	$nombre = $nombre_recep;
+            }
+    		$this->query="INSERT INTO XML_UUID_GENERICO (ID_UUID_GEN, NOMBRE) VALUES ('$uuid', '$nombre')";
+    		@$this->grabaBD();
+    	}
+    }
+
+	*/
+
+
     function verXMLSP_xls($mes, $anio, $ide, $uuid, $doc){
     	$data=array();
     	if(!empty($uuid)){
@@ -24682,7 +24752,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	if($ide== 'Emitidos'){
     				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
-    					(select first 1 nombre from xml_clientes xc where xc.rfc = x.cliente) as nombre, 
+    					CASE x.cliente
+    						when 'XAXX010101000' then (SELECT NOMBRE FROM XML_UUID_GENERICO XUG WHERE XUG.ID_UUID_GEN = x.uuid )
+    						else (select first 1 nombre from xml_clientes xc where xc.rfc = x.cliente) 
+    						end  as nombre, 
     					(SELECT first 1 RAZON_SOCIAL FROM FTC_EMPRESAS WHERE rfc = rfce) as emisor,
     					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = x.cliente and tipo = 'Cliente') as cuenta_Contable,
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(1000)),'') as poliza
@@ -27444,6 +27517,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function consolidaPolizas($mes, $anio, $ide, $polizas){
 		$mensaje='a';
+		$data= array();
 		$this->query="SELECT * FROM XML_POLIZAS WHERE PERIODO = $mes AND  EJERCICIO = $anio and status = 'A'";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
@@ -27490,7 +27564,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			}
 			//echo 'Total polizas con coincidencia: '.$ok.'<br/>';
 		}else{
-			exit('Nada que consolidar');
+			$this->query="UPDATE XML_POLIZAS SET STATUS = 'C' WHERE periodo = $mes and ejercicio= $anio and tipo = 'Dr' ";
+			$this->queryActualiza();
 		}
 		return array("status"=>'C', "mensaje"=>$mensaje);
 	}
@@ -27815,6 +27890,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    	echo '<br/>Archivos cargagos: '.$car;
 	    	echo '<br/>Pendientes: '. ($files - ($dup + $car));
        	}
+    }
+
+    function traeUUID($tipo, $numero, $periodo, $ejercicio, $partida){
+    	$this->query="SELECT MAX(UUID) AS UUID FROM XML_POLIZAS WHERE POLIZA = '$numero' AND TIPO = '$tipo' AND PERIODO = '$periodo' AND EJERCICIO = '$ejercicio' AND STATUS = 'A'";
+    	$res=$this->EjecutaQuerySimple();
+    	$row= ibase_fetch_object($res);
+    	return array("uuid"=>$row->UUID);
     }
 
 }?>
