@@ -691,6 +691,8 @@ class controller_xml{
 	        $l_h = 0;
 	        foreach ($res as $key) {
 	            $i++;
+	            $a= $data_p->traeUUID($key->TIPO_POLI, $key->NUM_POLIZ, $key->PERIODO, $key->EJERCICIO, $key->NUM_PART);
+
 	            if($l_g < strlen($key->NOMBRE)){
 	            	$l_g = strlen($key->NOMBRE);
 	            }
@@ -698,17 +700,18 @@ class controller_xml{
 	            $cargo=$key->DEBE_HABER=='D'? $key->MONTOMOV:0;
 	            $xls->setActiveSheetIndex()
 	                ->setCellValue('A'.$ln,$i)
-	                ->setCellValue('B'.$ln,$key->TIPO_POLI)
-	                ->setCellValue('C'.$ln,$key->NUM_POLIZ)
-	                ->setCellValue('D'.$ln,$key->ORIGEN)
-	                ->setCellValue('E'.$ln,$key->NUM_PART)
-	                ->setCellValue('F'.$ln,$key->PERIODO)
-	                ->setCellValue('G'.$ln,$key->FECHA_POL)
-	                ->setCellValue('H'.$ln,$key->NUM_CTA)
-	                ->setCellValue('I'.$ln,utf8_encode($key->NOMBRE))//number_format($key->SUBTOTAL,2,".",""))
-	                ->setCellValue('J'.$ln,$abono)//number_format($key->IVA,2,".",""))
-	                ->setCellValue('K'.$ln,$cargo)//number_format($key->IVA_RET,2,".",""))
-	                ->setCellValue('L'.$ln,$key->TIPCAMBIO)
+	                ->setCellValue('B'.$ln,$a['uuid'])
+	                ->setCellValue('C'.$ln,$key->TIPO_POLI)
+	                ->setCellValue('D'.$ln,$key->NUM_POLIZ)
+	                ->setCellValue('E'.$ln,$key->ORIGEN)
+	                ->setCellValue('F'.$ln,$key->NUM_PART)
+	                ->setCellValue('G'.$ln,$key->PERIODO)
+	                ->setCellValue('H'.$ln,$key->FECHA_POL)
+	                ->setCellValue('I'.$ln,$key->NUM_CTA)
+	                ->setCellValue('J'.$ln,utf8_encode($key->NOMBRE))//number_format($key->SUBTOTAL,2,".",""))
+	                ->setCellValue('K'.$ln,$abono)//number_format($key->IVA,2,".",""))
+	                ->setCellValue('L'.$ln,$cargo)//number_format($key->IVA_RET,2,".",""))
+	                ->setCellValue('M'.$ln,$key->TIPCAMBIO)
 	                ;
 	            $ln++;
 	        }
@@ -730,31 +733,34 @@ class controller_xml{
 	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(5);
 	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(5);
 	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(5);
-	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(15);
-	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(15);
 	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(5);
-	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth(25);
-	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth($l_g);
-	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(15);
-	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(25);
+	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth($l_g);
+	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(13);
+
 	        
 	        // Hacer las cabeceras de las lineas;
 	        //->setCellValue('9','')
 	        $xls->getActiveSheet()
 	            ->setCellValue('A9','Ln')
-	            ->setCellValue('B9','Tipo')
-	            ->setCellValue('C9','Numero')
-	            ->setCellValue('D9','Origen')
-	            ->setCellValue('E9','Partida')
-	            ->setCellValue('F9','Periodo')
-	            ->setCellValue('G9','Fecha Poliza')
-	            ->setCellValue('H9','Cuenta')
-	            ->setCellValue('I9','Nombre')
-	            ->setCellValue('J9','Cargo')
-	            ->setCellValue('K9','Abono')
-	            ->setCellValue('L9','Tipo de Cambio')
+	            ->setCellValue('B9','UUID')
+	            ->setCellValue('C9','Tipo')
+	            ->setCellValue('D9','Numero')
+	            ->setCellValue('E9','Origen')
+	            ->setCellValue('F9','Partida')
+	            ->setCellValue('G9','Periodo')
+	            ->setCellValue('H9','Fecha Poliza')
+	            ->setCellValue('I9','Cuenta')
+	            ->setCellValue('J9','Nombre')
+	            ->setCellValue('K9','Cargo')
+	            ->setCellValue('L9','Abono')
+	            ->setCellValue('M9','Tipo de Cambio')
 	            ;
 
 	        $nom_mes = $this->nombreMes($mes);

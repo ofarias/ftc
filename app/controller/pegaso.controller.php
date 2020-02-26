@@ -20687,11 +20687,13 @@ function ImpSolicitud2($idsol){
 			$factura='c:\xampp\htdocs\Facturas\FacturasJson\\'.$res['archivo'];
 			copy("C:\\xampp\\htdocs\\Facturas\\FacturasJson\\".$res['archivo'], "C:\\xampp\\htdocs\\Facturas\\facturaPegaso\\".$docf.".xml");
 			$a=$data->leeXML($archivo=$factura);
-  			$infoXML = $data->insertarArchivoXMLCargado($archivo = $factura, $tipo='F', $a);
-  			$factura = $res['factura'];
-  			$this->ImprimeFacturaPegaso($res['factura'], $destino='f');
-  			$correo=$_SESSION['user']->USER_EMAIL;
-  			$env=$ctrl->enviarFact($res['factura'],$correo, $mensaje="Correo generado de forma automatica");
+			if($a['uuid']!= 'No'){
+				$infoXML = $data->insertarArchivoXMLCargado($archivo = $factura, $tipo='F', $a);
+  				$factura = $res['factura'];
+  				$this->ImprimeFacturaPegaso($res['factura'], $destino='f');
+  				$correo=$_SESSION['user']->USER_EMAIL;
+  				$env=$ctrl->enviarFact($res['factura'],$correo, $mensaje="Correo generado de forma automatica");	
+			}
 		}
 		return $res;
 	}

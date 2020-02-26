@@ -65,8 +65,8 @@ class ftc extends ftcws {
         $data=array();
         $this->query="SELECT u.*, e.*, (SELECT concat(NOMBRE,' ', APELLIDO_P, ' ', APELLIDO_M)  FROM ftc_usuarios fu where fu.id = $idu) AS usuario 
             FROM ftc_empresas_usuarios u 
-            left join ftc_empresas e on u.ide=e.ide 
-            WHERE u.idu = $idu and u.status = 1";
+            left join ftc_empresas e on u.ide=e.ide  
+            WHERE u.idu = $idu and u.status = 1 and e.fecha_baja is null";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=mysqli_fetch_array($res)) {
             $data[]=$tsArray;
