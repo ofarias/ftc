@@ -23627,7 +23627,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	function leeXML($archivo){
     	$myFile = fopen("$archivo", "r") or die ("No se ha logrado abrir el archivo ($file)!");
     	if(filesize("$archivo") <= 3999){
-
+    		return array("uuid"=='no');
     	}else{
 				$myXMLData = fread($myFile, filesize($archivo));
 		        $xml = @simplexml_load_string($myXMLData) or die ("Error: No se ha logrado crear el objeto XML ($file)");
@@ -27864,21 +27864,24 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    			$xmls++;
 	    			$res=array("status"=> 'no');
 	    			$a=$this->leeXML($file);
-	    			$val=$this->seleccionarArchivoXMLCargado($file, $a['uuid']);
-	    			if($val==null){
-	    				$file_charge = $ruta_cargados.$b;
-	    				$f = $this->insertarArchivoXMLCargado($file, $tipo='F', $a);
-	    				if($f == 1){
-	    					$car++;
-	    					rename($file, $file_charge);
-	    				}else{
+	    			if($a['uuid']!='No'){
+	    				$val=$this->seleccionarArchivoXMLCargado($file, $a['uuid']);
+		    			if($val==null){
+		    				$file_charge = $ruta_cargados.$b;
+		    				$f = $this->insertarArchivoXMLCargado($file, $tipo='F', $a);
+		    				if($f == 1){
+		    					$car++;
+		    					rename($file, $file_charge);
+		    				}else{
 
-	    				}
+		    				}
+		    			}else{
+		    				echo 'El Archivo '.$file.'  ya existe...<br/>';
+		    				$dup++;
+		    				$file_dup = $ruta_dup.$b;
+		    				rename($file,$file_dup);
+		    			}	
 	    			}else{
-	    				echo 'El Archivo '.$file.'  ya existe...<br/>';
-	    				$dup++;
-	    				$file_dup = $ruta_dup.$b;
-	    				rename($file,$file_dup);
 	    			}
 	    		}
     		}
