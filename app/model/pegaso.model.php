@@ -23627,7 +23627,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	function leeXML($archivo){
     	$myFile = fopen("$archivo", "r") or die ("No se ha logrado abrir el archivo ($file)!");
     	if(filesize("$archivo") <= 3999){
-    		return array("uuid"=='no');
+    		return array("uuid"=>'No');
     	}else{
 				$myXMLData = fread($myFile, filesize($archivo));
 		        $xml = @simplexml_load_string($myXMLData) or die ("Error: No se ha logrado crear el objeto XML ($file)");
