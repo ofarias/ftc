@@ -126,7 +126,6 @@ class data_serv extends database {
 				$this->grabaBD();	
 				return array("status"=>'ok', "mensaje"=>'Se ha insertado el equipo correctamente');
 			}else{
-
 				return array('status' => 'no' , "mensaje"=>'El Numero de serie ya existe' );
 			}
 			return;
