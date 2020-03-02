@@ -115,7 +115,6 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function validaCuentaContable($anio){
-        
         $this->query="SELECT count(*) FROM CUENTAS_FTC_$anio ";
         if(@$res=$this->EjecutaQuerySimple()){
 

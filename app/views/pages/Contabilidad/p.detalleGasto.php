@@ -103,7 +103,7 @@
                                             <td><?php echo $app->FECHA?></td>
                                             <td><?php echo $app->USUARIO?></td>
                                             <td><?php echo $app->DOCUMENTO.'<br/>'.$app->UUID;?></td>
-                                            <td><?php echo $app->PROV;?><br/><a href="index.php?action=verXML&uuid=<?php echo $app->UUID?>&ide=Recibidos" class="btn-sm btn-info" target="popup" onclick="window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar UUID</a></td>
+                                            <td><?php echo $app->PROV;?><br/><a href="index.php?action=verXML&uuid=<?php echo $app->UUID?>&ide=Recibidos&anio=<?php echo $a?>" class="btn-sm btn-info" target="popup" onclick="window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar UUID</a></td>
                                             <td align="right"><font color="<?php echo $color?>"><b><?php echo '$ '.number_format($app->APLICADO,2);?></b></font> </td>
                                             <td>
                                                 <?php if($app->STATUS == 0 and empty($key->CONTABILIZADO)){?>
@@ -167,7 +167,7 @@
                                             $saldo = $f->IMPORTE - $f->APLICADO;
                                         ?>
                                         <tr class="odd gradeX" <?php echo $color ?> >
-                                            <td> <?php echo $f->UUID?>&nbsp;&nbsp;&nbsp;<a href="index.php?action=verXML&uuid=<?php echo $f->UUID?>&ide=Recibidos" class="btn-sm btn-info" target="popup" onclick="window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar UUID</a><br/><?php echo $f->DOCUMENTO?> </td>
+                                            <td> <?php echo $f->UUID?>&nbsp;&nbsp;&nbsp;<a href="index.php?action=verXML&uuid=<?php echo $f->UUID?>&ide=Recibidos&anio=<?php echo $a?>" class="btn-sm btn-info" target="popup" onclick="window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar UUID</a><br/><?php echo $f->DOCUMENTO?> </td>
                                             <td><?php echo $f->PROV?></td>
                                             <td><?php echo $f->FECHA;?> </td>
                                             <td><?php echo '$ '.number_format($f->IMPORTE,2);?></td>
