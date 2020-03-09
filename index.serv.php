@@ -38,7 +38,8 @@ else{
 		$controller->mServ();
 		break;
 	case 'tickets':
-		$controller->tickets();
+		$temp = isset($_GET['temp'])? $_GET['temp']:0;
+		$controller->tickets($temp);
 		break;
 	case 'nuevoTicket':
 		$clie = isset($_GET['cli'])? $_GET['cli']:'';
@@ -60,6 +61,9 @@ else{
 		break;
 	case 'verDetalleTicket':
 		$controller->verDetalleTicket($_GET['id']);
+		break;
+	case 'verArchivos':
+		$controller->verArchivos($_GET['tipo'], $_GET['ticket']);
 		break;
 	default: 
 		header('Location: index.php?action=login');

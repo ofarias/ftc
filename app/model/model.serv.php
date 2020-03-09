@@ -4,13 +4,21 @@ require_once('app/views/unit/commonts/numbertoletter.php');
 
 class data_serv extends database {
 
-		function tickets(){
+		function tickets($temp){
 			$data= array();
 			$actual = date("d.m.Y");
-			$hoy = date("d.m.Y", strtotime($actual."- 7 days"));
-			//echo 'Hoy menos 7 dias: '.$hoy;
+			if($temp == 's'){
+				$hoy = date("d.m.Y", strtotime($actual."- 7 days"));
+			}elseif($temp == 'q'){
+				$hoy = date("d.m.Y", strtotime($actual."- 15 days"));
+			}elseif ($temp == 'm') {
+				$hoy = date("d.m.Y", strtotime($actual."- 31 days"));
+			}elseif ($temp == 't') {
+				$hoy = '01.01.1990';
+			}
+			//die();
 			$this->query = "SELECT FS.*, CL.NOMBRE AS NOMBRE_CLIENTE, FU.NOMBRE||' '||FU.PATERNO AS NOMBRE_USUARIO_REP, 
-							FE.NOMBRE_AD AS DESC_EQUIPO
+							FE.NOMBRE_AD AS DESC_EQUIPO, CASE FS.STATUS WHEN 1 THEN 'Abierto' WHEN 2 then 'Cerrado' when 3 then 'Modificado' end as Nom_status , (SELECT COUNT(*) FROM FTC_SERV_FILES WHERE ID_SERV = FS.ID) AS ARCHIVOS 
 							FROM FTC_SERVICIOS FS
 								LEFT JOIN CLIE01 CL ON CL.CLAVE_TRIM = FS.CLIENTE
 								LEFT JOIN FTC_SERV_USUARIOS FU ON FU.ID = FS.USUARIO
@@ -150,6 +158,33 @@ class data_serv extends database {
 
 		function verDetalleTicket($id){
 			$this->query="SELECT * FROM Ticket WHERE ID = $id";
+			$rs=$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($rs)) {
+				$data[]=$tsArray;
+			}
+			return $data;
+		}
+
+		function cargaArchivo($file, $servicio, $tipo, $origen, $ubicacion, $nombre, $tamano, $tipo_archivo){
+			$usuario = $_SESSION['user']->NOMBRE;
+			if($origen == 'ticket'){
+
+			}
+
+			if($tipo == 'Original'){
+				$this->query="INSERT into FTC_SERV_FILES (ID_SF, ID_SERV, UBICACION, NOMBRE, TIPO, TAMANO, USUARIO, TIPO_ARCHIVO, VERSION, FECHA_ALTA, FECHA_BAJA, STATUS, ORIGEN, EMPRESA) VALUES (NULL, $servicio, '$ubicacion', '$nombre', '$tipo', $tamano, '$usuario', '$tipo_archivo', 1.00, current_timestamp, null, 0, '$origen', (SELECT CLIENTE FROM FTC_SERVICIOS WHERE ID = $servicio))";
+				$this->grabaBD();
+			}else{
+
+				$this->query="INSERT into FTC_SERV_FILES (ID_SF, ID_SERV, UBICACION, NOMBRE, TIPO, TAMANO, USUARIO, TIPO_ARCHIVO, VERSION, FECHA_ALTA, FECHA_BAJA, STATUS, ORIGEN, EMPRESA) VALUES (NULL, $servicio, '$ubicacion', '$nombre', '$tipo', $tamano, '$usuario', '$tipo_archivo', 1.00, current_timestamp, null, 0, '$origen', (SELECT CLIENTE FROM FTC_SERVICIOS WHERE ID = $servicio))";
+				$this->grabaBD();
+			}
+
+		}
+
+		function verArchivos($tipo, $id){
+			$data=array();
+			$this->query="SELECT A.*, T.NOMBRE_CLIENTE, T.FECHA AS FECHA_TICKET, T.COMPLETA FROM FTC_SERV_FILES A LEFT JOIN Ticket T ON T.ID = A.ID_SERV WHERE A.ID_SERV = $id";
 			$rs=$this->EjecutaQuerySimple();
 			while ($tsArray=ibase_fetch_object($rs)) {
 				$data[]=$tsArray;

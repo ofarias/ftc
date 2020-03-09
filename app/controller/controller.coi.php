@@ -321,5 +321,13 @@ class controller_coi{
 		}
 	}
 
+	function validaPol($pol, $e, $per, $cta){
+		if ($_SESSION['user']) {
+			$data = new pegaso;
+			$data_coi = new CoiDAO;
+			$info = $data->traeinfo($pol);
+		}
+	}
+
 }?>
 

@@ -77,6 +77,10 @@ if (isset($_POST['usuario'])){
 	$res=$controller_coi->acmd($_POST['mes'], $_POST['anio']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['validaPol'])) {
+	$res=$controller_coi->validaPol($_POST['pol'], $_POST['e'], $_POST['per'], $_POST['cta']);
+	echo json_encode($res);
+	exit();
 }
 else{switch ($_GET['action']){
 	//case 'inicio':

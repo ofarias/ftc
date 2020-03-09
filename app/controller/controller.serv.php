@@ -95,12 +95,12 @@ class ctrl_serv{
 		}
 	}
 	
-	function tickets(){
+	function tickets($temp){
 		if($_SESSION['user']){
 			$data = new data_serv;
 			$pagina =$this->load_template('Tickets');
 			$html=$this->load_page('app/views/pages/servicio/p.tickets.php');
-			$tcks = $data->tickets();
+			$tcks = $data->tickets($temp);
    			ob_start();
    			include 'app/views/pages/servicio/p.tickets.php';
    			$table = ob_get_clean();
@@ -299,6 +299,34 @@ class ctrl_serv{
 			$e = "Favor de Revisar sus datos";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}		
+	}
+
+	function cargaArchivo($file, $servicio, $tipo, $origen, $ubicacion, $nombre, $tamano, $tipo_archivo){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$carga = $data->cargaArchivo($file, $servicio, $tipo, $origen, $ubicacion, $nombre, $tamano, $tipo_archivo);
+			$redireccionar = 'tickets';
+			$pagina =$this->load_template('Alta de Equipos');
+			$html = $this->load_page('app/views/pages/servicio/p.redirectform.serv.php');
+			include 'app/views/pages/servicio/p.redirectform.serv.php';
+			$this->view_page($pagina);
+		}
+	}
+
+	function verArchivos($tipo, $ticket){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$pagina =$this->load_template2('Archivos del Ticket:');
+			$t=$data->verDetalleTicket($id=$ticket);
+			$a=$data->verArchivos($tipo, $id=$ticket);
+			ob_start();
+			$html = $this->load_page('app/views/pages/servicio/p.verArchivos.php');
+			include 'app/views/pages/servicio/p.verArchivos.php';
+			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
 	}
 
 }?>
