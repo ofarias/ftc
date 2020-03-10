@@ -42,7 +42,7 @@
                             ?>
                             <tr class="odd gradeX" <?php echo $color?> <?php echo $aviso?>>
                                 <td><?php echo $row->ID;?></td>
-                                <td><?php echo $row->NOMBRE_CLIENTE;?></td>
+                                <td><a href="index.serv.php?action=verArchivos&clie=<?php echo $row->CLIENTE?>&tipo=ticket"><?php echo $row->NOMBRE_CLIENTE;?></a></td>
                                 <td><?php echo $row->NOMBRE_USUARIO_REP;?></td>
                                 <td><b><?php echo $row->FECHA?></b></td>
                                 <td><?php echo $row->DESC_EQUIPO;?></td>

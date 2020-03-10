@@ -1,7 +1,7 @@
 
 <?php
 require_once('app/model/model.serv.php');
-require_once('app/model/pegaso.model.ventas.php');
+//require_once('app/model/pegaso.model.ventas.php');
 require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
 
@@ -301,10 +301,10 @@ class ctrl_serv{
 		}		
 	}
 
-	function cargaArchivo($file, $servicio, $tipo, $origen, $ubicacion, $nombre, $tamano, $tipo_archivo){
+	function cargaArchivo($file, $servicio, $tipo, $origen, $ubicacion, $nombre, $tamano, $tipo_archivo, $obs, $emp, $tipo_Doc){
 		if($_SESSION['user']){
 			$data = new data_serv;
-			$carga = $data->cargaArchivo($file, $servicio, $tipo, $origen, $ubicacion, $nombre, $tamano, $tipo_archivo);
+			$carga = $data->cargaArchivo($file, $servicio, $tipo, $origen, $ubicacion, $nombre, $tamano, $tipo_archivo, $obs, $emp, $tipo_Doc);
 			$redireccionar = 'tickets';
 			$pagina =$this->load_template('Alta de Equipos');
 			$html = $this->load_page('app/views/pages/servicio/p.redirectform.serv.php');
@@ -313,12 +313,14 @@ class ctrl_serv{
 		}
 	}
 
-	function verArchivos($tipo, $ticket){
+	function verArchivos($tipo, $ticket, $clie){
 		if($_SESSION['user']){
 			$data = new data_serv;
 			$pagina =$this->load_template2('Archivos del Ticket:');
-			$t=$data->verDetalleTicket($id=$ticket);
-			$a=$data->verArchivos($tipo, $id=$ticket);
+			if(!empty($ticket)){
+				$t=$data->verDetalleTicket($id=$ticket);
+			}
+			$a=$data->verArchivos($tipo, $id=$ticket, $clie);
 			ob_start();
 			$html = $this->load_page('app/views/pages/servicio/p.verArchivos.php');
 			include 'app/views/pages/servicio/p.verArchivos.php';

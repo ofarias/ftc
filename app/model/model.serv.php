@@ -165,30 +165,46 @@ class data_serv extends database {
 			return $data;
 		}
 
-		function cargaArchivo($file, $servicio, $tipo, $origen, $ubicacion, $nombre, $tamano, $tipo_archivo){
+		function cargaArchivo($file, $servicio, $tipo, $origen, $ubicacion, $nombre, $tamano, $tipo_archivo, $obs, $emp, $tipo_Doc){
 			$usuario = $_SESSION['user']->NOMBRE;
 			if($origen == 'ticket'){
 
 			}
 
 			if($tipo == 'Original'){
-				$this->query="INSERT into FTC_SERV_FILES (ID_SF, ID_SERV, UBICACION, NOMBRE, TIPO, TAMANO, USUARIO, TIPO_ARCHIVO, VERSION, FECHA_ALTA, FECHA_BAJA, STATUS, ORIGEN, EMPRESA) VALUES (NULL, $servicio, '$ubicacion', '$nombre', '$tipo', $tamano, '$usuario', '$tipo_archivo', 1.00, current_timestamp, null, 0, '$origen', (SELECT CLIENTE FROM FTC_SERVICIOS WHERE ID = $servicio))";
-				$this->grabaBD();
+				if($origen != 'empresa'){
+					$this->query="INSERT into FTC_SERV_FILES (ID_SF, ID_SERV, UBICACION, NOMBRE, TIPO, TAMANO, USUARIO, TIPO_ARCHIVO, VERSION, FECHA_ALTA, FECHA_BAJA, STATUS, ORIGEN, EMPRESA) VALUES (NULL, $servicio, '$ubicacion', '$nombre', '$tipo', $tamano, '$usuario', '$tipo_archivo', 1.00, current_timestamp, null, 0, '$origen', (SELECT CLIENTE FROM FTC_SERVICIOS WHERE ID = $servicio))";
+				}else{
+					$this->query="INSERT into FTC_SERV_FILES (ID_SF, ID_SERV, UBICACION, NOMBRE, TIPO, TAMANO, USUARIO, TIPO_ARCHIVO, VERSION, FECHA_ALTA, FECHA_BAJA, STATUS, ORIGEN, EMPRESA, OBSERVACIONES, tipo_documento) VALUES (NULL, $servicio, '$ubicacion', '$nombre', '$tipo', $tamano, '$usuario', '$tipo_archivo', 1.00, current_timestamp, null, 0, '$origen', $emp, '$obs', '$tipo_Doc')";
+				}
 			}else{
-
-				$this->query="INSERT into FTC_SERV_FILES (ID_SF, ID_SERV, UBICACION, NOMBRE, TIPO, TAMANO, USUARIO, TIPO_ARCHIVO, VERSION, FECHA_ALTA, FECHA_BAJA, STATUS, ORIGEN, EMPRESA) VALUES (NULL, $servicio, '$ubicacion', '$nombre', '$tipo', $tamano, '$usuario', '$tipo_archivo', 1.00, current_timestamp, null, 0, '$origen', (SELECT CLIENTE FROM FTC_SERVICIOS WHERE ID = $servicio))";
-				$this->grabaBD();
+				if($origen != 'empresa'){
+					$this->query="INSERT into FTC_SERV_FILES (ID_SF, ID_SERV, UBICACION, NOMBRE, TIPO, TAMANO, USUARIO, TIPO_ARCHIVO, VERSION, FECHA_ALTA, FECHA_BAJA, STATUS, ORIGEN, EMPRESA) VALUES (NULL, $servicio, '$ubicacion', '$nombre', '$tipo', $tamano, '$usuario', '$tipo_archivo', 1.00, current_timestamp, null, 0, '$origen', (SELECT CLIENTE FROM FTC_SERVICIOS WHERE ID = $servicio))";
+				}else{
+					$this->query="INSERT into FTC_SERV_FILES (ID_SF, ID_SERV, UBICACION, NOMBRE, TIPO, TAMANO, USUARIO, TIPO_ARCHIVO, VERSION, FECHA_ALTA, FECHA_BAJA, STATUS, ORIGEN, EMPRESA, OBSERVACIONES, tipo_documento) VALUES (NULL, $servicio, '$ubicacion', '$nombre', '$tipo', $tamano, '$usuario', '$tipo_archivo', 1.00, current_timestamp, null, 0, '$origen', $emp, '$obs', '$tipo_Doc')";
+				}
 			}
-
+			echo 'Consulta: '.$this->query.'<br/>';
+			$this->grabaBD();
 		}
 
-		function verArchivos($tipo, $id){
+		function verArchivos($tipo, $id, $clie){
 			$data=array();
-			$this->query="SELECT A.*, T.NOMBRE_CLIENTE, T.FECHA AS FECHA_TICKET, T.COMPLETA FROM FTC_SERV_FILES A LEFT JOIN Ticket T ON T.ID = A.ID_SERV WHERE A.ID_SERV = $id";
+			$a='';
+			$b='';
+			if(!empty($clie)){
+				$a=' and A.EMPRESA ='. $clie;
+			}
+			if(!empty($id)){
+				$b=' and A.ID_SERV='.$id;
+			}
+			$this->query="SELECT A.*, COALESCE(T.NOMBRE_CLIENTE, (SELECT NOMBRE FROM CLIE01 WHERE CLAVE_TRIM = A.EMPRESA)) AS NOMBRE_CLIENTE, T.FECHA AS FECHA_TICKET, CAST( coalesce(T.COMPLETA, SUBSTRING(A.OBSERVACIONES FROM 1 FOR 1500),'') AS VARCHAR(1500) ) as COMPLETA FROM FTC_SERV_FILES A 
+			LEFT JOIN Ticket T ON T.ID = A.ID_SERV WHERE A.ID_SF > 0  $b  $a";
 			$rs=$this->EjecutaQuerySimple();
 			while ($tsArray=ibase_fetch_object($rs)) {
 				$data[]=$tsArray;
 			}
 			return $data;
 		}
+
 }

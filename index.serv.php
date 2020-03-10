@@ -63,7 +63,9 @@ else{
 		$controller->verDetalleTicket($_GET['id']);
 		break;
 	case 'verArchivos':
-		$controller->verArchivos($_GET['tipo'], $_GET['ticket']);
+		$clie = isset($_GET['clie'])? $_GET['clie']:null;
+		$ticket = isset($_GET['ticket'])? $_GET['ticket']:null;
+		$controller->verArchivos($_GET['tipo'], $ticket, $clie);
 		break;
 	default: 
 		header('Location: index.php?action=login');
