@@ -25,6 +25,10 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 }elseif (isset($_POST['creaTicket'])){
 	$controller->creaTicket($_POST['cliente'], $_POST['reporta'], $_POST['usuario'], $_POST['equipo'], $_POST['fecha'], $_POST['tipo'], $_POST['sistema'], $_POST['corta'], $_POST['completa'], $_POST['solucion'], $_POST['modo'], $_POST['creaTicket']);
 	exit();
+}elseif (isset($_POST['bajaFile'])){
+	$res=$controller->bajaFile($_POST['idf']);
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($_GET['action']){
@@ -65,7 +69,8 @@ else{
 	case 'verArchivos':
 		$clie = isset($_GET['clie'])? $_GET['clie']:null;
 		$ticket = isset($_GET['ticket'])? $_GET['ticket']:null;
-		$controller->verArchivos($_GET['tipo'], $ticket, $clie);
+		$status = isset($_GET['status'])? $_GET['status']:1;
+		$controller->verArchivos($_GET['tipo'], $ticket, $clie, $status);
 		break;
 	default: 
 		header('Location: index.php?action=login');

@@ -42,7 +42,7 @@
                             ?>
                             <tr class="odd gradeX" <?php echo $color?> <?php echo $aviso?>>
                                 <td><?php echo $row->ID;?></td>
-                                <td><a href="index.serv.php?action=verArchivos&clie=<?php echo $row->CLIENTE?>&tipo=ticket"><?php echo $row->NOMBRE_CLIENTE;?></a></td>
+                                <td><a href="index.serv.php?action=verArchivos&clie=<?php echo $row->CLIENTE?>&tipo=ticket" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;"><?php echo $row->NOMBRE_CLIENTE;?></a></td>
                                 <td><?php echo $row->NOMBRE_USUARIO_REP;?></td>
                                 <td><b><?php echo $row->FECHA?></b></td>
                                 <td><?php echo $row->DESC_EQUIPO;?></td>

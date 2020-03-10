@@ -3,7 +3,6 @@
 <?php foreach ($a as $x){
     $cliente = $x->NOMBRE_CLIENTE;
  }?>
-
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
@@ -14,6 +13,9 @@
                                 Archivos del cliente <?php echo $cliente?>
                                 <br/><br/>
                                 <input type="button" value="Nuevo Arvhivo" class="btn-sm btn-info nuevoArchivo">
+                                &nbsp;&nbsp;&nbsp; Ver Vigentes <input type="radio" name="vistas" value="1" class="vista" <?php echo ($status==1)? 'checked':'' ?>>
+                                &nbsp;&nbsp;&nbsp; Ver Bajas <input type="radio" name="vistas" value="9" class="vista" <?php echo ($status==9)? 'checked':'' ?>>
+                                &nbsp;&nbsp;&nbsp; Ver Todos <input type="radio" name="vistas" value="7" class="vista" <?php echo ($status==7)? 'checked':'' ?>>
                             <?php }?>
                         </div>
                            <div class="panel-body">
@@ -28,9 +30,11 @@
                                             <th>Fecha</th>
                                             <th>Usuario</th>
                                             <th>Origen</th>
-                                            <th>Tipo</th>
+                                            <th>Tipo <br/> Archivo</th>
+                                            <th>Tipo <br/> Documento</th>
                                             <th>Version</th>
-                                            <th>Ver</th>
+                                            <th>Observaciones</th>
+                                            <th>Baja</th>
                                         </tr>
                                     </thead>
                                   <tbody>
@@ -38,6 +42,7 @@
                                         foreach ($a as $ar):
                                         ?>
                                        <tr>  
+                                       <?php if(isset($ar->ID_SERV)){ ?> 
                                             <td><?php echo $ar->ID_SERV?></td>
                                             <td><?php echo $ar->EMPRESA;?></td>
                                             <td><a href="<?php echo '..//media//files//'.$ar->NOMBRE.'.'.$ar->TIPO_ARCHIVO?>" download><?php echo $ar->NOMBRE;?></a></td>
@@ -46,18 +51,23 @@
                                             <td><?php echo $ar->USUARIO ;?></td>
                                             <td><?php echo $ar->ORIGEN?></td>
                                             <td><?php echo strtoupper($ar->TIPO_ARCHIVO)?></td>
+                                            <td><?php echo $ar->TIPO_DOC?></td>
                                             <td><?php echo $ar->VERSION?></td>
                                             <td><?php echo $ar->COMPLETA?></td>
+                                            <td><?php if($ar->STATUS_FILE == 1){?><input type="button" class="btn-sm btn-danger baja" value="Baja" idf="<?php echo $ar->ID_SF?>"><?php }?></td>
+                                        <?php }else{?>
+                                            <font color="red"><label>No existen archivos.</label><font>
+                                        <?php }?>
                                         </tr> 
                                         <?php endforeach; ?>
                                  </tbody>
                                  </table>
-
-                      </div>
+                </div>
             </div>
         </div>
+    </div>
 </div>
-</div>
+
 <div class="hidden" id="alta">
     <div class="row">
                 <div class="col-lg-12">
@@ -99,7 +109,7 @@
                                             </td>
                                             <td><br/><input type="button" id="cargar" value="Cargar" class="btn-sm btn-info">
                                                 <br/><br/>
-                                                <input type="button" id="can" value="Cancelar" class="btn-sm btn-danger" ></td>
+                                                <input type="button" id="can" value="Cancelar" class="btn-sm btn-danger"></td>
                                             </form>
                                         </tr> 
                                  </tbody>
@@ -119,9 +129,32 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
     
+    var cli= <?php echo $clie?>; 
+
     $(document).ready(function(){
         $(".fecha").datepicker({dateFormat:'dd.mm.yy'});
     });
+
+    $(".baja").click(function(){
+        var idf = $(this).attr('idf')
+        alert('Se Marca como baja el archivo, para poder visualizarlo de nuevo, debe de dar click en la opcion "ver bajas"')
+        $.ajax({
+            url:'index.serv.php',
+            type:'post',
+            dataType:'json',
+            data:{bajaFile:1, idf},
+            success:function(data){
+                if (data.status== 'ok'){
+                    alert('Se ha dado de baja el archivo')
+                    location.reload();
+                }
+            },
+            error:function(){
+                alert('ocurrio un error favor de revisar la información.')
+            }
+        })
+
+    })
 
     $(".nuevoArchivo").click(function(){
         document.getElementById('alta').classList.remove('hidden')
@@ -139,6 +172,11 @@
         }else{
             alert('No se cargo ningun archivo')
         }
+    })
+
+    $(".vista").click(function(){
+        var v = $(this).val()
+        window.open('index.serv.php?action=verArchivos&clie='+cli+'&tipo=empresa&status='+v, '_SELF')
     })
 
 </script>

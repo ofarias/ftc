@@ -313,22 +313,32 @@ class ctrl_serv{
 		}
 	}
 
-	function verArchivos($tipo, $ticket, $clie){
+	function verArchivos($tipo, $ticket, $clie, $status){
 		if($_SESSION['user']){
 			$data = new data_serv;
-			$pagina =$this->load_template2('Archivos del Ticket:');
 			if(!empty($ticket)){
 				$t=$data->verDetalleTicket($id=$ticket);
 			}
-			$a=$data->verArchivos($tipo, $id=$ticket, $clie);
+			$a=$data->verArchivos($tipo, $id=$ticket, $clie, $status);
 			ob_start();
+			$pagina =$this->load_template2('Archivos del Ticket:');
 			$html = $this->load_page('app/views/pages/servicio/p.verArchivos.php');
 			include 'app/views/pages/servicio/p.verArchivos.php';
+			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
 			$this->view_page($pagina);	
 		}else{
 			$e = "Favor de Revisar sus datos";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}	
+	}
+
+	function bajaFile($idf){
+		if ($_SESSION['user']) {
+			$data = new data_serv;
+			$baja = $data->bajaFile($idf);
+			return $baja;
+		}
 	}
 
 }?>
