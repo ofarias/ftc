@@ -23864,7 +23864,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfce' and tipo ='$tipoC'";
 			            	$res=$this->EjecutaQuerySimple();
 			            	$row=ibase_fetch_object($res);
-			            	$nombreE=$nombreE;
+			            	//$nombreE=$nombreE;
 			            	if(empty($row)){
 			            		$this->query="INSERT INTO XML_CLIENTES (IDcliente, RFC, NOMBRE, CALLE, EXTERIOR, INTERIOR, COLONIA, MUNICIPIO, ESTADO, PAIS, CP, TIPO)
 			            				  VALUES (NULL, '$rfce', '$nombreE', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";
@@ -23878,10 +23878,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            	$this->query="SELECT * FROM XML_CLIENTES WHERE RFC = '$rfc' and tipo ='$tipoC'";
 			            	$res=$this->EjecutaQuerySimple();
 			            	$row=ibase_fetch_object($res);
-			            	$nombre_recep=$nombre_recep;
+			            	//$nombre_recep=$nombre_recep;
 			            	if(empty($row)){
 			            		$this->query="INSERT INTO XML_CLIENTES (IDcliente, RFC, NOMBRE, CALLE, EXTERIOR, INTERIOR, COLONIA, MUNICIPIO, ESTADO, PAIS, CP, TIPO)
-			            					  VALUES (NULL, '$rfc', 'Público en general', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '	$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";	
+			            					  VALUES (NULL, '$rfc', '$nombre_recep', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '	$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";	
 			            		if($this->grabaBD() === false){  	
 			            			echo 'Error en la insercion de '.$tipoC.'<br/>';
 			            			echo $this->query.'<br/>';
