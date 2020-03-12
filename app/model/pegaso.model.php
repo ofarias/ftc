@@ -24583,7 +24583,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					echo '<br/>Revision de los impuestos del UUID: '.$uid.'<br/>';
     					$this->query ="UPDATE XML_IMPUESTOS SET STATUS = 9 WHERE UUID= '$uid' and partida = $i and monto = 0 and status = 0";
     					$res=$this->queryActualiza();
-    					if(ibase_fetch_object($res)){
+    					if(@$res!=1){
     						$this->query="INSERT INTO XML_EXCEPCION (ID, UUID, TIPO) VALUES (NULL, '$uuid', 'IMP')";
     						$this->grabaBD(); 
     					}
@@ -25051,29 +25051,29 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     						(select sum(monto) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as ISR,
     						(select sum(monto) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as IVA, 
     						(select sum(monto) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as IEPS,
-     						(select TASA from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as TASA_ISR,
-    						(select TASA from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as TASA_IVA, 
-    						(select TASA from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as TASA_IEPS,
-     						(select TIPOFACTOR from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as FACT_ISR,
-    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as FACT_IVA, 
-    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0)  as FACT_IEPS,
-    						(select BASE from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as B_ISR,
-    						(select BASE from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as B_IVA, 
-    						(select BASE from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as B_IEPS,
+     						(select max(TASA) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as TASA_ISR,
+    						(select max(TASA) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as TASA_IVA, 
+    						(select max(TASA) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as TASA_IEPS,
+     						(select max(TIPOFACTOR) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as FACT_ISR,
+    						(select max(TIPOFACTOR) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as FACT_IVA, 
+    						(select max(TIPOFACTOR) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0)  as FACT_IEPS,
+    						(select sum(BASE) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as B_ISR,
+    						(select sum(BASE) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as B_IVA, 
+    						(select sum(BASE) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Traslado' and xi.status = 0) as B_IEPS,
     						(select sum(monto) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as ISR_R,
     						(select sum(monto) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as IVA_R, 
     						(select sum(monto) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as IEPS_R,
-    						(select TASA from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as TASA_ISR_R,
-    						(select TASA from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as TASA_IVA_R, 
-    						(select TASA from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as TASA_IEPS_R,
-     						(select TIPOFACTOR from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as FACT_ISR_R,
-    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as FACT_IVA_R, 
-    						(select TIPOFACTOR from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as FACT_IEPS_R,
-    						(select BASE from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_ISR_R,
-    						(select BASE from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_IVA_R, 
-    						(select BASE from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_IEPS_R
+    						(select max(TASA) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as TASA_ISR_R,
+    						(select max(TASA) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as TASA_IVA_R, 
+    						(select max(TASA) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as TASA_IEPS_R,
+     						(select max(TIPOFACTOR) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as FACT_ISR_R,
+    						(select max(TIPOFACTOR) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as FACT_IVA_R, 
+    						(select max(TIPOFACTOR) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as FACT_IEPS_R,
+    						(select sum(BASE) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_ISR_R,
+    						(select sum(BASE) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_IVA_R, 
+    						(select sum(BASE) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_IEPS_R
      						FROM  XML_PARTIDAS x where uuid = '$uuid'";
-    	//echo $this->query;
+    	///echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while ($tsArray=ibase_fetch_object($res)) {
     		$data[]=$tsArray;
