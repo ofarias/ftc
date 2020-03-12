@@ -26748,7 +26748,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function impuestosPoliza($uuid){
 		$data = array();
-		$this->query="SELECT partida, max(tasa) as tasa, max(monto) as monto, uuid, impuesto, factura, tipoFactor, max(base) as base, tipo   FROM XML_IMPUESTOS WHERE UUID = '$uuid'  and status = 0 group by partida, impuesto, uuid, factura, tipoFactor, tipo";
+		$this->query="SELECT partida, max(tasa) as tasa, sum(monto) as monto, uuid, impuesto, factura, tipoFactor, max(base) as base, tipo   FROM XML_IMPUESTOS WHERE UUID = '$uuid'  and status = 0 group by partida, impuesto, uuid, factura, tipoFactor, tipo";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
@@ -26767,33 +26767,21 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	}
 
 	function impuestosPolizaFinalDetImp($uuid, $por){
-		$data = array();	
-		//echo "<br/>UUID ".$uuid.'<br/>';
-		//echo "<br/>Por ".$por.'<br/>';
+		$data = array();
 		if(!empty($uuid)){
 			$u =  explode(",", $uuid);
 		 	$pr = explode(",", $por);
 		 	$p=1;
-		 	//echo '<br/>Conteo de UUIDs: '.count($u).'<br/>';
-		 	//echo '<br/>Conteo de Porcentajes: '.count($pr).'<br/>';
-		 	//var_dump($u);
-		 	//var_dump($pr);
 		 	for ($i=0; $i < count($u); $i++){
 		 		$uu=$u[$i];
-		 		//echo '<br/>Index: '.$i.' Valor: '.$uu.'<br/>'; 
-		 		//echo '<br/>Valor de los porcentajes '.$pr[$i].'<br/>';
 		 		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) * $pr[$i] AS MONTO, SUM(BASE) AS BASE, $p as partida, MAX(UUID) AS UUID, (select max(RFCE) from xml_data xd where xd.UUID = $uu) AS RFCE,  (select max(CLIENTE) from xml_data xd where xd.UUID = $uu ) AS CLIENTE FROM XML_IMPUESTOS WHERE UUID = $uu and status= 0 group by impuesto, tasa, tipofactor, Tipo";
-				//echo '<br/>Consula por UUID: '.$this->query.'<br/>';
 				$res=$this->EjecutaQuerySimple();
-
 				while ($tsArray=ibase_fetch_object($res)){
 					$data[]=$tsArray;
 				}	
 		 		$p++;
 		 	}	
 		}
-		//var_dump($data);
-		//exit();
 	 	return $data;	
 	}
 

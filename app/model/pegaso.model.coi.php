@@ -1212,9 +1212,7 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function creaPoliza($tipo, $uuid, $cabecera, $detalle, $impuestos){
-        /// Obtenemos la fecha del documento
         $usuario=$_SESSION['user']->USER_LOGIN;
-
         foreach($cabecera as $cb){
             $periodo=$cb->PERIODO;
             $ejercicio=$cb->EJERCICIO;
@@ -1230,7 +1228,6 @@ class CoiDAO extends DataBaseCOI {
             $ie=$cb->TIPO;
         }
         $this->calculaFolio($acf = $periodo, $bcf= $ejercicio, $ccf= 'Dr');
-        ///creamos el nuevo folio de la poliza y actualizamos para apartarlo
         $this->query="SELECT $campo FROM FOLIOS where tippol='$tipo' and Ejercicio=$ejercicio";
         $res=$this->EjecutaQuerySimple();
         $row= ibase_fetch_object($res);
@@ -1379,7 +1376,7 @@ class CoiDAO extends DataBaseCOI {
                             $nom_1=$aux->DESCRIPCION;
                             $cuenta = $aux->CUENTA_CONTABLE;
                             $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
-                            $this->query="UPDATE $tbAux SET montomov = montomov + ($imp->MONTO * $TC) WHERE NUM_CTA = '$cuenta' and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo = $periodo and ejercicio = $ejercicio";
+                            $this->query="UPDATE $tbAux SET montomov = montomov + ($imp->MONTO * $TC) WHERE NUM_CTA = '$cuenta' and NUM_PART = $partida and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo = $periodo and ejercicio = $ejercicio";
                             /*
                             $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                             values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
@@ -1390,7 +1387,7 @@ class CoiDAO extends DataBaseCOI {
                         }
                     }
                     //echo '<br/> Tipo de impuesto: '.$tf.' <br/>';
-                    if($tf=='local'){
+                    if($tf!='001' or $tf!='002' or $tf!='003'){
                         //$parImp = $partida + 1;
                         $cuenta = $aux->CUENTA_CONTABLE;
                         //$concepto = substr($nom_1.' de la partida '.$partAux,0,120);
