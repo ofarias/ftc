@@ -1367,7 +1367,6 @@ class CoiDAO extends DataBaseCOI {
                                 $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
                                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                                 values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$n', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
-                                //echo '<br/>'.$this->query.'<br/>';
                                 $this->EjecutaQuerySimple();   
                                 $partida++;
                         }else{
@@ -1377,31 +1376,18 @@ class CoiDAO extends DataBaseCOI {
                             $cuenta = $aux->CUENTA_CONTABLE;
                             $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
                             $this->query="UPDATE $tbAux SET montomov = montomov + ($imp->MONTO * $TC) WHERE NUM_CTA = '$cuenta' and NUM_PART = $partida and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo = $periodo and ejercicio = $ejercicio";
-                            /*
-                            $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
-                                            values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
-                            */
-                            //echo '<br/>'.$this->query.'<br/>';
-                            $this->EjecutaQuerySimple();   
-                            //$partida++;
+                            $this->EjecutaQuerySimple();
                         }
                     }
-                    //echo '<br/> Tipo de impuesto: '.$tf.' <br/>';
-                    if($tf!='001' or $tf!='002' or $tf!='003'){
-                        //$parImp = $partida + 1;
+                    
+                    if(strtoupper($tf)=='LOCAL'){
                         $cuenta = $aux->CUENTA_CONTABLE;
-                        //$concepto = substr($nom_1.' de la partida '.$partAux,0,120);
                         $this->query="UPDATE $tbAux SET montomov = montomov + ($imp->MONTO*$TC) WHERE NUM_CTA = '$cuenta' and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo=$periodo and ejercicio=$ejercicio and num_part = ($parImp -1)";
                         $this->EjecutaQuerySimple();   
-                        /*
-                        $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
-                                        values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
-                        */
-                        //echo '<br/>'.$this->query.'<br/>';
-                        //$partida++;
                     }   
                 }
         }
+
         $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo);
         #### Revisa Cuadre de la poliza ####
         $this->revisaCuadre($pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol);
