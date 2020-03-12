@@ -1271,11 +1271,11 @@ class CoiDAO extends DataBaseCOI {
                   foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
                             if($version == '3.2'){
                                 $rfc= $Receptor['rfc'];
-                                $nombre_recep = utf8_encode($Receptor['nombre']);
+                                $nombre_recep = utf8_decode($Receptor['nombre']);
                                 $usoCFDI = '';
                             }elseif($version == '3.3'){
                                 $rfc= $Receptor['Rfc'];
-                                $nombre_recep=utf8_encode($Receptor['Nombre']);
+                                $nombre_recep=utf8_decode($Receptor['Nombre']);
                                 $usoCFDI =$Receptor['UsoCFDI'];
                              }
                         }
@@ -1286,7 +1286,7 @@ class CoiDAO extends DataBaseCOI {
                         $regimen = '';  
                     }elseif($version == '3.3'){
                         $rfce = $Emisor['Rfc'];
-                        $nombreE = utf8_encode($Emisor['Nombre']);
+                        $nombreE = utf8_decode($Emisor['Nombre']);
                         $regimen = $Emisor['RegimenFiscal'];
                     }
                 }

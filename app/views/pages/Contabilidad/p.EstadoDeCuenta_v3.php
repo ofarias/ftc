@@ -230,7 +230,7 @@
                                               <a href="index.php?action=pagoFacturas&idp=<?php echo $datos->IDENTIFICADOR?>" target="_blank"?> <?php echo $desc;?> </a>
                                             </td> 
                                             <td><?php echo $datos->USUARIO;?></td>
-                                            <td><?php echo $datos->CONTABILIZADO?></td>
+                                            <td><?php echo $datos->CONTABILIZADO?><br><input type="button" value="Valida Poliza"></td>
                                               <td><?php echo $cep?>
                                               <?php if($datos->CEP > 0 and $datos->CEP<999999){ ?>
                                               <a href="/Facturas/FacturasJson/<?php echo $datos->ARCHIVO_CEP.'.pdf'?>" download > <img border="0" src="app/views/images/pdf.jpg" width="25" height="30"></a>
@@ -417,7 +417,7 @@ if (empty($exec)){
                                               <?php }?>
                                             </td>
                                             <td><?php echo $datos->USUARIO;?></td>
-                                            <td><?php echo $datos->CONTABILIZADO?></td>
+                                            <td><?php echo $datos->CONTABILIZADO?><br><input type="button" value="Valida Poliza" class="validaPol" pol="<?php echo $datos->CONTABILIZADO?>" a="<?php echo $anio?>" per="<?php echo $mes?>" cta="<?php echo $cuenta?>" id="<?php echo $datos->CONSECUTIVO?>"></td>
                                             <td><?php echo $cep?>
                                               <?php if($datos->CEP > 0 and $datos->CEP<999999){ ?>
                                               <a href="/Facturas/FacturasJson/<?php echo $datos->ARCHIVO_CEP.'.pdf'?>" download > <img border="0" src="app/views/images/pdf.jpg" width="25" height="30"></a>
@@ -444,7 +444,6 @@ if (empty($exec)){
     <input type="hidden" name="regnvafecha"> 
   </form>
   <iframe name="el-iframe" type="hidden"></iframe>
-<!--Modified by GDELEON 3/Ago/2016-->
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
@@ -456,6 +455,31 @@ if (empty($exec)){
   $(document).ready(function() {
     $(".date1").datepicker({dateFormat: 'dd.mm.yy'});
   });
+
+  $(".validaPol").click(function(){
+    var pol = $(this).attr('pol')
+    var e = $(this).attr('a')
+    var per = $(this).attr('per')
+    var cta = $(this).attr('cta')
+    var id = $(this).attr('id')
+    if(confirm('Valida la poliza ' + pol  + ' del periodo ' + per + ' ejercicio ' + e + ' y la cuenta ' + cta + 'id: ' + id +  ' ?')){
+      $.ajax({
+        url:'index.coi.php',
+        type:'post',
+        dataType:'json',
+        data:{validaPol:1, e, per, cta, pol},
+        success:function(data){
+          alert(data.mensaje)
+        },
+        error:function(){
+          aler('No se pudo corroborar la informacion de la poliza, los errores comunes es que no exista en COI, favor de revisar manualmente...')
+        }
+      })
+    }else{
+      return false
+    }
+
+  })
 
   function colores(identificador, env, valor){
       var renglon;

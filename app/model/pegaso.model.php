@@ -23702,7 +23702,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
         $uuid=$a['uuid'];
         $tcf=$a['tcf'];
         $this->query="INSERT INTO XML_DATA_FILES (ID,NOMBRE,ARCHIVO,FECHA,USUARIO,TIPO, UUID, TIPO_FISCAL)VALUES(NULL,'$archivo','$file','$HOY','$usuario', '$tipo', '$uuid','$tcf')";
-        //echo "sql = ".$this->query;
         $respuesta = $this->grabaBD();
         $this->insertaXMLData($archivo, $tipo, $uuid);
         $this->actParametros($uuid, $tipo);
@@ -23711,8 +23710,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
     function actParametros($uuid, $tipo){
     	$data = array();
+    	if($tipo == 'N'){
+    		return;
+    	}
     	$this->query="SELECT XD.CLIENTE AS RFCR, XD.RFCE AS RFCE, XP.* FROM XML_PARTIDAS XP LEFT JOIN XML_DATA XD ON XD.UUID = XP.UUID WHERE xp.UUID = '$uuid'";
-    	//echo '<br/>'.$this->query.'<br/>';
     	$rs=$this->EjecutaQuerySimple();
     	while ($tsArray=ibase_fetch_object($rs)) {
     		$data[]=$tsArray;
@@ -23805,11 +23806,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			        	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
 			            	if($version == '3.2'){
 			            		$rfc= $Receptor['rfc'];
-			           		 	$nombre_recep = utf8_encode($Receptor['nombre']);
+			           		 	$nombre_recep = str_replace("'", "", $Receptor['nombre']);
 			            		$usoCFDI = '';
 			            	}elseif($version == '3.3'){
 			            		$rfc= $Receptor['Rfc'];
-			            		$nombre_recep=utf8_encode($Receptor['Nombre']);
+			            		$nombre_recep=str_replace("'", "", $Receptor['Nombre']);
 			            		$usoCFDI =$Receptor['UsoCFDI'];
 			            	 }
 			            }
@@ -23820,7 +23821,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		$regimen = '';	
 			            	}elseif($version == '3.3'){
 			            		$rfce = $Emisor['Rfc'];
-			            		$nombreE = utf8_encode($Emisor['Nombre']);
+			            		$nombreE = str_replace("'", "", $Emisor['Nombre']);
 			            		$regimen = $Emisor['RegimenFiscal'];
 			            	}
 			            }
@@ -23880,7 +23881,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            	$nombre_recep=$nombre_recep;
 			            	if(empty($row)){
 			            		$this->query="INSERT INTO XML_CLIENTES (IDcliente, RFC, NOMBRE, CALLE, EXTERIOR, INTERIOR, COLONIA, MUNICIPIO, ESTADO, PAIS, CP, TIPO)
-			            					  VALUES (NULL, '$rfc', '$nombre_recep', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '	$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";	
+			            					  VALUES (NULL, '$rfc', 'Público en general', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '	$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";	
 			            		if($this->grabaBD() === false){  	
 			            			echo 'Error en la insercion de '.$tipoC.'<br/>';
 			            			echo $this->query.'<br/>';
@@ -24110,7 +24111,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             					return;
 							}
 							/// creamos el folder para el movimiento de las facturas a nuestro sistema. 
-				            if($rfce == 'XAXX010101000'){
+				            if($rfc == 'XAXX010101000'){ /// se cambia $rfce por $rfc
                                 $this->query="INSERT INTO XML_UUID_GENERICO (ID_UUID_GEN, NOMBRE) VALUES ('$uuid', '$nombre_recep')";
     							@$this->grabaBD();
                             }else{
@@ -24314,13 +24315,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            }
 			        }	
 			        //return;// $respuesta;
-    		}
-    		
-    		if($tipo == 'N'){
-    			$this->query="UPDATE XML_DATA_FILES SET TIPO = 'N' WHERE nombre = '$archivo'";
-    			$this->queryActualiza();
-
-    			foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor){
+    	    		
+    			if($tipo == 'N'){
+	    			//echo 'El UUID: '.$uuid.' es de Nomina' ;
+	    			$this->query="UPDATE XML_DATA_FILES SET TIPO = 'N' WHERE nombre = '$archivo'";
+	    			$this->queryActualiza();
     				foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
 			            	if($version == '3.2'){
 			            		$rfc= $Receptor['rfc'];
@@ -24330,10 +24329,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		$rfc= $Receptor['Rfc'];
 			            		$nombre_recep=utf8_encode($Receptor['Nombre']);
 			            		$usoCFDI =$Receptor['UsoCFDI'];
-			            	 }
-			    			$this->query="INSERT INTO XML_EMPLEADOS (IDE, RFC, NOMBRE, USOCFDI ) VALUES (NULL, '$rfc', '$nombre_recep', '$usoCFDI')";
+			            	}
+			    			$this->query="INSERT INTO XML_NOMINA_EMPLEADOS (IDE, RFC, NOMBRE, USOCFDI ) VALUES (NULL, '$rfc', '$nombre_recep', '$usoCFDI')";
 			    			$this->grabaBD();
 			        }
+
 			        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Receptor') as $Nomina12Receptor) {
 			            	if($version == '3.2'){
 			            		$rfc= $Nomina12Receptor['rfc'];
@@ -24356,7 +24356,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 								$SalarioBaseCotApor= $Nomina12Receptor['SalarioBaseCotApor'];
 								$SalarioDiarioIntegrado= $Nomina12Receptor['SalarioDiarioIntegrado'];
 								$ClaveEntFed=$Nomina12Receptor['ClaveEntFed'];
-			            	 }
+								$Banco = isset($Nomina12Receptor['Banco'])? $Nomina12Receptor['Banco']:'';
+								$CuentaBancaria = isset($Nomina12Receptor['CuentaBancaria'])? $Nomina12Receptor['CuentaBancaria']:'';
+
+			            	}
 			    			$this->query="INSERT INTO XML_NOMINA_RECEPTOR (ID, CURP, NumSeguridadSocial, 
 			    										FechaInicioRelLaboral,
 			    										Antiguedad, 
@@ -24372,7 +24375,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 														SalarioBaseCotApor, 
 														SalarioDiarioIntegrado, 
 														ClaveEntFed, 
-														Archivo
+														Archivo,
+														UUID_NOMINA, 
+														BANCO,
+														CUENTA_BANCARIA
 			    										 ) 
 			    					VALUES (NULL, '$curp', '$numss', '$FechaInicioRelLaboral',
 			    								'$Antiguedad', 
@@ -24388,14 +24394,133 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 												'$SalarioBaseCotApor', 
 												'$SalarioDiarioIntegrado', 
 												'$ClaveEntFed',
-												'$archivo'
+												'$archivo',
+												'$uuid',
+												'$Banco',
+												'$CuentaBancaria'												
 												)";
 			    			$this->grabaBD();
+
+			    			$this->query="UPDATE XML_NOMINA_EMPLEADOS SET CURP = '$curp', NSS='$numss' where RFC = '$rfc'";
+			    			$this->queryActualiza();
 			        }
 
-    			}
-    		}
+			    	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Nomina') as $nomVal) {
+			    			if ($version == '3.2') {
+			    				echo 'Este es un recibo de nomia version 3.2';
+			    			}else{
+			    				$fechaInicialPago = $nomVal['FechaInicialPago'];
+			    				$fechaFinalPago = $nomVal['FechaFinalPago'];
+			    				$fechaPago = $nomVal['FechaPago'];
+			    				$numDiasPagados = isset($nomVal['NumDiasPagados'])? $nomVal['NumDiasPagados']:0;
+			    				$tipoNomina = $nomVal['TipoNomina'];
+			    				$totalDeducciones = isset($nomVal['TotalDeducciones'])? $nomVal['TotalDeducciones']:0;
+			    				$totalPercepciones = isset($nomVal['TotalPercepciones'])? $nomVal['TotalPercepciones']:0;
+			    				$totalOtrosPagos = isset($nomVal['TotalOtrosPagos'])? $nomVal['TotalOtrosPagos']:0;
+			    				$versionNomina = $nomVal['Version'];
+			    			}
 
+			    			$this->query="INSERT INTO xml_nomina_trabajador (ID_NT, FECHA_INICIAL, FECHA_FINAL, FECHA_PAGO, DIAS, TIPO_NOMINA, DEDUCCIONES, PERCEPCIONES, VERSION_NOMINA, REG_PATRONAL, UUID_NOMINA, FORMA_PAGO) values (NULL, '$fechaInicialPago', '$fechaFinalPago', '$fechaPago', $numDiasPagados, '$tipoNomina', $totalDeducciones, $totalPercepciones, '$versionNomina', null, '$uuid', '$formaPago') RETURNING ID_NT";
+			    			$RS=$this->grabaBD();
+			    			$r_id_nt = ibase_fetch_object($RS)->ID_NT;
+			    	}
+
+			    	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Emisor') as $regPat) {
+			    			$RegistroPatronal = $regPat['RegistroPatronal'];
+			    			$curp = isset($regPat['Curp'])? $regPat['Curp']:'';
+			    			$rfcPatOrigen = isset($regPat['RfcPatronOrigen'])? $regPat['RfcPatronOrigen']:'';
+			    			$this->query="UPDATE XML_NOMINA_TRABAJADOR set REG_PATRONAL = '$RegistroPatronal', curp = '$curp', rfc_pat_origen = '$rfcPatOrigen' where id_nt = $r_id_nt";
+			    			$this->queryActualiza();
+			    	}
+
+			    	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones') as $percep) {
+			    					$totalSueldos =  isset($percep['TotalSueldos'])? $percep['TotalSueldos']:0;
+			    					$totalSeparacion = isset($percep['TotalSeparacionIndemnizacion'])? $percep['TotalSeparacionIndemnizacion']:0;
+			    					$totalJubilacion =  isset($percep['TotalJubilacionPensionRetiro'])? $percep['TotalJubilacionPensionRetiro']:0;
+			    					$totalGravado =  isset($percep['TotalGravado'])? $percep['TotalGravado']:0;
+			    					$totalExento = isset( $percep['TotalExento'])? $percep['TotalExento']:0;
+			    		$this->query="INSERT INTO XML_NOMINA_PERCEPCIONES (ID_NP, TOTAL_SUELDOS, TOTAL_SEPARACION_INDEM, TOTAL_JUBILACION_PENRET, TOTAL_GRAVADO, TOTAL_EXECTO, STATUS, UUID_NOMINA) VALUES (null, $totalSueldos, $totalSeparacion, $totalJubilacion, $totalGravado, $totalExento, 0, '$uuid') RETURNING ID_NP";
+			    		$RSPER=$this->grabaBD();
+			    		$rowrsper = ibase_fetch_object($RSPER)->ID_NP;
+			    	}
+
+			    	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones//nomina12:Percepcion') as $nomPer) {
+			    					$clavePer = $nomPer['Clave'];
+			    					$concepPer =$nomPer['Concepto'];
+			    					$impExePer = $nomPer['ImporteExento'];
+			    					$impGraPer = $nomPer['ImporteGravado'];
+			    					$tipPer = $nomPer['TipoPercepcion'];
+			    		$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA) VALUES (NULL, $rowrsper, 0, '$tipPer', '$clavePer', '$concepPer', $impExePer, $impGraPer, 'P', 0, '', 0, 0, 0, '$uuid')";
+			    		$this->grabaBD();
+			    	}
+
+					if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones//nomina12:Percepcion//nomina12:HorasExtra')){
+						foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones//nomina12:Percepcion//nomina12:HorasExtra') as $nomHE){
+									$heDias= isset($nomHE['Dias'])? $nomHE['Dias']:0;
+									$heTipoHora = isset($nomHE['TipoHoras'])? $nomHE['TipoHoras']:'';
+									$heHE = isset($nomHE['HorasExtra'])? $nomHE['HorasExtra']:0;
+									$heImpPag = isset($nomHE['ImportePagado'])? $nomHE['ImportePagado']:0;
+							$this->query="UPDATE XML_NOMINA_PERCEPCIONES_DETALLE SET DIAS = $heDias, TIPO_HORAS = '$heTipoHora', HORAS_EXTRA = $heHe, IMPORTE_PAGADO_HE = $heImpPag";
+							$this->queryActualiza();
+						}
+					}	
+	         
+					if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones')){
+						foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones') as $deduc){
+									$totalOtrasDeduc = isset($deduc['TotalOtrasDeducciones'])? $deduc['TotalOtrasDeducciones']:0;
+									$totalImpRet = isset($deduc['TotalImpuestosRetenidos'])? $deduc['TotalImpuestosRetenidos']:0;
+							$this->query="INSERT INTO XML_NOMINA_DEDUCCIONES (ID_ND, UUID_NOMINA, TOTAL_IMP_RET, TOTAL_OTRAS_DED, STATUS) VALUES (NULL, '$uuid', $totalImpRet, $totalOtrasDeduc, 0) RETURNING ID_ND";
+							$resded= $this->grabaBD();
+							$rowded = ibase_fetch_object($resded)->ID_ND;
+						}
+					}	
+
+					if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina12:Deduccion')){
+						foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina12:Deduccion') as $nomDed) {
+				    					$claveDed = $nomDed['Clave'];
+				    					$concepDed = $nomDed['Concepto'];
+				    					$impDed = $nomDed['Importe'];
+				    					$tipoDed = $nomDed['TipoDeduccion'];
+				    		$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA) VALUES (NULL, 0, $rowded, '$tipoDed', '$claveDed', '$concepDed', $impDed, 0, 'D', 0, '', 0, 0, 0, '$uuid')";
+				    		$this->grabaBD();
+				    	}
+					}
+
+			    	if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:OtrosPagos')){
+						foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:OtrosPagos//nomina12:OtroPago') as $otroP) {
+			    					$opTipo = isset($otroP['TipoOtroPago'])? $otroP['TipoOtroPago']:'';
+			    					$opClave = isset($otroP['Clave'])? $otroP['Clave']:'';
+			    					$opConcepto = isset($otroP['Concepto'])? $otroP['Concepto']:'';
+			    					$opImporte = isset($otroP['Importe'])? $otroP['Importe']:0;
+
+			    			$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA ) VALUES (NULL, 0, 0, '$opTipo', '$opClave', '$opConcepto', $opImporte, 0, 'O', 0, '', 0, 0, 0, '$uuid')";
+				    		$this->grabaBD();
+			    		}
+
+			    	
+			    	if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:SubsidioAlEmpleo')){
+							foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:SubsidioAlEmpleo') as $otroSE){
+								$opseCausado = $otroSE['SubsidioCausado'];
+							$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA ) VALUES (NULL, 0, 0, '', '', 'Subsidio Causado', $opseCausado, 0, 'S', 0, '', 0, 0, 0, '$uuid')";
+				    		$this->grabaBD();		
+							}
+			    		}			    		
+			    	}
+			    	#### aqui va la compensasion a favor ############
+			    	/*
+			    	if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina12:Incapacidades'){
+						foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina12:Incapacidades') as $nomDed) {
+			    					$claveDed = $nomDed['Clave'];
+			    					$concepDed = $nomDed['Concepto'];
+			    					$impDed = $nomDed['Importe'];
+			    					$tipoDed = $nomDed['TipoDeduccion'];
+			    		}			    		
+			    	}
+			    	*/
+				//die;
+    			}
+    		
+    		}
     		if($tipo2 == 'C'){
        
             	foreach ($data as $row):
@@ -24455,6 +24580,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			}
     			foreach ($dimp as $k){
     				if($k->VAL > 1){
+    					echo '<br/>Revision de los impuestos del UUID: '.$uid.'<br/>';
     					$this->query ="UPDATE XML_IMPUESTOS SET STATUS = 9 WHERE UUID= '$uid' and partida = $i and monto = 0 and status = 0";
     					$res=$this->queryActualiza();
     					if(ibase_fetch_object($res)){
@@ -24665,7 +24791,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
 						
     	}
-    	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while($tsArray = ibase_fetch_object($res)){
     		$data[]=$tsArray;
