@@ -23806,11 +23806,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			        	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
 			            	if($version == '3.2'){
 			            		$rfc= $Receptor['rfc'];
-			           		 	$nombre_recep = utf8_encode($Receptor['nombre']);
+			           		 	$nombre_recep = str_replace("'", "", $Receptor['nombre']);
 			            		$usoCFDI = '';
 			            	}elseif($version == '3.3'){
 			            		$rfc= $Receptor['Rfc'];
-			            		$nombre_recep=utf8_encode($Receptor['Nombre']);
+			            		$nombre_recep=str_replace("'", "", $Receptor['Nombre']);
 			            		$usoCFDI =$Receptor['UsoCFDI'];
 			            	 }
 			            }
@@ -23821,7 +23821,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		$regimen = '';	
 			            	}elseif($version == '3.3'){
 			            		$rfce = $Emisor['Rfc'];
-			            		$nombreE = utf8_encode($Emisor['Nombre']);
+			            		$nombreE = str_replace("'", "", $Emisor['Nombre']);
 			            		$regimen = $Emisor['RegimenFiscal'];
 			            	}
 			            }
@@ -23881,7 +23881,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            	$nombre_recep=$nombre_recep;
 			            	if(empty($row)){
 			            		$this->query="INSERT INTO XML_CLIENTES (IDcliente, RFC, NOMBRE, CALLE, EXTERIOR, INTERIOR, COLONIA, MUNICIPIO, ESTADO, PAIS, CP, TIPO)
-			            					  VALUES (NULL, '$rfc', '$nombre_recep', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '	$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";	
+			            					  VALUES (NULL, '$rfc', 'Público en general', '$recep_calle', '$recep_noExterior', '$recep_noInterior', '$recep_colonia', '$recep_municipio', '	$recep_estado', '$recep_pais', '$recep_cp', '$tipoC' )";	
 			            		if($this->grabaBD() === false){  	
 			            			echo 'Error en la insercion de '.$tipoC.'<br/>';
 			            			echo $this->query.'<br/>';
@@ -24111,7 +24111,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             					return;
 							}
 							/// creamos el folder para el movimiento de las facturas a nuestro sistema. 
-				            if($rfce == 'XAXX010101000'){
+				            if($rfc == 'XAXX010101000'){ /// se cambia $rfce por $rfc
                                 $this->query="INSERT INTO XML_UUID_GENERICO (ID_UUID_GEN, NOMBRE) VALUES ('$uuid', '$nombre_recep')";
     							@$this->grabaBD();
                             }else{
@@ -24791,7 +24791,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
 						
     	}
-    	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while($tsArray = ibase_fetch_object($res)){
     		$data[]=$tsArray;

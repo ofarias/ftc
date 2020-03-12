@@ -375,6 +375,7 @@ class cargaXML extends database {
             $X = $sheet->getCell("X".$row)->getValue();//23
             $Y = $sheet->getCell("Y".$row)->getValue();//24
             $info = $A.'|'.$B.'|'.$C.'|'.$D.'|'.$E.'|'.$F.'|'.$G.'|'.$H.'|'.$I.'|'.$J.'|'.$K.'|'.$L.'|'.$M.'|'.$N.'|'.$O.'|'.$P.'|'.$Q.'|'.$R.'|'.$S.'|'.$T.'|'.$U.'|'.$V.'|'.$X.'|'.$Y.'|';
+            
             fwrite($diot, $info.PHP_EOL);
         }
         fclose($diot);

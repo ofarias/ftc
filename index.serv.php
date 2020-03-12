@@ -29,6 +29,10 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res=$controller->bajaFile($_POST['idf']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['reporteServ'])) {
+	$res=$controller->reporteServ($_POST['periodo'], $_POST['tipo']);
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($_GET['action']){

@@ -1,7 +1,7 @@
 
 <?php
 require_once('app/model/model.serv.php');
-//require_once('app/model/pegaso.model.ventas.php');
+require_once('app/model/pegaso.model.ventas.php');
 require_once('app/fpdf/fpdf.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
 
@@ -339,6 +339,213 @@ class ctrl_serv{
 			$baja = $data->bajaFile($idf);
 			return $baja;
 		}
+	}
+
+	function reporteServ($periodo, $tipo){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$info = $data->reporteServ($periodo, $tipo);
+			$this->generaReporteExcel($info['principal'], $info['primero'], $info['segundo'], $info['per'],$info['tip']);
+			return $info;
+		}
+	}
+
+	function generaReporteExcel($principal, $primero, $segundo, $per, $tip){
+			$xls= new PHPExcel();
+	        //// insertamos datos a al objeto excel.
+	        // Fecha inicio y fecha fin
+	        $usuario =$_SESSION['user']->NOMBRE;
+	        $fecha = date('d-m-Y h:i:s');
+	        $ln = 10;
+	        
+	       	$xls->getActiveSheet()
+	            ->setCellValue('A9','Atiende')
+	            ->setCellValue('B9','No de Servicios')
+	        ;
+
+	        foreach ($principal as $key) {
+	            $rel = '';
+	            $xls->setActiveSheetIndex()
+	                ->setCellValue('A'.$ln,$key->ATIENDE)
+	                ->setCellValue('B'.$ln,$key->SERVICIOS)
+	            ;
+	            $ln++;
+	        }
+	        $ln++;
+	        $xls->getActiveSheet()
+	            ->setCellValue('A'.$ln,'Atiende')
+	            ->setCellValue('B'.$ln,'Cliente')
+	            ->setCellValue('C'.$ln,'Servicios')
+	        ;
+	        $a='';
+	        foreach ($primero as $pr) {
+	        	$ln++;  		
+	        		$b=$pr->ATIENDE; 
+	        		if($a != $b){
+			       		$xls->setActiveSheetIndex()
+		        			->setCellValue('A'.$ln, $pr->ATIENDE)
+		        		;
+	        		}
+	        		$xls->setActiveSheetIndex()
+	        			->setCellValue('B'.$ln, $pr->NOMBRE_CLIENTE)
+	        			->setCellValue('C'.$ln, $pr->SERVICIOS)
+	        		;
+	        		$a = $pr->ATIENDE;
+	        }
+
+	        $ln++;
+	        $xls->getActiveSheet()
+	        	->setCellValue('A'.$ln,'Ticket')
+	        	->setCellValue('B'.$ln,'Modo de reporte')
+	        	->setCellValue('C'.$ln,'Persona que Reporta')
+	        	->setCellValue('D'.$ln,'Usuario del incidente')
+	        	->setCellValue('E'.$ln,'Fecha')
+	        	->setCellValue('F'.$ln,'Fecha del reporte')
+	        	->setCellValue('G'.$ln,'Equipo')
+	        	->setCellValue('H'.$ln,'Descripcion corta')
+	        	->setCellValue('I'.$ln,'Descripcion completa')
+	        	->setCellValue('J'.$ln,'Solucion o trabajo realizado')
+	        	->setCellValue('K'.$ln,'Estado del ticket')
+	        	->setCellValue('L'.$ln,'Fecha de Cierre')
+	        	->setCellValue('M'.$ln,'Sistema afectado')
+	        	->setCellValue('N'.$ln,'Tipo de Servicio')
+	        	->setCellValue('O'.$ln,'Correo Reporta')
+	        	->setCellValue('P'.$ln,'Correo Usuario')
+	        	->setCellValue('Q'.$ln,'Nombre del Cliente')
+	        	->setCellValue('R'.$ln,'Atiende')
+	        ;
+
+	        foreach ($segundo as $det) {
+	        	$ln++;
+	        	$xls->getActiveSheet()
+	        		->setCellValue('A'.$ln,	$det->ID)
+	        		->setCellValue('B'.$ln, $det->MODO)
+	        		->setCellValue('C'.$ln, $det->REPORTA)
+	        		->setCellValue('D'.$ln, $det->USUARIO)
+	        		->setCellValue('E'.$ln, $det->FECHA)
+	        		->setCellValue('F'.$ln, $det->FECHA_REPORTE)
+	        		->setCellValue('G'.$ln, $det->EQUIPO)
+	        		->setCellValue('H'.$ln, $det->CORTA)
+	        		->setCellValue('I'.$ln, $det->COMPLETA)
+	        		->setCellValue('J'.$ln, $det->SOLUCION)
+	        		->setCellValue('K'.$ln, $det->STATUS)
+	        		->setCellValue('L'.$ln, $det->CIERRE)
+	        		->setCellValue('M'.$ln, $det->SISTEMA)
+	        		->setCellValue('N'.$ln, $det->TIPO)
+	        		->setCellValue('O'.$ln, $det->CORREO_REP)
+	        		->setCellValue('P'.$ln, $det->CORREO_USU)
+	        		->setCellValue('Q'.$ln, $det->NOMBRE_CLIENTE)
+	        		->setCellValue('R'.$ln, $det->ATIENDE)
+	        	;
+	        }
+	        $ln++;
+	        $xls->setActiveSheetIndex()
+	                ->setCellValue('A'.$ln,'Fin del resumen de documentos.');
+	                //->setCellValue('B'.$ln,'')
+	                //->setCellValue('C'.$ln,'$ '.number_format($key->SALDOFINAL-$key->IMP_TOT4,2))
+	                //->setCellValue('D'.$ln,'$ '.number_format($key->IMP_TOT4,2))
+	                //->setCellValue('E'.$ln,'$ '.number_format($key->IMPORTE,2))
+	                //->setCellValue('F'.$ln,'$ '.number_format($key->SALDO,2))
+	                //->setCellValue('G'.$ln,$key->FECHA_INI_COB)
+	                //->setCellValue('H'.$ln,$key->CVE_PEDI)
+	                //->setCellValue('I'.$ln,$key->OC);
+	        /// 
+	        //    $xls->getActiveSheet()
+	        //        ->setCellValue('A1',$df->RAZON_SOCIAL);
+	        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+
+	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(30);
+	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(30);
+	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(35);
+	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(35);
+	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(50);
+	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth(80);
+	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(80);
+	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(80);
+	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(25);
+	        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(50);
+	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(50);
+	        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(80);
+	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(80);
+	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(50);
+	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(30);
+
+
+	        // Hacer las cabeceras de las lineas;
+	        //->setCellValue('9','')
+	       
+	        //$nom_mes = $this->nombreMes($mes);
+
+	        $xls->getActiveSheet()
+	            ->setCellValue('A3','Servicios elaborados '.$per)
+	            ->setCellValue('A4','Fecha de Emision del Reporte: '.date('d-m-Y H:i:s'))
+	            ->setCellValue('A5','Total de Servicios: '.count($segundo))
+	            //->setCellValue('A6','Importe Total de los Documentos: ')
+	            ->setCellValue('A6','Usuario Elabora: '.$usuario)
+	            ->setCellValue('A7','Tipo de reporte por '.$tip)
+	            ;
+	        $xls->getActiveSheet()
+	            ->setCellValue('D3','')
+	            ->setCellValue('D4','')
+	            ->setCellValue('D5','')
+	            ->setCellValue('D6','')
+	            ->setCellValue('D7','')
+	            ->setCellValue('D8','')
+	            ;
+	        /// Unir celdas
+	        //$xls->getActiveSheet()->mergeCells('A1:O1');
+	        // Alineando
+	        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+	        /// Estilando
+	        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>20,
+	                )
+	            )
+	        );
+	        $xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+	        $xls->getActiveSheet()->mergeCells('A3:F3');
+	        $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>15,
+	                )
+	            )
+	        );
+
+	        $xls->getActiveSheet()->getStyle('A3:D3')->applyFromArray(
+	            array(
+	                'font'=> array(
+	                    'bold'=>true
+	                ),
+	                'borders'=>array(
+	                    'allborders'=>array(
+	                        'style'=>PHPExcel_Style_Border::BORDER_THIN
+	                    )
+	                )
+	            )
+	        );
+	        //// Crear una nueva hoja 
+	            //$xls->createSheet();
+	        /// Crear una nueva hoja llamada Mis Datos
+	        /// Descargar
+	            if(!file_exists($ruta='C:\\xampp\\htdocs\\media\\reportes\\')){
+	            	mkdir($ruta);
+				}
+	            $nom='Reporte de Servicio por atencion'.'.xlsx';
+	            //header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+	            //header("Content-Disposition: attachment;filename=01simple.xlsx");
+	            //header('Cache-Control: max-age=0');
+	        /// escribimos el resultado en el archivo;
+	            $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+	        /// salida a descargar
+	            $x->save($ruta.$nom);
+	            ob_end_clean();
+	           // $x->save('php://output');
+	        /// salida a ruta :
+	            return array("status"=>'ok', "archivo"=>$nom);
 	}
 
 }?>

@@ -246,4 +246,43 @@ class data_serv extends database {
 			return array("status"=>'ok');
 		}
 
+		function reporteServ($periodo, $tipo){
+			$data= array();
+			// s semana, m mes, q quince dias, t todos. 
+			if($periodo == 's'){
+				$hoy = date("d.m.Y", strtotime(date("d-m-Y")."- 7 days"));
+			}elseif($periodo == 'q'){
+				$hoy = date("d.m.Y", strtotime(date("d-m-Y")."- 15 days"));
+			}elseif ($periodo == 'm') {
+				$hoy = date("d.m.Y", strtotime(date("d-m-Y")."- 31 days"));
+			}elseif ($periodo == 't') {
+				$hoy = '01.01.1990';
+			}
+			$per = 'entre el '.$hoy.' y el '.date("d.m.Y");
+			$t = " and fecha between '".$hoy."' and current_date ";
+			// 1 Usuario, 2 Cliente, 3 Cliente / Usuario, 4 Usuario / Cliente;
+			if($tipo == 1){
+				$tip = 'Usuario';
+				$this->query="SELECT ATIENDE, COUNT(*) as servicios FROM ticket where id > 0 $t GROUP BY ATIENDE order by  COUNT(*) desc";
+				$res=$this->EjecutaQuerySimple();
+				while ($tsArray=ibase_fetch_object($res)) {
+					$data[]=$tsArray;
+				}
+
+				if(count($data)>0 ){
+					$this->query="SELECT T1.ATIENDE, T1.NOMBRE_CLIENTE, COUNT(*) AS SERVICIOS FROM ticket T1 where T1.id > 0 $t GROUP BY T1.ATIENDE, T1.NOMBRE_CLIENTE ORDER BY (select count(*) from ticket T2 where T2.atiende = T1.ATIENDE) DESC, count(*) desc";
+					$res=$this->EjecutaQuerySimple();
+					while ($tsArray=ibase_fetch_object($res)) {
+						$dataPN[]=$tsArray;
+					}
+					$this->query="SELECT * FROM Ticket where ID > 0 $t order by ATIENDE";
+					$res=$this->EjecutaQuerySimple();
+					while ($tsArray=ibase_fetch_object($res)){
+						$dataSN[]=$tsArray;
+					}	
+				}
+			}
+			return array('principal'=>$data,'primero'=>$dataPN, 'segundo'=>$dataSN, 'per'=>$per, 'tip'=>$tip);
+		}
+
 }

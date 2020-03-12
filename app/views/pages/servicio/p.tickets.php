@@ -6,9 +6,32 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h4>Registro de Tickets</h4>
+                <center><h1>Registro de Tickets</h1></center>
                 <br/>
-                Ver Todos <input type="radio" name="vista" class="vista" value="t" <?php echo $temp == 't'? 'checked':'' ?>> &nbsp;&nbsp;Ver 1 Semana <input type="radio" name="vista" class="vista" value="s" <?php echo $temp == 's'? 'checked':'' ?>> &nbsp;&nbsp; Ver 15 dias<input type="radio" name="vista" class="vista" value="q" <?php echo $temp == 'q'? 'checked':''?> > &nbsp;&nbsp; Ver 1 Mes <input type="radio" name="vista" class="vista" value="m" <?php echo $temp == 'm'? 'checked':''?>>&nbsp;&nbsp; Reporte en Excel<input type="button" id="generaRep">
+                Ver Todos <input type="radio" name="vista" id="b1" class="vista" value="t" <?php echo $temp == 't'? 'checked':'' ?>> &nbsp;&nbsp;Ver 1 Semana <input type="radio" name="vista" id="b2" class="vista" value="s" <?php echo $temp == 's'? 'checked':'' ?>> &nbsp;&nbsp; Ver 15 dias<input type="radio" name="vista" id="b3" class="vista" value="q" <?php echo $temp == 'q'? 'checked':''?> > &nbsp;&nbsp; Ver 1 Mes <input type="radio" name="vista" id="b4" class="vista" value="m" <?php echo $temp == 'm'? 'checked':''?>>&nbsp;&nbsp;<br/><br/>
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <font color="white"><i class="fa fa-user fa-fw"></i>Reportes </font> <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user">
+                        <li class="divider"></li>
+                        <li>
+                        <a class="rep" value="1" > Usuario</a>
+                        </li>
+                        <li>
+                        <a class="rep" value="2" > Cliente</a>
+                        </li>
+                        <li>
+                        <a class="rep" value="3"> Cliente / Usuario</a>
+                        </li>
+                        <li>
+                        <a class="rep" value="4"> Usuario / Cliente</a>
+                        </li>
+                        <li>
+                        <a class="rep" value="5"> Otros</a>
+                        </li>
+                    </ul>
+                </li>
             </div>
             <div class="panel-body">
                 <div class="table-responsive">                            
@@ -84,7 +107,7 @@
         window.open("index.serv.php?action=nuevoTicket", "popup","width=1200,height=900")
     })
 
-    var temp = <?php echo $temp?> 
+    var temp = <?php echo "'".$temp."'"?> 
 
     $(".vista").click(function(){
         var temp = $(this).val()
@@ -92,8 +115,35 @@
     })
 
     $("#generaRep").click(function(){
-        alert('Desea el reporte de ' + temp)
+      //  alert('Desea el reporte de ' + temp)
     })
 
+    $(".rep").click(function(){
+        var tipo = $(this).attr('value')
+        if(confirm('Desea ver el reporte por usuario?')){
+            for (var i = 1; i <= 4; i++) {
+                var bt = document.getElementById('b' + i)
+                if(bt.checked){
+                    var periodo = bt.value;
+                   // alert('El boton ' + i + '  es el que esta seleccionado, el valor es ' + periodo + ' con el tipo' + tipo)
+                }
+            }
+            $.ajax({
+                url:'index.serv.php',
+                type:'post',
+                dataType:'json', 
+                data:{reporteServ:1, periodo, tipo}, 
+                success:function(data){
+                 //   alert('Se ejecuto correctamente el proceso')
+                }, 
+                error:function(){
+                  //  alert('Ocurrio un error, favor de revisar la informacion.')
+                }
+            })
+            
+        }else{
+            return false
+        }
+    })
 
 </script>
