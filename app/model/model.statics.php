@@ -8,7 +8,7 @@ class statics extends database {
         $m = '';
         if($tipo == 'I'){
             $rfce = $_SESSION['rfc'];
-            echo $rfce;
+            //echo $rfce;
         }
         
         if($mes > 0){
@@ -16,7 +16,7 @@ class statics extends database {
         }
 
         if($t == 'Emitidos'){
-            $this->query=" SELECT X.CLIENTE,
+            $this->query=" SELECT X.CLIENTE AS RFC,
                               (select max(NOMBRE) from XML_CLIENTES C where X.CLIENTE = C.RFC and TIPO = 'Cliente') as NOMBRE,
                               sum(X.IMPORTE) as FACTURADO,
                               (select coalesce(sum(XC.IMPORTE), 0) from XML_DATA XC where XC.CLIENTE = X.CLIENTE and STATUS = 'C') as CANCELADO,
@@ -31,7 +31,7 @@ class statics extends database {
                           order by sum(X.IMPORTE) desc
                                   "; 
         }else{
-            $this->query=" SELECT X.rfce,
+            $this->query=" SELECT X.rfce as RFC,
                               (select max(NOMBRE) from XML_CLIENTES C where X.rfce = C.RFC and TIPO = 'Proveedor') as NOMBRE,
                               sum(X.IMPORTE) as FACTURADO,
                               (select coalesce(sum(XC.IMPORTE), 0) from XML_DATA XC where XC.rfce = X.rfce and STATUS = 'C') as CANCELADO,
@@ -54,18 +54,26 @@ class statics extends database {
                 return $data; 
     }
 
-function detStat($cliente, $mes, $anio, $tipo){
-    $m = '';
-    if($mes > 0 ){
-        $m = ' and extract(month from fecha ) ='.$mes.' ';
+    function detStat($cliente, $mes, $anio, $tipo){
+        $m = '';
+        if($mes > 0 ){
+            $m = ' and extract(month from fecha ) ='.$mes.' ';
+        }
+        $campo = '';
+        if($tipo == 'Recibidos'){
+          $campo = 'RFCE';
+          $tcp = 'Proveedor';
+        }else{
+          $campo = 'CLIENTE';
+          $tcp = 'Cliente';
+        }
+        $this->query="SELECT x.*, (SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = '$cliente' and tipo='$tcp') as NOMBRE FROM XML_DATA x WHERE $campo = '$cliente' and extract(year from fecha ) = $anio $m order by fecha asc";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
     }
-    $this->query="SELECT * FROM XML_DATA WHERE CLIENTE = '$cliente' and extract(year from fecha ) = $anio $m order by fecha asc";
-    $res=$this->EjecutaQuerySimple();
-    while ($tsArray=ibase_fetch_object($res)){
-        $data[]=$tsArray;
-    }
-    return $data;
-}
 
 }
 ?> 
