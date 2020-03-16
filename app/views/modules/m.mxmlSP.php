@@ -83,7 +83,7 @@
                         <center><a href="index.php?action=verXMLSP&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $a->TIPO?>" class="btn-sm btn-info" title="Ver XMLs">Ver</a>&nbsp;&nbsp;&nbsp;<a href="index.xml.php?action=zipXML&mes=0&anio=<?php echo $a->ANIO?>&ide=<?php echo $ide?>&doc=<?php echo $a->TIPO?>" class="btn-sm btn-success" title="Descarga de XML en ZIP">Zip</a></a>&nbsp;&nbsp;&nbsp;<a href="index.xml.php?action=p_c&anio=<?php echo $a->ANIO?>&mes=0?>" target="_blank" title="Pagado & Cobrado" class="btn-sm btn-warning">P / C</a>
                         </center>
                         <br/>
-                        <?php if($usuario=='Oscar Farias Ayala'){?>
+                        <?php if($usuario=='Oscar Farias (Pruebas Conta)'){?>
                             <center>
                                 <a href="index.e.php?action=stat&mes=0&anio=<?php echo $a->ANIO?>&tipo=<?php echo $a->TIPO?>&t=<?php echo $ide?>" class="btn-sm btn-info">Estadisticas</a>
                                 <a class="btn-sm btn-success actualiza"  eje="<?php echo $a->ANIO?>">Mobile</a>

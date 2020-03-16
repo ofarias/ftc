@@ -56,10 +56,10 @@ class statics extends database {
 
     function detStat($cliente, $mes, $anio, $tipo){
         $m = '';
+        $data=array();
         if($mes > 0 ){
             $m = ' and extract(month from fecha ) ='.$mes.' ';
         }
-<<<<<<< HEAD
         $campo = '';
         if($tipo == 'Recibidos'){
           $campo = 'RFCE';
@@ -69,16 +69,12 @@ class statics extends database {
           $tcp = 'Cliente';
         }
         $this->query="SELECT x.*, (SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = '$cliente' and tipo='$tcp') as NOMBRE FROM XML_DATA x WHERE $campo = '$cliente' and extract(year from fecha ) = $anio $m order by fecha asc";
-=======
-        $this->query="SELECT * FROM XML_DATA WHERE CLIENTE = '$cliente' and extract(year from fecha ) = $anio $m order by fecha asc";
->>>>>>> a4771fb7b97807e2e2d51e0c97bf4a72b9b0e0e8
+
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)){
             $data[]=$tsArray;
         }
         return $data;
-<<<<<<< HEAD
-=======
     }
 
     function updateInfo($eje){
@@ -92,7 +88,6 @@ class statics extends database {
       die;
 
       return $data;
->>>>>>> a4771fb7b97807e2e2d51e0c97bf4a72b9b0e0e8
     }
 
 }
