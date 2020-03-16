@@ -41,7 +41,7 @@
                                             <th>FOLIO</th>
                                             <th>FECHA</th>
                                             <th>RFC RECEPTOR</th>
-                                            <th>RFC EMISOR</th>
+                                            <th class="impDet">RFC EMISOR</th>
                                             <th>SUBTOTAL</th>
                                             <th class="impDet">IVA</th>
                                             <th class="impDet">RETENCION <br/>IVA</th>
@@ -149,7 +149,7 @@
                                             </td>
                                             <td><?php echo $key->FECHA;?> </td>
                                             <td><?php echo '('.$key->CLIENTE.')  <br/><b>'.($key->NOMBRE).'<b/>';?></td>
-                                            <td><?php echo '('.$key->RFCE.')  <br/><b>'.$key->EMISOR.'<b/>'?></td>
+                                            <td class="impDet"><?php echo '('.$key->RFCE.')  <br/><b>'.$key->EMISOR.'<b/>'?></td>
                                             <td><?php echo '$ '.number_format($key->SUBTOTAL,2);?></td>
                                             <td class="impDet"><?php echo '$ '.number_format($key->IVA,2);?></td>
                                             <td class="impDet"><?php echo '$ '.number_format($key->IVA_RET,2);?></td>
@@ -166,27 +166,30 @@
                                                 <center><input type="checkbox" name="revision" id="<?php echo $ln?>" value="<?php echo $ln?>" color="<?php echo $color2?>" onclick="marcar(this.value, 'cb')" ></center>
                                                 <br/>
                                                 <?php if($ide == 'Recibidos'){?>
-                                                    <select name="tipo" >
-                                                        <option value="">¿Tipo?</option>
-                                                        <option value="c">Compra</option>
-                                                        <option value="g">Gasto</option>
-                                                        <option value="i">Intereses Pagados</option>
-                                                        <option value="c">Comisiones</option>
-                                                        <option value="cm">Mixto</option>
-                                                        <option value="eo">Otros</option>
-                                                        <option value="il">Pago de Impuestos</option>
-                                                        <option value="sg">Pago IMSS</option>
-                                                        <option value="en">No Deducible / Desconocido</option>
+                                                    <select name="tipo" class="tipoDoc" uuid="<?php echo $key->UUID?>" >
+                                                        <?php if($key->ID_RELACION > 0){?>
+                                                            <option value="<?php echo $key->ID_RELACION?>"><?php echo $key->TIPO_DOC?></option>
+                                                        <?php }else{?>
+                                                            <option value="">¿Tipo?</option>
+                                                        <?php }?>
+                                                        <?php foreach($tipoDOC as $tdoc ):?>
+                                                            <?php if($tdoc->ID_TIPO >= 2000 AND $tdoc->ID_TIPO< 3000 ){ ?>
+                                                            <option><?php echo $tdoc->DESCRIPCION?></option>
+                                                            <?php }?>   
+                                                        <?php endforeach;?>
                                                     </select>
                                                 <?php }else{?>
-                                                    <select name="tipo">
-                                                        <option value="">¿Tipo?</option>
-                                                        <option value="p">Producto</option>
-                                                        <option value="p">Servicio</option>
-                                                        <option value="vx">Mixto</option>
-                                                        <option value="a">Anticipo</option>
-                                                        <option value="io">Otros</option>
-                                                        <option value="in">No Deducible / Desconocido</option>
+                                                    <select name="tipo" class="tipoDoc" uuid="<?php echo $key->UUID?>">
+                                                        <?php if($key->ID_RELACION > 0){?>
+                                                            <option value="<?php echo $key->ID_RELACION?>"><?php echo $key->TIPO_DOC?></option>
+                                                        <?php }else{?>
+                                                            <option value="">¿Tipo?</option>
+                                                        <?php }?>
+                                                        <?php foreach($tipoDOC as $tdoc ):?>
+                                                            <?php if($tdoc->ID_TIPO >= 0 AND $tdoc->ID_TIPO < 2000 ){?>
+                                                                <option value="<?php echo $tdoc->ID_TIPO?>"><?php echo $tdoc->DESCRIPCION?></option>
+                                                            <?php }?>   
+                                                        <?php endforeach;?>
                                                     </select>
                                                 <?php }?>
                                             </td>
@@ -232,6 +235,28 @@
     $(".infoAdicional").mouseover(function(){
         var id =$(this).attr('id')
         document.getElementById(id).value
+    })
+
+    $(".tipoDoc").change(function(){
+        if(confirm('Se cambio el tipo de documento y afectara a las estadisticas, esta de acuerdo?')){
+            var uuid = $(this).attr('uuid')
+            var tipo = $(this).val()
+            $.ajax({
+                url:'index.coi.php',
+                type:'post',
+                dataType:'json',
+                data:{tipoDoc:1, uuid, tipo},
+                success:function(){
+                    alert(data.mensaje)
+                }, 
+                error:function(){
+                    alert('Ocurrio un error inesperado, favor de revisar la informacion o solicitar soporte.')
+                }
+            })
+        }else{
+            return false
+        }
+
     })
 
     function cargaBatch(mes, anio, ide, doc){

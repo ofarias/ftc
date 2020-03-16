@@ -17,6 +17,9 @@ if (isset($_POST['e'])){
 	$response=$controller_reparto->buscaQR($qr);
 	echo json_encode($response);
 	exit();
+}elseif (isset($_POST['updateInfo'])) {
+	$controller_stat->updateInfo($_POST['eje']);
+	exit();
 }
 else{switch ($_GET['action']){
 	case 'stat':
@@ -24,6 +27,9 @@ else{switch ($_GET['action']){
 		break;
 	case 'detStat':
 		$controller_stat->detStat($_GET['cliente'], $_GET['mes'], $_GET['anio'],$_GET['tipo']);
+		break;
+	case 'updateInfo':
+		$controller_stat->updateInfo($_GET['eje']);
 		break;
 	default:
 	header('Location: index_log.php?action=scaneaDocumentoRep');
