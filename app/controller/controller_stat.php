@@ -61,5 +61,13 @@ class statics_c{
 		}
 	}
 
+	function updateInfo($eje){
+		if ($_SESSION['user']) {
+			$data= new statics;
+			$update = $data->updateInfo($eje);
+			echo '<script language="javascript">alert("Correra para el ejercicio 2019") </script>';
+		}
+	}
+
 
 }?>

@@ -20222,6 +20222,7 @@ function ImpSolicitud2($idsol){
   			$cnxcoi=$_SESSION['cnxcoi'];
   			$uuid =false;
     		$info=$data->verXMLSP($mes, $anio, $ide, $uuid, $doc);
+    		$tipoDOC = $data->traeTipo();
     		include 'app/views/pages/xml/p.verXMLSP.php';
   			$table = ob_get_clean();
   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);

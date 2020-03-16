@@ -54,18 +54,31 @@ class statics extends database {
                 return $data; 
     }
 
-function detStat($cliente, $mes, $anio, $tipo){
-    $m = '';
-    if($mes > 0 ){
-        $m = ' and extract(month from fecha ) ='.$mes.' ';
+    function detStat($cliente, $mes, $anio, $tipo){
+        $m = '';
+        if($mes > 0 ){
+            $m = ' and extract(month from fecha ) ='.$mes.' ';
+        }
+        $this->query="SELECT * FROM XML_DATA WHERE CLIENTE = '$cliente' and extract(year from fecha ) = $anio $m order by fecha asc";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
     }
-    $this->query="SELECT * FROM XML_DATA WHERE CLIENTE = '$cliente' and extract(year from fecha ) = $anio $m order by fecha asc";
-    $res=$this->EjecutaQuerySimple();
-    while ($tsArray=ibase_fetch_object($res)){
+
+    function updateInfo($eje){
+      $data=array();
+      $this->query="SELECT * FROM Mobile where extract(year FROM FECHA_DOC) = $eje";
+      $res=$this->EjecutaQuerySimple();
+      while ($tsArray=ibase_fetch_object($res)){
         $data[]=$tsArray;
+      }
+      echo 'Total de documento: '.count($data);
+      die;
+
+      return $data;
     }
-    return $data;
-}
 
 }
 ?> 

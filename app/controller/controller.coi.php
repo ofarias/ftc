@@ -329,5 +329,13 @@ class controller_coi{
 		}
 	}
 
+	function tipoDoc($uuid, $tipo){
+		if ($_SESSION['user']) {
+			$data = new pegaso;
+			$tipo = $data->tipoDoc($uuid, $tipo);
+			return $tipo;
+		}
+	}
+
 }?>
 

@@ -35,13 +35,6 @@
 <?php }else{ ?>
     <label><font size="5 pxs"> <b>NO SE DETECTO CONEXIÓN CON ASPEL COI.</b></font></label>
 <?php }?>
-<!--
-<div style="float: left; width: 400px;" >
-    <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cuenta de IVA : &nbsp;&nbsp;&nbsp; <?php echo '<b>'.$cimpuestos['iva'].'</b>' ?></p>
-    <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cuenta de IEPS : &nbsp; <?php echo '<b>'.$cimpuestos['ieps'].'</b>'?></p>
-    <p>  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cuenta de ISR : &nbsp;&nbsp;&nbsp;<?php echo '<b>'.$cimpuestos['isr'].'</b>'?> </p>
-</div>
--->
 <br/><br/>
  <?php foreach ($infoCabecera as $key0){ 
         $rfcEmpresa = $_SESSION['rfc'];
