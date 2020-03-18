@@ -21,6 +21,10 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res=$controller->xmlExcel($_POST['mes'], $_POST['anio'], $_POST['ide'], $_POST['doc'], $_POST['t']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['cargaEFOS'])) {
+	$res = $controller->cargaEFOS();
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($_GET['action']){

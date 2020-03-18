@@ -488,5 +488,29 @@ class cargaXML extends database {
     	return $row->POLIZAS;
     }
 
-
+    function cargaEFOS(){
+    	$ruta="C:\\xampp\\htdocs\\media\\EFOS\\";
+    	if(!file_exists($ruta)){
+    		mkdir($ruta);
+    	}
+    	/// Nombre de los archivos que se desscargan del SAT, 
+    	/// Definitivos.csv, Desvirtuados.csv, Listado_Completo_69_B.csv, Presuntos.csv, SentenciasFaborables.csv 
+    	$archivos = array('Definitivos.csv', 'Desvirtuados.csv', 'Listado_Completo_69_B.csv', 'Presuntos.csv', 'SentenciasFaborables.csv');
+    	for ($i=0; $i < count($archivos); $i++) { 
+    		$archivo = $ruta.$archivos[$i];
+    		echo 'Se da lectura al archivo '.$archivo;
+    		$archivo = fopen($archivo, "r");
+    		$linea = 0;
+    		while (($datos = fgetcsv($archivo, ",")) == true) {
+			  	$num = count($datos);
+			  	$linea++;
+			  	for ($columna = 0; $columna < $num; $columna++){
+			         echo $datos[$columna] . "\n";
+			    }
+			}
+			fclose($archivo);
+			die;
+		}
+		die;
+    }
 }

@@ -1027,5 +1027,13 @@ class controller_xml{
 	    ob_end_clean();
 	}
 
+
+	function cargaEFOS(){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$carga = $data->cargaEFOS();
+			return $carga;
+		}
+	}
 }?>
 

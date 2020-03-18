@@ -113,24 +113,11 @@
                     <center><a href="index_xml.php?action=''" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
                     <p><a href="index.xml.php?action=actTablas">Actualizar Tablas</a></p>
                     <p><a href="index.xml.php?action=calculaSaldo">Calcula Saldos Mizco</p>
+                    <p><a class="btn-sm btn-success cargaEFOS" >Carga EFOs</a></p>
                 </div>
             </div>
         </div>
-
     <?php }?>
-        <!--
-         <div class="col-md-4">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h4><i class="fa fa-list-alt"> Ver Pagos CEP</i></h4>
-                </div>
-                <div class="panel-body">
-                    <p>Ver Pagos</p>
-                    <center><a href="index.v.php?action=verPagos" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
-                </div>
-            </div>
-        </div>
-         -->
         </div>
     </div>
 <form action="index.php" method="post" id="migrar">
@@ -140,7 +127,14 @@
     <input type="hidden" name="nfecha" value="">
     <input type="hidden" name="obs" placeholder="Observaciones" value="X" id="obs" size="250">
 </form>
-    <script type="text/javascript">
+
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="/resources/demos/style.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+<script type="text/javascript">
         
         function ejecuta(tipo, anio){
             var anio = document.getElementById(anio).value
@@ -151,4 +145,21 @@
         function info(){
             $.alert('No se encontro la conexion a la BD de COI, favor de comunicarse con Soporte Tecnico al 55-5055-3392')
         }
-    </script>
+
+        $(".cargaEFOS").click(function(){
+            if(confirm('Carga Efos?')){
+                $.ajax({
+                    url:'index.xml.php',
+                    type:'post',
+                    dataType:'json',
+                    data:{cargaEFOS:1}, 
+                    success:function(data){
+                        alert(data.mensaje)
+                    },
+                    error:function(){
+                        alert('Algo no salio como se esperaba, favor de reportar a soporte tencino.')
+                    }
+                })
+            }
+        })
+</script>
