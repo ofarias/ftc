@@ -117,6 +117,19 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4><i class="fa fa-list-alt">NOMINAS XML</i></h4>
+                </div>
+                <div class="panel-body">
+                    <p>Ver Recibos de Nominas</p>
+                    <center><a href="index.xml.php?action=nomXML" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
+                    
+                </div>
+            </div>
+        </div>
+
     <?php }?>
         </div>
     </div>

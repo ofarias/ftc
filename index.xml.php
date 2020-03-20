@@ -25,6 +25,10 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res = $controller->cargaEFOS();
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['infoPer'])) {
+	$res = $controller->infoPer($_POST['uuid']);
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($_GET['action']){
@@ -60,6 +64,12 @@ else{
 		break;
 	case 'calculaSaldo':
 		$controller->cs();
+		break;
+	case 'nomXML':
+		$controller->nomXML();
+		break;
+	case 'detalleNomina':
+		$controller->detalleNomina($_GET['fi'], $_GET['ff']);
 		break;
 	default: 
 		header('Location: index.php?action=login');

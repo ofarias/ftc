@@ -490,27 +490,171 @@ class cargaXML extends database {
 
     function cargaEFOS(){
     	$ruta="C:\\xampp\\htdocs\\media\\EFOS\\";
+    	$usuario=$_SESSION['user']->NOMBRE;
     	if(!file_exists($ruta)){
     		mkdir($ruta);
     	}
-    	/// Nombre de los archivos que se desscargan del SAT, 
-    	/// Definitivos.csv, Desvirtuados.csv, Listado_Completo_69_B.csv, Presuntos.csv, SentenciasFaborables.csv 
-    	$archivos = array('Definitivos.csv', 'Desvirtuados.csv', 'Listado_Completo_69_B.csv', 'Presuntos.csv', 'SentenciasFaborables.csv');
-    	for ($i=0; $i < count($archivos); $i++) { 
+   		if(!file_exists($ruta.'cargados\\')){
+				mkdir($ruta.'cargados\\');
+		}
+    	$lista = scandir($ruta);
+		$archivos = array();
+		for ($i=0; $i <count($lista) ; $i++){
+			if(is_file($ruta.$lista[$i])){
+				array_push($archivos, $lista[$i]);
+			}
+		}
+		if(count($archivos)<= 0){
+			return array("status"=>'No', "mensaje"=>'No se econtro ningun archivo...');
+		}
+		for ($i=0; $i < count($archivos); $i++) { 
     		$archivo = $ruta.$archivos[$i];
-    		echo 'Se da lectura al archivo '.$archivo;
+    		$ar = $archivo;
+			$archivoNuevo= $ruta.'cargados\\'.$archivos[$i];	
     		$archivo = fopen($archivo, "r");
     		$linea = 0;
     		while (($datos = fgetcsv($archivo, ",")) == true) {
 			  	$num = count($datos);
 			  	$linea++;
-			  	for ($columna = 0; $columna < $num; $columna++){
-			         echo $datos[$columna] . "\n";
+			  	if($linea < 3){
+			  		for($columna = 0; $columna < $num; $columna++){
+				        if($linea==1){
+				        	$informacion = $datos[0];
+				        }
+				        if($linea==2){
+				        	$titulo = $datos[0];
+				        }
+			    	}
+			  	}   
+			    if($linea == 3){
+			    	$this->query = "SELECT COUNT(*) as axiste FROM XML_EFOS WHERE INFORMACION = '$informacion' and TITULO = '$titulo' and NOMBRE_ARCHIVO = '$ar'";
+			    	$res=$this->EjecutaQuerySimple();
+			    	$val = ibase_fetch_row($res);
+			    	if($val[0] == 1){
+			    		fclose($archivo);
+						rename($ar, $archivoNuevo);
+			    		return array("status"=>'no',"mensaje"=>'Al parecer el archivo ya existe');
+			    	}
+			    	$this->query= "INSERT INTO XML_EFOS (ID_EF, NOMBRE_ARCHIVO, USUARIO, FECHA_ALTA, STATUS, FECHA_BAJA, INFORMACION, TITULO) VALUES (NULL, '$ar', '$usuario', current_date, 1, null, '$informacion', '$titulo') RETURNING ID_EF";
+			        $res=$this->grabaBD();    
+			        $id_ef =ibase_fetch_row($res)[0];
+			    }
+			    if($linea>=4){ /// Insertamos 
+			    	$f5 = empty($datos[5])? 'Null':str_replace("/", ".", "'$datos[5]'");
+			    	$f7 = empty($datos[7])? 'Null':str_replace("/", ".", "'$datos[7]'");
+			    	$f12 = empty($datos[12])? 'Null':str_replace("/", ".", "'$datos[12]'");
+			    	$f13 = empty($datos[13])? 'Null':str_replace("/", ".", "'$datos[13]'");
+			    	$f15 = empty($datos[15])? 'Null':str_replace("/", ".", "'$datos[15]'");
+			    	$f17 = empty($datos[17])? 'Null':str_replace("/", ".", "'$datos[17]'");
+			    	$this->query="INSERT INTO XML_EFOS_DETALLE (ID_EFD, ID_EF, NUMERO, RFC, NOMBRE, SITUACION, NUM_FECHA_PRES, SAT_PUB_PRES, NUM_FECHA_PRES_2, DOF_PUB_PRES, SAT_PUB_DESV, NUM_FECHA_DESV, DOF_PUB_DES, NUM_FECHA_DEF, SAT_PUB_DEF, DOF_PUB_DEF, NUM_FECHA_FAV, SAT_PUB_FAV, NUM_FECHA_FAV_2, DOF_PUB_FAV, STATUS )VALUES(null, $id_ef, '$datos[0]', '$datos[1]', '$datos[2]', '$datos[3]', '$datos[4]', $f5, '$datos[6]', $f7, '$datos[8]', '$datos[9]', '$datos[10]', '$datos[11]', $f12, $f13, '$datos[14]', $f15, '$datos[16]', $f17,0 )";
+			    	$this->grabaBD();
 			    }
 			}
 			fclose($archivo);
-			die;
+			rename($ar, $archivoNuevo);
 		}
-		die;
+		return array("status"=>'ok', "mensaje"=>'Se ha cargado correctamente el archivo');
     }
+
+    function nomXML(){
+    	$data= array();
+    	$this->query="SELECT COUNT(*) AS RECIBOS,fecha_inicial, fecha_final, extract(month from fecha_final) FROM XML_NOMINA_TRABAJADOR GROUP BY fecha_inicial, fecha_final ORDER BY FECHA_INICIAL";
+    	$rs=$this->EjecutaQuerySimple();
+    	while ($tsArray=ibase_fetch_object($rs)) {
+    		$data[]=$tsArray;
+    	}
+    	return $data;
+    }
+
+    function nomP($nomina){
+    	$data=array();
+    	$ln= 0;
+    	foreach ($nomina as $nom){
+    		$ln++;
+	    	$this->query="SELECT '$nom->FECHA_INICIAL' as fi, '$nom->FECHA_FINAL' as ff, SUM(TOTAL_SUELDOS) AS SUELDOS, SUM(TOTAL_SEPARACION_INDEM) AS SEPARACIONES, SUM(TOTAL_JUBILACION_PENRET) AS JUBILACION, SUM(TOTAL_GRAVADO) AS GRAVADO, SUM(TOTAL_EXECTO) AS EXECTO FROM XML_NOMINA_PERCEPCIONES WHERE UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT WHERE XNT.FECHA_INICIAL = '$nom->FECHA_INICIAL' AND XNT.FECHA_FINAL = '$nom->FECHA_FINAL')";
+	    	//echo '<br/> Periodo '.$ln.' del '.$nom->FECHA_INICIAL.' al '.$nom->FECHA_FINAL.' Consulta: '.$this->query;
+    		$res=$this->EjecutaQuerySimple();
+    		while ($tsArray=ibase_fetch_object($res)) {
+    			$data[]=$tsArray;
+    		}
+    	}
+    	return $data;
+    }
+
+    function nomD($nomina){
+    	$data=array();
+    	$ln= 0;
+    	foreach ($nomina as $nom){
+    		$ln++;
+	    	$this->query="SELECT '$nom->FECHA_INICIAL' as fi, '$nom->FECHA_FINAL' as ff, SUM(TOTAL_IMP_RET) AS RETENCIONES, SUM(TOTAL_OTRAS_DED) AS OTRAS_DEDUCCIONES FROM XML_NOMINA_DEDUCCIONES WHERE UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT WHERE XNT.FECHA_INICIAL = '$nom->FECHA_INICIAL' AND XNT.FECHA_FINAL = '$nom->FECHA_FINAL')";
+	    	//echo '<br/> Periodo '.$ln.' del '.$nom->FECHA_INICIAL.' al '.$nom->FECHA_FINAL.' Consulta: '.$this->query;
+		$res=$this->EjecutaQuerySimple();
+    		while ($tsArray=ibase_fetch_object($res)) {
+    			$data[]=$tsArray;
+    		}
+    	}
+    	return $data;	
+    }
+
+    function nomE($nomina){
+    	$data=array();
+    	$ln= 0;
+    	foreach ($nomina as $nom){
+    		$ln++;
+	    	$this->query="SELECT '$nom->FECHA_INICIAL' as fi, '$nom->FECHA_FINAL' as ff, count(*) empleado, CURP, NUMSEGURIDADSOCIAL from xml_nomina_receptor nr where nr.uuid_nomina in (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT WHERE XNT.FECHA_INICIAL = '$nom->FECHA_INICIAL' AND XNT.FECHA_FINAL = '$nom->FECHA_FINAL') group by CURP, NUMSEGURIDADSOCIAL";
+	    	//echo '<br/> Periodo '.$ln.' del '.$nom->FECHA_INICIAL.' al '.$nom->FECHA_FINAL.' Consulta: '.$this->query;
+		$res=$this->EjecutaQuerySimple();
+    		while ($tsArray=ibase_fetch_object($res)) {
+    			$data[]=$tsArray;
+    		}
+    	}
+    	return $data;		
+    }
+
+    function detalleNomina($fi, $ff){
+    	$data = array();
+    	$fi = date("d.m.Y", strtotime($fi));
+    	$ff = date("d.m.Y", strtotime($ff));;
+    	$this->query="SELECT (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS XNE WHERE XNE.CURP = XNR.CURP AND XNE.NSS = XNR.NUMSEGURIDADSOCIAL) AS EMPLEADO, XNR.* , XNP.*, XND.*
+    			FROM XML_NOMINA_RECEPTOR XNR 
+    			LEFT JOIN XML_NOMINA_PERCEPCIONES XNP ON XNP.UUID_NOMINA = XNR.UUID_NOMINA 
+    			LEFT JOIN XML_NOMINA_DEDUCCIONES XND ON XND.UUID_NOMINA = XNR.UUID_NOMINA
+    			WHERE XNR.UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff')";
+    	echo $this->query;
+    	$res=$this->EjecutaQuerySimple();
+    	while ($tsArray= ibase_fetch_object($res)){
+    		$data[]=$tsArray;
+    	}
+    	return $data;
+   	}
+
+   	function infoPer($uuid){
+   		$data = array();
+   		$this->query="SELECT * FROM XML_NOMINA_PERCEPCIONES WHERE UUID_NOMINA = '$uuid'";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)){
+   			$data[]=$tsArray;
+   		}
+   		return $data;
+   	}
+
+   	function infoDed($uuid){
+   		$data = array();
+   		$this->query="SELECT * FROM XML_NOMINA_DEDUCCIONES WHERE UUID_NOMINA = '$uuid'";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)){
+   			$data[]=$tsArray;
+   		}
+   		return $data;	
+   	}
+
+   	function infoDet($uuid){
+   		$data = array();
+   		$this->query="SELECT * FROM XML_NOMINA_DETALLE WHERE UUID_NOMINA = '$uuid'";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)){
+   			$data[]=$tsArray;
+   		}
+   		return $data;
+   	}
 }

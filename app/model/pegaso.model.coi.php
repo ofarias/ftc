@@ -1437,6 +1437,7 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function polizaFinal($uuid, $tipo, $idp, $infoPoliza, $impuestos2, $tipoXML, $cabecera){
+        //$this->calculaFolio($acf = $periodo, $bcf= $ejercicio, $ccf= '$tipo');
         /// Insertamos la poliza de egreso nuevo sistema.
         $usuario=$_SESSION['user']->USER_LOGIN;
         $ejercicio = $infoPoliza['ejercicio'];

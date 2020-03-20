@@ -1035,5 +1035,50 @@ class controller_xml{
 			return $carga;
 		}
 	}
+
+	function nomXML(){
+		if($_SESSION['user']){
+			$data=new cargaXML;
+			$info= $data->nomXML();
+			$per = $data->nomP($info);
+			$ded = $data->nomD($info);
+			$emp = $data->nomE($info);
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/xml/m.nominasXML.php');
+   			ob_start();
+   			include 'app/views/pages/xml/m.nominasXML.php';
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
+	function detalleNomina($fi, $ff){
+		if($_SESSION['user']){
+			$data=new cargaXML;
+			$rec = $data->detalleNomina($fi, $ff);
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/xml/p.detalleNom.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.detalleNom.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function infoPer($uuid){
+		if($_SESSION){
+			$data = new cargaXML;
+			$info = $data->infoPer($uuid);
+			return $info;
+		}
+	}
 }?>
 

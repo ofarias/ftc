@@ -172,24 +172,7 @@
                 </div>
             </div>
 
-            <!--
-            <?php if($pm == 0){?>
-                <div class="col-md-4">
-                    <div class="panel panel-default">
-                            <div class="panel-heading">
-                                <h4><i class="fa fa-list-alt">&nbsp;&nbsp;<?php echo 'Pago'?></i></h4>
-                            </div>
-                        <div class="panel-body">
-                            <p><FONT size="4pxs"> <b><?php echo $key->NOMBRE."&nbsp;&nbsp;<font color='red'>".$key->ANIO."</font>"?><b/></FONT></p>
-                            <p><font color="blue">XMLs </font><b><?php echo 0?></b><font color="blue"> Sin procesar: <?php echo 0?></font></p>
-                            <p>Sub Total: <?php echo '$ '.number_format(0,2)?></p>
-                            <p>Total: <?php echo '$ '.number_format(0,2)?></p>
-                            <center><a href="index.php?action=verXMLSP&mes=<?php echo $key->MES?>&anio=<?php echo $key->ANIO?>&ide=<?php echo $ide?>" class="btn btn-info">Ver</a>&nbsp;&nbsp;&nbsp;</center>
-                        </div>
-                    </div>
-                </div>
-            <?php }?>
-        -->
+            
             <?php endforeach ?>
     </div>
 </div>
