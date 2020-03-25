@@ -5,6 +5,7 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                         Recibos de la nomina del <?php echo $fi?> al <?php echo $ff?>
+                        <br/><br/> <input type="button" class="btn-sm btn-info repNom" value="Reporte de Nomina"> &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" class="btn-sm btn-success detNom" value="Detall de la Nomina">
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
@@ -69,6 +70,18 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    var fi = <?php echo "'".$fi."'"?>;
+    var ff = <?php echo "'".$ff."'"?>;
+
+$(".repNom").click(function(){
+    alert('Reporte de la nomina' + fi)
+})
+
+
+$(".detNom").click(function (){
+    window.open('index.xml.php?action=detNom&fi='+fi+'&ff='+ff, 'popup', 'width=800,height=600')
+})
 /*
     $(".infoPer").mouseover(function(){
         return false

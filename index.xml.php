@@ -71,6 +71,12 @@ else{
 	case 'detalleNomina':
 		$controller->detalleNomina($_GET['fi'], $_GET['ff']);
 		break;
+	case 'reciboNomina':
+		$controller->reciboNomina($_GET['uuid']);
+		break;
+	case 'detNom':
+		$controller->detNom($_GET['fi'], $_GET['ff']);
+		break;
 	default: 
 		header('Location: index.php?action=login');
 		break;

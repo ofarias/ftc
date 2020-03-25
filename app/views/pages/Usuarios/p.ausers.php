@@ -75,7 +75,7 @@
       <select name="rol" class="form-control">
         <option value="">Selecciona Rol</option>
         <?php foreach($roles as $data):?>
-          <option value="<?php echo strtolower($data->NOMBRE)?>"><?php echo strtoupper($data->NOMBRE)?></option>
+          <option value="<?php echo $data->NOMBRE?>"><?php echo strtoupper($data->NOMBRE)?></option>
         <?php endforeach;?>
         </select>
       <label for="letra"> Letra Cotizaciones: </label>

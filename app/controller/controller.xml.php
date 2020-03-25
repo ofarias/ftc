@@ -1074,11 +1074,37 @@ class controller_xml{
 	}
 
 	function infoPer($uuid){
-		if($_SESSION){
+		if($_SESSION['user']){
 			$data = new cargaXML;
 			$info = $data->infoPer($uuid);
 			return $info;
 		}
 	}
+
+	function reciboNomina($uuid){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$res=$data->reciboNomina($uuid);
+			return $res;
+		}
+	}
+
+	function detNom($fi, $ff){
+		if($_SESSION['user']){
+			$data=new cargaXML;
+			$rec = $data->detNom($fi, $ff);
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/xml/p.detNom.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.detNom.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
 }?>
 

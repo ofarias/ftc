@@ -614,13 +614,32 @@ class cargaXML extends database {
     function detalleNomina($fi, $ff){
     	$data = array();
     	$fi = date("d.m.Y", strtotime($fi));
-    	$ff = date("d.m.Y", strtotime($ff));;
+    	$ff = date("d.m.Y", strtotime($ff));
     	$this->query="SELECT (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS XNE WHERE XNE.CURP = XNR.CURP AND XNE.NSS = XNR.NUMSEGURIDADSOCIAL) AS EMPLEADO, XNR.* , XNP.*, XND.*
     			FROM XML_NOMINA_RECEPTOR XNR 
     			LEFT JOIN XML_NOMINA_PERCEPCIONES XNP ON XNP.UUID_NOMINA = XNR.UUID_NOMINA 
     			LEFT JOIN XML_NOMINA_DEDUCCIONES XND ON XND.UUID_NOMINA = XNR.UUID_NOMINA
     			WHERE XNR.UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff')";
-    	echo $this->query;
+    	//echo $this->query;
+    	$res=$this->EjecutaQuerySimple();
+    	while ($tsArray= ibase_fetch_object($res)){
+    		$data[]=$tsArray;
+    	}
+    	return $data;
+   	}
+
+   	function reciboNomina($uuid){
+    	$data = array();
+    	$filtro = '';
+    	if(!empty($uuid)){
+    		$filtro="where XNR.uuid_nomina='$uuid'";
+    	}
+    	$this->query="SELECT (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS XNE WHERE XNE.CURP = XNR.CURP AND XNE.NSS = XNR.NUMSEGURIDADSOCIAL) AS EMPLEADO, XNR.* , XNP.*, XND.*
+    			FROM XML_NOMINA_RECEPTOR XNR 
+    			LEFT JOIN XML_NOMINA_PERCEPCIONES XNP ON XNP.UUID_NOMINA = XNR.UUID_NOMINA 
+    			LEFT JOIN XML_NOMINA_DEDUCCIONES XND ON XND.UUID_NOMINA = XNR.UUID_NOMINA
+    			WHERE $filtro)";
+    	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while ($tsArray= ibase_fetch_object($res)){
     		$data[]=$tsArray;
@@ -653,6 +672,18 @@ class cargaXML extends database {
    		$this->query="SELECT * FROM XML_NOMINA_DETALLE WHERE UUID_NOMINA = '$uuid'";
    		$res=$this->EjecutaQuerySimple();
    		while ($tsArray=ibase_fetch_object($res)){
+   			$data[]=$tsArray;
+   		}
+   		return $data;
+   	}
+
+   	function detNom($fi, $ff){
+   		$data = array ();
+   		$fi = date('d.m.Y', strtotime($fi));
+   		$ff = date('d.m.Y', strtotime($ff));
+   		$this->query="SELECT * FROM XML_NOMINA_DETALLE WHERE UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff')";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)) {
    			$data[]=$tsArray;
    		}
    		return $data;
