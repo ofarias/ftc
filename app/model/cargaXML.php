@@ -679,13 +679,62 @@ class cargaXML extends database {
 
    	function detNom($fi, $ff){
    		$data = array ();
+   		$dataDet =array();
+   		$columnas = array();
    		$fi = date('d.m.Y', strtotime($fi));
    		$ff = date('d.m.Y', strtotime($ff));
-   		$this->query="SELECT * FROM XML_NOMINA_DETALLE WHERE UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff')";
+   		$this->query="SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' order by (SELECT COUNT(*) FROM XML_NOMINA_DETALLE ND WHERE ND.UUID_NOMINA = XNT.UUID_NOMINA) DESC";
    		$res=$this->EjecutaQuerySimple();
-   		while ($tsArray=ibase_fetch_object($res)) {
+   		while ($tsArray=ibase_fetch_object($res)){
    			$data[]=$tsArray;
    		}
-   		return $data;
+   		array_push($columnas, 'UUID');
+   		array_push($columnas, 'numero');
+   		array_push($columnas, 'nombre');
+   		$a=0;
+   		$emp=0;
+   		foreach ($data as $k){
+   			$emp++;
+   			$uuid = $k->UUID_NOMINA;
+   			$this->query="SELECT ND.* , NR.NUMEMPLEADO AS NUMERO, (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS NE WHERE NE.CURP = NR.CURP) AS NOMBRE 
+   				FROM XML_NOMINA_DETALLE ND
+   				LEFT JOIN XML_NOMINA_RECEPTOR NR ON NR.UUID_NOMINA = ND.UUID_NOMINA
+   				WHERE ND.UUID_NOMINA = '$uuid' order by  ded_per desc";
+   			$res=$this->EjecutaQuerySimple();
+   			while ($tsArray=ibase_fetch_object($res)) {
+   				$dataDet[]=$tsArray;
+   			}
+   			$z=0;
+   			foreach ($dataDet as $col){
+   				$z++;
+   				$c=$col->DED_PER.':'.$col->TIPO.':'.$col->CLAVE.':'.$col->CONCEPTO;
+   				if(!in_array($c, $columnas)){
+   					array_push($columnas, $c);
+   				}
+   			}
+   			$keys = array_fill_keys($columnas, '');	
+   		}
+   		return $info=array("columnas"=>$columnas, "datos"=>$dataDet, "lineas"=>$data);
+   	}
+
+   	function verRecibo($uuid){
+   		$datos=array();
+   		$this->query="SELECT * FROM XML_NOMINA_DETALLE where UUID_NOMINA = '$uuid'";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)) {
+   			$datos[]=$tsArray;
+   		}
+   		$this->query="SELECT * FROM XML_NOMINA_RECEPTOR WHERE UUID_NOMINA ='$uuid'";
+   		$res=$this->EjecutaQuerySimple();
+   		$row =ibase_fetch_object($res);
+   		$curp = $row->CURP;
+   		$nss = $row->NUMSEGURIDADSOCIAL;
+   		$this->query="SELECT first 1 * FROM XML_NOMINA_EMPLEADOS WHERE CURP = '$curp' and NSS = '$nss'";
+   		$res=$this->EjecutaQuerySimple();
+   		$row2 = ibase_fetch_object($res);
+   		$this->query="SELECT * FROM XML_NOMINA_TRABAJADOR WHERE UUID_NOMINA ='$uuid'";
+   		$res=$this->EjecutaQuerySimple();
+   		$row3 = ibase_fetch_object($res);
+   		return array("datos"=>$datos, "emp"=>$row2, "nom_emp"=>$row,"nom"=>$row3);
    	}
 }

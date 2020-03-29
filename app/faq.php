@@ -765,3 +765,7 @@ A mi eso no me funciona, pero con '&#10;' (todo junto) si que va bien
 
 Recorriendo Objetos con javascript
 
+vertical a horizontal 
+
+ver p.detNom.php
+

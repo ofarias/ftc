@@ -5,7 +5,7 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                         Recibos de la nomina del <?php echo $fi?> al <?php echo $ff?>
-                        <br/><br/> <input type="button" class="btn-sm btn-info repNom" value="Reporte de Nomina"> &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" class="btn-sm btn-success detNom" value="Detall de la Nomina">
+                        <br/><br/> <input type="button" class="btn-sm btn-info repNom" value="Reporte de Nomina"> &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" class="btn-sm btn-success detNom" value="Detalle de la Nomina">
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
@@ -34,12 +34,9 @@
                                                 $a = 'Total &#10; Algo mas ';
                                             ?>
                                             <tr>
-                                                <!--<td class="details-control"></td>-->
                                                 <td><?php echo $data->NUMEMPLEADO?></td>
                                                 <td><?php echo $data->EMPLEADO.'<br/>'.$data->CURP.'<br/>'.$data->NUMSEGURIDADSOCIAL?></td>
-                                                
                                                 <td align="right" title="" class="infoPer" l="<?php echo $data->UUID_NOMINA?>"><?php echo '$ '.number_format($data->TOTAL_SUELDOS,2)?></td>
-
                                                 <td align="right"><?php echo '$ '.number_format($data->TOTAL_IMP_RET + $data->TOTAL_OTRAS_DED,2)?></td>
                                                 <td><?php echo $data->FECHAINICIORELLABORAL?><br/><font color="brown"><?php echo $data->ANTIGUEDAD?></font></td>
                                                 <td><?php echo $data->TIPOCONTRATO.'<br/><font color="brown">'.$data->SINDICALIZADO.'</font>'?></td>
@@ -49,7 +46,7 @@
                                                 <td align="right"><?php echo '$ '.number_format($data->SALARIOBASECOTAPOR,2)?><br/><font color="brown"><?php echo '$ '.number_format($data->SALARIODIARIOINTEGRADO,2)?></font></td>
                                                 <td align="center"><?php echo $data->CLAVEENTFED?><br/><font color="brown"></font></td>
                                                 <td><?php echo $data->BANCO?><br/><font color="brown"><?php echo $data->CUENTA_BANCARIA?></font></td>
-                                                <td><b><?php echo $data->UUID_NOMINA?></b><br/><a href="index.xml.php?action=verRecibo&uuid=<?php echo $data->UUID_NOMINA?>?" target="popup"  onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;" >Detalle</a></td>
+                                                <td><b><?php echo $data->UUID_NOMINA?></b><br/><a href="index.xml.php?action=verRecibo&uuid=<?php echo $data->UUID_NOMINA ?>" target="popup"  onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;" >Detalle</a></td>
                                             </tr>
                                         <?php endforeach; ?>
                                  </tbody>

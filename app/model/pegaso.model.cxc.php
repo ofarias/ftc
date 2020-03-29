@@ -896,14 +896,14 @@ class pegasoCobranza extends database {
 
     function cancelaAplicacion($ida, $doc, $idp){
         $usuario=$_SESSION['user']->NOMBRE;
-        $this->query="UPDATE APLICACIONES SET STATUS = 'C', cancelado = 1  WHERE ID= $ida and documento = '$doc' and status != 'C' and cancelado = 0";
+        $this->query="UPDATE APLICACIONES SET STATUS = 'C', cancelado = 1  WHERE ID= $ida and documento = '$doc' and status != 'C' and cancelado = 0 and (poliza_ingreso is null or poliza_ingreso = '')";
         $res=$this->queryActualiza();
         if($res == 1){
             $this->query="UPDATE CARGA_PAGOS SET SALDO = MONTO-coalesce((SELECT SUM(MONTO_APLICADO) FROM APLICACIONES 
                             WHERE IDPAGO=$idp and status!='C'),0), APLICACIONES=COALESCE((SELECT SUM(MONTO_APLICADO) FROM APLICACIONES 
                             WHERE IDPAGO=$idp and status!='C'),0) where id = $idp";
             $result=$this->queryActualiza();
-            $this->desaplicarAplicacion($ida, $doc, $idp);
+            
             if($result == 1){
                 return array("status"=>'ok',"mensaje"=>'Se ha desaplicado la factura');
             }else{
@@ -916,7 +916,7 @@ class pegasoCobranza extends database {
                 $this->query="INSERT INTO FTC_CANCELACIONES(ID, FACTURA_ORIGINAL, FECHA_CANCELA, USUARIO_CANCELA, FACTURA_NUEVA) 
                                     VALUES (NULL, '$ida',current_timestamp,'$usuario', 'Aplicacion')";
                 $this->grabaBD();
-            return array("status"=>'No',"mensaje"=>'Al parecer esta aplicacion ya ha sido cancelada con anterioridad.');
+            return array("status"=>'No',"mensaje"=>'Al parecer esta aplicacion tiene un registro contable (poliza de Ingreso) o ya ha sido cancelada con anterioridad.');
         }
     }
 

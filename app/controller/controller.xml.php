@@ -1092,11 +1092,31 @@ class controller_xml{
 	function detNom($fi, $ff){
 		if($_SESSION['user']){
 			$data=new cargaXML;
-			$rec = $data->detNom($fi, $ff);
+			$info=$data->detNom($fi, $ff);
+			$columnas = $info['columnas'];
+			$datos = $info['datos'];
+			$lineas = $info['lineas'];
 			$pagina=$this->load_template();
 			$html=$this->load_page('app/views/pages/xml/p.detNom.php');
    			ob_start();
    			include 'app/views/pages/xml/p.detNom.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function verRecibo($uuid){
+		if($_SESSION['user']){
+			$data=new cargaXML;
+			$info=$data->verRecibo($uuid);
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/xml/p.verRecibo.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.verRecibo.php';   			
    			$table = ob_get_clean();
    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
    			$this->view_page($pagina);	

@@ -77,6 +77,9 @@ else{
 	case 'detNom':
 		$controller->detNom($_GET['fi'], $_GET['ff']);
 		break;
+	case 'verRecibo':
+		$controller->verRecibo($_GET['uuid']);
+		break;
 	default: 
 		header('Location: index.php?action=login');
 		break;
