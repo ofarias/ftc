@@ -72,6 +72,7 @@
                                                 <br/><?php echo $data->REMISION?>
                                                 <br/><?php echo $data->FACTURA?>
                                                 <br/><font color='white'><b><?php echo ($data->CANCELADAS == '0')? '':$data->CANCELADAS?></b></font>
+                                          
                                               
                                             </td>
 

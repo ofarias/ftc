@@ -30,7 +30,7 @@
                                     ?>
                                         <tr>
                                             <td><?php echo $i?></td>
-                                            <td><?php echo $key->NOMBRE;?><br/><?php echo $key->CLIENTE?><a href="index.e.php?action=detStat&cliente=<?php echo $key->CLIENTE?>&mes=<?php echo $mes?>&anio=<?php echo $anio?>&tipo=<?php echo $tipo?>" class="btn-sm btn-info"> Detalle</a></td>
+                                            <td><?php echo $key->NOMBRE;?><br/><?php echo $key->RFC ?><a href="index.e.php?action=detStat&cliente=<?php echo $key->RFC?>&mes=<?php echo $mes?>&anio=<?php echo $anio?>&tipo=<?php echo $t?>" class="btn-sm btn-info"> Detalle</a></td>
                                             <td><?php echo '$ '.number_format($key->FACTURADO,2);?></td>
                                             <td><?php echo '$ '.number_format($key->CANCELADO,2);?></td>
                                             <td align="right"><font color="blue"><b><?php echo '$ '.number_format($key->NOTAS,2);?></b></font></td>

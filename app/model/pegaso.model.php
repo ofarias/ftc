@@ -24766,7 +24766,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     							 AS VARCHAR(1500)
     						), ''
     						) AS RELACIONES,
-    					X.importe - coalesce((SELECT sum(monto_Aplicado) from aplicaciones ap where ap.observaciones = x.uuid AND STATUS != 'C'), 0) as saldo_xml 
+    					X.importe - coalesce((SELECT sum(monto_Aplicado) from aplicaciones ap where ap.observaciones = x.uuid AND STATUS != 'C'), 0) as saldo_xml,
+    					(SELECT DESCRIPCION FROM XML_TIPO_DOC XT WHERE XT.ID_TIPO = X.ID_RELACION) AS TIPO_DOC 
 						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F' or x.status = 'C') $uuid";
 		}else{
     				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
@@ -24786,7 +24787,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     							AS VARCHAR(1500)
     						), ''
     						) AS RELACIONES, 
-    						x.importe - coalesce((SELECT SUM(AG.APLICADO) FROM APLICACIONES_GASTOS AG WHERE AG.UUID = x.UUID AND STATUS=0),0) AS SALDO_XML
+    						x.importe - coalesce((SELECT SUM(AG.APLICADO) FROM APLICACIONES_GASTOS AG WHERE AG.UUID = x.UUID AND STATUS=0),0) AS SALDO_XML,
+    						(SELECT DESCRIPCION FROM XML_TIPO_DOC XT WHERE XT.ID_TIPO = X.ID_RELACION) AS TIPO_DOC 
 						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
 						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
 						
@@ -28013,6 +28015,23 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$res=$this->EjecutaQuerySimple();
     	$row= ibase_fetch_object($res);
     	return array("uuid"=>$row->UUID);
+    }
+
+    function tipoDoc($uuid, $tipo){
+    	$this->query="UPDATE XML_DATA SET ID_RELACION = '$tipo' where UUID = '$uuid'";
+    	$res=$this->queryActualiza();
+    	$mensaje = $res==1? 'Se ha cambiado correctamente':'No se encontro la informacion, reporte a sistemas';
+    	return array("status"=>'ok', "mensaje"=>$mensaje);
+    }
+
+    function traeTipo(){
+    	$data = array();
+    	$this->query="SELECT * FROM XML_TIPO_DOC WHERE STATUS = 'A'";
+    	$res=$this->EjecutaQuerySimple();
+    	while ($tsArray=ibase_fetch_object($res)) {
+    		$data[]=$tsArray;
+    	}
+    	return $data;
     }
 
 }?>

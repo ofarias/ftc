@@ -167,7 +167,7 @@ class factura extends database {
 								//$st4=$st4 + $pPt4;
 						$base=number_format($psubTotal-$pDi,$dec,".","");	
 						$bimp=number_format($base * 0.16,$dec,".","");
-						$descr = html_entity_decode($keyp->DESCRIPCION, ENT_QUOTES);
+						$descr = $keyp->DESCRIPCION;
 						$this->query="INSERT INTO FTC_FACTURAS_DETALLE (IDFP, IDF, DOCUMENTO, PARTIDA, CANTIDAD, ARTICULO, UM, DESCRIPCION, IMP1, IMP2, IMP3, IMP4, DESC1, DESC2, DESC3, DESCF, SUBTOTAL, TOTAL, CLAVE_SAT, MEDIDA_SAT, PEDIMENTOSAT, LOTE, USUARIO, FECHA, IDPREOC, IDPAQUETE, IDCAJA, PRECIO )
 						VALUES(NULL, (SELECT IDF FROM FTC_FACTURAS WHERE DOCUMENTO = ('$serie'||$nf)), 
 									 ('$serie'||$nf), 

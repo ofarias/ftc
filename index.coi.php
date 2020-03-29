@@ -81,6 +81,10 @@ if (isset($_POST['usuario'])){
 	$res=$controller_coi->validaPol($_POST['pol'], $_POST['e'], $_POST['per'], $_POST['cta']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['tipoDoc'])){
+	$res=$controller_coi->tipoDoc($_POST['uuid'], $_POST['tipo']);
+	echo json_encode($res);
+	exit();
 }
 else{switch ($_GET['action']){
 	//case 'inicio':

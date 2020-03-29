@@ -21,6 +21,14 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res=$controller->xmlExcel($_POST['mes'], $_POST['anio'], $_POST['ide'], $_POST['doc'], $_POST['t']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['cargaEFOS'])) {
+	$res = $controller->cargaEFOS();
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['infoPer'])) {
+	$res = $controller->infoPer($_POST['uuid']);
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($_GET['action']){
@@ -56,6 +64,21 @@ else{
 		break;
 	case 'calculaSaldo':
 		$controller->cs();
+		break;
+	case 'nomXML':
+		$controller->nomXML();
+		break;
+	case 'detalleNomina':
+		$controller->detalleNomina($_GET['fi'], $_GET['ff']);
+		break;
+	case 'reciboNomina':
+		$controller->reciboNomina($_GET['uuid']);
+		break;
+	case 'detNom':
+		$controller->detNom($_GET['fi'], $_GET['ff']);
+		break;
+	case 'verRecibo':
+		$controller->verRecibo($_GET['uuid']);
 		break;
 	default: 
 		header('Location: index.php?action=login');

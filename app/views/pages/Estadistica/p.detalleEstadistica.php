@@ -71,7 +71,8 @@
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                           Detalle de la Estadistica de Ventas del cliente <?php echo $cliente?>.
+                           Detalle de la Estadistica de Ventas del cliente <font color="black"><?php echo $k->NOMBRE?></font> 
+                           <?php echo '('.$cliente.')'?> .
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">

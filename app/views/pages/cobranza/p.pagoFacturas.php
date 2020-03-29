@@ -484,7 +484,9 @@ var a = document.getElementById('anio').value
                 data:{cancelaAplicacion:ida, doc, idp},
                 success:function(data){ 
                     alert(data.mensaje);
-                    location.reload();
+                    if(data.status == 'ok'){
+                        location.reload();
+                    }
                 },
                 error:function(data){
                     alert(data.mensaje);

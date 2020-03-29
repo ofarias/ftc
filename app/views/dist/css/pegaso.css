@@ -1,10 +1,9 @@
 /* Global Styles */
-
 /* ------------------------------- */
-
 body {
     padding-top: 100px;
-        background: #00BFFF;
+        /*background: #f8f8ff; #f5f5f5 */
+        background:#dcdcdc;        
 }
 
 @media(min-width:768px) {
@@ -13,6 +12,7 @@ body {
         justify-content: center;
     }
 }
+/* Barra de navegacion */
 .navbar-default {
   position: fixed;
   background: #0489B1;

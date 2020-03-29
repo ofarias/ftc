@@ -1202,11 +1202,13 @@ class CoiDAO extends DataBaseCOI {
     function calculaFolio($mes, $anio, $tipo){
         $a = substr($anio, 2,2);
         $this->query="SELECT coalesce(max(num_poliz), 0) as poliza FROM POLIZAS$a where ejercicio= $anio and periodo = $mes and tipo_poli = '$tipo'";
+        echo '<br/> Consulta de revision: '.$this->query;
         $res=$this->EjecutaQuerySimple();
         $row= ibase_fetch_object($res);
         $poliza = trim($row->POLIZA);
         $campo = 'FOLIO'.str_pad($mes, 2, '0', STR_PAD_LEFT);
         $this->query="UPDATE FOLIOS SET $campo = $poliza where ejercicio = $anio AND tipPoL = '$tipo'"; 
+        echo '<br/> Consulta de actualizacion: '.$this->query;
         $this->queryActualiza();
         return;
     }
@@ -1437,6 +1439,7 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function polizaFinal($uuid, $tipo, $idp, $infoPoliza, $impuestos2, $tipoXML, $cabecera){
+        //$this->calculaFolio($acf = $periodo, $bcf= $ejercicio, $ccf= '$tipo');
         /// Insertamos la poliza de egreso nuevo sistema.
         $usuario=$_SESSION['user']->USER_LOGIN;
         $ejercicio = $infoPoliza['ejercicio'];
@@ -1661,6 +1664,7 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function creaPolizaGasto($cabecera, $detalle, $tipo, $impuestos2, $z){
+        /// Calcula Folio /// 
         $tipo = $tipo == 'gasto'? 'Eg':'Ig';
         $usuario=$_SESSION['user']->USER_LOGIN;
         $i=0;
@@ -1678,7 +1682,8 @@ class CoiDAO extends DataBaseCOI {
             $campo = 'FOLIO'.str_pad($periodo, 2, '0', STR_PAD_LEFT);
             $ie=$tipo;  
         }
-
+        $this->calculaFolio($periodo, $ejercicio, $tipo);
+        
         foreach($detalle as $dc){
             $rfcf= '';
             $proveedorf='';
@@ -2078,6 +2083,7 @@ class CoiDAO extends DataBaseCOI {
         $campo= 'FOLIO'.str_pad($periodo, 2, '0', STR_PAD_LEFT);
         $ie=$tipo;  
         $fac=' ';
+        $this->calculaFolio($periodo, $ejercicio, $tipo);
         if(strpos($cabecera->OBS, "--")){
             $obs=explode("--",$cabecera->OBS);
             @$fac=$obs[1];
