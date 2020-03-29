@@ -75,7 +75,7 @@ else{
 		$controller->reciboNomina($_GET['uuid']);
 		break;
 	case 'detNom':
-		$controller->detNom($_GET['fi'], $_GET['ff']);
+		$controller->detNom($_GET['fi'], $_GET['ff'], $_GET['tipo']);
 		break;
 	case 'verRecibo':
 		$controller->verRecibo($_GET['uuid']);

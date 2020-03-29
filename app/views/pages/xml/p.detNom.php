@@ -41,6 +41,7 @@
                                         <?php $a=0; foreach($lineas as $key): $a++;?>
                                     	    <tr>
                                                 <td><?php echo $key->UUID_NOMINA?></td>
+                                                
                                                 <?php foreach($datos as $d):?>
                                                     <?php if($d->UUID_NOMINA == $key->UUID_NOMINA){
                                                         echo '<td>'.$d->NOMBRE.'</td>';
@@ -48,6 +49,7 @@
                                                     }
                                                 ?>
                                                 <?php endforeach;?>
+                                                
                                                 <?php foreach($datos as $d):?>
                                                     <?php if($d->UUID_NOMINA == $key->UUID_NOMINA){
                                                         echo '<td>'.$d->NUMERO.'</td>';

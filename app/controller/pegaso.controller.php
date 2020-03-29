@@ -1104,16 +1104,15 @@ class pegaso_controller{
 		$pagina=$this->load_template('Alta Unidades');				
 		$html = $this->load_page('app/views/pages/p.altaunidad_r.php');
 		ob_start(); 
-		//generamos consultas
-				$exec = $data->altaunidades1($numero, $marca, $modelo, $placas, $operador);
-				if(count($exec) > 0){
-					include 'app/views/pages/p.altaunidad_r.php';
-					$table = ob_get_clean(); 
-						$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
-							}else{
-								$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
-							}		
-							$this->view_page($pagina);	
+			$exec = $data->altaunidades1($numero, $marca, $modelo, $placas, $operador);
+			if(count($exec) > 0){
+				include 'app/views/pages/p.altaunidad_r.php';
+				$table = ob_get_clean(); 
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms' ,$table , $pagina);
+			}else{
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<div class="alert-danger"><center><h2>Hubo un error al mostrar los datos</h2><center></div>', $pagina);
+			}		
+			$this->view_page($pagina);	
 		}else{
 			$e = "Favor de Iniciar Sesión";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -1121,11 +1120,9 @@ class pegaso_controller{
 	}
 	
 	
-	function PagoW(){
-		
+	function PagoW(){	
 		if(isset($_SESSION['user'])){
-			$data = new pegaso;
-				
+		$data = new pegaso;
 		$pagina=$this->load_template('Pagos');				
 		$html = $this->load_page('app/views/pages/p.pagosw.php');
 		ob_start(); 
