@@ -1130,18 +1130,22 @@ class controller_xml{
 	}
 
 	function repNomina($fi, $ff, $columnas, $datos, $lineas){
-		$xls= new PHPExcel();
-		$ln= 10;
-		$col = 'A';
+		$data = new pegaso;
+		$dataXML = new cargaXML;
+		$xls = new PHPExcel();
+		$usuario=$_SESSION['user']->NOMBRE;
+		$ln = 10;
+		$colc = 'A';
+		$df = $data->traeDF($ide = 1);
+		$perc = 0;
 		for ($i=0; $i < count($columnas); $i++){
 			$xls->setActiveSheetIndex()
-	            ->setCellValue($col.$ln,$columnas[$i])
+	            ->setCellValue($colc.$ln,$columnas[$i])
 	        ;	
-			++$col;
+			++$colc;
 		}
 	    $ln++;
-	    
-	    
+	   
 	    foreach ($lineas as $key){
 	    	$col = 'A';
 	    	$xls->setActiveSheetIndex()
@@ -1173,6 +1177,7 @@ class controller_xml{
             for($i=3;$i<count($columnas);$i++){
                 ++$col;
                 foreach ($datos as $d){
+			        $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
                 	$h++;
                 	if($d->UUID_NOMINA == $key->UUID_NOMINA AND (
                 		($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]
@@ -1187,6 +1192,7 @@ class controller_xml{
                     		->setCellValue($col.$ln,'$ '.number_format(0,2))
                     	;
                 	}
+
                 }
             }			
 	    	$ln++;
@@ -1202,90 +1208,61 @@ class controller_xml{
 	                //->setCellValue('G'.$ln,$key->FECHA_INI_COB)
 	                //->setCellValue('H'.$ln,$key->CVE_PEDI)
 	                //->setCellValue('I'.$ln,$key->OC);
-	    /*     
-	        $xls->getActiveSheet()
-	            ->setCellValue('A1',$df->RAZON_SOCIAL);
-	        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
-	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(5);
+	         
+	    $xls->getActiveSheet()
+	        ->setCellValue('A1',$df->RAZON_SOCIAL);
+
+	    /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(40);
 	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(45);
-	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(10);
-	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(25);
-	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(17);
-	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(15);
-	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth($l_g);
-	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(15);
-	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth($l_h);
+	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(50);
+	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(20);
 	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(25);
-	        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('T')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('U')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('V')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('W')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('X')->setWidth(5);
-	        $xls->getActiveSheet()->getColumnDimension('Y')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('T')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('U')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('V')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('W')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('X')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('Y')->setWidth(20);
 	        $xls->getActiveSheet()->getColumnDimension('Z')->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension('AA')->setWidth(13);
 
-	        // Hacer las cabeceras de las lineas;
-	        //->setCellValue('9','')
+	   
+
 	        $xls->getActiveSheet()
-	            ->setCellValue('A9','Ln')
-	            ->setCellValue('B9','Sta')
-	            ->setCellValue('C9','UUID')
-	            ->setCellValue('D9','UUID RELACIONADOS')
-	            ->setCellValue('E9','ESTATUS')
-	            ->setCellValue('F9','TIPO')
-	            ->setCellValue('G9','FOLIO')
-	            ->setCellValue('H9','FECHA')
-	            ->setCellValue('I9','RFC RECEPTOR')
-	            ->setCellValue('J9','NOMBRE RECEPTOR')
-	            ->setCellValue('K9','RFC EMISOR')
-	            ->setCellValue('L9','NOMBRE EMISOR')
-	            ->setCellValue('M9','CONCEPTO')
-	            ->setCellValue('N9','FORMA DE PAGO')
-	            ->setCellValue('O9','METODO DE PAGO')	            
-	            ->setCellValue('P9','CUENTA CONTABLE')
-	            ->setCellValue('Q9','SUBTOTAL')
-	            ->setCellValue('R9','IVA')
-	            ->setCellValue('S9','RETENCION')
-	            ->setCellValue('T9','IEPS')
-	            ->setCellValue('U9','RETENCION IEPS')
-	            ->setCellValue('V9','RETENCION ISR')
-	            ->setCellValue('W9','DESCUENTO')
-	            ->setCellValue('X9','TOTAL')
-	            ->setCellValue('Y9','SALDO')
-	            ->setCellValue('Z9','MON')
-	            ->setCellValue('AA9','TC')
-	            
+	            ->setCellValue('A3','Resumen de Recibos de Nomina')
+	            ->setCellValue('A4','Fecha Inicial: '.$fi)
+	            ->setCellValue('A5','Fecha Final: '.$ff)
+	            ->setCellValue('A6','Total Percepciones: '.'percepciones')
+	            ->setCellValue('A7','Total Deducciones: '.'Deducciones')
+	            ->setCellValue('A8','Total Otras Percepciones: '.'Deduccione')
+	            ->setCellValue('A9','Valor de la Nomina: '.'Recibos')
 	            ;
 
-	        $nom_mes = $this->nombreMes($mes);
 	        $xls->getActiveSheet()
-	            ->setCellValue('A3','Resumen de Documentos XML '.$doc.' '.$ide. ' del mes de '.$nom_mes.' del '. $anio)
-	            ->setCellValue('A4','Fecha de Emision del Reporte: ')
-	            ->setCellValue('A5','Total de Documentos: ')
-	            ->setCellValue('A6','Importe Total de los Documentos: ')
-	            ->setCellValue('A7','Usuario Elabora')
-	            ->setCellValue('A8','')
-	            ;
-	        $xls->getActiveSheet()
-	            ->setCellValue('D3','')
-	            ->setCellValue('D4',$fecha)
-	            ->setCellValue('D5',count($res))
-	            ->setCellValue('D6','$ '.number_format($totalSaldo,2))
-	            ->setCellValue('D7',$usuario)
-	            ->setCellValue('D8','')
+	            ->setCellValue('C3','Fecha del Emisión: '.date("d-m-Y H:n:s"))
+	            ->setCellValue('C4','Emite: '.$usuario)
+	            ->setCellValue('C5','Pago I.S.R. : ')
+	            ->setCellValue('C6','Pago IMSS: ')
+	            ->setCellValue('C7','Infonavit: ')
+	            ->setCellValue('C8','Otros: ')
 	            ;
 	        /// Unir celdas
-	        $xls->getActiveSheet()->mergeCells('A1:O1');
+	        $xls->getActiveSheet()->mergeCells('A1:'.$colc.'1');
 	        // Alineando
 	        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
 	        /// Estilando
@@ -1295,6 +1272,7 @@ class controller_xml{
 	                )
 	            )
 	        );
+	    /*
 	        $xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
 	        $xls->getActiveSheet()->mergeCells('A3:F3');
 	        $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
@@ -1322,7 +1300,7 @@ class controller_xml{
 	        /// Crear una nueva hoja llamada Mis Datos
 	        /// Descargar
 	            $ruta='C:\\xampp\\htdocs\\EdoCtaXLS\\';
-	            $nom='Documentos.xlsx';
+	            $nom='Reporte de Nomina '.$df->RAZON_SOCIAL.' '.$fi.'.xlsx';
 	            //header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 	            //header("Content-Disposition: attachment;filename=01simple.xlsx");
 	            //header('Cache-Control: max-age=0');

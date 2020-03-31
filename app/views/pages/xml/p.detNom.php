@@ -5,7 +5,7 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                         Detalle de la nomina del <?php echo $fi?> al <?php echo $ff?>
-                        <br/><br/> <input type="button" class="btn-sm btn-info repNom" value="Reporte de Nomina"> <br/><br/>
+                        <br/><br/> <input type="button" class="btn-sm btn-success repNom" value="Exportar a Excel"> <br/><br/>
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">

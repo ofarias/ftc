@@ -5,7 +5,7 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                         Recibos de la nomina del <?php echo $fi?> al <?php echo $ff?>
-                        <br/><br/> <input type="button" class="btn-sm btn-info detNom" value="Reporte de Nomina" tipo="xls"> &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" class="btn-sm btn-success detNom" value="Detalle de la Nomina" tipo= 'pant'>
+                        <br/><br/> <input type="button" class="btn-sm btn-success detNom" value="Exportar a Excel" tipo="xls"> &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" class="btn-sm btn-info detNom" value="Detalle de la Nomina" tipo= 'pant'>
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
