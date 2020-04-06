@@ -66,7 +66,7 @@ else{
 		$controller->cs();
 		break;
 	case 'nomXML':
-		$controller->nomXML();
+		$controller->nomXML($_GET['anio'],$_GET['mes']);
 		break;
 	case 'detalleNomina':
 		$controller->detalleNomina($_GET['fi'], $_GET['ff']);

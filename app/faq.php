@@ -769,3 +769,10 @@ vertical a horizontal
 
 ver p.detNom.php
 
+/// organizar DataTables // 
+
+$(document).ready(function() {
+    $('#example').DataTable( {
+        "order": [[ 3, "desc" ]]
+    } );
+} );

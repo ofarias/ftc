@@ -583,6 +583,7 @@ class pegaso_controller{
 	function xmlMenu(){
 		if(isset($_SESSION['user']) && ($_SESSION['user']->USER_ROL == 'xml' || $_SESSION['user']->USER_ROL == 'ContaXML'|| $_SESSION['user']->USER_ROL == 'administracion')){
 			$data = new pegaso;
+			$meses = $data->traeMeses();
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/modules/m.mxml.php');
 			$usuario = $_SESSION['user']->NOMBRE;

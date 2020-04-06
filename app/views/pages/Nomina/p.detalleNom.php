@@ -46,7 +46,9 @@
                                                 <td align="right"><?php echo '$ '.number_format($data->SALARIOBASECOTAPOR,2)?><br/><font color="brown"><?php echo '$ '.number_format($data->SALARIODIARIOINTEGRADO,2)?></font></td>
                                                 <td align="center"><?php echo $data->CLAVEENTFED?><br/><font color="brown"></font></td>
                                                 <td><?php echo $data->BANCO?><br/><font color="brown"><?php echo $data->CUENTA_BANCARIA?></font></td>
-                                                <td><b><?php echo $data->UUID_NOMINA?></b><br/><a href="index.xml.php?action=verRecibo&uuid=<?php echo $data->UUID_NOMINA ?>" target="popup"  onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;" >Detalle</a></td>
+                                                <td>
+                                                    <a href="\\" download><b><?php echo $data->UUID_NOMINA?></b></a><br/>
+                                                    <a href="index.xml.php?action=verRecibo&uuid=<?php echo $data->UUID_NOMINA ?>" target="popup"  onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;" >Detalle</a></td>
                                             </tr>
                                         <?php endforeach; ?>
                                  </tbody>

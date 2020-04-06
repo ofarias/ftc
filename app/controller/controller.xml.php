@@ -1031,22 +1031,51 @@ class controller_xml{
 	function cargaEFOS(){
 		if($_SESSION['user']){
 			$data = new cargaXML;
-			$carga = $data->cargaEFOS();
+			//$carga = $data->cargaEFOS();
+			$path = 'C:\\xampp\\htdocs\\biotecsa\\';
+			//$this->showFiles($path);
+			//$cf = $data->cf();
+			$archivo = $data->creaPaquetes();
+			die;
 			return $carga;
 		}
 	}
 
-	function nomXML(){
+	function showFiles($path){
+    	$dir = opendir($path);
+    	$files = array();
+    	$data = new cargaXML();
+    	while ($current = readdir($dir)){
+    	    if( $current != "." && $current != "..") {
+    	        if(is_dir($path.$current)) {
+    	            $this->showFiles($path.$current.'/');
+    	        }
+    	        else {
+    	            $files[] = $current;
+    	        }
+    	    }
+    	}
+    	echo '<h2>'.$path.'</h2>';
+    	echo '<ul>';
+    	for($i=0; $i<count( $files ); $i++){
+    	    echo '<li>'.$files[$i]."</li>";
+    	    $data->insertaFile($files[$i], $path);
+    	    
+    	}
+    	echo '</ul>';
+	}
+
+	function nomXML($a, $m){
 		if($_SESSION['user']){
 			$data=new cargaXML;
-			$info= $data->nomXML();
+			$info= $data->nomXML($a, $m);
 			$per = $data->nomP($info);
 			$ded = $data->nomD($info);
 			$emp = $data->nomE($info);
 			$pagina=$this->load_template();
-			$html=$this->load_page('app/views/pages/xml/m.nominasXML.php');
+			$html=$this->load_page('app/views/pages/Nomina/m.nominasXML.php');
    			ob_start();
-   			include 'app/views/pages/xml/m.nominasXML.php';
+   			include 'app/views/pages/Nomina/m.nominasXML.php';
    			$table = ob_get_clean();
    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
    			$this->view_page($pagina);	
@@ -1061,9 +1090,9 @@ class controller_xml{
 			$data=new cargaXML;
 			$rec = $data->detalleNomina($fi, $ff);
 			$pagina=$this->load_template();
-			$html=$this->load_page('app/views/pages/xml/p.detalleNom.php');
+			$html=$this->load_page('app/views/pages/Nomina/p.detalleNom.php');
    			ob_start();
-   			include 'app/views/pages/xml/p.detalleNom.php';   			
+   			include 'app/views/pages/Nomina/p.detalleNom.php';   			
    			$table = ob_get_clean();
    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
    			$this->view_page($pagina);	
@@ -1100,9 +1129,9 @@ class controller_xml{
 				$this->repNomina($fi, $ff, $columnas, $datos, $lineas);
 			}
 			$pagina=$this->load_template();
-			$html=$this->load_page('app/views/pages/xml/p.detNom.php');
+			$html=$this->load_page('app/views/pages/Nomina/p.detNom.php');
    			ob_start();
-   			include 'app/views/pages/xml/p.detNom.php';   			
+   			include 'app/views/pages/Nomina/p.detNom.php';   			
    			$table = ob_get_clean();
    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
    			$this->view_page($pagina);	
@@ -1115,11 +1144,12 @@ class controller_xml{
 	function verRecibo($uuid){
 		if($_SESSION['user']){
 			$data=new cargaXML;
+			$rfcempresa = $_SESSION['rfc'];
 			$info=$data->verRecibo($uuid);
 			$pagina=$this->load_template();
-			$html=$this->load_page('app/views/pages/xml/p.verRecibo.php');
+			$html=$this->load_page('app/views/pages/Nomina/p.verRecibo.php');
    			ob_start();
-   			include 'app/views/pages/xml/p.verRecibo.php';   			
+   			include 'app/views/pages/Nomina/p.verRecibo.php';   			
    			$table = ob_get_clean();
    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
    			$this->view_page($pagina);	

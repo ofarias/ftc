@@ -40,7 +40,7 @@
                             
                     </div>
                     <div class="form-group">
-                        <label for="requerido" class="col-lg-8 "><a href="" type='button' class="btn btn-success">Descarga de XML</a></label>
+                        <label for="requerido" class="col-lg-8 "> <a href="/uploads/xml/<?php echo $rfcempresa?>/Nomina/<?php echo $uuid.'.xml'?>" download type='button' class="btn btn-success">Descarga de XML</a></label>
                             
                     </div>
                 <!--  Botones  checar si se ocupan luego para la impresion del Recibo o para algun calculo anual, etc.... igual para el calculo del finiquito a la fecha actual.??? Tambien podemos poner los calagos del SAT, informacion fiscal....

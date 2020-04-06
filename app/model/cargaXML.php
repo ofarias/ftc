@@ -5,6 +5,7 @@ require_once 'app/model/verificaID.php';
 require_once 'app/model/pegaso.model.reparto.php';
 require_once('app/views/unit/commonts/numbertoletter.php');
 
+
 class cargaXML extends database {
 
 	function cargaCEP($cep){
@@ -556,9 +557,13 @@ class cargaXML extends database {
 		return array("status"=>'ok', "mensaje"=>'Se ha cargado correctamente el archivo');
     }
 
-    function nomXML(){
+    function nomXML($a, $m){
     	$data= array();
-    	$this->query="SELECT COUNT(*) AS RECIBOS,fecha_inicial, fecha_final, extract(month from fecha_final) FROM XML_NOMINA_TRABAJADOR GROUP BY fecha_inicial, fecha_final ORDER BY FECHA_INICIAL";
+    	$mes = '';
+    	if($m > 0 ){
+    		$mes = ' and extract(month from fecha_inicial) = '.$m.' '; 
+    	}
+    	$this->query="SELECT COUNT(*) AS RECIBOS,fecha_inicial, fecha_final, extract(month from fecha_final) FROM XML_NOMINA_TRABAJADOR where extract(year from fecha_inicial) = $a $mes GROUP BY fecha_inicial, fecha_final ORDER BY FECHA_INICIAL";
     	$rs=$this->EjecutaQuerySimple();
     	while ($tsArray=ibase_fetch_object($rs)) {
     		$data[]=$tsArray;
@@ -736,5 +741,93 @@ class cargaXML extends database {
    		$res=$this->EjecutaQuerySimple();
    		$row3 = ibase_fetch_object($res);
    		return array("datos"=>$datos, "emp"=>$row2, "nom_emp"=>$row,"nom"=>$row3);
+   	}
+
+   	function insertaFile($file, $path){
+   		$this->query="INSERT INTO BIO_FILES (ID, ARCHIVO, RUTA, STATUS, NUEVA_RUTA, PEDIMENTO) values (NULL, '$file', '$path', 'nuevo', '', '')";
+    	    $this->grabaBD();
+    	return;
+   	}
+
+   	function cf(){
+   		$data = array();
+   		$this->query ="SELECT * FROM BIO_PEDIMENTOS WHERE STATUS = 'N'";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)){
+   			$data[]=$tsArray;
+   		}
+   		if(count($data)>0){
+   			foreach ($data as $p) {
+   				$data2 = array();
+   				$trim_pedimento = $p->TRIM_PEDIMENTO;
+   				$pedimento = substr($trim_pedimento , 8);
+   				$this->query="SELECT * FROM BIO_FILES bf where replace(bf.archivo, ' ','') containing('$pedimento') or replace (bf.ruta, ' ','') containing('$pedimento')";
+   				$res=$this->EjecutaQuerySimple();
+   				while ($tsArray=ibase_fetch_object($res)){
+   					$data2[]=$tsArray;
+   				}
+   				if(count($data2)>0){
+	   				foreach ($data2 as $pf) {
+	   					$id = $pf->ID; 
+	   					$this->query="UPDATE BIO_FILES SET PEDIMENTO = iif(PEDIMENTO = '', '$pedimento', PEDIMENTO||','||'$pedimento') where id = $id";
+	   					$this->queryActualiza();
+	   				}
+   				}
+   				echo 'Procesando pedimento: '.$pedimento.' Se encontraron '.count($data2).' archvivos<br/>';
+   				unset($data2);
+   			$this->query = "UPDATE BIO_PEDIMENTOS SET STATUS = 'P' WHERE trim_pedimento ='$trim_pedimento'";
+   			$this->queryActualiza();
+   			}
+   		}
+   	}
+
+   	function creaPaquetes(){
+   		$data = array();
+   		$zip = new ZipArchive();
+   		$rutaFinal = "C:\\xampp\\htdocs\\biotecsa\\zip\\";//ruta donde guardar los archivos zip, la creamos sino existe
+		if(!file_exists($rutaFinal)){
+		  mkdir($rutaFinal);
+		}
+   		$this->query="SELECT * FROM BIO_PEDIMENTOS WHERE STATUS = 'P' and files > 0";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)){
+   			$data[]=$tsArray;
+   		}
+   		if(count($data) >0 ){
+   			foreach ($data as $p) {
+   				$data2=array();
+		   		$trim_pedimento = $p->TRIM_PEDIMENTO;
+		   		$pedimento = substr($trim_pedimento , 8);
+		   		$this->query="SELECT * FROM BIO_FILES WHERE PEDIMENTO = '$pedimento' and status = 'nuevo'";
+		   		$res=$this->EjecutaQuerySimple();
+		   		while ($tsArray=ibase_fetch_object($res)){
+		   			$data2[]=$tsArray;
+		   		}
+		   		if(count($data2)>0){			   		
+					//Asignamos el nombre del archivo zip
+					$archivoZip = $pedimento.'.zip'; 
+					//Creamos y abrimos el archivo zip
+					if ($zip->open($archivoZip, ZIPARCHIVE::CREATE) === true) {
+						  //Agregamos los archivos uno a uno
+						foreach ($data2 as $d){
+							$ruta=str_replace("/", "\\", $d->RUTA);
+							$archivo = $ruta.$d->ARCHIVO;
+						  	$zip->addFile($archivo, $d->ARCHIVO);  
+						}	
+						//Cerramos el archivo zip	 
+						$zip->close();
+						//Muevo el archivo a una ruta
+						//donde no se mezcle los zip con los demas archivos
+						rename($archivoZip, "$rutaFinal/$archivoZip");
+					  //imrimimos un enlace para descargar el archivo zip
+					  echo "Descargar: <a href='$rutaFinal/$archivoZip'>$archivoZip</a>";
+					  //die;
+					} else {
+					  echo 'Error creando ' . $archivoZip;
+					}   			
+		   		}
+   			}
+   		}
+
    	}
 }
