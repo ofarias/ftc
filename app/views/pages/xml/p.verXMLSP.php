@@ -400,8 +400,9 @@
                 }).done(function (response) {
                     self.setContent('Description: ' + response.mensaje);
                     self.setContentAppend('<br>Status: ' + response.status);
-                    self.setTitle(response.title);
+                    self.setTitle('Hola');
                 }).fail(function(){
+                    self.setTitle('Procesamiento de polizas Automaticas');
                     self.setContent('Se ha procesado la informacion y se envio un correo con el resultado.');
                 });
             }

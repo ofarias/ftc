@@ -1069,6 +1069,12 @@ class controller_xml{
 		if($_SESSION['user']){
 			$data=new cargaXML;
 			$info= $data->nomXML($a, $m);
+			$c = new pegaso_controller;
+			if(count($info) == 0){
+				echo '<script> alert("No se encontro informacion para el mes y el año") </script>';
+				$c->xmlMenu();
+				exit();
+			}
 			$per = $data->nomP($info);
 			$ded = $data->nomD($info);
 			$emp = $data->nomE($info);
@@ -1126,7 +1132,9 @@ class controller_xml{
 			$datos = $info['datos'];
 			$lineas = $info['lineas'];
 			if($tipo=='xls'){
-				$this->repNomina($fi, $ff, $columnas, $datos, $lineas);
+				$res=$this->repNomina($fi, $ff, $columnas, $datos, $lineas);
+				return $res;
+				exit();
 			}
 			$pagina=$this->load_template();
 			$html=$this->load_page('app/views/pages/Nomina/p.detNom.php');
@@ -1339,7 +1347,9 @@ class controller_xml{
 	        /// salida a descargar
 	            $x->save($ruta.$nom);
 	            ob_end_clean();
-	           // $x->save('php://output');
+	            //echo 'Se crea el archivo: '.$ruta.$nom;
+	        return array("status"=>'ok', "archivo"=>$nom, "ruta"=>"../EdoCtaXLS/".$nom);
+	        //$x->save('php://output');
 	        /// salida a ruta :
 	}
 

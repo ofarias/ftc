@@ -35,24 +35,25 @@
                                             ?>
                                             <tr>
                                                 <td><?php echo $data->NUMEMPLEADO?></td>
-                                                <td><?php echo $data->EMPLEADO.'<br/>'.$data->CURP.'<br/>'.$data->NUMSEGURIDADSOCIAL?></td>
-                                                <td align="right" title="" class="infoPer" l="<?php echo $data->UUID_NOMINA?>"><?php echo '$ '.number_format($data->TOTAL_SUELDOS,2)?></td>
-                                                <td align="right"><?php echo '$ '.number_format($data->TOTAL_IMP_RET + $data->TOTAL_OTRAS_DED,2)?></td>
+                                                <td><?php echo $data->EMPLEADO.'<br/><font color="brown">'.$data->CURP.'</font><br/><font color="green">'.$data->NUMSEGURIDADSOCIAL.'</font>'?></td>
+                                                <td align="right" title="" class="infoPer" l="<?php echo $data->UUID_NOMINA?>">
+                                                    <font color="blue"><?php echo '$ '.number_format($data->TOTAL_SUELDOS,2)?></font></td>
+                                                <td align="right">
+                                                    <font color="#D94D4D"><?php echo '$ '.number_format($data->TOTAL_IMP_RET + $data->TOTAL_OTRAS_DED,2)?></font></td>
                                                 <td><?php echo $data->FECHAINICIORELLABORAL?><br/><font color="brown"><?php echo $data->ANTIGUEDAD?></font></td>
-                                                <td><?php echo $data->TIPOCONTRATO.'<br/><font color="brown">'.$data->SINDICALIZADO.'</font>'?></td>
-                                                <td><?php echo $data->TIPOJORNADA?><br/><font color="brown"><?php echo $data->TIPOREGIMEN?></font></td>
+                                                <td><?php echo $data->TIPOCONTRATO.' <b>'.$data->CONTRATO.'</b><br/><font color="brown">'.$data->SINDICALIZADO.'</font>'?></td>
+                                                <td><?php echo $data->TIPOJORNADA.' <b>'.$data->JORNADA.'</b>'?><br/><font color="brown"><?php echo $data->TIPOREGIMEN.' <b>'.$data->REGIMEN.'</b>'?></font></td>
                                                 <td><?php echo $data->DEPARTAMENTO?><br/><font color ="brown"><?php echo $data->PUESTO?></font></td>
-                                                <td><?php echo $data->RIESGOPUESTO?><br/><font color="brown"><?php echo $data->PERIODICIDADPAGO?></font></td>
+                                                <td><?php echo $data->RIESGOPUESTO.' <b>'.$data->RIESGO.'</b>'?><br/><font color="brown"><?php echo $data->PERIODICIDADPAGO.' <b>'.$data->PERIODO.'</b>'?></font></td>
                                                 <td align="right"><?php echo '$ '.number_format($data->SALARIOBASECOTAPOR,2)?><br/><font color="brown"><?php echo '$ '.number_format($data->SALARIODIARIOINTEGRADO,2)?></font></td>
-                                                <td align="center"><?php echo $data->CLAVEENTFED?><br/><font color="brown"></font></td>
-                                                <td><?php echo $data->BANCO?><br/><font color="brown"><?php echo $data->CUENTA_BANCARIA?></font></td>
+                                                <td align="center"><?php echo $data->CLAVEENTFED?><br/><font color="brown"><?php eCho $data->ESTADO?></font></td>
+                                                <td><?php echo $data->BANCO.' <b>'.$data->BANCO_SAT.'</b>'?><br/><font color="brown"><?php echo $data->CUENTA_BANCARIA?></font></td>
                                                 <td>
                                                     <a href="\\" download><b><?php echo $data->UUID_NOMINA?></b></a><br/>
                                                     <a href="index.xml.php?action=verRecibo&uuid=<?php echo $data->UUID_NOMINA ?>" target="popup"  onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;" >Detalle</a></td>
                                             </tr>
                                         <?php endforeach; ?>
                                  </tbody>
-                                            
                                 </table>
                             </div>
 			          </div>
@@ -73,14 +74,29 @@
     var fi = <?php echo "'".$fi."'"?>;
     var ff = <?php echo "'".$ff."'"?>;
 
-$(".repNom").click(function(){
-    alert('Reporte de la nomina' + fi)
-})
-
-
 $(".detNom").click(function (){
     var tipo = $(this).attr('tipo')
-    window.open('index.xml.php?action=detNom&fi='+fi+'&ff='+ff+'&tipo='+tipo, 'popup', 'width=1600,height=800')
+    if(tipo == 'xls'){
+        alert('Se genera el reporte en excel, por favor revise que su explorador admite descargas desde el sitio, sat2app.dyndns.org')
+        $.ajax({
+            url:'index.xml.php',
+            type:'post',
+            dataType:'json',
+            data:{detNom:1, fi, ff, tipo},
+            success:function(data){
+                if(data.status == 'ok'){
+                    window.open("/edoCtaXLS/"+data.archivo, 'download' );
+                    alert('Revise en su carpeta de descargas el archivo "' + data.archivo +'" ')
+                }
+            },
+            error:function(){
+                alert('Ocurrio un error')
+            }
+        })
+        return false;
+    }else if(tipo == 'pant'){
+        window.open('index.xml.php?action=detNom&fi='+fi+'&ff='+ff+'&tipo='+tipo, 'popup', 'width=1600,height=800')
+    }
 })
 /*
     $(".infoPer").mouseover(function(){

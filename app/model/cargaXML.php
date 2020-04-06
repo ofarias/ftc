@@ -577,8 +577,7 @@ class cargaXML extends database {
     	foreach ($nomina as $nom){
     		$ln++;
 	    	$this->query="SELECT '$nom->FECHA_INICIAL' as fi, '$nom->FECHA_FINAL' as ff, SUM(TOTAL_SUELDOS) AS SUELDOS, SUM(TOTAL_SEPARACION_INDEM) AS SEPARACIONES, SUM(TOTAL_JUBILACION_PENRET) AS JUBILACION, SUM(TOTAL_GRAVADO) AS GRAVADO, SUM(TOTAL_EXECTO) AS EXECTO FROM XML_NOMINA_PERCEPCIONES WHERE UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT WHERE XNT.FECHA_INICIAL = '$nom->FECHA_INICIAL' AND XNT.FECHA_FINAL = '$nom->FECHA_FINAL')";
-	    	//echo '<br/> Periodo '.$ln.' del '.$nom->FECHA_INICIAL.' al '.$nom->FECHA_FINAL.' Consulta: '.$this->query;
-    		$res=$this->EjecutaQuerySimple();
+	    	$res=$this->EjecutaQuerySimple();
     		while ($tsArray=ibase_fetch_object($res)) {
     			$data[]=$tsArray;
     		}
@@ -592,8 +591,7 @@ class cargaXML extends database {
     	foreach ($nomina as $nom){
     		$ln++;
 	    	$this->query="SELECT '$nom->FECHA_INICIAL' as fi, '$nom->FECHA_FINAL' as ff, SUM(TOTAL_IMP_RET) AS RETENCIONES, SUM(TOTAL_OTRAS_DED) AS OTRAS_DEDUCCIONES FROM XML_NOMINA_DEDUCCIONES WHERE UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT WHERE XNT.FECHA_INICIAL = '$nom->FECHA_INICIAL' AND XNT.FECHA_FINAL = '$nom->FECHA_FINAL')";
-	    	//echo '<br/> Periodo '.$ln.' del '.$nom->FECHA_INICIAL.' al '.$nom->FECHA_FINAL.' Consulta: '.$this->query;
-		$res=$this->EjecutaQuerySimple();
+	    $res=$this->EjecutaQuerySimple();
     		while ($tsArray=ibase_fetch_object($res)) {
     			$data[]=$tsArray;
     		}
@@ -620,12 +618,12 @@ class cargaXML extends database {
     	$data = array();
     	$fi = date("d.m.Y", strtotime($fi));
     	$ff = date("d.m.Y", strtotime($ff));
-    	$this->query="SELECT (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS XNE WHERE XNE.CURP = XNR.CURP AND XNE.NSS = XNR.NUMSEGURIDADSOCIAL) AS EMPLEADO, XNR.* , XNP.*, XND.*
+    	$this->query="SELECT (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS XNE WHERE XNE.CURP = XNR.CURP AND XNE.NSS = XNR.NUMSEGURIDADSOCIAL) AS EMPLEADO, XNR.* , XNP.*, XND.*, (SELECT DESCRIPCION FROM C_TIPOCONTRATO CTC WHERE CTC.C_TIPOCONTRATO = XNR.TIPOCONTRATO AND STATUS = 'A') AS CONTRATO, (SELECT DESCRIPCION FROM C_TIPOJORNADA CTJ WHERE CTJ.CT_TIPOJORNANDA =  TIPOJORNADA) AS JORNADA, (SELECT DESCRIPCION FROM C_TIPOREGIMEN CTR WHERE CTR.C_TIPOREGIMEN = TIPOREGIMEN) AS REGIMEN, (SELECT DESCRIPCION FROM C_RIESGOPUESTO CRP WHERE CRP.C_RIESGOPUESTO = RIESGOPUESTO ) AS RIESGO, (SELECT DESCRIPCION FROM C_PERIODICIDADPAGO CPP WHERE CPP.C_PERIODICIDAD_PAGO = PERIODICIDADPAGO) AS PERIODO, 
+    	(SELECT NOMBRE_ESTADO FROM C_ESTADO CE WHERE CE.C_ESTADO = CLAVEENTFED) AS ESTADO, (SELECT NOMBRE FROM BANCOS_SAT BS WHERE BS.CLAVE = XNR.BANCO ) AS BANCO_SAT
     			FROM XML_NOMINA_RECEPTOR XNR 
     			LEFT JOIN XML_NOMINA_PERCEPCIONES XNP ON XNP.UUID_NOMINA = XNR.UUID_NOMINA 
     			LEFT JOIN XML_NOMINA_DEDUCCIONES XND ON XND.UUID_NOMINA = XNR.UUID_NOMINA
     			WHERE XNR.UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff')";
-    	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while ($tsArray= ibase_fetch_object($res)){
     		$data[]=$tsArray;
@@ -705,6 +703,8 @@ class cargaXML extends database {
    				FROM XML_NOMINA_DETALLE ND
    				LEFT JOIN XML_NOMINA_RECEPTOR NR ON NR.UUID_NOMINA = ND.UUID_NOMINA
    				WHERE ND.UUID_NOMINA = '$uuid' order by  ded_per desc";
+   				//echo $this->query;
+   				//die;
    			$res=$this->EjecutaQuerySimple();
    			while ($tsArray=ibase_fetch_object($res)) {
    				$dataDet[]=$tsArray;

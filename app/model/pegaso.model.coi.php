@@ -1202,13 +1202,13 @@ class CoiDAO extends DataBaseCOI {
     function calculaFolio($mes, $anio, $tipo){
         $a = substr($anio, 2,2);
         $this->query="SELECT coalesce(max(num_poliz), 0) as poliza FROM POLIZAS$a where ejercicio= $anio and periodo = $mes and tipo_poli = '$tipo'";
-        echo '<br/> Consulta de revision: '.$this->query;
+        //echo '<br/> Consulta de revision: '.$this->query;
         $res=$this->EjecutaQuerySimple();
         $row= ibase_fetch_object($res);
         $poliza = trim($row->POLIZA);
         $campo = 'FOLIO'.str_pad($mes, 2, '0', STR_PAD_LEFT);
         $this->query="UPDATE FOLIOS SET $campo = $poliza where ejercicio = $anio AND tipPoL = '$tipo'"; 
-        echo '<br/> Consulta de actualizacion: '.$this->query;
+        //echo '<br/> Consulta de actualizacion: '.$this->query;
         $this->queryActualiza();
         return;
     }
@@ -1250,7 +1250,8 @@ class CoiDAO extends DataBaseCOI {
             $con = 'Venta ';
             $tipoXML='Emitido';
         }
-        if($rfc=='XAXX010101000'){
+        /*
+        if($rfc=='XAXX010101000'){ /// Quitamos el codigo que consulta el XML, y colocamos el codigo que extrae el nombre desde la tabla XML_UUID_GENERICO.
             $z=$_SESSION['rfc'];
             $file="C:\\xampp\\htdocs\\uploads\\xml\\".$z."\\Emitidos\\XAXX010101000\\".$_SESSION['rfc'].'-'.$doc.'-'.$uuid.'.xml';
             //echo 'El rfc es generico debemos de obtener el nombre desde el xml: '.$uuid;
@@ -1296,7 +1297,12 @@ class CoiDAO extends DataBaseCOI {
                 $nombre = $nombreE;
             }
         }
-        
+        */
+        if($rfc=='XAXX010101000'){
+            $csd = new pegaso;
+            $nombre = $csd->traeRS($uuid);
+        }
+
         foreach($cabecera as $pol){
             $TC =$pol->TIPOCAMBIO;
             $concepto = substr($con.', '.$pol->DOCUMENTO.', '.$nombre, 0, 110);

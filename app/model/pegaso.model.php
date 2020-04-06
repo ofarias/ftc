@@ -24875,9 +24875,15 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		@$this->grabaBD();
     	}
     }
-
 	*/
-
+	
+    function traeRS($uuid){
+    	$this->query = "SELECT * FROM XML_UUID_GENERICO WHERE ID_UUID_GEN = '$uuid'";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($res);
+        $nombre = !empty($row->NOMBRE)? $row->NOMBRE:'';
+        return $nombre;
+    }
 
     function verXMLSP_xls($mes, $anio, $ide, $uuid, $doc){
     	$data=array();

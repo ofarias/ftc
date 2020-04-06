@@ -9,25 +9,25 @@
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered table-hover" id="dataTables-recibos-nom">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-det-nom">
                                     <thead>
                                         <tr role="row">
                                             <!--<th class="details-control sorting_disabled" ></th>-->
                                             <th>UUID</th>
-                                            <th>Numero <br/>Empleado</th>
                                             <th>Nombre <br/>Empleado</th>
+                                            <th>Numero <br/>Empleado</th>
                                             <?php for ($i=3; $i < count($columnas); $i++){ ?>
                                                 <th>
                                                     <?php $column=explode(":", $columnas[$i]);
                                                         for ($b=0; $b < count($column) ; $b++) { 
-                                                                if($b == 0){
-                                                                    //echo 'Entro al if y valor de b = '.$b;
+                                                                if($b==0){
+                                                                    echo 'Entro al if y valor de b = '.$b;
                                                                     echo $column[$b]=='P'? 'Percepción<br/>':'Deducción<br/>';
-                                                                }elseif($b == 1){
+                                                                }elseif($b==1){
                                                                     echo 'Tipo SAT : '.$column[$b].'<br/>';
-                                                                }elseif ($b == 2){
+                                                                }elseif ($b==2){
                                                                     echo 'Clave : '.$column[$b].'<br/>';
-                                                                }elseif ($b ==3){
+                                                                }elseif ($b==3){
                                                                     echo '<b>'.$column[$b].'</b>';
                                                                 }
                                                         }
@@ -63,7 +63,7 @@
                                                     echo '<td align="right">';///Creamos una columna por cada linea.
                                                         foreach($datos as $d){ /// Asignamos el valor si existe.
                                                             $h++;
-                                                            if($d->UUID_NOMINA == $key->UUID_NOMINA AND ( ($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]) ){
+                                                            if($d->UUID_NOMINA == $key->UUID_NOMINA AND (($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]) ){
                                                                 //echo '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2);
                                                                 if($d->DED_PER == 'P'){
                                                                     $color = 'green';
@@ -102,7 +102,25 @@ var fi = <?php echo "'".$fi."'"?>;
 var ff = <?php echo "'".$ff."'"?>;
 
 $(".repNom").click(function(){
-    alert('Reporte de la nomina' + fi)
+        if(confirm('Se genera el reporte en excel, por favor revise que su explorador admite descargas desde el sitio, sat2app.dyndns.org')){
+            var tipo = 'xls'
+            $.ajax({
+                url:'index.xml.php',
+                type:'post',
+                dataType:'json',
+                data:{detNom:1, fi, ff, tipo},
+                success:function(data){
+                    if(data.status == 'ok'){
+                        window.open("/edoCtaXLS/"+data.archivo, 'download' );
+                        alert('Revise en su carpeta de descargas el archivo "' + data.archivo +'" ')
+                    }
+                },
+                error:function(){
+                    alert('Ocurrio un error')
+                }
+            })
+            return false;    
+        }
 })
 
 /*

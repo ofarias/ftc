@@ -29,6 +29,10 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res = $controller->infoPer($_POST['uuid']);
 	echo json_encode($res);
 	exit();
+}elseif(isset($_POST['detNom'])){
+	$res = $controller->detNom($_POST['fi'], $_POST['ff'],$_POST['tipo']);
+	echo json_encode($res);
+	return $res;
 }
 else{
 	switch ($_GET['action']){

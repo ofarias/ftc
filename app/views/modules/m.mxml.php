@@ -140,9 +140,8 @@
                                 <option value="<?php echo $m->NUMERO?>"><?php echo $m->NOMBRE?></option>
                             <?php endforeach ?>
                         </select></p>
-                    <p>Ver Recibos de Nominas</p>
                     <center>
-                        <a class="btn btn-default" id="verNomina"> Ver Nominas</a></center>
+                        <a class="btn btn-primary" id="verNomina"> Ver Nominas</a></center>
                 </div>
             </div>
         </div>
