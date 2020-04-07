@@ -9,19 +9,19 @@
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered table-hover" id="dataTables-det-nom">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-detnom">
                                     <thead>
                                         <tr role="row">
                                             <!--<th class="details-control sorting_disabled" ></th>-->
                                             <th>UUID</th>
                                             <th>Nombre <br/>Empleado</th>
                                             <th>Numero <br/>Empleado</th>
-                                            <?php for ($i=3; $i < count($columnas); $i++){ ?>
+
+                                            <?php for ($i=3; $i < count($columnas); $i++){ $column=explode(":", $columnas[$i]);?>
+                                                <?php if($column[0] == 'P'){?>
                                                 <th>
-                                                    <?php $column=explode(":", $columnas[$i]);
-                                                        for ($b=0; $b < count($column) ; $b++) { 
+                                                    <?php   for ($b=0; $b < count($column) ; $b++) { 
                                                                 if($b==0){
-                                                                    echo 'Entro al if y valor de b = '.$b;
                                                                     echo $column[$b]=='P'? 'Percepción<br/>':'Deducción<br/>';
                                                                 }elseif($b==1){
                                                                     echo 'Tipo SAT : '.$column[$b].'<br/>';
@@ -33,12 +33,53 @@
                                                         }
                                                     ?>
                                                 </th>
+                                                <?php }?>
                                             <?php } ?>
+                                            <th>Total Percepciones</th>
+                                            <?php for ($i=3; $i < count($columnas); $i++){ $column=explode(":", $columnas[$i]);?>
+                                                <?php if($column[0] == 'D'){?>
+                                                <th>
+                                                    <?php   for ($b=0; $b < count($column) ; $b++) { 
+                                                                if($b==0){
+                                                                    echo $column[$b]=='P'? 'Percepción<br/>':'Deducción<br/>';
+                                                                }elseif($b==1){
+                                                                    echo 'Tipo SAT : '.$column[$b].'<br/>';
+                                                                }elseif ($b==2){
+                                                                    echo 'Clave : '.$column[$b].'<br/>';
+                                                                }elseif ($b==3){
+                                                                    echo '<b>'.$column[$b].'</b>';
+                                                                }
+                                                        }
+                                                    ?>
+                                                </th>
+                                                <?php }?>
+                                            <?php } ?>
+                                            <th>Total Deducciones</th>
+                                            <?php for ($i=3; $i < count($columnas); $i++){ $column=explode(":", $columnas[$i]);?>
+                                                <?php if($column[0] == 'O'){?>
+                                                <th>
+                                                    <?php   for ($b=0; $b < count($column) ; $b++) { 
+                                                                if($b==0){
+                                                                    echo $column[$b]=='O'? 'Otras Percepciones<br/>':'Deducción<br/>';
+                                                                }elseif($b==1){
+                                                                    echo 'Tipo SAT : '.$column[$b].'<br/>';
+                                                                }elseif ($b==2){
+                                                                    echo 'Clave : '.$column[$b].'<br/>';
+                                                                }elseif ($b==3){
+                                                                    echo '<b>'.$column[$b].'</b>';
+                                                                }
+                                                        }
+                                                    ?>
+                                                </th>
+                                                <?php }?>
+                                            <?php } ?>
+                                            
+                                            <th>Total a Pagar</th>
                                         </tr>
                                     </thead>                                   
                                             
                                   <tbody>
-                                        <?php $a=0; foreach($lineas as $key): $a++;?>
+                                        <?php $a=0;  foreach($lineas as $key): $a++; $tp= 0; $td=0; $to=0;?>
                                     	    <tr>
                                                 <td><?php echo $key->UUID_NOMINA?></td>
                                                 
@@ -58,28 +99,90 @@
                                                 ?>
                                                 <?php endforeach;?>
 
+
                                             <?php $c=3; $h=3;
-                                                for($i=3; $i < count($columnas); $i++){ 
-                                                    echo '<td align="right">';///Creamos una columna por cada linea.
-                                                        foreach($datos as $d){ /// Asignamos el valor si existe.
-                                                            $h++;
-                                                            if($d->UUID_NOMINA == $key->UUID_NOMINA AND (($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]) ){
-                                                                //echo '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2);
-                                                                if($d->DED_PER == 'P'){
-                                                                    $color = 'green';
+
+                                                for($i=3; $i < count($columnas); $i++){ $column=explode(":", $columnas[$i]);
+                                                    //echo '<br/>Column 0 valor'.$column[0].'';
+                                                    if ($column[0] == 'P'){
+                                                        echo '<td align="right">';///Creamos una columna por cada linea.
+                                                            foreach($datos as $d){ /// Asignamos el valor si existe.
+                                                                $h++;
+                                                                if($d->UUID_NOMINA == $key->UUID_NOMINA AND (($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]) ){
+                                                                    //echo '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2);
+                                                                    if($d->DED_PER == 'P'){
+                                                                        $color = 'green';
+                                                                    }else{
+                                                                        $color = 'brown';
+                                                                    }
+                                                                    $a= '<b><font color='.$color.'> $ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2).'</font></b>';
+                                                                    $tp = $tp +  $d->IMP_EXENTO + $d->IMP_GRAVADO;
+                                                                    break;
                                                                 }else{
-                                                                    $color = 'brown';
+                                                                    $a = '$ '.number_format(0,2);
                                                                 }
-                                                                $a= '<b><font color='.$color.'> $ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2).'</font></b>';
-                                                                break;
-                                                            }else{
-                                                                $a = '$ '.number_format(0,2);
                                                             }
-                                                        }
-                                                        echo $a;
-                                                    echo '</td>';
+                                                            echo $a;
+                                                        echo '</td>';
+                                                    }
                                                 }
                                             ?>
+                                            <td align="right"><font color ="green"><b><?php echo '$ '.number_format($tp,2)?></b></font></td>
+                                            <?php $c=3; $h=3;
+                                                for($i=3; $i < count($columnas); $i++){ $column=explode(":", $columnas[$i]);
+                                                    //echo '<br/>Column 0 valor'.$column[0].'';
+                                                    if ($column[0] == 'D'){
+                                                        echo '<td align="right">';///Creamos una columna por cada linea.
+                                                            foreach($datos as $d){ /// Asignamos el valor si existe.
+                                                                $h++;
+                                                                if($d->UUID_NOMINA == $key->UUID_NOMINA AND (($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]) ){
+                                                                    //echo '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2);
+                                                                    if($d->DED_PER == 'P'){
+                                                                        $color = 'green';
+                                                                    }else{
+                                                                        $color = 'brown';
+                                                                    }
+                                                                    $a= '<b><font color='.$color.'> $ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2).'</font></b>';
+                                                                    $td = $td +  $d->IMP_EXENTO + $d->IMP_GRAVADO;
+                                                                    break;
+                                                                }else{
+                                                                    $a = '$ '.number_format(0,2);
+                                                                }
+                                                            }
+                                                            echo $a;
+                                                        echo '</td>';
+                                                    }
+                                                }
+                                            ?>
+
+                                            <td align="right"><font color ="brown"><b><?php echo '$ '.number_format($td,2)?></b></font></td>
+                                            <?php $c=3; $h=3;
+                                                for($i=3; $i < count($columnas); $i++){ $column=explode(":", $columnas[$i]);
+                                                    //echo '<br/>Column 0 valor'.$column[0].'';
+                                                    if ($column[0] == 'O'){
+                                                        echo '<td align="right">';///Creamos una columna por cada linea.
+                                                            foreach($datos as $d){ /// Asignamos el valor si existe.
+                                                                $h++;
+                                                                if($d->UUID_NOMINA == $key->UUID_NOMINA AND (($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]) ){
+                                                                    //echo '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2);
+                                                                    if($d->DED_PER == 'O'){
+                                                                        $color = 'orange';
+                                                                    }else{
+                                                                        $color = 'brown';
+                                                                    }
+                                                                    $a= '<b><font color='.$color.'> $ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2).'</font></b>';
+                                                                    $to = $to +  $d->IMP_EXENTO + $d->IMP_GRAVADO;
+                                                                    break;
+                                                                }else{
+                                                                    $a = '$ '.number_format(0,2);
+                                                                }
+                                                            }
+                                                            echo $a;
+                                                        echo '</td>';
+                                                    }
+                                                }
+                                            ?>
+                                            <td align="right"><font color="blue"><?php echo '$ '.number_format($tp-$td+$to,2)?> </font> </td>
                                             </tr>
                                         <?php endforeach;?>
                                  </tbody>

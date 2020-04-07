@@ -687,6 +687,8 @@ class cargaXML extends database {
    		$fi = date('d.m.Y', strtotime($fi));
    		$ff = date('d.m.Y', strtotime($ff));
    		$this->query="SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' order by (SELECT COUNT(*) FROM XML_NOMINA_DETALLE ND WHERE ND.UUID_NOMINA = XNT.UUID_NOMINA) DESC";
+   		//$this->query="SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT left join XML_NOMINA_RECEPTOR XNR ON XNR.UUID_NOMINA = XNT.UUID_NOMINA where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' order by XNR.NUMEMPLEADO ASC ";
+   		
    		$res=$this->EjecutaQuerySimple();
    		while ($tsArray=ibase_fetch_object($res)){
    			$data[]=$tsArray;
@@ -730,13 +732,20 @@ class cargaXML extends database {
    			$datos[]=$tsArray;
    		}
    		$this->query="SELECT * FROM XML_NOMINA_RECEPTOR WHERE UUID_NOMINA ='$uuid'";
+   		$this->query="
+   		SELECT XNR.* ,(SELECT DESCRIPCION FROM C_TIPOCONTRATO CTC WHERE CTC.C_TIPOCONTRATO = XNR.TIPOCONTRATO AND STATUS = 'A') AS CONTRATO, (SELECT DESCRIPCION FROM C_TIPOJORNADA CTJ WHERE CTJ.CT_TIPOJORNANDA =  TIPOJORNADA) AS JORNADA, (SELECT DESCRIPCION FROM C_TIPOREGIMEN CTR WHERE CTR.C_TIPOREGIMEN = TIPOREGIMEN) AS REGIMEN, (SELECT DESCRIPCION FROM C_RIESGOPUESTO CRP WHERE CRP.C_RIESGOPUESTO = RIESGOPUESTO ) AS RIESGO, (SELECT DESCRIPCION FROM C_PERIODICIDADPAGO CPP WHERE CPP.C_PERIODICIDAD_PAGO = PERIODICIDADPAGO) AS PERIODO, 
+    	(SELECT NOMBRE_ESTADO FROM C_ESTADO CE WHERE CE.C_ESTADO = CLAVEENTFED) AS ESTADO, (SELECT NOMBRE FROM BANCOS_SAT BS WHERE BS.CLAVE = XNR.BANCO ) AS BANCO_SAT
+    			FROM XML_NOMINA_RECEPTOR XNR 
+    			WHERE XNR.UUID_NOMINA = '$uuid'";
    		$res=$this->EjecutaQuerySimple();
    		$row =ibase_fetch_object($res);
    		$curp = $row->CURP;
    		$nss = $row->NUMSEGURIDADSOCIAL;
+   		
    		$this->query="SELECT first 1 * FROM XML_NOMINA_EMPLEADOS WHERE CURP = '$curp' and NSS = '$nss'";
    		$res=$this->EjecutaQuerySimple();
    		$row2 = ibase_fetch_object($res);
+
    		$this->query="SELECT * FROM XML_NOMINA_TRABAJADOR WHERE UUID_NOMINA ='$uuid'";
    		$res=$this->EjecutaQuerySimple();
    		$row3 = ibase_fetch_object($res);

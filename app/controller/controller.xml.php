@@ -1176,20 +1176,72 @@ class controller_xml{
 		$colc = 'A';
 		$df = $data->traeDF($ide = 1);
 		$perc = 0;
-		for ($i=0; $i < count($columnas); $i++){
+
+		for ($i=0; $i < 3; $i++){
 			$xls->setActiveSheetIndex()
 	            ->setCellValue($colc.$ln,$columnas[$i])
 	        ;	
 			++$colc;
 		}
+
+		for ($i=3; $i < count($columnas); $i++){
+			$column = explode(":", $columnas[$i]);
+			if($column[0] == 'P'){
+				$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,$columnas[$i])
+	        	;	
+				++$colc;	
+			}
+		}
+
+			$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,'Total Percepciones')
+	        ;
+	        ++$colc;
+	    for ($i=3; $i < count($columnas); $i++){
+			$column = explode(":", $columnas[$i]);
+			if($column[0] == 'D'){
+				$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,$columnas[$i])
+	        	;	
+				++$colc;	
+			}
+		}
+			$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,'Total Deducciones')
+	        ;
+	        ++$colc;
+	    for ($i=3; $i < count($columnas); $i++){
+			$column = explode(":", $columnas[$i]);
+			if($column[0] == 'O'){
+				$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,$columnas[$i])
+	        	;	
+				++$colc;	
+			}
+		}    
+			$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,'Total Otras Percepciones')
+	        ;
+	        ++$colc;
+	        $xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,'Total a Pagar')
+	        ;
+	        ++$colc;
+
+	        //// revisar hasta aqui las columnas de Totales 
 	    $ln++;
 	   
+
+
 	    foreach ($lineas as $key){
+	    	$tp=0;
+	    	$td=0;
+	    	$to=0;
 	    	$col = 'A';
 	    	$xls->setActiveSheetIndex()
 	    		->setCellValue($col.$ln,$key->UUID_NOMINA)
 	    	;
-
 	    	foreach($datos as $d){
             	if($d->UUID_NOMINA == $key->UUID_NOMINA){
             		$col = 'B';
@@ -1199,7 +1251,6 @@ class controller_xml{
             	    break;
             	}
         	}
-
             foreach($datos as $d){
                 if($d->UUID_NOMINA == $key->UUID_NOMINA){
                 	$col = 'C';
@@ -1209,33 +1260,114 @@ class controller_xml{
                     break;
             	}
             }
-
             $h=3;
             $c=3;
             for($i=3;$i<count($columnas);$i++){
-                ++$col;
-                foreach ($datos as $d){
-			        $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
-                	$h++;
-                	if($d->UUID_NOMINA == $key->UUID_NOMINA AND (
-                		($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]
-                		)
-                		){
-                		$xls->setActiveSheetIndex()
-                    		->setCellValue($col.$ln, '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2))
-                    	;
-                    	break;
-                	}else{
-                		$xls->setActiveSheetIndex()
-                    		->setCellValue($col.$ln,'$ '.number_format(0,2))
-                    	;
-                	}
+                $column = explode(":", $columnas[$i]);
+				if($column[0] == 'P'){
+	                ++$col;
+	                foreach ($datos as $d){
+				        $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+	                	$h++;
+	                	if($d->UUID_NOMINA == $key->UUID_NOMINA AND (
+	                		($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]
+	                		)
+	                		){
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln, '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2))
+	                    	;
+	                    	$tp += $d->IMP_EXENTO + $d->IMP_GRAVADO; 
+	                    	break;
+	                	}else{
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln,'$ '.number_format(0,2))
+	                    	;
+	                	}
 
-                }
-            }			
-	    	$ln++;
+	                }
+				}
+            }
+
+	        ++$col;
+			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+            $xls->setActiveSheetIndex()
+	            ->setCellValue($col.$ln,'$ '.number_format($tp,2))
+	        ;
+	        //echo 'Columna '.$col.' Linea: '.$ln.' Valor de Total Percepciones: $ '.number_format($tp,2).'<br/>';
+	        
+            for($i=3;$i<count($columnas);$i++){
+                $column = explode(":", $columnas[$i]);
+				if($column[0] == 'D'){
+	                ++$col;
+	                foreach ($datos as $d){
+				        $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+	                	$h++;
+	                	if($d->UUID_NOMINA == $key->UUID_NOMINA AND (
+	                		($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]
+	                		)
+	                		){
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln, '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2))
+	                    	;
+	                    	$td += $d->IMP_EXENTO + $d->IMP_GRAVADO; 
+	                    	break;
+	                	}else{
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln,'$ '.number_format(0,2))
+	                    	;
+	                	}
+	                }
+				}
+            }
+            ++$col;
+			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+            $xls->setActiveSheetIndex()
+	            ->setCellValue($col.$ln,'$ '.number_format($td,2))
+	        ;
+	        //echo 'Columna '.$col.' Linea: '.$ln.' Valor de Total deducciones: $ '.number_format($td,2).'<br/>';
+	        //++$col;
+	        //break;
+	        for($i=3;$i<count($columnas);$i++){
+                $column = explode(":", $columnas[$i]);
+				if($column[0] == 'O'){
+	                ++$col;
+	                foreach ($datos as $d){
+				        $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+	                	$h++;
+	                	if($d->UUID_NOMINA == $key->UUID_NOMINA AND (
+	                		($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]
+	                		)
+	                		){
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln, '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2))
+	                    	;
+	                    	$to += $d->IMP_EXENTO + $d->IMP_GRAVADO; 
+	                    	break;
+	                	}else{
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln,'$ '.number_format(0,2))
+	                    	;
+	                	}
+
+	                }
+				}
+            }
+            ++$col;
+			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+            $xls->setActiveSheetIndex()
+	            ->setCellValue($col.$ln,'$ '.number_format($to,2))
+	        ;
+	        ++$col;
+			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+			$xls->setActiveSheetIndex()
+	            ->setCellValue($col.$ln,'$ '.number_format($tp-$td+$to,2))
+	        ;
+	        
+	        $ln++;
 	    }
-	    
+	    //echo 'Columna: '.$col.' linea: '.$ln ;
+	    //die;
+
 	    $xls->setActiveSheetIndex()
 	        ->setCellValue('A'.$ln,'Fin del resumen de documentos.');
 	                //->setCellValue('B'.$ln,'')
