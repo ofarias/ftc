@@ -29,6 +29,10 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res = $controller->infoPer($_POST['uuid']);
 	echo json_encode($res);
 	exit();
+}elseif(isset($_POST['detNom'])){
+	$res = $controller->detNom($_POST['fi'], $_POST['ff'],$_POST['tipo']);
+	echo json_encode($res);
+	return $res;
 }
 else{
 	switch ($_GET['action']){
@@ -66,7 +70,7 @@ else{
 		$controller->cs();
 		break;
 	case 'nomXML':
-		$controller->nomXML();
+		$controller->nomXML($_GET['anio'],$_GET['mes']);
 		break;
 	case 'detalleNomina':
 		$controller->detalleNomina($_GET['fi'], $_GET['ff']);
@@ -75,7 +79,7 @@ else{
 		$controller->reciboNomina($_GET['uuid']);
 		break;
 	case 'detNom':
-		$controller->detNom($_GET['fi'], $_GET['ff']);
+		$controller->detNom($_GET['fi'], $_GET['ff'], $_GET['tipo']);
 		break;
 	case 'verRecibo':
 		$controller->verRecibo($_GET['uuid']);

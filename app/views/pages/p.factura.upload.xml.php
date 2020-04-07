@@ -17,6 +17,12 @@
     <li>No hay archivos seleccionados</li>        
 </ul>
 </p>
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="/resources/demos/style.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
     function makeFileList() {
             var input = document.getElementById("filesToUpload");
@@ -36,5 +42,14 @@
             }
             document.getElementById("files2upload").value = input.files.length;
     }
+  //Cuando la página esté cargada completamente
+  $(document).ready(function(){
+    //Cada 10 segundos (10000 milisegundos) se ejecutará la función refrescar
+    setTimeout(refrescar, 10000);
+  });
+  function refrescar(){
+    //Actualiza la página
+    location.reload();
+  }
  </script>
 

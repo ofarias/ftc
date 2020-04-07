@@ -1031,22 +1031,57 @@ class controller_xml{
 	function cargaEFOS(){
 		if($_SESSION['user']){
 			$data = new cargaXML;
-			$carga = $data->cargaEFOS();
+			//$carga = $data->cargaEFOS();
+			$path = 'C:\\xampp\\htdocs\\biotecsa\\';
+			//$this->showFiles($path);
+			//$cf = $data->cf();
+			$archivo = $data->creaPaquetes();
+			die;
 			return $carga;
 		}
 	}
 
-	function nomXML(){
+	function showFiles($path){
+    	$dir = opendir($path);
+    	$files = array();
+    	$data = new cargaXML();
+    	while ($current = readdir($dir)){
+    	    if( $current != "." && $current != "..") {
+    	        if(is_dir($path.$current)) {
+    	            $this->showFiles($path.$current.'/');
+    	        }
+    	        else {
+    	            $files[] = $current;
+    	        }
+    	    }
+    	}
+    	echo '<h2>'.$path.'</h2>';
+    	echo '<ul>';
+    	for($i=0; $i<count( $files ); $i++){
+    	    echo '<li>'.$files[$i]."</li>";
+    	    $data->insertaFile($files[$i], $path);
+    	    
+    	}
+    	echo '</ul>';
+	}
+
+	function nomXML($a, $m){
 		if($_SESSION['user']){
 			$data=new cargaXML;
-			$info= $data->nomXML();
+			$info= $data->nomXML($a, $m);
+			$c = new pegaso_controller;
+			if(count($info) == 0){
+				echo '<script> alert("No se encontro informacion para el mes y el año") </script>';
+				$c->xmlMenu();
+				exit();
+			}
 			$per = $data->nomP($info);
 			$ded = $data->nomD($info);
 			$emp = $data->nomE($info);
 			$pagina=$this->load_template();
-			$html=$this->load_page('app/views/pages/xml/m.nominasXML.php');
+			$html=$this->load_page('app/views/pages/Nomina/m.nominasXML.php');
    			ob_start();
-   			include 'app/views/pages/xml/m.nominasXML.php';
+   			include 'app/views/pages/Nomina/m.nominasXML.php';
    			$table = ob_get_clean();
    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
    			$this->view_page($pagina);	
@@ -1061,9 +1096,9 @@ class controller_xml{
 			$data=new cargaXML;
 			$rec = $data->detalleNomina($fi, $ff);
 			$pagina=$this->load_template();
-			$html=$this->load_page('app/views/pages/xml/p.detalleNom.php');
+			$html=$this->load_page('app/views/pages/Nomina/p.detalleNom.php');
    			ob_start();
-   			include 'app/views/pages/xml/p.detalleNom.php';   			
+   			include 'app/views/pages/Nomina/p.detalleNom.php';   			
    			$table = ob_get_clean();
    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
    			$this->view_page($pagina);	
@@ -1089,17 +1124,22 @@ class controller_xml{
 		}
 	}
 
-	function detNom($fi, $ff){
+	function detNom($fi, $ff, $tipo){
 		if($_SESSION['user']){
 			$data=new cargaXML;
 			$info=$data->detNom($fi, $ff);
 			$columnas = $info['columnas'];
 			$datos = $info['datos'];
 			$lineas = $info['lineas'];
+			if($tipo=='xls'){
+				$res=$this->repNomina($fi, $ff, $columnas, $datos, $lineas);
+				return $res;
+				exit();
+			}
 			$pagina=$this->load_template();
-			$html=$this->load_page('app/views/pages/xml/p.detNom.php');
+			$html=$this->load_page('app/views/pages/Nomina/p.detNom.php');
    			ob_start();
-   			include 'app/views/pages/xml/p.detNom.php';   			
+   			include 'app/views/pages/Nomina/p.detNom.php';   			
    			$table = ob_get_clean();
    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
    			$this->view_page($pagina);	
@@ -1112,11 +1152,12 @@ class controller_xml{
 	function verRecibo($uuid){
 		if($_SESSION['user']){
 			$data=new cargaXML;
+			$rfcempresa = $_SESSION['rfc'];
 			$info=$data->verRecibo($uuid);
 			$pagina=$this->load_template();
-			$html=$this->load_page('app/views/pages/xml/p.verRecibo.php');
+			$html=$this->load_page('app/views/pages/Nomina/p.verRecibo.php');
    			ob_start();
-   			include 'app/views/pages/xml/p.verRecibo.php';   			
+   			include 'app/views/pages/Nomina/p.verRecibo.php';   			
    			$table = ob_get_clean();
    			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
    			$this->view_page($pagina);	
@@ -1124,6 +1165,324 @@ class controller_xml{
 			$e = "Favor de Revisar sus datos";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}	
+	}
+
+	function repNomina($fi, $ff, $columnas, $datos, $lineas){
+		$data = new pegaso;
+		$dataXML = new cargaXML;
+		$xls = new PHPExcel();
+		$usuario=$_SESSION['user']->NOMBRE;
+		$ln = 10;
+		$colc = 'A';
+		$df = $data->traeDF($ide = 1);
+		$perc = 0;
+
+		for ($i=0; $i < 3; $i++){
+			$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,$columnas[$i])
+	        ;	
+			++$colc;
+		}
+
+		for ($i=3; $i < count($columnas); $i++){
+			$column = explode(":", $columnas[$i]);
+			if($column[0] == 'P'){
+				$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,$columnas[$i])
+	        	;	
+				++$colc;	
+			}
+		}
+
+			$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,'Total Percepciones')
+	        ;
+	        ++$colc;
+	    for ($i=3; $i < count($columnas); $i++){
+			$column = explode(":", $columnas[$i]);
+			if($column[0] == 'D'){
+				$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,$columnas[$i])
+	        	;	
+				++$colc;	
+			}
+		}
+			$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,'Total Deducciones')
+	        ;
+	        ++$colc;
+	    for ($i=3; $i < count($columnas); $i++){
+			$column = explode(":", $columnas[$i]);
+			if($column[0] == 'O'){
+				$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,$columnas[$i])
+	        	;	
+				++$colc;	
+			}
+		}    
+			$xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,'Total Otras Percepciones')
+	        ;
+	        ++$colc;
+	        $xls->setActiveSheetIndex()
+	            ->setCellValue($colc.$ln,'Total a Pagar')
+	        ;
+	        ++$colc;
+
+	        //// revisar hasta aqui las columnas de Totales 
+	    $ln++;
+	   
+
+
+	    foreach ($lineas as $key){
+	    	$tp=0;
+	    	$td=0;
+	    	$to=0;
+	    	$col = 'A';
+	    	$xls->setActiveSheetIndex()
+	    		->setCellValue($col.$ln,$key->UUID_NOMINA)
+	    	;
+	    	foreach($datos as $d){
+            	if($d->UUID_NOMINA == $key->UUID_NOMINA){
+            		$col = 'B';
+            		$xls->setActiveSheetIndex()
+            	    	->setCellValue($col.$ln,$d->NUMERO)
+            	    ;
+            	    break;
+            	}
+        	}
+            foreach($datos as $d){
+                if($d->UUID_NOMINA == $key->UUID_NOMINA){
+                	$col = 'C';
+                	$xls->setActiveSheetIndex()
+                    	->setCellValue($col.$ln,$d->NOMBRE)
+                    ;
+                    break;
+            	}
+            }
+            $h=3;
+            $c=3;
+            for($i=3;$i<count($columnas);$i++){
+                $column = explode(":", $columnas[$i]);
+				if($column[0] == 'P'){
+	                ++$col;
+	                foreach ($datos as $d){
+				        $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+	                	$h++;
+	                	if($d->UUID_NOMINA == $key->UUID_NOMINA AND (
+	                		($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]
+	                		)
+	                		){
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln, '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2))
+	                    	;
+	                    	$tp += $d->IMP_EXENTO + $d->IMP_GRAVADO; 
+	                    	break;
+	                	}else{
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln,'$ '.number_format(0,2))
+	                    	;
+	                	}
+
+	                }
+				}
+            }
+
+	        ++$col;
+			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+            $xls->setActiveSheetIndex()
+	            ->setCellValue($col.$ln,'$ '.number_format($tp,2))
+	        ;
+	        //echo 'Columna '.$col.' Linea: '.$ln.' Valor de Total Percepciones: $ '.number_format($tp,2).'<br/>';
+	        
+            for($i=3;$i<count($columnas);$i++){
+                $column = explode(":", $columnas[$i]);
+				if($column[0] == 'D'){
+	                ++$col;
+	                foreach ($datos as $d){
+				        $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+	                	$h++;
+	                	if($d->UUID_NOMINA == $key->UUID_NOMINA AND (
+	                		($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]
+	                		)
+	                		){
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln, '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2))
+	                    	;
+	                    	$td += $d->IMP_EXENTO + $d->IMP_GRAVADO; 
+	                    	break;
+	                	}else{
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln,'$ '.number_format(0,2))
+	                    	;
+	                	}
+	                }
+				}
+            }
+            ++$col;
+			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+            $xls->setActiveSheetIndex()
+	            ->setCellValue($col.$ln,'$ '.number_format($td,2))
+	        ;
+	        //echo 'Columna '.$col.' Linea: '.$ln.' Valor de Total deducciones: $ '.number_format($td,2).'<br/>';
+	        //++$col;
+	        //break;
+	        for($i=3;$i<count($columnas);$i++){
+                $column = explode(":", $columnas[$i]);
+				if($column[0] == 'O'){
+	                ++$col;
+	                foreach ($datos as $d){
+				        $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+	                	$h++;
+	                	if($d->UUID_NOMINA == $key->UUID_NOMINA AND (
+	                		($d->DED_PER.':'.$d->TIPO.':'.$d->CLAVE.':'.$d->CONCEPTO) == $columnas[$i]
+	                		)
+	                		){
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln, '$ '.number_format($d->IMP_EXENTO + $d->IMP_GRAVADO,2))
+	                    	;
+	                    	$to += $d->IMP_EXENTO + $d->IMP_GRAVADO; 
+	                    	break;
+	                	}else{
+	                		$xls->setActiveSheetIndex()
+	                    		->setCellValue($col.$ln,'$ '.number_format(0,2))
+	                    	;
+	                	}
+
+	                }
+				}
+            }
+            ++$col;
+			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+            $xls->setActiveSheetIndex()
+	            ->setCellValue($col.$ln,'$ '.number_format($to,2))
+	        ;
+	        ++$col;
+			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+			$xls->setActiveSheetIndex()
+	            ->setCellValue($col.$ln,'$ '.number_format($tp-$td+$to,2))
+	        ;
+	        
+	        $ln++;
+	    }
+	    //echo 'Columna: '.$col.' linea: '.$ln ;
+	    //die;
+
+	    $xls->setActiveSheetIndex()
+	        ->setCellValue('A'.$ln,'Fin del resumen de documentos.');
+	                //->setCellValue('B'.$ln,'')
+	                //->setCellValue('C'.$ln,'$ '.number_format($key->SALDOFINAL-$key->IMP_TOT4,2))
+	                //->setCellValue('D'.$ln,'$ '.number_format($key->IMP_TOT4,2))
+	                //->setCellValue('E'.$ln,'$ '.number_format($key->IMPORTE,2))
+	                //->setCellValue('F'.$ln,'$ '.number_format($key->SALDO,2))
+	                //->setCellValue('G'.$ln,$key->FECHA_INI_COB)
+	                //->setCellValue('H'.$ln,$key->CVE_PEDI)
+	                //->setCellValue('I'.$ln,$key->OC);
+	         
+	    $xls->getActiveSheet()
+	        ->setCellValue('A1',$df->RAZON_SOCIAL);
+
+	    /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(40);
+	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(50);
+	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('T')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('U')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('V')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('W')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('X')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('Y')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('Z')->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension('AA')->setWidth(13);
+
+	   
+
+	        $xls->getActiveSheet()
+	            ->setCellValue('A3','Resumen de Recibos de Nomina')
+	            ->setCellValue('A4','Fecha Inicial: '.$fi)
+	            ->setCellValue('A5','Fecha Final: '.$ff)
+	            ->setCellValue('A6','Total Percepciones: '.'percepciones')
+	            ->setCellValue('A7','Total Deducciones: '.'Deducciones')
+	            ->setCellValue('A8','Total Otras Percepciones: '.'Deduccione')
+	            ->setCellValue('A9','Valor de la Nomina: '.'Recibos')
+	            ;
+
+	        $xls->getActiveSheet()
+	            ->setCellValue('C3','Fecha del Emisión: '.date("d-m-Y H:n:s"))
+	            ->setCellValue('C4','Emite: '.$usuario)
+	            ->setCellValue('C5','Pago I.S.R. : ')
+	            ->setCellValue('C6','Pago IMSS: ')
+	            ->setCellValue('C7','Infonavit: ')
+	            ->setCellValue('C8','Otros: ')
+	            ;
+	        /// Unir celdas
+	        $xls->getActiveSheet()->mergeCells('A1:'.$colc.'1');
+	        // Alineando
+	        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+	        /// Estilando
+	        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>20,
+	                )
+	            )
+	        );
+	    /*
+	        $xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+	        $xls->getActiveSheet()->mergeCells('A3:F3');
+	        $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>15,
+	                )
+	            )
+	        );
+
+	        $xls->getActiveSheet()->getStyle('A3:D3')->applyFromArray(
+	            array(
+	                'font'=> array(
+	                    'bold'=>true
+	                ),
+	                'borders'=>array(
+	                    'allborders'=>array(
+	                        'style'=>PHPExcel_Style_Border::BORDER_THIN
+	                    )
+	                )
+	            )
+	        );
+	    */
+	        //// Crear una nueva hoja 
+	            //$xls->createSheet();
+	        /// Crear una nueva hoja llamada Mis Datos
+	        /// Descargar
+	            $ruta='C:\\xampp\\htdocs\\EdoCtaXLS\\';
+	            $nom='Reporte de Nomina '.$df->RAZON_SOCIAL.' '.$fi.'.xlsx';
+	            //header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+	            //header("Content-Disposition: attachment;filename=01simple.xlsx");
+	            //header('Cache-Control: max-age=0');
+	        /// escribimos el resultado en el archivo;
+	            $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+	        /// salida a descargar
+	            $x->save($ruta.$nom);
+	            ob_end_clean();
+	            //echo 'Se crea el archivo: '.$ruta.$nom;
+	        return array("status"=>'ok', "archivo"=>$nom, "ruta"=>"../EdoCtaXLS/".$nom);
+	        //$x->save('php://output');
+	        /// salida a ruta :
 	}
 
 }?>

@@ -2,8 +2,8 @@
 /* ------------------------------- */
 body {
     padding-top: 100px;
-        /*background: #f8f8ff; #f5f5f5 */
-        background:#dcdcdc;        
+         /*background: #00BFFF  #f8f8ff; /*#f5f5f5*/
+        background:#dcdcdc; /* Nueva version*/        
 }
 
 @media(min-width:768px) {

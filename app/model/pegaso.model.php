@@ -22245,7 +22245,7 @@ function invAunaFecha($fecha, $tipo){
 		return $data;
 	}
 
-function creaFactura($idc, $uso, $tpago, $mpago, $cp){
+	function creaFactura($idc, $uso, $tpago, $mpago, $cp){
 		$usuario = $_SESSION['user']->NOMBRE;
 		$dec=6;
 		$dect=2;
@@ -23741,6 +23741,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             foreach ($data as $row):
                 $file = $row->NOMBRE;
             endforeach;
+
             $myFile = fopen("$file", "r") or die("No se ha logrado abrir el archivo ($file)!");
             $myXMLData = fread($myFile, filesize($file));
             $xml = @simplexml_load_string($myXMLData) or die("Error: No se ha logrado crear el objeto XML ($file)");
@@ -24114,7 +24115,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            if($rfc == 'XAXX010101000'){ /// se cambia $rfce por $rfc
                                 $this->query="INSERT INTO XML_UUID_GENERICO (ID_UUID_GEN, NOMBRE) VALUES ('$uuid', '$nombre_recep')";
     							@$this->grabaBD();
-                            }else{
+                            }
+
                             	if($rfce == $rfcEmpresa){
                             		$carpeta = 'Emitidos';
                             		$carpeta2= $rfc;
@@ -24135,8 +24137,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
                             	}else{	
                                    copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serie).utf8_encode($folio).'-'.$uuid.".xml");
                             	}
-                            }
-
+                            
                             /// Insertamos en la tabla de CFIDsss
 
                             $this->query="UPDATE FTC_FACTURAS SET UUID = '$uuid' WHERE SERIE='$serie' AND FOLIO='$folio'";
@@ -24317,7 +24318,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			        //return;// $respuesta;
     	    		
     			if($tipo == 'N'){
-	    			//echo 'El UUID: '.$uuid.' es de Nomina' ;
 	    			$this->query="UPDATE XML_DATA_FILES SET TIPO = 'N' WHERE nombre = '$archivo'";
 	    			$this->queryActualiza();
     				foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
@@ -24434,32 +24434,32 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			    	}
 
 			    	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones') as $percep) {
-			    					$totalSueldos =  isset($percep['TotalSueldos'])? $percep['TotalSueldos']:0;
-			    					$totalSeparacion = isset($percep['TotalSeparacionIndemnizacion'])? $percep['TotalSeparacionIndemnizacion']:0;
-			    					$totalJubilacion =  isset($percep['TotalJubilacionPensionRetiro'])? $percep['TotalJubilacionPensionRetiro']:0;
-			    					$totalGravado =  isset($percep['TotalGravado'])? $percep['TotalGravado']:0;
-			    					$totalExento = isset( $percep['TotalExento'])? $percep['TotalExento']:0;
+			    		$totalSueldos =  isset($percep['TotalSueldos'])? $percep['TotalSueldos']:0;
+			    		$totalSeparacion = isset($percep['TotalSeparacionIndemnizacion'])? $percep['TotalSeparacionIndemnizacion']:0;
+			    		$totalJubilacion =  isset($percep['TotalJubilacionPensionRetiro'])? $percep['TotalJubilacionPensionRetiro']:0;
+			    		$totalGravado =  isset($percep['TotalGravado'])? $percep['TotalGravado']:0;
+			    		$totalExento = isset( $percep['TotalExento'])? $percep['TotalExento']:0;
 			    		$this->query="INSERT INTO XML_NOMINA_PERCEPCIONES (ID_NP, TOTAL_SUELDOS, TOTAL_SEPARACION_INDEM, TOTAL_JUBILACION_PENRET, TOTAL_GRAVADO, TOTAL_EXECTO, STATUS, UUID_NOMINA) VALUES (null, $totalSueldos, $totalSeparacion, $totalJubilacion, $totalGravado, $totalExento, 0, '$uuid') RETURNING ID_NP";
 			    		$RSPER=$this->grabaBD();
 			    		$rowrsper = ibase_fetch_object($RSPER)->ID_NP;
 			    	}
 
 			    	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones//nomina12:Percepcion') as $nomPer) {
-			    					$clavePer = $nomPer['Clave'];
-			    					$concepPer =$nomPer['Concepto'];
-			    					$impExePer = $nomPer['ImporteExento'];
-			    					$impGraPer = $nomPer['ImporteGravado'];
-			    					$tipPer = $nomPer['TipoPercepcion'];
+			    		$clavePer = $nomPer['Clave'];
+			    		$concepPer =$nomPer['Concepto'];
+			    		$impExePer = $nomPer['ImporteExento'];
+			    		$impGraPer = $nomPer['ImporteGravado'];
+			    		$tipPer = $nomPer['TipoPercepcion'];
 			    		$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA) VALUES (NULL, $rowrsper, 0, '$tipPer', '$clavePer', '$concepPer', $impExePer, $impGraPer, 'P', 0, '', 0, 0, 0, '$uuid')";
 			    		$this->grabaBD();
 			    	}
 
 					if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones//nomina12:Percepcion//nomina12:HorasExtra')){
 						foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Percepciones//nomina12:Percepcion//nomina12:HorasExtra') as $nomHE){
-									$heDias= isset($nomHE['Dias'])? $nomHE['Dias']:0;
-									$heTipoHora = isset($nomHE['TipoHoras'])? $nomHE['TipoHoras']:'';
-									$heHE = isset($nomHE['HorasExtra'])? $nomHE['HorasExtra']:0;
-									$heImpPag = isset($nomHE['ImportePagado'])? $nomHE['ImportePagado']:0;
+							$heDias= isset($nomHE['Dias'])? $nomHE['Dias']:0;
+							$heTipoHora = isset($nomHE['TipoHoras'])? $nomHE['TipoHoras']:'';
+							$heHE = isset($nomHE['HorasExtra'])? $nomHE['HorasExtra']:0;
+							$heImpPag = isset($nomHE['ImportePagado'])? $nomHE['ImportePagado']:0;
 							$this->query="UPDATE XML_NOMINA_PERCEPCIONES_DETALLE SET DIAS = $heDias, TIPO_HORAS = '$heTipoHora', HORAS_EXTRA = $heHe, IMPORTE_PAGADO_HE = $heImpPag";
 							$this->queryActualiza();
 						}
@@ -24518,8 +24518,25 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			    	}
 			    	*/
 				//die;
+			    	$rfcEmpresa = $_SESSION['rfc'];
+    				//if($rfce == $rfcEmpresa){
+                	//	$carpeta = 'Emitidos';
+                	//	$carpeta2= $rfc;
+                	//}else{
+                	//	$carpeta = 'Recibidos';
+                	//	$carpeta2= $rfce;
+                	//}
+                	$path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\Nomina\\';
+                	//echo '<br/>'.$path.'<br/>';
+                	if(is_dir($path)){
+                		//echo '<br/> El directorio existe<br/>';
+                	}else{
+                		//echo '<br/> El Direcotirio no existe y se debe de crear<br/>';
+                		mkdir($path,0777, true);
+                	}
+                	copy($archivo, $path.$uuid.".xml");
     			}
-    		
+    			
     		}
     		if($tipo2 == 'C'){
        
@@ -24858,9 +24875,15 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		@$this->grabaBD();
     	}
     }
-
 	*/
-
+	
+    function traeRS($uuid){
+    	$this->query = "SELECT * FROM XML_UUID_GENERICO WHERE ID_UUID_GEN = '$uuid'";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($res);
+        $nombre = !empty($row->NOMBRE)? $row->NOMBRE:'';
+        return $nombre;
+    }
 
     function verXMLSP_xls($mes, $anio, $ide, $uuid, $doc){
     	$data=array();

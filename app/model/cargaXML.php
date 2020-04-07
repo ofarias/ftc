@@ -5,6 +5,7 @@ require_once 'app/model/verificaID.php';
 require_once 'app/model/pegaso.model.reparto.php';
 require_once('app/views/unit/commonts/numbertoletter.php');
 
+
 class cargaXML extends database {
 
 	function cargaCEP($cep){
@@ -556,9 +557,13 @@ class cargaXML extends database {
 		return array("status"=>'ok', "mensaje"=>'Se ha cargado correctamente el archivo');
     }
 
-    function nomXML(){
+    function nomXML($a, $m){
     	$data= array();
-    	$this->query="SELECT COUNT(*) AS RECIBOS,fecha_inicial, fecha_final, extract(month from fecha_final) FROM XML_NOMINA_TRABAJADOR GROUP BY fecha_inicial, fecha_final ORDER BY FECHA_INICIAL";
+    	$mes = '';
+    	if($m > 0 ){
+    		$mes = ' and extract(month from fecha_inicial) = '.$m.' '; 
+    	}
+    	$this->query="SELECT COUNT(*) AS RECIBOS,fecha_inicial, fecha_final, extract(month from fecha_final) FROM XML_NOMINA_TRABAJADOR where extract(year from fecha_inicial) = $a $mes GROUP BY fecha_inicial, fecha_final ORDER BY FECHA_INICIAL";
     	$rs=$this->EjecutaQuerySimple();
     	while ($tsArray=ibase_fetch_object($rs)) {
     		$data[]=$tsArray;
@@ -572,8 +577,7 @@ class cargaXML extends database {
     	foreach ($nomina as $nom){
     		$ln++;
 	    	$this->query="SELECT '$nom->FECHA_INICIAL' as fi, '$nom->FECHA_FINAL' as ff, SUM(TOTAL_SUELDOS) AS SUELDOS, SUM(TOTAL_SEPARACION_INDEM) AS SEPARACIONES, SUM(TOTAL_JUBILACION_PENRET) AS JUBILACION, SUM(TOTAL_GRAVADO) AS GRAVADO, SUM(TOTAL_EXECTO) AS EXECTO FROM XML_NOMINA_PERCEPCIONES WHERE UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT WHERE XNT.FECHA_INICIAL = '$nom->FECHA_INICIAL' AND XNT.FECHA_FINAL = '$nom->FECHA_FINAL')";
-	    	//echo '<br/> Periodo '.$ln.' del '.$nom->FECHA_INICIAL.' al '.$nom->FECHA_FINAL.' Consulta: '.$this->query;
-    		$res=$this->EjecutaQuerySimple();
+	    	$res=$this->EjecutaQuerySimple();
     		while ($tsArray=ibase_fetch_object($res)) {
     			$data[]=$tsArray;
     		}
@@ -587,8 +591,7 @@ class cargaXML extends database {
     	foreach ($nomina as $nom){
     		$ln++;
 	    	$this->query="SELECT '$nom->FECHA_INICIAL' as fi, '$nom->FECHA_FINAL' as ff, SUM(TOTAL_IMP_RET) AS RETENCIONES, SUM(TOTAL_OTRAS_DED) AS OTRAS_DEDUCCIONES FROM XML_NOMINA_DEDUCCIONES WHERE UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT WHERE XNT.FECHA_INICIAL = '$nom->FECHA_INICIAL' AND XNT.FECHA_FINAL = '$nom->FECHA_FINAL')";
-	    	//echo '<br/> Periodo '.$ln.' del '.$nom->FECHA_INICIAL.' al '.$nom->FECHA_FINAL.' Consulta: '.$this->query;
-		$res=$this->EjecutaQuerySimple();
+	    $res=$this->EjecutaQuerySimple();
     		while ($tsArray=ibase_fetch_object($res)) {
     			$data[]=$tsArray;
     		}
@@ -615,12 +618,12 @@ class cargaXML extends database {
     	$data = array();
     	$fi = date("d.m.Y", strtotime($fi));
     	$ff = date("d.m.Y", strtotime($ff));
-    	$this->query="SELECT (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS XNE WHERE XNE.CURP = XNR.CURP AND XNE.NSS = XNR.NUMSEGURIDADSOCIAL) AS EMPLEADO, XNR.* , XNP.*, XND.*
+    	$this->query="SELECT (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS XNE WHERE XNE.CURP = XNR.CURP AND XNE.NSS = XNR.NUMSEGURIDADSOCIAL) AS EMPLEADO, XNR.* , XNP.*, XND.*, (SELECT DESCRIPCION FROM C_TIPOCONTRATO CTC WHERE CTC.C_TIPOCONTRATO = XNR.TIPOCONTRATO AND STATUS = 'A') AS CONTRATO, (SELECT DESCRIPCION FROM C_TIPOJORNADA CTJ WHERE CTJ.CT_TIPOJORNANDA =  TIPOJORNADA) AS JORNADA, (SELECT DESCRIPCION FROM C_TIPOREGIMEN CTR WHERE CTR.C_TIPOREGIMEN = TIPOREGIMEN) AS REGIMEN, (SELECT DESCRIPCION FROM C_RIESGOPUESTO CRP WHERE CRP.C_RIESGOPUESTO = RIESGOPUESTO ) AS RIESGO, (SELECT DESCRIPCION FROM C_PERIODICIDADPAGO CPP WHERE CPP.C_PERIODICIDAD_PAGO = PERIODICIDADPAGO) AS PERIODO, 
+    	(SELECT NOMBRE_ESTADO FROM C_ESTADO CE WHERE CE.C_ESTADO = CLAVEENTFED) AS ESTADO, (SELECT NOMBRE FROM BANCOS_SAT BS WHERE BS.CLAVE = XNR.BANCO ) AS BANCO_SAT
     			FROM XML_NOMINA_RECEPTOR XNR 
     			LEFT JOIN XML_NOMINA_PERCEPCIONES XNP ON XNP.UUID_NOMINA = XNR.UUID_NOMINA 
     			LEFT JOIN XML_NOMINA_DEDUCCIONES XND ON XND.UUID_NOMINA = XNR.UUID_NOMINA
     			WHERE XNR.UUID_NOMINA IN (SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff')";
-    	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while ($tsArray= ibase_fetch_object($res)){
     		$data[]=$tsArray;
@@ -684,6 +687,8 @@ class cargaXML extends database {
    		$fi = date('d.m.Y', strtotime($fi));
    		$ff = date('d.m.Y', strtotime($ff));
    		$this->query="SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' order by (SELECT COUNT(*) FROM XML_NOMINA_DETALLE ND WHERE ND.UUID_NOMINA = XNT.UUID_NOMINA) DESC";
+   		//$this->query="SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT left join XML_NOMINA_RECEPTOR XNR ON XNR.UUID_NOMINA = XNT.UUID_NOMINA where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' order by XNR.NUMEMPLEADO ASC ";
+   		
    		$res=$this->EjecutaQuerySimple();
    		while ($tsArray=ibase_fetch_object($res)){
    			$data[]=$tsArray;
@@ -700,6 +705,8 @@ class cargaXML extends database {
    				FROM XML_NOMINA_DETALLE ND
    				LEFT JOIN XML_NOMINA_RECEPTOR NR ON NR.UUID_NOMINA = ND.UUID_NOMINA
    				WHERE ND.UUID_NOMINA = '$uuid' order by  ded_per desc";
+   				//echo $this->query;
+   				//die;
    			$res=$this->EjecutaQuerySimple();
    			while ($tsArray=ibase_fetch_object($res)) {
    				$dataDet[]=$tsArray;
@@ -725,16 +732,111 @@ class cargaXML extends database {
    			$datos[]=$tsArray;
    		}
    		$this->query="SELECT * FROM XML_NOMINA_RECEPTOR WHERE UUID_NOMINA ='$uuid'";
+   		$this->query="
+   		SELECT XNR.* ,(SELECT DESCRIPCION FROM C_TIPOCONTRATO CTC WHERE CTC.C_TIPOCONTRATO = XNR.TIPOCONTRATO AND STATUS = 'A') AS CONTRATO, (SELECT DESCRIPCION FROM C_TIPOJORNADA CTJ WHERE CTJ.CT_TIPOJORNANDA =  TIPOJORNADA) AS JORNADA, (SELECT DESCRIPCION FROM C_TIPOREGIMEN CTR WHERE CTR.C_TIPOREGIMEN = TIPOREGIMEN) AS REGIMEN, (SELECT DESCRIPCION FROM C_RIESGOPUESTO CRP WHERE CRP.C_RIESGOPUESTO = RIESGOPUESTO ) AS RIESGO, (SELECT DESCRIPCION FROM C_PERIODICIDADPAGO CPP WHERE CPP.C_PERIODICIDAD_PAGO = PERIODICIDADPAGO) AS PERIODO, 
+    	(SELECT NOMBRE_ESTADO FROM C_ESTADO CE WHERE CE.C_ESTADO = CLAVEENTFED) AS ESTADO, (SELECT NOMBRE FROM BANCOS_SAT BS WHERE BS.CLAVE = XNR.BANCO ) AS BANCO_SAT
+    			FROM XML_NOMINA_RECEPTOR XNR 
+    			WHERE XNR.UUID_NOMINA = '$uuid'";
    		$res=$this->EjecutaQuerySimple();
    		$row =ibase_fetch_object($res);
    		$curp = $row->CURP;
    		$nss = $row->NUMSEGURIDADSOCIAL;
+   		
    		$this->query="SELECT first 1 * FROM XML_NOMINA_EMPLEADOS WHERE CURP = '$curp' and NSS = '$nss'";
    		$res=$this->EjecutaQuerySimple();
    		$row2 = ibase_fetch_object($res);
+
    		$this->query="SELECT * FROM XML_NOMINA_TRABAJADOR WHERE UUID_NOMINA ='$uuid'";
    		$res=$this->EjecutaQuerySimple();
    		$row3 = ibase_fetch_object($res);
    		return array("datos"=>$datos, "emp"=>$row2, "nom_emp"=>$row,"nom"=>$row3);
+   	}
+
+   	function insertaFile($file, $path){
+   		$this->query="INSERT INTO BIO_FILES (ID, ARCHIVO, RUTA, STATUS, NUEVA_RUTA, PEDIMENTO) values (NULL, '$file', '$path', 'nuevo', '', '')";
+    	    $this->grabaBD();
+    	return;
+   	}
+
+   	function cf(){
+   		$data = array();
+   		$this->query ="SELECT * FROM BIO_PEDIMENTOS WHERE STATUS = 'N'";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)){
+   			$data[]=$tsArray;
+   		}
+   		if(count($data)>0){
+   			foreach ($data as $p) {
+   				$data2 = array();
+   				$trim_pedimento = $p->TRIM_PEDIMENTO;
+   				$pedimento = substr($trim_pedimento , 8);
+   				$this->query="SELECT * FROM BIO_FILES bf where replace(bf.archivo, ' ','') containing('$pedimento') or replace (bf.ruta, ' ','') containing('$pedimento')";
+   				$res=$this->EjecutaQuerySimple();
+   				while ($tsArray=ibase_fetch_object($res)){
+   					$data2[]=$tsArray;
+   				}
+   				if(count($data2)>0){
+	   				foreach ($data2 as $pf) {
+	   					$id = $pf->ID; 
+	   					$this->query="UPDATE BIO_FILES SET PEDIMENTO = iif(PEDIMENTO = '', '$pedimento', PEDIMENTO||','||'$pedimento') where id = $id";
+	   					$this->queryActualiza();
+	   				}
+   				}
+   				echo 'Procesando pedimento: '.$pedimento.' Se encontraron '.count($data2).' archvivos<br/>';
+   				unset($data2);
+   			$this->query = "UPDATE BIO_PEDIMENTOS SET STATUS = 'P' WHERE trim_pedimento ='$trim_pedimento'";
+   			$this->queryActualiza();
+   			}
+   		}
+   	}
+
+   	function creaPaquetes(){
+   		$data = array();
+   		$zip = new ZipArchive();
+   		$rutaFinal = "C:\\xampp\\htdocs\\biotecsa\\zip\\";//ruta donde guardar los archivos zip, la creamos sino existe
+		if(!file_exists($rutaFinal)){
+		  mkdir($rutaFinal);
+		}
+   		$this->query="SELECT * FROM BIO_PEDIMENTOS WHERE STATUS = 'P' and files > 0";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)){
+   			$data[]=$tsArray;
+   		}
+   		if(count($data) >0 ){
+   			foreach ($data as $p) {
+   				$data2=array();
+		   		$trim_pedimento = $p->TRIM_PEDIMENTO;
+		   		$pedimento = substr($trim_pedimento , 8);
+		   		$this->query="SELECT * FROM BIO_FILES WHERE PEDIMENTO = '$pedimento' and status = 'nuevo'";
+		   		$res=$this->EjecutaQuerySimple();
+		   		while ($tsArray=ibase_fetch_object($res)){
+		   			$data2[]=$tsArray;
+		   		}
+		   		if(count($data2)>0){			   		
+					//Asignamos el nombre del archivo zip
+					$archivoZip = $pedimento.'.zip'; 
+					//Creamos y abrimos el archivo zip
+					if ($zip->open($archivoZip, ZIPARCHIVE::CREATE) === true) {
+						  //Agregamos los archivos uno a uno
+						foreach ($data2 as $d){
+							$ruta=str_replace("/", "\\", $d->RUTA);
+							$archivo = $ruta.$d->ARCHIVO;
+						  	$zip->addFile($archivo, $d->ARCHIVO);  
+						}	
+						//Cerramos el archivo zip	 
+						$zip->close();
+						//Muevo el archivo a una ruta
+						//donde no se mezcle los zip con los demas archivos
+						rename($archivoZip, "$rutaFinal/$archivoZip");
+					  //imrimimos un enlace para descargar el archivo zip
+					  echo "Descargar: <a href='$rutaFinal/$archivoZip'>$archivoZip</a>";
+					  //die;
+					} else {
+					  echo 'Error creando ' . $archivoZip;
+					}   			
+		   		}
+   			}
+   		}
+
    	}
 }
