@@ -52,6 +52,32 @@
                 </div>
             </div>
         </div>
+  <?php if($_SESSION['empresa']['noi'] == 1){?>
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4><i class="fa fa-list-alt">NOMINAS XML</i></h4>
+                </div>
+                <div class="panel-body">
+
+                    <p>Ejercicio: 
+                        <select id=anio >
+                            <option value="<?php echo date("Y")?>"><?php echo date("Y")?></option>
+                        </select>
+                    </p>
+                    <p>Periodo (Mes)
+                        <select id=mes>
+                            <option value="<?php echo 0?>">Todos</option>
+                            <?php foreach ($meses as $m): ?>
+                                <option value="<?php echo $m->NUMERO?>"><?php echo $m->NOMBRE?></option>
+                            <?php endforeach ?>
+                        </select></p>
+                    <center>
+                        <a class="btn btn-primary" id="verNomina"> Ver Nominas</a></center>
+                </div>
+            </div>
+        </div>
+    <?php }?>
         <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -66,6 +92,7 @@
                 </div>
             </div>
         </div>
+      
         <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -102,14 +129,12 @@
             </div>
         </div>
     -->
-    <?php if($_SESSION['user']->USER_LOGIN == 'ofarias' or $_SESSION['user']->USER_LOGIN == 'test_jesus'){?>
     <?php if($_SESSION['user']->USER_LOGIN == 'ofarias'){?>
          <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading">
                     <h4><i class="fa fa-list-alt">Descargas XML</i></h4>
                 </div>
-
             <div class="panel-body">
                 <p>Descargas de XML</p>
                 <center><a href="index_xml.php?action=''" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
@@ -117,35 +142,9 @@
                 <p><a href="index.xml.php?action=calculaSaldo">Calcula Saldos Mizco</p>
                 <p><a class="btn-sm btn-success cargaEFOS" >Carga EFOs</a></p>
                 <p><a class="btn-sm btn-primary sincronizar">Sincronizar Datos</a></p>
-            </div>
-            </div>
-        </div>
-    <?php }?>
-
-        <div class="col-md-4">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h4><i class="fa fa-list-alt">NOMINAS XML</i></h4>
                 </div>
-                <div class="panel-body">
-
-                    <p>Ejercicio: 
-                        <select id=anio >
-                            <option value="<?php echo date("Y")?>"><?php echo date("Y")?></option>
-                        </select>
-                    </p>
-                    <p>Periodo (Mes)
-                        <select id=mes>
-                            <option value="<?php echo 0?>">Todos</option>
-                            <?php foreach ($meses as $m): ?>
-                                <option value="<?php echo $m->NUMERO?>"><?php echo $m->NOMBRE?></option>
-                            <?php endforeach ?>
-                        </select></p>
-                    <center>
-                        <a class="btn btn-primary" id="verNomina"> Ver Nominas</a></center>
                 </div>
             </div>
-        </div>
     <?php }?>
         </div>
     </div>
