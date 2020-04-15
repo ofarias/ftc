@@ -1,7 +1,7 @@
 <?php 
-	require_once('app/model/model.statics.php');
+	require_once('app/model/model.mobile.php');
 
-class statics_c{
+class mobile_c{
 	
 	function load_template($title='Sin Titulo'){
 		$pagina = $this->load_page('app/views/master.php');
@@ -33,11 +33,6 @@ class statics_c{
 		if($_SESSION['user']){
 			$data = new statics;
 			$info=$data->verEstadistica($mes, $anio, $tipo, $t);
-			foreach ($info as $i){
-				$total = $i->TOTAL;
-				$total_dev = $i->TOTAL_DEV;
-				$total_can = $i->TOTAL_CAN;
-			}
 			$pagina =$this->load_template2('Estadistica de '.$tipo);
 			$html=$this->load_page('app/views/pages/Estadistica/p.verEstadistica.php');
 	   		ob_start();

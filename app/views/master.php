@@ -1504,6 +1504,30 @@ $('#dataTables-ocf').DataTable({
         }
         });
 /* datatables tablita 2 fin*/
+     $('#dataTables-stat').DataTable({
+                responsive: true,
+                lengthMenu: [[1000,-1], [1000,"Todo"]],
+                "order": [[6 , "desc"]],           
+                columnDefs:[
+                    {
+                        targets: [0,5],
+                        searchable: false
+                    }
+                ],
+                language: {
+                    lengthMenu: "Mostrando _MENU_ por pagina",
+                    zeroRecords: "No hay dato para mostrar",
+                    info: "Mostrando página _PAGE_ de _PAGES_",
+                    sSearch: "Filtrar: ",
+                    sInfoFiltered:   "(Filtrado de un total de _MAX_ registros)",                   
+                    oPaginate: {
+                                    "sFirst":    "Primero",
+                                    "sLast":     "Último",
+                                    "sNext":     "Siguiente",
+                                    "sPrevious": "Anterior"
+                                }
+                }
+        });
 
   
 /* Data Table Recibir Mercancia */

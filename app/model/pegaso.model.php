@@ -23627,7 +23627,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	function leeXML($archivo){
     	$myFile = fopen("$archivo", "r") or die ("No se ha logrado abrir el archivo ($file)!");
     	if(filesize("$archivo") <= 3000){
-    		return array("uuid"=>'No');
+    		return array("uuid"=>'No', "tcf"=>'falso');
     	}else{
 				$myXMLData = fread($myFile, filesize($archivo));
 		        $xml = @simplexml_load_string($myXMLData) or die ("Error: No se ha logrado crear el objeto XML ($file)");
@@ -24450,7 +24450,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			    		$impExePer = $nomPer['ImporteExento'];
 			    		$impGraPer = $nomPer['ImporteGravado'];
 			    		$tipPer = $nomPer['TipoPercepcion'];
-			    		$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA) VALUES (NULL, $rowrsper, 0, '$tipPer', '$clavePer', '$concepPer', $impExePer, $impGraPer, 'P', 0, '', 0, 0, 0, '$uuid')";
+			    		$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA) VALUES (NULL, $rowrsper, 0, '$tipPer', '$clavePer', '$concepPer', $impGraPer, $impExePer, 'P', 0, '', 0, 0, 0, '$uuid')";
 			    		$this->grabaBD();
 			    	}
 
@@ -24481,7 +24481,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				    					$concepDed = $nomDed['Concepto'];
 				    					$impDed = $nomDed['Importe'];
 				    					$tipoDed = $nomDed['TipoDeduccion'];
-				    		$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA) VALUES (NULL, 0, $rowded, '$tipoDed', '$claveDed', '$concepDed', $impDed, 0, 'D', 0, '', 0, 0, 0, '$uuid')";
+				    		$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA) VALUES (NULL, 0, $rowded, '$tipoDed', '$claveDed', '$concepDed', 0, $impDed, 'D', 0, '', 0, 0, 0, '$uuid')";
 				    		$this->grabaBD();
 				    	}
 					}
@@ -24493,7 +24493,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			    					$opConcepto = isset($otroP['Concepto'])? $otroP['Concepto']:'';
 			    					$opImporte = isset($otroP['Importe'])? $otroP['Importe']:0;
 
-			    			$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA ) VALUES (NULL, 0, 0, '$opTipo', '$opClave', '$opConcepto', $opImporte, 0, 'O', 0, '', 0, 0, 0, '$uuid')";
+			    			$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA ) VALUES (NULL, 0, 0, '$opTipo', '$opClave', '$opConcepto', 0, $opImporte, 'O', 0, '', 0, 0, 0, '$uuid')";
 				    		$this->grabaBD();
 			    		}
 
@@ -24501,7 +24501,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			    	if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:SubsidioAlEmpleo')){
 							foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:SubsidioAlEmpleo') as $otroSE){
 								$opseCausado = $otroSE['SubsidioCausado'];
-							$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA ) VALUES (NULL, 0, 0, '', '', 'Subsidio Causado', $opseCausado, 0, 'S', 0, '', 0, 0, 0, '$uuid')";
+							$this->query="INSERT INTO XML_NOMINA_DETALLE (ID_NPD, ID_NP, ID_ND, TIPO, CLAVE, CONCEPTO, IMP_GRAVADO, IMP_EXENTO, DED_PER, DIAS, TIPO_HORAS, HORAS_EXTRA, IMPORTE_PAGADO_HE, STATUS, UUID_NOMINA ) VALUES (NULL, 0, 0, '', '', 'Subsidio Causado', 0, $opseCausado, 'S', 0, '', 0, 0, 0, '$uuid')";
 				    		$this->grabaBD();		
 							}
 			    		}			    		
@@ -25113,7 +25113,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$rfc = $cliente[3];
     	$rfcr = $cliente[0];
     	$uuid = $cliente[2];
-
     	if($ide == 'Emitidos'){
 			$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfcr' and tipo = 'Cliente'";
 	    	$this->queryActualiza();
@@ -25135,7 +25134,19 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$cve_sat = $key[1];
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
-	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' where xp.rfc = '$rfcr' and (select x.rfce from xml_data x where x.uuid = '$uuid') = '$rfc' and  xp.CLAVE_SAT = '$cve_sat' and xp.UNIDAD_SAT = '$uni_sat' and ( (select x.status from xml_data x where x.uuid = '$uuid') = 'P' or  (select x.status from xml_data x where x.uuid = '$uuid') = 'S') --and (cuenta_Contable is null or cuenta_Contable = '') --and PARTIDA = $par";
+	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' 
+	    			where 
+	    				xp.rfc = '$rfcr' 
+	    				and (select x.rfce from xml_data x where x.uuid = xp.uuid) = '$rfc' 
+	    				and  xp.CLAVE_SAT = '$cve_sat' 
+	    				and xp.UNIDAD_SAT = '$uni_sat' 
+	    		and 
+	    		( 
+	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'P' 
+	    		or  
+	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
+	    		)";
+	    		//and (cuenta_Contable is null or cuenta_Contable = '') --and PARTIDA = $par
 	    		//echo $this->query;
 	    		$this->queryActualiza();
 	      	}	
@@ -26741,10 +26752,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	function cabeceraDocumento($uuid){
 		$data=array();
 		$rfcEmp = $_SESSION['rfc'];
-		$this->query="SELECT x.*, xc.*, extract(month from x.fecha) as periodo, extract(year from x.fecha) as ejercicio  FROM XML_DATA x left join xml_clientes xc on xc.rfc = x.rfce  and xc.tipo = iif(x.CLIENTE = '$rfcEmp','Proveedor', 'Cliente') WHERE x.UUID ='$uuid'";
-		//echo $this->query;
+		$this->query="SELECT x.*, xc.*, extract(month from x.fecha) as periodo, extract(year from x.fecha) as ejercicio  FROM XML_DATA x left join xml_clientes xc on xc.rfc = 
+		iif(x.CLIENTE = '$rfcEmp', x.rfce, x.cliente) and xc.tipo = iif(x.CLIENTE = '$rfcEmp','Proveedor', 'Cliente') WHERE x.UUID ='$uuid'";
 		$res=$this->EjecutaQuerySimple();
-
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
 		}
@@ -27992,17 +28002,21 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	if(!file_exists($ruta_dup)){
     		mkdir($ruta_dup);
     	}
+    	$ruta_nv = $ruta.'\\No Validos\\';
+    	if(!file_exists($ruta_nv)){
+    		mkdir($ruta_nv);
+    	}
     	foreach ($archivos as $b){
     		$file = $ruta.$b;
     		$tipo = filetype($file);
     		$info = pathinfo($file);
     		$tipo == 'file'? $files++:0;
-    		if($files < 200){
+    		if($files < 251){
 	    		if($tipo == 'file' and strtoupper($info['extension']) == strtoupper('xml')){
 	    			$xmls++;
 	    			$res=array("status"=> 'no');
 	    			$a=$this->leeXML($file);
-	    			if($a['uuid']!='No'){
+	    			if($a['uuid']!='No' and $a['tcf'] != 'falso'){
 	    				$val=$this->seleccionarArchivoXMLCargado($file, $a['uuid']);
 		    			if($val==null){
 		    				$file_charge = $ruta_cargados.$b;
@@ -28020,6 +28034,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		    				rename($file,$file_dup);
 		    			}	
 	    			}else{
+	    				echo 'El Archivo '.$file.'  se movio a la carpeta de No Validos...<br/>';
+		    			$dup++;
+		    			$file_nv = $ruta_nv.$b;
+		    			rename($file,$file_nv);
 	    			}
 	    		}
     		}

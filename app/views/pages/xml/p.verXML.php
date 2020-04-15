@@ -6,8 +6,10 @@
     $polizas=$pol->POLIZA;
     if($_SESSION['rfc'] == $pol->RFCE){
         $tipo = 'Ingreso';
+        $tx = 'Cliente';
     }else{
         $tipo = 'Egreso';
+        $tx='Proveedor';
     }
 }
 ?>
@@ -115,8 +117,20 @@
                                             <td><?php echo $tipo?></td>
                                             <td><?php echo $key->SERIE.$key->FOLIO?></td>
                                             <td><?php echo $key->FECHA;?> </td>
-                                            <td><?php echo '<b>('.$key->RFCE.')'.$key->EMISOR."</b>"?></td>
-                                            <td><?php echo '<b>('.$key->CLIENTE.')  '.$key->NOMBRE."</b>";?></td>
+                                            <td><?php echo '<b>('.$key->RFCE.')'.$key->EMISOR."</b>"?>
+                                            <?php if($cccliente == 'Sin Cuenta Actual' and $tx == 'Proveedor'){?>
+                                            &nbsp;&nbsp;
+                                            <a class="btn-sm btn-primary creaCuenta" uuid="<?php echo $key->UUID?>" tipo="Proveedor" >Alta de Proveedor</a>
+                                            <?php }?>
+                                            </td>
+                                            <td><?php echo '<b>('.$key->CLIENTE.')  '.$key->NOMBRE."</b>";?>
+                                                <?php if($cccliente == 'Sin Cuenta Actual' and $tx == 'Cliente'){?>
+                                            &nbsp;&nbsp;
+                                            <a class="btn-sm btn-primary creaCuenta" uuid="<?php echo $key->UUID?>" tipo="Cliente" >Alta de Cliente</a>
+                                            <?php }?>
+                                            </td>
+                                            
+                                            </td>
                                             <td><?php echo '$ '.number_format($key->SUBTOTAL,2);?></td>
                                             <td><?php echo '$ '.number_format($key->IVA160,2);?></td>
                                             <td><?php echo '$ '.number_format($key->IVA_RET,2);?></td>
@@ -126,7 +140,8 @@
                                             <td><?php echo '$ '.number_format($key->DESCUENTO,2)?></td>
                                             <td><?php echo '$ '.number_format($key->IMPORTEXML,2);?> </td>
                                         </tr>
-                                        <tr style="background-color:#DFCFF1">
+                                        
+                                        <tr style="background-color: <?php echo $cccliente=='Sin Cuenta Actual'? '#DFCFF1':'#cff7c4'?>">
                                             <input type="hidden" name="cpv" value="<?php echo '('.$key->RFCE.') '.$key->EMISOR?>" id='clpv'>
                                             <input type="hidden" name="mont" value="<?php echo number_format($key->IMPORTEXML,2)?>" id="monto">
                                             <td colspan="14">
@@ -211,8 +226,8 @@
                                             <td><?php echo '$ '.number_format($key->IVA_R,2).'<br/>'.$key->FACT_IVA_R.'<br/>'.$key->TASA_IVA_R.'<br/><b>Base:'.number_format($key->B_IVA_R,2)?></td>
                                             <td><?php echo '$ '.number_format($key->IEPS,2).'<br/>'.$key->FACT_IEPS.'<br/>'.$key->TASA_IEPS.'<br/><b>Base:'.number_format($key->B_IEPS,2)?></td>
                                             <td><?php echo '$ '.number_format($key->IEPS_R,2).'<br/>'.$key->FACT_IEPS_R.'<br/>'.$key->TASA_IEPS_R.'<br/><b>Base:'.number_format($key->B_IEPS_R,2)?></td>
-                                            <tr style="background-color:#DFCFF1">
-                                                <td colspan="14">
+                                            <tr style="background-color: <?php echo $ccp=='Sin Cuenta Definida'? '#DFCFF1':'#cff7c4'?>">
+                                                <td colspan="15">
                                                     <?php echo '<b>Cuenta Actual: '.$ccp.'#### Cambiar Cuenta --><b>'?>
                                                     <input type="text" name="cuenta" placeholder="Cuenta Contable" class="cuencont" size="120" id="cPP_<?php echo $key->PARTIDA?>" 
                                                     valor="<?php echo $valor?>" rfc="<?php echo ':'.$rfce?>" x="<?php echo $valor2?>" >
@@ -239,13 +254,73 @@
 
     var a = document.getElementById('anio').value;
     //var b =19;    
-
     $(".cuencont").autocomplete({
         source: "index.coi.php?cuentas=1&anio=" + a,
         minLength: 3,
         select: function(event, ui){
         }
     })
+
+    $(".creaCuenta").click(function(){
+        var uuid = $(this).attr('uuid')
+        var tipo = $(this).attr('tipo')
+        $.confirm({
+            columnClass: 'col-md-8',
+            title: 'Alta de cuenta contable ' + tipo,
+            content: 'Se creara la cuenta de detalle asociada a la cuenta acumulativa que usted elija' + 
+            '<form action="xls_diot.php" method="post" enctype="multipart/form-data" class="formdiot">' +
+            '<div class="form-group">'+
+            '<br/>Seleccione la cuenta Padre (Acumulativa):'+
+                '<select class="ctaPp" >'+
+                    <?php foreach ($ctA as $c):?>
+                        ' <option value="<?php echo $c->CUENTA_COI.$c->NIVEL?>"><?php echo $c->NOMBRE." ".$c->CUENTA?></option> ' +
+                    <?php endforeach;?>
+                '</select>' 
+            +'<br/>'+
+            '</form>',
+                buttons: {
+                formSubmit: {
+                text: 'Crear Cuenta',
+                btnClass: 'btn-blue',
+                action: function () {
+                    var papa = this.$content.find('.ctaPp').val()
+                    exeCC(uuid, papa)    
+                }
+                },
+                cancelar: function () {
+                },
+            },
+        });
+        //exeCC(uuid)
+    })
+
+    function exeCC(uuid, papa){
+        $.confirm({
+            content: function () {
+                    var self = this;
+                    return $.ajax({
+                        url: 'index.coi.php',
+                        type:'post',
+                        dataType: 'json',
+                        data: {creaCC:1, uuid, papa}
+                    }).done(function (response) {
+                        self.setContent(response.mensaje);
+                        //self.setContentAppend('<br>Version: ' + response.version);
+                        self.setTitle('Alta de cuentas contables en COI');
+                    }).fail(function(){
+                        self.setTitle('Alta de cuenta');
+                        self.setContent('Ocurrio algo inesperado, favor de revisar en COI.');    
+                    });
+            },
+            onContentReady: function(){
+                setTimeout(refrescar, 3000);
+            }
+        });
+    }
+
+    function refrescar(){
+        location.reload();
+    }
 
     function banco(ide){
         var bancos = "a000"

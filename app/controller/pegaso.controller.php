@@ -20262,6 +20262,7 @@ function ImpSolicitud2($idsol){
     		if($cnxcoi=='si'){
     			$cccliente=$coi->traeCuentaCliente($infoCabecera, $ide, $a);
     			$ccC=$coi->traeCatalogoCuentas($tipo='V', $ide, $a);
+    			$ctA=$coi->traeCtasAcum($ide, $a);
     			//$ccG=$coi->traeCatalogoCuentas($tipo='G');
     			$ccpartidas=$coi->traeCuentasSAT($info, $a);
     			$cimpuestos=array("iva"=>'0101010101010',"ieps"=>'0202020202020', "isr"=>'0303030303030');
