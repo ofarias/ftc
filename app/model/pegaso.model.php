@@ -28075,4 +28075,14 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	return $data;
     }
 
+    function traePeriodoNom(){
+    	$data=array();
+    	$this->query="SELECT EXTRACT(YEAR FROM FECHA_INICIAL) AS ANIO FROM XML_NOMINA_TRABAJADOR GROUP BY EXTRACT(YEAR FROM FECHA_INICIAL)";
+    	$res=$this->EjecutaQuerySimple();
+    	while ($tsArray=ibase_fetch_object($res)) {
+    		$data[]=$tsArray;
+    	}
+    	return $data;
+    }	
+
 }?>

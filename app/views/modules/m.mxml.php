@@ -62,7 +62,9 @@
 
                     <p>Ejercicio: 
                         <select id=anio >
-                            <option value="<?php echo date("Y")?>"><?php echo date("Y")?></option>
+                            <?php foreach($nomina as $n):?>
+                            <option value="<?php echo $n->ANIO?>"><?php echo $n->ANIO?></option>
+                        <?php endforeach;?>
                         </select>
                     </p>
                     <p>Periodo (Mes)
