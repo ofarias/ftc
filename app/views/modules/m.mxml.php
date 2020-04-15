@@ -116,6 +116,7 @@
                 <p><a href="index.xml.php?action=actTablas">Actualizar Tablas</a></p>
                 <p><a href="index.xml.php?action=calculaSaldo">Calcula Saldos Mizco</p>
                 <p><a class="btn-sm btn-success cargaEFOS" >Carga EFOs</a></p>
+                <p><a class="btn-sm btn-primary sincronizar">Sincronizar Datos</a></p>
             </div>
             </div>
         </div>
@@ -163,6 +164,22 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+        $(".sincronizar").click(function(){
+            //$.confirm("desea continuar?")
+            $.ajax({
+                url:'index.mobile.php',
+                type:'post',
+                dataType:'json',
+                datat:{},
+                success:function(data){
+                    alert('Se ha sincronizado correctamente')
+                },
+                error:function(){
+                    alert('Se ha producido un error')
+                }
+            })
+        })
         
         $("#verNomina").click(function(){
             var a = document.getElementById("anio").value

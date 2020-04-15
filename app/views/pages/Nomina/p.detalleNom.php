@@ -5,7 +5,7 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                         Recibos de la nomina del <?php echo $fi?> al <?php echo $ff?>
-                        <br/><br/> <input type="button" class="btn-sm btn-success detNom" value="Exportar a Excel" tipo="xls"> &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" class="btn-sm btn-info detNom" value="Detalle de la Nomina" tipo= 'pant'>
+                        <br/><br/> <input type="button" class="btn-sm btn-info detNom" value="Detalle de la Nomina" tipo= 'pant'>
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
@@ -16,7 +16,9 @@
                                             <th>Numero Empleado</th>
                                             <th><b>Nombre</b> <br/> <font color="brown">CURP</font> <br/> <font color="green">NSS </font></th>
                                             <th>Percepciones</th>
-                                            <th>Deducciones</th>
+                                            <th>Deduciones</th>
+                                            <th>Otras <br/>Percepciones</th>
+                                            <th>Total a <br/> Pagar</th>
                                             <th>Fecha <br/> Inicio relacion <br/><font color="brown"> Antigüedad</font></th>
 											<th>Tipo Contrato <br/> <font color="brown">Sindicalizado</font></th>
                                             <th>Tipo Jornada <br/> <font color="brown">Tipo de Regimen</font></th>
@@ -28,7 +30,6 @@
                                             <th>UUID</th>
                                         </tr>
                                     </thead>                                   
-                                            
                                   <tbody>
                                     	<?php foreach ($rec as $data): 
                                                 $a = 'Total &#10; Algo mas ';
@@ -40,6 +41,8 @@
                                                     <font color="blue"><?php echo '$ '.number_format($data->TOTAL_SUELDOS,2)?></font></td>
                                                 <td align="right">
                                                     <font color="#D94D4D"><?php echo '$ '.number_format($data->TOTAL_IMP_RET + $data->TOTAL_OTRAS_DED,2)?></font></td>
+                                                <td align="right"><font color="blue"><?php echo '$ '.number_format($data->OTROS,2)?></font></td>
+                                                <td align="right"><font color="green"><?php echo '$ '.number_format($data->OTROS + $data->TOTAL_SUELDOS - ($data->TOTAL_IMP_RET + $data->TOTAL_OTRAS_DED),2)?></td>
                                                 <td><?php echo $data->FECHAINICIORELLABORAL?><br/><font color="brown"><?php echo $data->ANTIGUEDAD?></font></td>
                                                 <td><?php echo $data->TIPOCONTRATO.' <b>'.$data->CONTRATO.'</b><br/><font color="brown">'.$data->SINDICALIZADO.'</font>'?></td>
                                                 <td><?php echo $data->TIPOJORNADA.' <b>'.$data->JORNADA.'</b>'?><br/><font color="brown"><?php echo $data->TIPOREGIMEN.' <b>'.$data->REGIMEN.'</b>'?></font></td>

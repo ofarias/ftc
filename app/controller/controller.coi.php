@@ -337,5 +337,14 @@ class controller_coi{
 		}
 	}
 
+	function creaCC($uuid, $papa){
+		if($_SESSION['user']){
+			$data_coi = new CoiDAO;
+			$data = new pegaso;
+  			$info=$data->cabeceraDocumento($uuid);
+  			$res=$data_coi->creaCC($info, $papa);
+  			return $res;
+		}
+	}
 }?>
 

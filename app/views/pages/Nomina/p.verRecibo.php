@@ -85,7 +85,7 @@
                                         $tp = 0; $td=0;
                                         foreach ($info['datos'] as $d):
                                             $perded = ''; $color = ''; 
-                                            if($d->DED_PER =='P'){
+                                            if($d->DED_PER =='P' or $d->DED_PER=='O'){
                                                 $perded = 'Percipcion';
                                                 $color = "style='background-color:#E0FFFF'";
                                                 $tp = $tp + ($d->IMP_GRAVADO + $d->IMP_EXENTO);
@@ -103,7 +103,8 @@
                                             <td><?php echo $d->CONCEPTO?></td>
                                             <td align="right"><?php echo '$ '.number_format($d->IMP_GRAVADO,2)?></td>
                                             <td align="right"><?php echo '$ '.number_format($d->IMP_EXENTO,2)?></td>
-                                            <td align="right"><?php echo $d->DED_PER=='P'? '$ '.number_format($d->IMP_GRAVADO + $d->IMP_EXENTO,2):number_format(0,2)?></td>
+                                            
+                                            <td align="right"><?php echo ($d->DED_PER=='P' or $d->DED_PER == 'O')? '$ '.number_format($d->IMP_GRAVADO + $d->IMP_EXENTO,2):number_format(0,2)?></td>
                                             <td align="right"><?php echo $d->DED_PER=='D'? '$ '.number_format($d->IMP_GRAVADO + $d->IMP_EXENTO,2):number_format(0,2)?></td>
                                         </tr>
                                         <?php endforeach; ?>

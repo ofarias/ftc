@@ -64,6 +64,14 @@ class CoiDAO extends DataBaseCOI {
         return $data;
     }
 
+    function traeCtasAcum($ide, $anio){
+        $this->query="SELECT * FROM CUENTAS_FTC_$anio WHERE TIPO = 'A' order by cuenta_coi";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
 
     function traeCatalogoCuentas($tipo, $ide, $anio){
         $data=array();
@@ -117,7 +125,7 @@ class CoiDAO extends DataBaseCOI {
     function validaCuentaContable($anio){
         $this->query="SELECT count(*) FROM CUENTAS_FTC_$anio ";
         if(@$res=$this->EjecutaQuerySimple()){
-
+            return;
         }else{
             $this->query = "CREATE OR ALTER VIEW CUENTAS_FTC_$anio(
                             CUENTA,
@@ -145,6 +153,7 @@ class CoiDAO extends DataBaseCOI {
                              ,tipo
                             from cuentas$anio";
             @$this->grabaBD();
+            return;
         }
     }
 
@@ -155,19 +164,15 @@ class CoiDAO extends DataBaseCOI {
         $cuenta = $cliente[1];
         $uuid = $cliente[2];
         $rfc_e = $cliente[3];
-
         $this->query="SELECT COALESCE(MAX(ID), 0) + 1 AS FOLIO FROM FTC_PARAMETROS";
         $res=$this->EjecutaQuerySimple();
         $row=ibase_fetch_object($res);
         $num_para = $row->FOLIO;
-
         $this->query="INSERT INTO FTC_PARAMETROS (ID, UUID, RFC_R, RFC_E, FECHA_ALTA, USUARIO, STATUS )
                             VALUES(NULL, '$uuid', '$rfc', '$rfc_e', current_timestamp,'$usuario', 1 )";
         $this->grabaBD();
-
         $this->query="INSERT INTO FTC_CUENTAS_SAT (ID, CLAVE_SAT, CUENTA_COI, STATUS, RFC_CLIENTE, RFC_PROVEEDOR, UNIDAD_SAT, FTC_NUM_PARAM) 
                         VALUES(null,'MXN','$cuenta',1,'$rfc','$rfc_e','MX', $num_para)";
-        //echo '<br/>'.$this->query;
         if($this->grabaBD()){
             /// Debemos de asegurarnos que nuestro proveedor solo tenga una cuenta.
             //$this->query="UPDATE CUENTAS18 SET RFC = '' WHERE RFC = '$rfc_e' "
@@ -176,10 +181,7 @@ class CoiDAO extends DataBaseCOI {
             $partidas=explode("###", $partidas);
             //var_dump($partidas);
             foreach ($partidas as $key) {
-                //1:83111603:E48:640000400040000000003
-                //echo 'Valor de partida: '.$key.'<br/>';
                 $par=explode(":",$key);
-                //var_dump($par);
                     $partida =$par[0];
                     $cve_sat =$par[1];
                     $uni_sat =$par[2];
@@ -187,7 +189,6 @@ class CoiDAO extends DataBaseCOI {
                     $rfc_e   =$par[4];
                  $this->query="INSERT INTO FTC_CUENTAS_SAT (ID, CLAVE_SAT, CUENTA_COI, STATUS, RFC_CLIENTE, RFC_PROVEEDOR, UNIDAD_SAT, FTC_NUM_PARAM)
                                 values(null, '$cve_sat', '$c_coi', 1, '$rfc','$rfc_e', '$uni_sat', $num_para)";
-                 //echo '<br/>'.$this->query.'<br/>';
                  $this->EjecutaQuerySimple();
             }
             return array("status"=>'ok',"mensaje"=>"Se inserto correctamente el parametro... del cliente");
@@ -921,8 +922,98 @@ class CoiDAO extends DataBaseCOI {
     }
 
 
-    function crear_cuentas_clientes($rfc){
+    function creaCC($data, $papa){
+                ##########################################################
+                ##VALIDAMOS QUE EXISTA LA CUENTA, SI NO, LA CREAMOS ######
+                ##########################################################
+                foreach($data as $dataC){
+                    $rfc = $dataC->RFC;
+                    $nombre = $dataC->NOMBRE;
+                }
+                /// Checamos los ejercicios que estan abiertos en el sistema para validar la cuenta en todos los ejercicios y evitar tener una incongruencia en los datos. al parecer asi lo maneja COI.
 
+                $this->query="SELECT DIGCTA1 , DIGCTA2 , DIGCTA3 , DIGCTA4 , DIGCTA5 , DIGCTA6 , DIGCTA7 , DIGCTA8 , DIGCTA9, (DIGCTA1 + DIGCTA2 + DIGCTA3 + DIGCTA4 + DIGCTA5 + DIGCTA6 + DIGCTA7 + DIGCTA8 + DIGCTA9) AS CTATAM, NIVELACTU, GUIOn_SINO FROM PARAmEMP";
+                $res=$this->EjecutaQuerySimple();
+                $row = ibase_fetch_object($res);
+                $maximo = $row->CTATAM; // Definimos la longitud completa del cuenta.
+                $campo = 'DIGCTA'.$row->NIVELACTU; /// Definimos cual es el ultimo campo con valor.
+                $camp = 'DIGCTA';
+                $inicial = ($row->CTATAM - $row->{$campo}) + 1; // 7 + 1 se suma uno por que Firebir substring el primer valor es 1 a diferencia en php es 0;
+                /// Calcula Hija tenemos que saber el nivel del acumulado. 
+                /// si es nivel 1 la hija entonces en nivel 2, traemos el valor del nivel 1 
+                $nivel = substr($papa,-1);
+                $n1=0;
+                for ($i=1; $i <= $nivel ; $i++) { 
+                    $n1 += $row->{$camp.$i};
+                }
+                $nh = $nivel+1;
+                $n2 = $row->{$camp.$nh};
+                $papa = substr($papa,0,strlen($papa)-1 );
+                $this->query="SELECT EJERCICIO FROM ADMPER GROUP BY EJERCICIO";
+                $res=$this->EjecutaQuerySimple();
+                while($tsArray=ibase_fetch_object($res)){
+                    $periodos[]=$tsArray;
+                }
+                foreach ($periodos as $p) {
+                    /// validamos que exista la tabla CUENTAS_FTC_AÑO 
+                    $eje = substr($p->EJERCICIO,2,2);
+                    $this->validaCuentaContable($eje);
+                    $this->query= "SELECT iif(MAX(NUM_CTA) is null, 0, max(NUM_CTA)) as valor, max(NUM_CTA) AS CUENTA FROM CUENTAS$eje WHERE RFC = '$rfc'";
+                    $res = $this->EjecutaQuerySimple();
+                    $rowCta = ibase_fetch_object($res);
+                    $valCta = $rowCta->VALOR;    
+                    if($valCta==0){
+                            /// Buscar una forma de traer la cuenta padre, en este caso son las 2110001 para proveedores nacionales
+                            /// esta formula esta topada al tipo de cuenta 4-3-3 (DIGCTA1 4, DIGCTA2 3, DIGCTA3 3) debemos de analizar el formato de cuenta desde la tabla, PARAEMP y poder calcular correctamente la cuenta de Detalle. 
+                            /// copiar el codigo agrupador del SAT
+                            //$this->query ="SELECT coalesce(MIN(NUM_CTA), 0) as papa, substring(MAX(num_cta) from $inicial for $nivel) as hija, min(cta_raiz) as raiz FROM CUENTAS$eje WHERE NUM_CTA STARTING WITH ('$ctaP') and TIPO ='D'";
+                            $this->query="SELECT max(NUM_CTA), '$papa' as PAPA, substring( MAX(num_cta) from ($n1+1) for $n2) as hija, min(cta_raiz) as raiz, max(CODAGRUP) AS IDFISCAL from cuentas18 where cta_papa ='$papa'";
+                            //echo'<br/> Se crea la consulta '.$this->query.'<br/>';
+                            $rs = $this->EjecutaQuerySimple();
+                            $rowCtaDet= ibase_fetch_object($rs);
+                            $ctaPapa = $rowCtaDet->PAPA;
+                            $ctaHija = $rowCtaDet->HIJA;
+                            $ctaRaiz = $rowCtaDet->RAIZ;
+                            $idF = $rowCtaDet->IDFISCAL;
+                            $nueva = $ctaHija + 1;
+                            $nueva = str_pad($nueva, $n2, '0', STR_PAD_LEFT);
+                            $ctaPapa = substr($papa,0,$n1);
+                            $cuentaNueva = str_pad($ctaPapa.$nueva,20, '0');
+                            $cuentaNueva = $cuentaNueva.$nh;
+                            //echo '<br/> Cuenta Nueva: '.$cuentaNueva;
+                            $this->query = "INSERT INTO CUENTAS$eje (NUM_CTA, STATUS, TIPO, NOMBRE, DEPTSINO, BANDMULTI, BANDAJT, CTA_PAPA, CTA_RAIZ, NIVEL, CTA_COMP, NATURALEZA, RFC, CODAGRUP, CAPTURACHEQUE, CAPTURAUUID, BANCO, CTABANCARIA, CAPCHEQTIPOMOV, NOINCLUIRXML, IDFISCAL, ESFLUJODEEFECTIVO, BANCOEXTRANJERO, RFCFLUJO) 
+                            VALUES ('$cuentaNueva', 'A', 'D', substring('$nombre' from 1 for 40), 'N', 1,'N','$papa', '$ctaRaiz', $nh, '', 1, '$rfc', '$idF', 0,0, 0, '','N', 0, '', 0,'', '')";
+                            $rs= $this->grabaBD();
+                            $this->query = "INSERT INTO SALDOS$eje (num_cta, Ejercicio) VALUES ('$cuentaNueva', $p->EJERCICIO)";
+                            $rs = $this->grabaBD();
+                            $this->query = "INSERT INTO PRESUP$eje (num_cta, Ejercicio) VALUES ('$cuentaNueva', $p->EJERCICIO)";
+                            $rs = $this->grabaBD();
+                            $this->query="SELECT CUENTA FROM CUENTAS_FTC_$eje where CUENTA_COI = '$cuentaNueva'";
+                            $res=$this->EjecutaQuerySimple();
+                            $row = ibase_fetch_object($res);
+                            $mensaje=array('status'=>'ok','mensaje'=>'Se ha creado la cuenta '.$row->CUENTA);
+                    }else{
+                        $mensaje=array('status'=>'No','mensaje'=>'Ya existe la cuenta '.$rowCta->CUENTA.'!!!!' );
+                    }
+                }
+                if(isset($rs) and @$rs == 1){
+                    $this->query="INSERT INTO RFCTER (RFCIDFISC, TIPO, NOMBRE, PAIS, NACIONAL, TIPOOP, ESMONTO, IVADEFAULT, PORCENTAJEIVA, INCLUYEIVA, ESPROV ) VALUES ('$rfc', 4, '$nombre', 0, '', 85, 'N', -2, 0, -1 ,'S')";
+                    @$this->grabaBD();                        
+                }
+                ///$this->query="SELECT CUENTA FROM CUENTAS_FTC_$eje where CUENTA_COI = (SELECT NUM_CTA FROM CUENTAS$eje WHERE RFC = '$rfc')";
+                ///@$res=$this->EjecutaQuerySimple();
+                ///@$row2 = ibase_fetch_object($res);
+                ///
+                ///if(isset($row2)){
+                ///    $mensaje=array('status'=>'No','mensaje'=>'Ya existe la cuenta '.$row->CUENTA);
+                ///}
+                return $mensaje;
+                ##########################################################
+                ############ FIN DE LA VALIDACION DE LA CUENTA ###########
+                ##########################################################
+    }
+
+    function crear_cuentas_clientes($rfc){
         var_dump($rfc);
         foreach ($rfc as $datosCliente) {
              $rfc = $datosCliente->RFC;
@@ -1010,6 +1101,8 @@ class CoiDAO extends DataBaseCOI {
             }
             return $actualiza;
     }
+
+
 
     function contabiliza_ventas($ventas){
 
@@ -1173,7 +1266,8 @@ class CoiDAO extends DataBaseCOI {
 
     function traeCuentasContables($buscar, $anio){
         $this->validaCuentaContable($anio);
-        $this->query="SELECT * FROM cuentas_FTC_$anio where UPPER(cuenta) containing(UPPER('$buscar')) or UPPER(nombre) containing(UPPER('$buscar')) or UPPER(cuenta_coi) containing(UPPER('$buscar')) and tipo = 'D'";
+        $this->query="SELECT * FROM cuentas_FTC_$anio 
+        where (UPPER(cuenta) containing(UPPER('$buscar')) or UPPER(nombre) containing(UPPER('$buscar')) or UPPER(cuenta_coi) containing(UPPER('$buscar')) ) and tipo = 'D'";
         $rs=$this->QueryDevuelveAutocompleteCuenta();
         return @$rs;
     }

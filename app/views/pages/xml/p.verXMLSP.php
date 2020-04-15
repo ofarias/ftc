@@ -174,7 +174,7 @@
                                                         <?php }?>
                                                         <?php foreach($tipoDOC as $tdoc ):?>
                                                             <?php if($tdoc->ID_TIPO >= 2000 AND $tdoc->ID_TIPO< 3000 ){ ?>
-                                                            <option><?php echo $tdoc->DESCRIPCION?></option>
+                                                            <option value="<?php echo $tdoc->ID_TIPO?>"><?php echo $tdoc->DESCRIPCION?></option>
                                                             <?php }?>   
                                                         <?php endforeach;?>
                                                     </select>

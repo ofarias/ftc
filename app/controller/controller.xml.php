@@ -1231,8 +1231,6 @@ class controller_xml{
 
 	        //// revisar hasta aqui las columnas de Totales 
 	    $ln++;
-	   
-
 
 	    foreach ($lineas as $key){
 	    	$tp=0;
@@ -1370,14 +1368,14 @@ class controller_xml{
 
 	    $xls->setActiveSheetIndex()
 	        ->setCellValue('A'.$ln,'Fin del resumen de documentos.');
-	                //->setCellValue('B'.$ln,'')
-	                //->setCellValue('C'.$ln,'$ '.number_format($key->SALDOFINAL-$key->IMP_TOT4,2))
-	                //->setCellValue('D'.$ln,'$ '.number_format($key->IMP_TOT4,2))
-	                //->setCellValue('E'.$ln,'$ '.number_format($key->IMPORTE,2))
-	                //->setCellValue('F'.$ln,'$ '.number_format($key->SALDO,2))
-	                //->setCellValue('G'.$ln,$key->FECHA_INI_COB)
-	                //->setCellValue('H'.$ln,$key->CVE_PEDI)
-	                //->setCellValue('I'.$ln,$key->OC);
+
+	    /// Inicia los totales:
+
+
+
+
+
+
 	         
 	    $xls->getActiveSheet()
 	        ->setCellValue('A1',$df->RAZON_SOCIAL);
@@ -1411,25 +1409,68 @@ class controller_xml{
 	        $xls->getActiveSheet()->getColumnDimension('Z')->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension('AA')->setWidth(13);
 
-	   
-
+	   	
+	   		$totales = $dataXML->totalNomina($fi, $ff);
+	   		
 	        $xls->getActiveSheet()
 	            ->setCellValue('A3','Resumen de Recibos de Nomina')
 	            ->setCellValue('A4','Fecha Inicial: '.$fi)
 	            ->setCellValue('A5','Fecha Final: '.$ff)
-	            ->setCellValue('A6','Total Percepciones: '.'percepciones')
-	            ->setCellValue('A7','Total Deducciones: '.'Deducciones')
-	            ->setCellValue('A8','Total Otras Percepciones: '.'Deduccione')
-	            ->setCellValue('A9','Valor de la Nomina: '.'Recibos')
 	            ;
 
+	        $cc=0;
+	        $coltot = 'A';
+	        $lintot = 6;
+	        $cc2 = 0;
+	        $lin2= 6;
+	        foreach ($totales as $t) {
+	        	$cc2++;
+	        	if($cc2 == 1){
+	        		$colcab= $coltot;
+	        		++$colcab;
+	        		$lincab = $lin2-1;
+	        		$xls->getActiveSheet()    
+			            ->setCellValue($colcab.$lincab,'Gravado')
+	    	        ;
+			        	$xls->getActiveSheet()->getStyle($colcab.$lincab)->getAlignment()->setHorizontal('center');
+	        		++$colcab;
+
+	    	    	$xls->getActiveSheet()    
+			            ->setCellValue($colcab.$lincab,'Exento')
+	    	    	;	
+			        	$xls->getActiveSheet()->getStyle($colcab.$lincab)->getAlignment()->setHorizontal('center');
+
+	        	}
+
+	        	if($cc == 4){
+	        		++$coltot;
+	        		++$coltot;
+	        		++$coltot;
+	        		$cc = 0;
+	        		$lintot = 6;
+	        		$cc2=0;
+	        		$lin2=6;
+	        	}
+	        	$cc++;
+	        	$coltdg= $coltot;
+	        	++$coltdg;
+	        	$coltde = $coltdg;
+	        	++$coltde;
+		   		$xls->getActiveSheet()    
+		            ->setCellValue($coltot.$lintot,'Total '.$t->CONCEPTO.'('.$t->TIPO.'-'.$t->CLAVE.')')
+		            ->setCellValue($coltdg.$lintot,'$ '.number_format($t->GRAVADO,2))
+		            ->setCellValue($coltde.$lintot,'$ '.number_format($t->EXENTO,2))
+	    	    ;
+	    	    //$xls->getActiveSheet()->getStyle($coltot.$lintot)->getAlignment()->setHorizontal('right');
+	    	    $xls->getActiveSheet()->getStyle($coltdg.$lintot)->getAlignment()->setHorizontal('right');
+	    	    $xls->getActiveSheet()->getStyle($coltde.$lintot)->getAlignment()->setHorizontal('right');
+
+	            $lintot++;
+	   		}
+	       
 	        $xls->getActiveSheet()
 	            ->setCellValue('C3','Fecha del Emisión: '.date("d-m-Y H:n:s"))
 	            ->setCellValue('C4','Emite: '.$usuario)
-	            ->setCellValue('C5','Pago I.S.R. : ')
-	            ->setCellValue('C6','Pago IMSS: ')
-	            ->setCellValue('C7','Infonavit: ')
-	            ->setCellValue('C8','Otros: ')
 	            ;
 	        /// Unir celdas
 	        $xls->getActiveSheet()->mergeCells('A1:'.$colc.'1');
