@@ -931,7 +931,6 @@ class CoiDAO extends DataBaseCOI {
                     $nombre = $dataC->NOMBRE;
                 }
                 /// Checamos los ejercicios que estan abiertos en el sistema para validar la cuenta en todos los ejercicios y evitar tener una incongruencia en los datos. al parecer asi lo maneja COI.
-
                 $this->query="SELECT DIGCTA1 , DIGCTA2 , DIGCTA3 , DIGCTA4 , DIGCTA5 , DIGCTA6 , DIGCTA7 , DIGCTA8 , DIGCTA9, (DIGCTA1 + DIGCTA2 + DIGCTA3 + DIGCTA4 + DIGCTA5 + DIGCTA6 + DIGCTA7 + DIGCTA8 + DIGCTA9) AS CTATAM, NIVELACTU, GUIOn_SINO FROM PARAmEMP";
                 $res=$this->EjecutaQuerySimple();
                 $row = ibase_fetch_object($res);
@@ -941,14 +940,16 @@ class CoiDAO extends DataBaseCOI {
                 $inicial = ($row->CTATAM - $row->{$campo}) + 1; // 7 + 1 se suma uno por que Firebir substring el primer valor es 1 a diferencia en php es 0;
                 /// Calcula Hija tenemos que saber el nivel del acumulado. 
                 /// si es nivel 1 la hija entonces en nivel 2, traemos el valor del nivel 1 
+                //echo 'Ultimo Campo'.$row->NIVELACTU.'<br/>';
                 $nivel = substr($papa,-1);
                 $n1=0;
-                for ($i=1; $i <= $nivel ; $i++) { 
+                for ($i=1; $i < $row->NIVELACTU ; $i++) { 
                     $n1 += $row->{$camp.$i};
                 }
                 $nh = $nivel+1;
                 $n2 = $row->{$camp.$nh};
                 $papa = substr($papa,0,strlen($papa)-1 );
+                //echo 'Cuenta Padre: '.$papa.'<br/>';
                 $this->query="SELECT EJERCICIO FROM ADMPER GROUP BY EJERCICIO";
                 $res=$this->EjecutaQuerySimple();
                 while($tsArray=ibase_fetch_object($res)){
@@ -981,6 +982,8 @@ class CoiDAO extends DataBaseCOI {
                             $cuentaNueva = str_pad($ctaPapa.$nueva,20, '0');
                             $cuentaNueva = $cuentaNueva.$nh;
                             //echo '<br/> Cuenta Nueva: '.$cuentaNueva;
+                            //die;
+                            //exit();
                             $this->query = "INSERT INTO CUENTAS$eje (NUM_CTA, STATUS, TIPO, NOMBRE, DEPTSINO, BANDMULTI, BANDAJT, CTA_PAPA, CTA_RAIZ, NIVEL, CTA_COMP, NATURALEZA, RFC, CODAGRUP, CAPTURACHEQUE, CAPTURAUUID, BANCO, CTABANCARIA, CAPCHEQTIPOMOV, NOINCLUIRXML, IDFISCAL, ESFLUJODEEFECTIVO, BANCOEXTRANJERO, RFCFLUJO) 
                             VALUES ('$cuentaNueva', 'A', 'D', substring('$nombre' from 1 for 40), 'N', 1,'N','$papa', '$ctaRaiz', $nh, '', 1, '$rfc', '$idF', 0,0, 0, '','N', 0, '', 0,'', '')";
                             $rs= $this->grabaBD();

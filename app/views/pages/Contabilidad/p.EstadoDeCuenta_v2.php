@@ -275,7 +275,7 @@
                                             <th>Cargo</th>
                                             <th>Por Conciliar/Aplicar</th>
                                             <th>Tipo Pago</th>
-                                            <th>Registrar</th>
+                                            <th>Registrar / <font color="#8d99ff">Tipo</font></th>
                                             <th>Usuario Registro</th>
                                             <th>Tipo</th>
                                             <th>Eliminar</th>
@@ -371,7 +371,47 @@
                                                <?php echo $datos->S > 1? 'class="compra"':''?>
                                                <?php echo $datos->S == 1? 'class="abono"':''?>
                                               >
-                                              <input type="button" class="chgTipo" v="<?php echo $datos->ABONO+$datos->CARGO-$datos->SALDO?>" ln="<?php echo $i?>" tipo="<?php echo $datos->S?>" iden="<?php echo $datos->IDENTIFICADOR?>">                                             
+
+                                              <input type="button" class="chgTipo" v="<?php echo $datos->ABONO+$datos->CARGO-$datos->SALDO?>" ln="<?php echo $i?>" tipo="<?php echo $datos->S?>" iden="<?php echo $datos->IDENTIFICADOR?>">
+                                              <?php switch ($datos->TP) {
+                                                case 'DC':
+                                                    $tipo = 'Dev. de Compra';
+                                                  break;
+                                                case 'DG':
+                                                    $tipo = 'Dev. de Gasto';
+                                                  break;
+                                               case 'DV':
+                                                    $tipo = 'Dev. de Venta';
+                                                  break;
+                                               case 'oIng':
+                                                    $tipo = 'Otros Ingresos';
+                                                  break;
+                                               case 'oEgr':
+                                                    $tipo = 'Otros Egresos';
+                                                  break;
+                                               case 'venta':
+                                                    $tipo = 'Venta';
+                                                  break;
+                                               case 'Gasto':
+                                                    $tipo = 'Gasto';
+                                                  break;
+                                               case 'Compra':
+                                                    $tipo = 'Compra';
+                                                  break;
+                                               case 'intGan':
+                                                    $tipo = 'Intereses Ganados';
+                                                  break;
+                                               case 'DC':
+                                                    $tipo = 'Intereses Pagados';
+                                                  break;
+                                               
+                                                default:
+                                                    $tipo = 'Sin Definir';
+                                                  break;
+                                              } 
+                                                echo '<font color="#8d99ff">'.$tipo.'</font>';
+                                              ?> 
+
                                               </td>
                                             <td><?php echo $datos->USUARIO;?></td>
                                             <td><?php echo $datos->TP_TES?></td>
@@ -468,10 +508,13 @@
           '<option value="DC">Devolucion de Compra</option>'+
           '<option value="DG">Devolucion de Gasto</option>'+
           '<option value="DV">Devolucion de Venta</option>'+
-          '<option value="oPCC">Otros Ingresos</option>'+
-          '<option value="oPCC">Otros Egresos</option>'+
+          '<option value="oIng">Otros Ingresos</option>'+
+          '<option value="oEgr">Otros Egresos</option>'+
           '<option value="venta">Venta</option>'+
           '<option value="gasto">Gasto</option>'+ 
+          '<option value="compra">Compra</option>'+ 
+          '<option value="intGan">Intereses Ganados</option>'+ 
+          '<option value="intPag">Intereses Pagados</option>'+ 
         '</select>'+
         '</div>' +
         '</form>',

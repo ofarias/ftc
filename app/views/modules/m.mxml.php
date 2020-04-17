@@ -80,6 +80,31 @@
             </div>
         </div>
     <?php }?>
+    <?php if($_SESSION['empresa']['impuestos'] ==1){?>
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4>Impuestos</h4>
+                </div>
+                <div class="panel-body">
+                    <p>Impuestos y Declaraciones</p>
+                    <p>Ejercicio: <select id="impAnio">
+                                    <option value="2020">2020</option>
+                                    <option value="2019">2019</option>
+                                </select></p>
+                    <p>Periodo (Mes)
+                        <select id=impMes>
+                            <option value="<?php echo 0?>">Todos</option>
+                            <?php foreach ($meses as $m): ?>
+                                <option value="<?php echo $m->NUMERO?>"><?php echo $m->NOMBRE?></option>
+                            <?php endforeach ?>
+                        </select></p>
+                    <p><center><a class="btn-sm btn-primary ci"  >Cualculo de Impuestos</a></center></p>
+                    <p><center><a class="btn-sm btn-primary dec" >Ver Declaraciones</a></center></p>
+                </div>
+            </div>
+        </div>
+    <?php }?>
         <div class="col-md-4">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -182,6 +207,19 @@
             })
         })
         
+
+        $(".ci").click(function(){
+            var mes = document.getElementById('impMes').value
+            var anio = document.getElementById('impAnio').value
+            alert('Calculo de impuestos' + mes + ' anio ' + anio)
+            window.open("index.xml.php?action=calImp&mes="+mes+"&anio="+anio, "popup", 'width=1200,height=600');
+            return false;
+        })
+
+        $(".dec").click(function(){
+            alert('Ver Declaraciones')
+        })        
+
         $("#verNomina").click(function(){
             var a = document.getElementById("anio").value
             var m = document.getElementById("mes").value

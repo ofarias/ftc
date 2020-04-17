@@ -851,4 +851,86 @@ class cargaXML extends database {
 
    		return $data;
    	}
+
+   	function calImp($mes, $anio){
+   		$filtroMes="";
+   		$data=array();
+   		$data2 = array();
+   		if($mes > 0){
+   			$filtroMesP = ' and extract(month from CP.FECHA_RECEP) = '.$mes;
+   			$filtroMesG = ' and extract(month from G.FECHA_EDO_CTA) = '.$mes;
+   		}
+   		$this->query="SELECT * FROM APLICACIONES A LEFT JOIN CARGA_PAGOS CP ON CP.ID = A.IDPAGO and guardado = 1 WHERE extract(year from CP.FECHA_RECEP) = $anio $filtroMesP";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)) {
+   			$data[]=$tsArray;
+   		}
+
+   		$this->query="SELECT * FROM APLICACIONES_GASTOS A LEFT JOIN GASTOS G ON G.ID = A.IDG and guardado = 1 WHERE extract(year from G.FECHA_EDO_CTA) = $anio $filtroMesG";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)) {
+   			$data2[]=$tsArray;
+   		}
+   		return array("cobrado"=>$data,"pagado"=>$data2);
+   	}
+
+   	function traeVentas($anio){
+   		$data=array();
+   		$rfce = $_SESSION['rfc'];
+   		$this->query ="SELECT SUM(UNITARIO*CANTIDAD) importe, extract(month from X.fecha) as mes, MAX(2019) as anio, MAX(X.RFCE)
+    					from xml_partidas xp left join xml_data x on x.uuid = xp.uuid
+    					where
+    					extract(year from X.fecha) = $anio
+    					AND X.tipo = 'I'
+    					and X.status != 'C'
+    					AND X.RFCE = '$rfce'
+    					AND (XP.CLAVE_SAT != '84111506' AND XP.unidad_sat != 'ACT')
+    					GROUP BY extract(month from X.fecha)";
+   		//echo $this->query;
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)) {
+   			$data[]=$tsArray;
+   		}
+   		return $data;
+   	}
+
+   	function traeAnticipos($anio){
+   		$data=array();
+   		$rfce = $_SESSION['rfc'];
+   		$this->query ="SELECT SUM(UNITARIO * cantidad) as importe, extract(month from X.fecha) as mes, MAX(2019) as anio, MAX(X.RFCE)
+    					from xml_partidas xp left join xml_data x on x.uuid = xp.uuid
+    					where
+    					extract(year from X.fecha) = $anio
+    					AND X.tipo = 'I'
+    					and X.status != 'C'
+    					AND X.RFCE = '$rfce'
+    					AND (XP.CLAVE_SAT = '84111506' AND XP.unidad_sat = 'ACT')
+    					GROUP BY extract(month from X.fecha)";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)) {
+   			$data[]=$tsArray;
+   		}
+   		return $data;	
+   	}
+
+   	function traeProdFinan($anio){
+   		$data=array();
+   		$this->query="SELECT coalesce(sum(MONTO), 0) as importe, extract(month from fecha_recep)as mes  FROM CARGA_PAGOS WHERE EXTRACT(YEAR FROM FECHA_RECEP)= $anio and guardado = 1 and (tipo_pago = 'intGan')  group by extract(month from fecha_recep)";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)) {
+   			$data[]=$tsArray;
+   		}
+   		return $data;
+   	}
+
+   	function traeOtrIng($anio){
+   		$data=array();
+   		$this->query="SELECT coalesce(sum(MONTO), 0) as importe, extract(month from fecha_recep)as mes  FROM CARGA_PAGOS WHERE EXTRACT(YEAR FROM FECHA_RECEP)= $anio and guardado = 1 and (tipo_pago = 'oIng' or tipo_pago = 'DC' or tipo_pago = 'DG')  group by extract(month from fecha_recep)";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)) {
+   			$data[]=$tsArray;
+   		}
+   		return $data;	
+   	}
+
 }
