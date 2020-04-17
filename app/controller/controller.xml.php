@@ -1370,12 +1370,6 @@ class controller_xml{
 	        ->setCellValue('A'.$ln,'Fin del resumen de documentos.');
 
 	    /// Inicia los totales:
-
-
-
-
-
-
 	         
 	    $xls->getActiveSheet()
 	        ->setCellValue('A1',$df->RAZON_SOCIAL);
@@ -1524,6 +1518,31 @@ class controller_xml{
 	        return array("status"=>'ok', "archivo"=>$nom, "ruta"=>"../EdoCtaXLS/".$nom);
 	        //$x->save('php://output');
 	        /// salida a ruta :
+	}
+
+	function calImp($mes, $anio ){
+		if($_SESSION['user']){
+			$data=new cargaXML;
+			$datap = new pegaso;
+			$rfcempresa = $_SESSION['rfc'];
+			$info=$data->calImp($mes, $anio);
+			$ventas = $data->traeVentas($anio);
+			$ant = $data->traeAnticipos($anio);
+			$pfin = $data->traeProdFinan($anio);
+			$oIng = $data->traeOtrIng($anio);
+			//$totMen = $data->totalMensual($anio, $)
+			$meses = $datap->traeMeses();
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/Impuestos/p.calImp.php');
+   			ob_start();
+   			include 'app/views/pages/Impuestos/p.calImp.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
 	}
 
 }?>

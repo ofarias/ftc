@@ -84,6 +84,9 @@ else{
 	case 'verRecibo':
 		$controller->verRecibo($_GET['uuid']);
 		break;
+	case 'calImp':
+		$controller->calImp($_GET['mes'], $_GET['anio']);
+		break;
 	default: 
 		header('Location: index.php?action=login');
 		break;
