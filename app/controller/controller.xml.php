@@ -1530,6 +1530,7 @@ class controller_xml{
 			$ant = $data->traeAnticipos($anio);
 			$pfin = $data->traeProdFinan($anio);
 			$oIng = $data->traeOtrIng($anio);
+			$isr = $data->traeIsr($anio);
 			//$totMen = $data->totalMensual($anio, $)
 			$meses = $datap->traeMeses();
 			$pagina=$this->load_template();
@@ -1545,5 +1546,10 @@ class controller_xml{
 		}	
 	}
 
+	function setCU( $cu, $anio, $tipo){
+		$data= new cargaXML;
+		$res=$data->setCU($cu, $anio, $tipo);
+		return $res;
+	}
 }?>
 

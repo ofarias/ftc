@@ -853,7 +853,8 @@ class cargaXML extends database {
    	}
 
    	function calImp($mes, $anio){
-   		$filtroMes="";
+   		$filtroMesP="";
+   		$filtroMesG="";
    		$data=array();
    		$data2 = array();
    		if($mes > 0){
@@ -931,6 +932,57 @@ class cargaXML extends database {
    			$data[]=$tsArray;
    		}
    		return $data;	
+   	}
+
+   	function traeIsr($anio){
+   		$data =array();
+   		$this->query="SELECT f.* FROM FTC_IMP_ISR f WHERE f.anio = $anio and f.fecha_pago is not null";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)) {
+   			$data[]=$tsArray;
+   		}
+   		if(count($data)>0){   			
+   			foreach($data as $isr){	
+   			}
+   			return array("tipo"=>'c', "cu"=>$isr->CU,"usuario"=>$isr->USUARIO,"fecha"=>$isr->FECHA,"pagos"=>count($data),"mensaje"=>'El coeficiente ha sido definido por '.$isr->USUARIO.' el dia '.$isr->FECHA, "factor"=>$isr->FACTOR );
+   		}else{
+   			$this->query="SELECT f.* FROM FTC_IMP_ISR f WHERE f.anio = $anio";
+   			$res=$this->EjecutaQuerySimple();
+   			while ($tsArray=ibase_fetch_object($res)) {
+   				$data[]=$tsArray;
+   			}
+   			if(count($data)>0){
+   				foreach($data as $isr){	
+   				}
+   				return array("tipo"=>'u',"cu"=>$isr->CU,"usuario"=>$isr->USUARIO,"fecha"=>$isr->FECHA, "mensaje"=>'El coeficiente ha sido definido por '.$isr->USUARIO.' el dia '.$isr->FECHA, "factor"=>$isr->FACTOR);
+   			}else{
+   				return array("tipo"=>'i',"cu"=>'',"usuario"=>'',"fecha"=>'', "mensaje"=>'No existe coeficiente definido.');
+   			}	
+   		}	
+   	}
+
+   	function setCU($cu, $anio, $tipo){
+   		$data = array();
+   		$usuario=$_SESSION['user']->NOMBRE;
+  		if($tipo == 'u'){
+  			$this->query="UPDATE FTC_IMP_ISR SET CU = $cu, usuario='$usuario', fecha=current_date where anio = $anio and fecha_pago is null";
+  			$this->queryActualiza();
+  			return array("status"=>'Si',"mensaje"=>'Se ha actualizado el coeficiente de utilidad');	
+  		}elseif ($tipo == 'i'){
+  			$this->query="INSERT INTO FTC_IMP_ISR (ID_ISR, ANIO, MES, CALCULADO, PAGADO, CU, FACTOR, STATUS, USUARIO, FECHA) VALUES (NULL, $anio, 1, 0, 0, $cu, .30, 'A', '$usuario', current_date)";
+   			$this->grabaBD();
+   			return array("status"=>'Si', "mensaje"=>'Se ha establecido el coeficiente de utilidad correctamente');
+  		}elseif($tipo == 'c'){
+	   		$this->query="SELECT f.* FROM FTC_IMP_ISR f WHERE f.anio = $anio and f.fecha_pago is not null";
+	   		$res=$this->EjecutaQuerySimple();
+	   		while ($tsArray=ibase_fetch_object($res)) {
+	   			$data[]=$tsArray;
+	   		}
+	   		foreach($data as $isr){	
+   			}
+   			return array("status"=>'Si', "mensaje"=>'Ya existen Pagos de ISR con un coeficiente diferente, si requiere cambiar el coeficiente lo debe de hacer desde la tabla de coeficientes.');
+		}
+   		
    	}
 
 }
