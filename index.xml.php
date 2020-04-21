@@ -37,6 +37,10 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res=$controller->setCU($_POST['cu'],$_POST['anio'], $_POST['tipo']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['setISR'])) {
+	$res = $controller->setISR($_POST['anio'], $_POST['val']);
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($_GET['action']){

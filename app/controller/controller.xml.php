@@ -1551,5 +1551,13 @@ class controller_xml{
 		$res=$data->setCU($cu, $anio, $tipo);
 		return $res;
 	}
+
+	function setISR($anio, $val){
+		if($_SESSION['user']){
+			$data=new cargaXML;
+			$res = $data->setISR($anio, $val);
+			return $res;
+		}
+	}
 }?>
 

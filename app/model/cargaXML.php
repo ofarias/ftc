@@ -944,7 +944,7 @@ class cargaXML extends database {
    		if(count($data)>0){   			
    			foreach($data as $isr){	
    			}
-   			return array("tipo"=>'c', "cu"=>$isr->CU,"usuario"=>$isr->USUARIO,"fecha"=>$isr->FECHA,"pagos"=>count($data),"mensaje"=>'El coeficiente ha sido definido por '.$isr->USUARIO.' el dia '.$isr->FECHA, "factor"=>$isr->FACTOR );
+   			return array("tipo"=>'c', "cu"=>$isr->CU,"usuario"=>$isr->USUARIO,"fecha"=>$isr->FECHA,"pagos"=>count($data),"mensaje"=>'El coeficiente ha sido definido por '.$isr->USUARIO.' el dia '.$isr->FECHA, "factor"=>$isr->FACTOR,'cu_act'=>$isr->CU_ACT );
    		}else{
    			$this->query="SELECT f.* FROM FTC_IMP_ISR f WHERE f.anio = $anio";
    			$res=$this->EjecutaQuerySimple();
@@ -954,7 +954,7 @@ class cargaXML extends database {
    			if(count($data)>0){
    				foreach($data as $isr){	
    				}
-   				return array("tipo"=>'u',"cu"=>$isr->CU,"usuario"=>$isr->USUARIO,"fecha"=>$isr->FECHA, "mensaje"=>'El coeficiente ha sido definido por '.$isr->USUARIO.' el dia '.$isr->FECHA, "factor"=>$isr->FACTOR);
+   				return array("tipo"=>'u',"cu"=>$isr->CU,"usuario"=>$isr->USUARIO,"fecha"=>$isr->FECHA, "mensaje"=>'El coeficiente ha sido definido por '.$isr->USUARIO.' el dia '.$isr->FECHA, "factor"=>$isr->FACTOR, 'cu_act'=>$isr->CU_ACT );
    			}else{
    				return array("tipo"=>'i',"cu"=>'',"usuario"=>'',"fecha"=>'', "mensaje"=>'No existe coeficiente definido.');
    			}	
@@ -983,6 +983,16 @@ class cargaXML extends database {
    			return array("status"=>'Si', "mensaje"=>'Ya existen Pagos de ISR con un coeficiente diferente, si requiere cambiar el coeficiente lo debe de hacer desde la tabla de coeficientes.');
 		}
    		
+   	}
+
+   	function setISR($anio, $val){
+   		$val = $val / 100;
+   		$this->query="UPDATE FTC_IMP_ISR SET FACTOR=$val where anio = $anio";
+   		if($this->queryActualiza() >= 1){
+   			return array("status"=>'Si', "mensaje"=>'Se ha actualizado correctamente la tasa al '.($val*100).' %');
+   		}else{
+   			return array("status"=>'No', "mensaje"=>'No se ha podido actualizar la tasa del ISR al parecer ya existe un pago calculado con otra tasa...');
+   		}
    	}
 
 }

@@ -1,13 +1,27 @@
 <br/><br/>
-
-<div title="<?php echo $isr['mensaje']?>">
+<style type="text/css">
+    input[class = por] {
+   width: 80px;
+    }
+    input[class = pori] {
+   width: 40px;
+    }
+</style>
+<div title="<?php echo $isr['mensaje']?> Se utiliza de Enero a Marzo.">
 <label >Coeficiente de Utilidad Ejercicio Anterior <?php echo $anio - 1 ?> aplicable al <?php echo $anio?> : </label>
-    <input type="number" name="c.u." id="cu" step="any" max="100" min="0" value="<?php echo $isr['cu']?>"> %
+    <input type="number" name="c.u." id="cu" step="any" max="100" min="0" value="<?php echo $isr['cu']?>" class="por"> %
     <input type="button" class="btn-sm btn-primary calc" value="Calcular" anio="<?php echo $anio?>" tipo="<?php echo $isr['tipo']?>">
+<br/><br/>
+<label title="Se Utiliza para calculo de ISR de Abril a Diciembre">Coeficiente de Utilidad Ejercicio: <?php echo $anio?></label>
+<input type="number" step="any" max="100" min="0" id="tisr_anual" class="por" value="<?php echo $isr['cu_act'] * 100?>"> %
+<input type="button" class="btn-sm btn-primary setIsrAnu" anio="<?php echo $anio?>" value="Establecer">
+<br/><br/>
+<label>Tasa de ISR para el ejercicio: <?php echo $anio?></label>
+<input type="number" step="any" max="100" min="0" id="tisr_anual" class="pori" value="<?php echo $isr['factor'] * 100?>"> %
+<input type="button" class="btn-sm btn-primary setIsrAnu" anio="<?php echo $anio?>" value="Establecer">
 </div>
 <br/>
 <br/>
-
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
@@ -132,23 +146,7 @@
                                                                 $tOin=$oing->IMPORTE;
                                                          } ?>
                                                     <?php endforeach;?>
-                                                    <!--   
-                                                    <?php  $ctl = 0; foreach($ant as $an):
-                                                            $ctl++;?>
-                                                        <?php if($an->MES == $m->NUMERO){
-                                                                $ctl++;
-                                                                $tAn=$an->IMPORTE;
-                                                         } ?>
-                                                    <?php endforeach;?>
-                                                    
-                                                    <?php  $ctl = 0; foreach($ant as $an):
-                                                            $ctl++;?>
-                                                        <?php if($an->MES == $m->NUMERO){
-                                                                $ctl++;
-                                                                $tAn=$an->IMPORTE;
-                                                         } ?>
-                                                    <?php endforeach;?>
-                                                    -->
+                                                 
                                                     <?php 
                                                         $am=$am + ($tAn + $tOin + $tVen + $tPfi);
                                                         $aMen[$m->NUMERO]=$am;
@@ -311,7 +309,7 @@
                                                 </td>
                                             <?php endforeach; ?>
                                         </tr>
-                                        <tr title="ISR retenido por el Banco o clientes">
+                                        <tr title="Total ISR Pagado">
                                             <td><font color="green"><b>Total Pagado</b></font></td><!-- Tipo, Folio y Fecha -->
                                             <?php foreach ($meses as $m): ?>
                                                 <td align="right"><b>
@@ -324,7 +322,11 @@
                                             <td><font color="green"><b>Grabar Calculo</b></font></td><!-- Tipo, Folio y Fecha -->
                                             <?php foreach ($meses as $m): ?>
                                                 <td align="right"><b>
-                                                    <input type="button" class="btn-sm btn-primary" value="Grabar Calculo">
+                                                    <?php foreach($tm as $k => $value){?>
+                                                        <?php if($m->NUMERO == $k){ ?>
+                                                            <input type="button" class="btn-sm btn-primary grabar" value="Grabar Calculo" mes="<?php echo $m->NOMBRE?>" nmes="<?php echo $k?>">
+                                                        <?php }?>
+                                                    <?php }?>
                                                     </b>
                                                 </td>
                                             <?php endforeach; ?>
@@ -382,7 +384,6 @@
         </div>
 </div>
 -->
-
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
@@ -390,6 +391,55 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript"> 
+
+    $(".grabar").click(function(){
+        var mes = $(this).attr('mes')
+        var nmes = $(this).attr('nmes')
+        $.confirm({
+            title:'Calculo de ISR Mensual',
+            content:'Grabar Calculo del mes ' + mes + ' ?',
+            buttons:{
+                grabar:{
+                    text:'Grabar Calculo',
+                    action: function(){
+                        var totpg = document.getElementById('totpagisr_'+ nmes).innerHTML
+                        if(totpg === undefined ||totpg ==''){
+                            $.alert('No se ha realizado ningun calculo')
+                        }else{
+
+                            var utlfis = document.getElementById()
+                            var perpen
+                            $.alert('Se graba el calculo, con el total a pagar ' + totpg )
+                        }
+                    }
+                },
+                cancelar:{
+                    text:'Cancelar',
+                    action:function(){
+                        $.alert('No se realizo ningun cambio.')
+                    }
+                }
+            }
+        })
+    })
+
+    $(".setIsrAnu").click(function(){
+        var anio = $(this).attr('anio')
+        var val = document.getElementById('tisr_anual').value
+        $.ajax({
+            url:'index.xml.php',
+            type:'post',
+            dataType:'json',
+            data:{setISR:1, val, anio},
+            success:function(data){
+                $.alert(data.mensaje)
+                location.reload(true)
+            }, 
+            error:function(){
+                $.alert('Ocurrio un error, favor de verificar la informacion')
+            }
+        })
+    })
 
     $(".ppa").change(function(){
         var mes = $(this).attr('mes')
@@ -490,7 +540,7 @@
         }
     });
 
-function format(numero){
+    function format(numero){
             var long = numero[0].length;
             var cent = numero[1].substring(0,2);
             if(long > 6){
@@ -537,79 +587,38 @@ function format(numero){
             return (texto);
     } 
 
-
-
-function formatNumber(n) {
-  // format number 1000000 to 1,234,567
-  return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-}
-
-function formatCurrency(input, blur) {
-  // appends $ to value, validates decimal side
-  // and puts cursor back in right position.
-  
-  // get input value
-  var input_val = input.val();
-  
-  // don't validate empty input
-  if (input_val === "") { return; }
-  
-  // original length
-  var original_len = input_val.length;
-
-  // initial caret position 
-  var caret_pos = input.prop("selectionStart");
-    
-  // check for decimal
-  if (input_val.indexOf(".") >= 0) {
-
-    // get position of first decimal
-    // this prevents multiple decimals from
-    // being entered
-    var decimal_pos = input_val.indexOf(".");
-
-    // split number by decimal point
-    var left_side = input_val.substring(0, decimal_pos);
-    var right_side = input_val.substring(decimal_pos);
-
-    // add commas to left side of number
-    left_side = formatNumber(left_side);
-
-    // validate right side
-    right_side = formatNumber(right_side);
-    
-    // On blur make sure 2 numbers after decimal
-    if (blur === "blur") {
-      right_side += "00";
+    function formatNumber(n) {
+        return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",")
     }
-    
-    // Limit decimal to only 2 digits
-    right_side = right_side.substring(0, 2);
 
-    // join number by .
-    input_val = "$" + left_side + "." + right_side;
-
-  } else {
-    // no decimal entered
-    // add commas to number
-    // remove all non-digits
-    input_val = formatNumber(input_val);
-    input_val = "$" + input_val;
-    
-    // final formatting
-    if (blur === "blur") {
-      input_val += ".00";
+    function formatCurrency(input, blur) {
+          var input_val = input.val();
+          if (input_val === "") { return; }
+          var original_len = input_val.length;
+          var caret_pos = input.prop("selectionStart");
+          if (input_val.indexOf(".") >= 0) {
+            var decimal_pos = input_val.indexOf(".");
+            var left_side = input_val.substring(0, decimal_pos);
+            var right_side = input_val.substring(decimal_pos);
+            left_side = formatNumber(left_side);
+            right_side = formatNumber(right_side);
+            if (blur === "blur") {
+              right_side += "00";
+            }
+            right_side = right_side.substring(0, 2);
+            input_val = "$" + left_side + "." + right_side;
+          } else {
+            input_val = formatNumber(input_val);
+            input_val = "$" + input_val;
+            if (blur === "blur") {
+              input_val += ".00";
+            }
+          }
+          input.val(input_val);
+          var updated_len = input_val.length;
+          caret_pos = updated_len - original_len + caret_pos;
+          input[0].setSelectionRange(caret_pos, caret_pos);
     }
-  }
-  
-  // send updated string to input
-  input.val(input_val);
-
-  // put caret back in the right position
-  var updated_len = input_val.length;
-  caret_pos = updated_len - original_len + caret_pos;
-  input[0].setSelectionRange(caret_pos, caret_pos);
-}
 
 
 </script>

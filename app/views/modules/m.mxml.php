@@ -211,7 +211,6 @@
         $(".ci").click(function(){
             var mes = document.getElementById('impMes').value
             var anio = document.getElementById('impAnio').value
-            alert('Calculo de impuestos' + mes + ' anio ' + anio)
             window.open("index.xml.php?action=calImp&mes="+mes+"&anio="+anio, "popup", 'width=1200,height=600');
             return false;
         })
