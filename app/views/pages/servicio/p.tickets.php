@@ -35,7 +35,7 @@
             </div>
             <div class="panel-body">
                 <div class="table-responsive">                            
-                    <table class="table table-striped table-bordered table-hover" id="dataTables-table-3">
+                    <table class="table table-striped table-bordered table-hover" id="dataTables-table-4">
                         <thead>
                             <tr>
                                 <th>Ln</th>

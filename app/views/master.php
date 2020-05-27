@@ -1140,6 +1140,31 @@ $('#dataTables-cajas').DataTable({
         }
         });
 
+$('#dataTables-iva').DataTable({
+        responsive: true,
+        lengthMenu: [[500,-1], [500,"Todo"]],
+        columnDefs:[
+          {
+            targets: [4,5,6,7],
+            searchable: false
+          }
+        ],
+        "order": [[ 9, "asc"]],
+        language: {
+          lengthMenu: "Mostrando _MENU_ por pagina",
+          zeroRecords: "No hay dato para mostrar",
+          info: "Mostrando página _PAGE_ de _PAGES_",
+          sSearch: "Buscar: ",
+          sInfoFiltered:   "(Filtrado de un total de _MAX_ registros)",         
+          oPaginate: {
+                  "sFirst":    "Primero",
+                  "sLast":     "Último",
+                  "sNext":     "Siguiente",
+                  "sPrevious": "Anterior"
+                }
+        }
+        });
+
 
 $('#dataTables-ocf').DataTable({
         responsive: true,
@@ -1302,6 +1327,30 @@ $('#dataTables-ocf').DataTable({
         }
         });
 /* datatables tablita 3 fin*/
+    $('#dataTables-table-4').DataTable({
+                responsive: true,
+        lengthMenu: [[500,-1], [500,"Todo"]],
+        "order": [[3 , "desc"]], 
+        columnDefs:[
+          {
+            targets: [2,3],
+            searchable: false
+          }
+        ],
+        language: {
+          lengthMenu: "Mostrando _MENU_ por pagina",
+          zeroRecords: "No hay dato para mostrar",
+          info: "Mostrando página _PAGE_ de _PAGES_",
+          sSearch: "Buscar: ",
+          sInfoFiltered:   "(Filtrado de un total de _MAX_ registros)",         
+          oPaginate: {
+                  "sFirst":    "Primero",
+                  "sLast":     "Último",
+                  "sNext":     "Siguiente",
+                  "sPrevious": "Anterior"
+                }
+        }
+        });
 
    $('#dataTables-facturas-maestro').DataTable({
                 responsive: true,

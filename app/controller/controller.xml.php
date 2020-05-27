@@ -1526,12 +1526,14 @@ class controller_xml{
 			$datap = new pegaso;
 			$rfcempresa = $_SESSION['rfc'];
 			$info=$data->calImp($mes, $anio);
-			$ventas = $data->traeVentas($anio);
-			$ant = $data->traeAnticipos($anio);
-			$pfin = $data->traeProdFinan($anio);
+			$ventas = $data->traeVentas($anio, $mes, 'gen'); /// inicia la modificacion para filtrar meses.
+			$ant = $data->traeAnticipos($anio, $mes, 'gen');
+			$pfin = $data->traeProdFinan($anio, $mes, 'gen');
 			$oIng = $data->traeOtrIng($anio);
 			$isr = $data->traeIsr($anio);
 			//$totMen = $data->totalMensual($anio, $)
+			$info = $data->infoMesIsr($anio);
+			$files = $data->ftc_files($tipo = 'IMPUESTO', $subtipo='ID_ISR', $anio);
 			$meses = $datap->traeMeses();
 			$pagina=$this->load_template();
 			$html=$this->load_page('app/views/pages/Impuestos/p.calImp.php');
@@ -1552,10 +1554,135 @@ class controller_xml{
 		return $res;
 	}
 
-	function setISR($anio, $val){
+	function setISR($anio, $val, $tipo){
 		if($_SESSION['user']){
 			$data=new cargaXML;
-			$res = $data->setISR($anio, $val);
+			$res = $data->setISR($anio, $val, $tipo);
+			return $res;
+		}
+	}
+
+	function gIsr($mes, $anio, $datos){
+		if ($_SESSION['user']) {
+			$data = new cargaXML;
+			$res = $data->gIsr($mes, $anio, $datos);
+			return $res;
+		}
+	}
+
+	function verProv($mes, $anio, $ide, $doc){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$data = new pegaso;
+			
+			$user=$_SESSION['user']->NOMBRE;
+  			$cnxcoi=$_SESSION['cnxcoi'];
+  			$uuid='D';
+    		$info=$data->verXMLSP_Prov($mes, $anio, $ide, $uuid, $doc);
+    		$tipoDOC = $data->traeTipo();
+
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/xml/p.verProv.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.verProv.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function polFred($datos, $cta, $tipo, $mes, $anio){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$data_coi = new CoiDAO;
+			$documentos = $data->traeDocs($datos, $tipo);
+			$impuestos2=$data->impuestosPolizaFred($documentos, $por='1');
+			$crear = $data_coi->creaPolizaFred($cabecera = false , $detalle=$documentos, $tipo='gasto', $impuestos2, $z=$cta, $anio, $mes);
+			exit();
+		}
+	}
+
+	function gp($mes, $anio, $monto){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$res =$data->gp($mes, $anio, $monto);
+			return $res;
+		}
+	}
+
+	function gCompISR($mes, $anio, $files, $ruta, $tipo, $nmes){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$res = $data->gCompISR($mes, $anio, $files, $ruta, $tipo, $nmes);
+			return $res;
+		}
+	}
+
+	function calImpIva($mes, $anio){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$cargos = $data->docPg($mes, $anio);
+			$abonos = $data->docCb($mes, $anio);
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/Impuestos/p.calImpIva.php');
+   			ob_start();
+   			include 'app/views/pages/Impuestos/p.calImpIva.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
+	function calDiot($mes, $anio, $tipo){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$cargos = $data->docPg($mes, $anio, $tipo);
+			$pagina=$this->load_template();
+			if($tipo=='d'){
+				$html=$this->load_page('app/views/pages/Impuestos/p.calDiotDet.php');
+	   			ob_start();
+	   			include 'app/views/pages/Impuestos/p.calDiotDet.php';   				
+			}else{
+				$html=$this->load_page('app/views/pages/Impuestos/p.calDiot.php');
+	   			ob_start();
+	   			include 'app/views/pages/Impuestos/p.calDiot.php';   				
+			}
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
+	function isrDet($mes, $anio, $tipo){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$info = $data->isrDet($mes, $anio, $tipo);
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/Impuestos/p.isrDet.php');
+   			ob_start();
+   			include 'app/views/pages/Impuestos/p.isrDet.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;	
+		}
+	}
+
+	function gpd($po, $pt, $rfc){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$res =$data->gpd($po, $pt, $rfc);
 			return $res;
 		}
 	}

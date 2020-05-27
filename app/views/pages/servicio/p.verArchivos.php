@@ -100,6 +100,8 @@
                                                     <option value="inv">Inventario</option>
                                                     <option value="evi">Evidencia</option>
                                                     <option value="res">Evidencia de Respaldo</option>
+                                                    <option value="cot">Cotizacion</option>
+                                                    <option value="otr">Otros</option>
                                                 </select>
                                             </td>
                                             <td><textarea name="obs" cols="70" rows="10"></textarea>

@@ -12,8 +12,7 @@
                         <?php }else{?>
                             <p><?php echo 'Se muestran los XML '.$ide." del mes ".$mes." del ".$anio?></p>
                         <?php }?>
-                        <p>Ver impuestos &nbsp;&nbsp;Si: <input type="radio" name="verImp" id="verImp" class="imp" value="si"> &nbsp;&nbsp;No: <input type="radio" name="verImp" id="NoverImp" class="imp" value="no">&nbsp;&nbsp;&nbsp;&nbsp; 
-                            <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descargar a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','x')"></font>
+                        <p>Ver impuestos &nbsp;&nbsp;Si: <input type="radio" name="verImp" id="verImp" class="imp" value="si"> &nbsp;&nbsp;No: <input type="radio" name="verImp" id="NoverImp" class="imp" value="no">&nbsp;&nbsp;&nbsp;&nbsp; <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descargar a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','x')"></font>
                             <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descarga Partidas a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','xp')"></font>
                             <?php if($cnxcoi=='si'){?>
                             <font color="black"><input type="button" value="Consolidar Polizas" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'c')"></font>
@@ -22,7 +21,7 @@
                             <font color="#DC143C"><input type="button"  value="Acomodar Pólizas" onclick="pAcomodo(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'pa')"></font>
                             <font color="#1a8cff"><input type="button"  value="Carga Parametros" onclick="cargaParam()"></font>
                             <font color="red"><input type="button" value="Diot Batch" onclick="cargaBatch(<?php echo $mes ?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>')"> </font>
-                            <font color="purple"><input type="button" value="Ver Provision" class="verProv" anio="<?php echo $anio?>" mes="<?php echo $mes?>" ide="<?php echo $ide?>" doc="<?php echo $doc?>"></font>
+                            <font color="purple"><input type="button" value="Poliza Fred" class="polFred" mes="<?php echo $mes?>" anio="<?php echo $anio?>" ide="<?php echo $ide?>" doc="<?php echo $doc?>"></font>
                             <br/><br/>
                             <!--
                             <font>Filtro XML:&nbsp; Todas <input type="radio" name="verXML" class="ver" value="x" checked> &nbsp;Pendientes:&nbsp;  <input type="radio" name="verXML" class="ver" value="pend"> &nbsp;Provision: &nbsp; <input type="radio" name="verXML" class="ver" value="d"> &nbsp;Eg: &nbsp; <input type="radio" name="verXML" class="ver" value="ie"> </font>
@@ -115,7 +114,7 @@
                                         ?>
                                         <tr class="<?php echo $test?> odd gradeX " <?php echo $color ?> title="<?php echo $descSta?>" id="ln_<?php echo $ln?>" >
 
-                                            <td><?php echo $ln?></td>
+                                            <td><?php echo $ln?> <br/><input type="checkbox" value="<?php echo $key->UUID?>"></td>
                                             <td><?php echo $test.'<br/><font color="blue">'.$key->POLIZA.'</font>'?></td>
                                             <td <?php echo ($key->CEPA!='')? 'title="Ver el CEP"':'' ?>>
                                                 <a href="index.coi.php?action=verPolizas&uuid=<?php echo $key->UUID ?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=1320'); return false"> <?php echo $key->UUID ?></a> <br/> <font color="purple" face="verdana"><b>
@@ -238,12 +237,34 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
+    $(".polFred").click(function(){
+        var datos=[]
+        var cta = '212000100000000000002'
+        var tipo = '1'
+        var mes = $(this).attr('mes')
+        var anio = $(this).attr('anio')
+        $("input:checkbox:checked").each(function(){
+            datos.push($(this).val())
+        });
+        $.ajax({
+            url:'index.xml.php',
+            type:'post',
+            dataType:'json',
+            data:{polFred:1, datos, cta, tipo, mes, anio},
+            success:function(){
+
+            }, 
+            error:function(){
+                $.alert('Ocurrio un error favor de verificar la informacion.')
+            }
+        })
+    });
+
     $(".verProv").click(function(){
         var mes = $(this).attr('mes')
         var anio = $(this).attr('anio')
         var ide = $(this).attr('ide')
-        var doc = $(this).attr('doc')
-        window.open("index.xml.php?action=verProv&mes="+mes+"&anio="+anio+"&ide="+ide+"&doc="+doc, "_blank")
+        window.open("index.xml.php?action=verProv&mes="+mes+"&anio="+anio+"&ide="+ide+"&doc"+doc, "_blank")
     })
 
     $(".infoAdicional").mouseover(function(){
@@ -356,7 +377,7 @@
                     }else{
                         form.submit()
                     }
-                }
+                   }
             },
             cancelar: function () {
             },
@@ -379,51 +400,27 @@
             $.alert('Este proceso solo se puede realizar por periodo y no de forma anual.')
             return
         }
-        if(t == 'c' ){
-            var con = 'Se han cosolidado las polizas de COI correctamente'
-            var tit = 'Consolidacion de polizas COI vs sat2app'
-        }else if (t == 'x' || t == 'xp' || t == 'z'){
-            var con = 'Su archivo esta listo =) <br/>Revise su archivo en la carpeta de "Descargas"'
-            var tit = 'Descarga de archivo en Excel (XLSX).'
-        }
         //$.alert('El proceso busca las polizas en COI, si no la encuentra libera el XML para ser registrado nuevamente')
-        $.confirm({
-                buttons:{
-                        ok:{
-                            text:'ok',
-                            action: function (){
-                            return;
-                            }
-                        }
-                },
-            content:function(){
-                var self = this;
-                self.setContent(con);
-                return  $.ajax({
-                            url:'index.xml.php',
-                            type:'post',
-                            dataType:'json',
-                            data:{xmlExcel:1, mes, anio, ide, doc, t}
-                            }).done(function(data){
-                                if(data.status=='ok'){
-                                    window.open("/edoCtaXLS/"+data.archivo, 'download' );
-                                    //document.getElementById("descarga").innerHTML='<a href="/edoCtaXLS/Documentos 24.xlsx" download>Descargar</a>'
-                                }
-                                if(data.status == 'C' && data.mensaje == 'a'){
-                                    alert('Las polizas coinciden con COI')
-                                }else if(data.status == 'C' && data.mensaje != 'a'){
-                                    alert(data.mensaje + ' favor de actualizar la pantalla')
-                                }
-                            }).fail(function(){
-                                self.setContentAppend('Ocurrio algo inesperado, favor de reportar a sistemas... al numero 55-5055-3392')
-                                window.open("/edoCtaXLS/"+data.archivo, 'download' );
-                            }).always(function(){
-                                self.setTitle(tit);
-                                
-                                //self.setContentAppend(a)
-                            })
-                        }
-        })
+        $.ajax({
+            url:'index.xml.php',
+            type:'post',
+            dataType:'json',
+            data:{xmlExcel:1, mes, anio, ide, doc, t},
+            success:function(data){
+                if(data.status=='ok'){
+                    window.open("/edoCtaXLS/"+data.archivo, 'download' );
+                    //document.getElementById("descarga").innerHTML='<a href="/edoCtaXLS/Documentos 24.xlsx" download>Descargar</a>'
+                }
+                if(data.status == 'C' && data.mensaje == 'a'){
+                    alert('Las polizas coinciden con COI')
+                }else if(data.status == 'C' && data.mensaje != 'a'){
+                    alert(data.mensaje + ' favor de actualizar la pantalla')
+                }
+            }, 
+            error:function(){
+                window.open("/edoCtaXLS/"+data.archivo, 'download' );
+            }
+        })     
     }
 
     function pAuto(mes, anio, ide, doc, t){
@@ -438,7 +435,7 @@
                 }).done(function (response) {
                     self.setContent('Description: ' + response.mensaje);
                     self.setContentAppend('<br>Status: ' + response.status);
-                    self.setTitle('Creacion de polizas de forma Autimaticas.');
+                    self.setTitle('Hola');
                 }).fail(function(){
                     self.setTitle('Procesamiento de polizas Automaticas');
                     self.setContent('Se ha procesado la informacion y se envio un correo con el resultado.');

@@ -565,7 +565,7 @@ class cargaXML extends database {
     	}
     	$this->query="SELECT COUNT(*) AS RECIBOS,fecha_inicial, fecha_final, extract(month from fecha_final) FROM XML_NOMINA_TRABAJADOR where extract(year from fecha_inicial) = $a $mes GROUP BY fecha_inicial, fecha_final ORDER BY FECHA_INICIAL";
     	$rs=$this->EjecutaQuerySimple();
-    	while ($tsArray=ibase_fetch_object($rs)) {
+    	while (@$tsArray=ibase_fetch_object($rs)) {
     		$data[]=$tsArray;
     	}
     	return $data;
@@ -875,19 +875,22 @@ class cargaXML extends database {
    		return array("cobrado"=>$data,"pagado"=>$data2);
    	}
 
-   	function traeVentas($anio){
+   	function traeVentas($anio, $mes, $tipo){
    		$data=array();
    		$rfce = $_SESSION['rfc'];
-   		$this->query ="SELECT SUM(UNITARIO*CANTIDAD) importe, extract(month from X.fecha) as mes, MAX(2019) as anio, MAX(X.RFCE)
+   		$m = ($mes==0)? '':' and extract(month from x.fecha) = '.$mes;
+   		$d = ($tipo=='det')? ' ':' GROUP BY extract(month from X.fecha), extract(year from x.fecha)';
+   		$c = ($tipo=='det')? "xp.*, x.IMPORTE , (SELECT ('('||xc.RFC||')'||NOMBRE) FROM XML_CLIENTES xc WHERE xc.RFC = x.CLIENTE AND TIPO = 'Cliente') as cliente, (SELECT MONTO FROM XML_IMPUESTOS XI WHERE XI.UUID = XP.UUID AND XI.PARTIDA = XP.PARTIDA AND STATUS = 0 AND IMPUESTO = '002') AS IVA160, x.fecha as fecha_doc, " :' SUM(UNITARIO*CANTIDAD) importe, MAX(X.RFCE), ';
+
+   		$this->query ="SELECT $c extract(month from X.fecha) as mes, extract(year from x.fecha) as anio
     					from xml_partidas xp left join xml_data x on x.uuid = xp.uuid
     					where
-    					extract(year from X.fecha) = $anio
+    					extract(year from X.fecha) = $anio $m 
     					AND X.tipo = 'I'
     					and X.status != 'C'
     					AND X.RFCE = '$rfce'
     					AND (XP.CLAVE_SAT != '84111506' AND XP.unidad_sat != 'ACT')
-    					GROUP BY extract(month from X.fecha)";
-   		//echo $this->query;
+    					$d ";
    		$res=$this->EjecutaQuerySimple();
    		while ($tsArray=ibase_fetch_object($res)) {
    			$data[]=$tsArray;
@@ -895,18 +898,21 @@ class cargaXML extends database {
    		return $data;
    	}
 
-   	function traeAnticipos($anio){
+   	function traeAnticipos($anio, $mes, $tipo){
    		$data=array();
    		$rfce = $_SESSION['rfc'];
-   		$this->query ="SELECT SUM(UNITARIO * cantidad) as importe, extract(month from X.fecha) as mes, MAX(2019) as anio, MAX(X.RFCE)
+   		$m = ($mes==0)? '':' and extract(month from x.fecha) = '.$mes;
+   		$d = ($tipo=='det')? ' ':' GROUP BY extract(month from X.fecha), extract(year from x.fecha)';
+   		$c = ($tipo=='det')? "xp.*, x.IMPORTE , (SELECT ('('||xc.RFC||')'||NOMBRE) FROM XML_CLIENTES xc WHERE xc.RFC = x.CLIENTE AND TIPO = 'Cliente') as cliente, (SELECT MONTO FROM XML_IMPUESTOS XI WHERE XI.UUID = XP.UUID AND XI.PARTIDA = XP.PARTIDA AND STATUS = 0 AND IMPUESTO = '002') AS IVA160, x.fecha as fecha_doc, " :' SUM(UNITARIO*CANTIDAD) importe, MAX(X.RFCE), ';
+   		$this->query ="SELECT $c extract(month from X.fecha) as mes, extract(year from x.fecha) as anio
     					from xml_partidas xp left join xml_data x on x.uuid = xp.uuid
     					where
-    					extract(year from X.fecha) = $anio
+    					extract(year from X.fecha) = $anio $m
     					AND X.tipo = 'I'
     					and X.status != 'C'
     					AND X.RFCE = '$rfce'
     					AND (XP.CLAVE_SAT = '84111506' AND XP.unidad_sat = 'ACT')
-    					GROUP BY extract(month from X.fecha)";
+    					$d ";
    		$res=$this->EjecutaQuerySimple();
    		while ($tsArray=ibase_fetch_object($res)) {
    			$data[]=$tsArray;
@@ -914,9 +920,15 @@ class cargaXML extends database {
    		return $data;	
    	}
 
-   	function traeProdFinan($anio){
+   	function traeProdFinan($anio, $mes, $tipo){
    		$data=array();
-   		$this->query="SELECT coalesce(sum(MONTO), 0) as importe, extract(month from fecha_recep)as mes  FROM CARGA_PAGOS WHERE EXTRACT(YEAR FROM FECHA_RECEP)= $anio and guardado = 1 and (tipo_pago = 'intGan')  group by extract(month from fecha_recep)";
+   		if($tipo == 'gen'){	
+   			$this->query="SELECT coalesce(sum(MONTO), 0) as importe, extract(month from fecha_recep)as mes  FROM CARGA_PAGOS WHERE EXTRACT(YEAR FROM FECHA_RECEP)= $anio and guardado = 1 and (tipo_pago = 'intGan')  group by extract(month from fecha_recep)";
+   		}elseif($tipo =='det'){
+   			$this->query="SELECT cp.*, MONTO as importe, extract(month from fecha_recep) as mes, 'Intereses Ganados' as tipo
+   							FROM CARGA_PAGOS cp 
+   							WHERE EXTRACT(YEAR FROM FECHA_RECEP)= $anio and guardado = 1 and (tipo_pago = 'intGan')";
+   		}
    		$res=$this->EjecutaQuerySimple();
    		while ($tsArray=ibase_fetch_object($res)) {
    			$data[]=$tsArray;
@@ -982,17 +994,289 @@ class cargaXML extends database {
    			}
    			return array("status"=>'Si', "mensaje"=>'Ya existen Pagos de ISR con un coeficiente diferente, si requiere cambiar el coeficiente lo debe de hacer desde la tabla de coeficientes.');
 		}
-   		
    	}
 
-   	function setISR($anio, $val){
+   	function setISR($anio, $val, $tipo){
    		$val = $val / 100;
-   		$this->query="UPDATE FTC_IMP_ISR SET FACTOR=$val where anio = $anio";
+   		$campo = ($tipo == 'isr')?	'FACTOR':'CU_ACT';	
+   		
+   		$this->query="UPDATE FTC_IMP_ISR SET $campo=$val where anio = $anio";
    		if($this->queryActualiza() >= 1){
    			return array("status"=>'Si', "mensaje"=>'Se ha actualizado correctamente la tasa al '.($val*100).' %');
    		}else{
    			return array("status"=>'No', "mensaje"=>'No se ha podido actualizar la tasa del ISR al parecer ya existe un pago calculado con otra tasa...');
    		}
    	}
+
+   	function gIsr($mes, $anio, $datos){
+   		$data=array();
+   		$usuario=$_SESSION['user']->NOMBRE;
+   		$this->query="SELECT * FROM FTC_IMP_ISR WHERE ANIO = $anio and mes = $mes";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsArray = ibase_fetch_object($res)) {
+   			$data[]=$tsArray;
+   		}
+   		$rep = array("$", ",");
+   		$totpg = str_replace($rep, "", $datos['totpg']);
+		$isrpg = !isset($datos['isrpg'])?  0:str_replace($rep, "", $datos['isrpg']);
+		$cu = !isset($datos['cu'])? 0:str_replace($rep, "", $datos['cu']);
+		$tisr_anual = !isset($datos['tisr_anual'])? 0:(str_replace($rep, "", $datos['tisr_anual']))/100;
+		$fecha_pago = "null";
+		$cu_act = !isset($datos['cu_act'])? 0:str_replace($rep, "", $datos['cu_act']);
+		if(count($data)==1){ /// Si existe uno es lo normal, si no existe se guarda como nuevo, si existe mas de 1 es un error por que solo debe de haber un calculo por mes.
+			foreach($data as $k){
+   				if(!isset($k->FECHA_PAGO)){
+   					$this->query="UPDATE FTC_IMP_ISR SET ANIO = $anio, mes = $mes, CALCULADO = $totpg, PAGADO = $isrpg, CU = $cu, FACTOR = $tisr_anual, FECHA_PAGO = $fecha_pago, cu_act = $cu_act, usuario='$usuario', fecha = current_date where anio = $anio and mes = $mes and fecha_pago is null";
+   					$res=$this->queryActualiza();
+   					if($res == 1){
+   						//echo 'Si actualizo, iniciamos la insercion del detalle del calculo';
+   						$this->detalleISR($datos, $k->ID_ISR, $rep, $anio, $mes, $usuario, $totpg);
+   					}
+   				}
+   			}
+
+   		}elseif(count($data)==0){
+   			// No existe el mes registrado.
+   			$this->query="INSERT INTO FTC_IMP_ISR (ID_ISR, ANIO, MES, CALCULADO, PAGADO, CU, FACTOR, STATUS, USUARIO, FECHA, CU_ACT) 
+   				VALUES (NULL, $anio, $mes, $totpg, $isrpg, $cu, $tisr_anual, 'A', '$usuario', current_date, $cu_act) RETURNING ID_ISR";
+   				echo $this->query;
+   			$res=$this->grabaBD();
+   			$row = ibase_fetch_object($res);
+   			$this->detalleISR($datos, $id_isr = $row->ID_ISR, $rep, $anio, $mes, $usuario, $totpg);
+
+   		}elseif(count($data)> 1){
+
+   		}
+   	}
+
+   	function detalleISR($datos, $id_isr, $rep, $anio, $mes, $usuario, $totpg){
+   			$this->query="SELECT * FROM FTC_IMP_ISR_DET WHERE ID_ISR = $id_isr";
+   						$res = $this->EjecutaQuerySimple();
+   						if(ibase_fetch_object($res)){
+   							echo 'Si existe borramos el valor anterior';
+   							$this->query="DELETE FROM FTC_IMP_ISR_DET WHERE ID_ISR = $id_isr";
+   							$this->grabaBD();
+   						}
+   							//echo 'No existe Valor y se crea un nuevo registro';
+   							$tvm = $datos['tvm']==''? 0:str_replace($rep, "", $datos['tvm']);
+   							$antcl = $datos['antcl']==''? 0:str_replace($rep, "", $datos['antcl']);
+   							$profin = $datos['profin']==''? 0:str_replace($rep, "", $datos['profin']);
+   							$otrpro = $datos['otrpro']==''? 0:str_replace($rep, "", $datos['otrpro']);
+   							$utlcam = $datos['utlcam']==''? 0:str_replace($rep, "", $datos['utlcam']);
+   							$venact = $datos['venact']==''? 0:str_replace($rep, "", $datos['venact']);
+   							$toting = $datos['toting']==''? 0:str_replace($rep, "", $datos['toting']);
+   							$ingacu = $datos['ingacu']==''? 0:str_replace($rep, "", $datos['ingacu']);
+   							$utlfis = $datos['utlfis']==''? 0:str_replace($rep, "", $datos['utlfis']);
+   							$ppa = $datos['ppa']==''? 0:str_replace($rep, "", $datos['ppa']);
+   							$bisr = $datos['bisr']==''? 0:str_replace($rep, "", $datos['bisr']);
+   							$vtisr = $datos['vtisr']==''? 0:str_replace($rep, "", $datos['vtisr']);
+   							$impmes = $datos['impmes']==''? 0:str_replace($rep, "", $datos['impmes']);
+   							$pgpracval = $datos['pgpracval']==''? 0:str_replace($rep, "", $datos['pgpracval']);
+   							$retbc = $datos['retbc']==''? 0:str_replace($rep, "", $datos['retbc']);
+   							$isrpg = $datos['isrpg']==''? 0:str_replace($rep, "", $datos['isrpg']);
+
+   							$this->query="INSERT INTO FTC_IMP_ISR_DET (ID, ID_ISR, VENTAS_FACTURADAS, ANTICIPO_CLIENTES, PRODUCTOS_FINANCIEROS, OTROS_PRODUCTOS, UTILIDAD_CAMBIARIA, VENTA_ACTIVOS, TOTAL_INGRESOS_MENSUALES, TOTAL_INGRESOS_ACUMULADOS, UTL_FISCAL, PERDIDAS_PENDIENTES, BASE_ISR, TASA_ISR, IMPUESTO_MES, PAGO_PROVISIONAL, ISR_RETENIDO, TOTAL_PAGAR_MES, TOTAL_PAGADO, TIPO_DECLARACION, EJERCICIO, PERIODO, USUARIO, FECHA, STATUS, COMPROBANTE, FECHA_BAJA, USUARIO_BAJA) 
+   							VALUES (null, $id_isr, $tvm, $antcl, $profin, $otrpro, $utlcam, $venact, $toting, $ingacu, $utlfis, $ppa, $bisr, $vtisr, $impmes, $pgpracval, $retbc, $totpg , $isrpg, '', $anio, $mes , '$usuario', current_date, 'A', '', null, '' )";
+   							echo $this->query;
+   							$this->grabaBD();
+   			return;
+   	}
+
+   	function traeDocs($datos, $tipo){
+   		$data = array();
+   		$uuid = '';
+   		for ($i=0; $i < count($datos) ; $i++) { 
+   			$uuid .= "'".$datos[$i]."',";
+   		}
+   		$uuid=substr($uuid, 0, -1);
+   		$this->query="SELECT x.*, xc.cuenta_contable, xc.nombre FROM xml_data x left join xml_clientes xc on xc.rfc = x.rfce and xc.tipo='Proveedor' where x.uuid in ($uuid)";
+   		$res=$this->EjecutaQuerySimple();
+   		while ($tsarray=ibase_fetch_object($res)) {
+   			$data[]=$tsarray;
+   		}
+   		return $data;
+   	}
+
+   	function impuestosPolizaFred($documentos, $por){
+		$data = array();
+		if(!empty($documentos)){
+			$p = 1;
+		 	foreach ($documentos as $u) {
+		 		$uu=$u->UUID;
+		 		$this->query="SELECT impuesto, tasa, tipofactor, tipo, sum(MONTO) * $por AS MONTO, SUM(BASE) AS BASE, $p as partida, MAX(UUID) AS UUID, (select max(RFCE) from xml_data xd where xd.UUID = '$uu') AS RFCE,  (select max(CLIENTE) from xml_data xd where xd.UUID = '$uu' ) AS CLIENTE 
+		 			FROM XML_IMPUESTOS 
+		 			WHERE UUID = '$uu' 
+		 			and status= 0 
+		 			group by impuesto, tasa, tipofactor, Tipo";
+		 		$res=$this->EjecutaQuerySimple();
+				while ($tsArray=ibase_fetch_object($res)){
+					$data[]=$tsArray;
+				}	
+		 		$p++;
+		 	}
+		}	
+	 	return $data;	
+	}
+
+	function infoMesIsr($anio){
+		$data = array();
+		$this->query="SELECT f.*, fd.*, (SELECT COUNT(*) FROM FTC_MEDIA_FILES WHERE f.ID_ISR = f.id_isr) as archivos FROM FTC_IMP_ISR f LEFT JOIN ftc_imp_isr_det FD ON F.id_isr = fd.id_isr where anio = $anio ";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function ftc_files($tipo, $subtipo, $anio){
+		$data=array();
+		$this->query="SELECT * FROM FTC_MEDIA_FILES fm left join FTC_IMP_ISR F on f.$subtipo = fm.ID_REF WHERE TIPO = '$tipo' and SUB_TIPO = '$subtipo' and fm.STATUS = 'A' and f.anio=$anio order by f.mes";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function gp($mes, $anio, $monto){
+		$rep=array("$",",");
+		$monto = str_replace($rep, "", $monto);
+		$usuario = $_SESSION['user']->NOMBRE;
+		$this->query="UPDATE FTC_IMP_ISR SET PAGADO = $monto, fecha_pago = current_timestamp, usuario_pago = '$usuario' where anio = $anio and mes = $mes and fecha_pago is null";
+		if($this->queryActualiza() == 1){
+			return array("statsu"=>'si', "mensaje"=>'Se guardo correctamente el monto, ya puede cargar los comprobantes');
+		}else{
+			$this->query="SELECT * FROM FTC_IMP_ISR WHERE anio = $anio and mes=$mes and fecha_pago is not null";
+			$res=$this->EjecutaQuerySimple();
+			$row  = ibase_fetch_object($res);
+			if(isset($row->USUARIO_PAGO)){
+				return array("status"=>'no', "mensaje"=>'El monto Pagado ya esta guardado desde el <b>'. $row->FECHA_PAGO .'</b> por el usuario <b>'. $row->USUARIO_PAGO. '</b> con un monto de $ <font color="green"> '.number_format($row->PAGADO,2).'</font>');
+			}else{
+				return array("statsu"=>'no', "mensaje"=>'No se encontro el calculo, primero debe de grabar el calculo antes de grabar el pago...');
+			}
+		}
+	}
+
+	function gCompISR($mes, $anio, $files, $ruta, $tipo, $nmes){
+		$usuario=$_SESSION['user']->NOMBRE;
+		for ($i=0; $i < count($files) ; $i++) { 
+			$file = $files[$i];
+			if($tipo == 'Compara'){
+				$this->query="INSERT INTO FTC_MEDIA_FILES (TIPO, SUB_TIPO, ID_REF, NOMBRE, UBICACION, DESCRIPCION, FECHA_ALTA, USUARIO_ALTA, STATUS) VALUES ( '$tipo', 'XLS', 0, '$file', '$ruta', 'Compara la nomina del '||'$mes'||' al '||'$anio' , current_timestamp, '$usuario', 'A')";
+				$this->grabaBD();
+				$this->comparaFile($ruta, $file, $mes, $anio);
+			}else{
+				$this->query="INSERT INTO FTC_MEDIA_FILES (TIPO, SUB_TIPO, ID_REF, NOMBRE, UBICACION, DESCRIPCION, FECHA_ALTA, USUARIO_ALTA, STATUS) VALUES ( 'IMPUESTO', 'ID_'||'$tipo', (SELECT ID_$tipo FROM FTC_IMP_ISR WHERE ANIO=$anio and MES = $nmes), '$file', '$ruta', '', current_timestamp, '$usuario', 'A')";
+				$this->grabaBD();
+			}
+		}
+		return;
+	}
+
+	function comparaFile($ruta, $file, $mes, $anio){
+		echo 'Abrimos el archivo y comenzamos la lectura'.$ruta.$file;
+		$archivo = $ruta.$file;
+		$rfc = $_SESSION['rfc'];
+		$usuario = $_SESSION['user']->NOMBRE;
+		$inputFileType=PHPExcel_IOFactory::identify($archivo);
+        $objReader=PHPExcel_IOFactory::createReader($inputFileType);
+        $objPHPExcel=$objReader->load($archivo);
+        $sheet=$objPHPExcel->getSheet(0);
+        $highestRow = $sheet->getHighestRow(); 
+        $highestColumn = $sheet->getHighestColumn();
+        ++$highestColumn;
+        echo '<br/>Ultima columna con Valores:'.$highestColumn;
+        echo '<br/>Ultima Fila con Valores:'.$highestRow;
+        $errores=0;
+        for ($row=4; $row <= $highestRow; $row++){ //10
+     		$colum =  'A';
+     		$no_emp = $sheet->getCell('A'.$row)->getCalculatedValue();//Numero de empleado
+     		$nom_emp = $sheet->getCell('B'.$row)->getCalculatedValue();// Nombre del empleado
+            for($col='C'; $col != $highestColumn; $col++){
+            	$a = $sheet->getCell($col.$row)->getCalculatedValue();//  
+	            $cve = $sheet->getCell($col.'2')->getCalculatedValue();// Clave SAT
+	            $obs = $sheet->getCell($col.'3')->getCalculatedValue();// Descripcion
+	            $mnto = $sheet->getCell($col.$row)->getCalculatedValue() == ''? 0:$sheet->getCell($col.$row)->getCalculatedValue();
+	            $this->query = "INSERT INTO XML_NOMINA_XLS (NO_EMPLEADO, NOMBRE, CLAVE, MONTO, ARCHIVO, FECHA, USUARIO, FI_NOMINA, FF_NOMINA, STATUS, OBSERVACIONES ) VALUES ('$no_emp', '$nom_emp', '$cve', $mnto, '$file', current_timestamp, '$usuario', '$mes', '$anio', 'I', '$obs')";
+	            if(!$this->grabaBD()){
+	            	$errores++; 
+	            }
+	            ++$colum;
+            }            
+        }
+        return;
+        //fclose($diot);
+        //return array("status"=>'ok', "m"=>'Se ha creado el arvivo'.$diot_archivo, "a"=>$diot_archivo);
+	}
+
+	function docPg($mes, $anio, $tipo){
+		$data=array();
+		if($mes == 0){
+			$m = '';
+		}else{
+			$m = " and mes = ".$mes;
+		}
+		if($tipo == 'd'){
+			$this->query="SELECT * FROM DOCUMENTOS_PAGADOS WHERE ANIO = $anio $m ";
+		}else{
+			$this->query="SELECT RFC, SUM(TOTAL_IVA) AS TOTAL_IVA, MAX(NOMBRE) AS NOMBRE, MAX(TIPO_TER) AS TIPO_TER, MAX(TIPO_OPE) AS TIPO_OPE, COUNT(DOCUMENTO) AS DOCUMENTOS, min(nat) as nat FROM DOCUMENTOS_PAGADOS WHERE ANIO = $anio $m group by RFC ";
+		}
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function docCb($mes, $anio){
+		$data=array();
+		if($mes == 0){
+			$m = '';
+		}else{
+			$m = " and mes = ".$mes;
+		}
+		$this->query="SELECT * FROM DOCUMENTOS_COBRADOS WHERE ANIO = $anio $m ";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function truncarNumero($numero, $dec, $dect){
+		$numero = number_format($numero,$dec,".","");
+		$numero = explode(".", $numero);
+		$decimal = substr($numero[1],0,$dect);
+		return $numero[0].".".$decimal;
+	}
+
+	function isrDet($mes, $anio, $tipo){
+		if($tipo == 'vf'){
+			return $this->traeVentas($anio, $mes, 'det');
+		}elseif($tipo == 'ac'){
+			return $this->traeAnticipos($anio, $mes, 'det');
+		}elseif($tipo == 'pf'){
+			return $this->traeProdFinan($anio, $mes, 'det');
+		}
+	}
+
+	function gpd($po , $pt, $rfc){
+		$po = substr($po, 0,2);
+		$pt = substr($pt, 0,2);
+		$this->query="SELECT * FROM XML_CLIENTES_DET WHERE ID_CL = (SELECT first 1 IDCLIENTE FROM XML_CLIENTES WHERE RFC = '$rfc' and tipo = 'Proveedor')";
+		$res=$this->EjecutaQuerySimple();
+		if($row=ibase_fetch_object($res)){
+			$this->query="UPDATE XML_CLIENTES_DET SET TIPO_TERCERO_SAT = '$pt', TIPO_OPERACION_SAT = '$po' where ID_CL = (SELECT first 1 IDCLIENTE FROM XML_CLIENTES WHERE RFC = '$rfc' and tipo = 'Proveedor')";
+			$this->queryActualiza();
+			$mensaje= "Se ha Actualizado correctamente";
+		}else{
+			$this->query="INSERT INTO XML_CLIENTES_DET (ID_CL, TIPO_TERCERO_SAT, TIPO_OPERACION_SAT) VALUES ((SELECT first 1 IDCLIENTE FROM XML_CLIENTES WHERE RFC = '$rfc' and tipo = 'Proveedor'), '$pt', '$po')";
+			$this->grabaBD();
+			$mensaje = 'Se ha insertado correctamente';
+		}
+		return array("status"=>'ok', "mensaje"=>$mensaje);
+
+
+	}
 
 }

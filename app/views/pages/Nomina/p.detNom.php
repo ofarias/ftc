@@ -5,7 +5,7 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                         Detalle de la nomina del <?php echo $fi?> al <?php echo $ff?>
-                        <br/><br/> <input type="button" class="btn-sm btn-success repNom" value="Exportar a Excel"> <br/><br/>
+                        <br/><br/> <input type="button" class="btn-sm btn-success repNom" value="Exportar a Excel"> &nbsp;&nbsp; <input type="button" class="btn-sm btn-primary comparar" value="Comparar Excel" > <br/><br/>
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">
@@ -224,6 +224,42 @@ $(".repNom").click(function(){
             })
             return false;    
         }
+})
+
+$(".comparar").click(function(){
+    $.confirm({
+        columnClass:'col-md-8',
+        title:'Compar Reportes',
+        content:'Carga de archivo' +
+        '<form action="upload_rep_nom.php" method="post" enctype="multipart/form-data" class="upl"'+
+        '<div class="form-group">'+
+            '<br/>Archivo a comparar: <input type="file" name="fileToUpload" class="cl" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"> '+
+            '<b>El archivo que carge se comparará con la nómina del ' + fi + ' al ' + ff + '</b><br/>'+
+            '<input type="hidden" value="'+fi+'" name="fi">' + '<input type="hidden" value="'+ff+'" name="ff">' +
+            '<br/>"El resualtado del proceso es un reporte donde se marcan los resultados de ambos archivos y se muestran las diferencias."' +
+        '</form>',
+        buttons:{
+            formSubmit:{
+                text:'Cargar Archivo', 
+                btnClass:'btn-blue', 
+                action: function(){
+                    var file = this.$content.find('.cl').val();
+                    var form = this.$content.find('.upl')
+                    
+                    if(file==''){
+                        $.alert('Debe de seleccionar un archivo...');
+                        return false;
+                    }else{
+                        form.submit()
+                    }
+                }
+
+            },
+            cancelar: function(){
+
+            },
+        } 
+    })
 })
 
 /*
