@@ -57,6 +57,10 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res=$controller->gpd($_POST['po'], $_POST['pt'], $_POST['rfc']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['setTD'])) {
+	$res=$controller->setTD($_POST['rfc'], $_POST['t'],$_POST['t2'], $_POST['t3']);
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($_GET['action']){
@@ -123,6 +127,9 @@ else{
 		break;
 	case 'isrDet':
 		$controller->isrDet($_GET['mes'], $_GET['anio'], $_GET['tipo']);
+		break;
+	case 'infoProv':
+		$controller->infoProv($_GET['rfc'], $_GET['tipo']);
 		break;
 	default: 
 		header('Location: index.php?action=login');

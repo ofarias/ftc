@@ -1275,8 +1275,78 @@ class cargaXML extends database {
 			$mensaje = 'Se ha insertado correctamente';
 		}
 		return array("status"=>'ok', "mensaje"=>$mensaje);
+	}
+
+	function infoProv($rfc, $tipo){
+		$data = array();
+		if($tipo == 'Recibidos'){
+			$this->query="SELECT x.*, c.* , cd.*, td.descripcion as tipo_doc, (SELECT SUM(X1.IMPORTE) FROM XML_DATA X1 WHERE X1.RFCE = '$rfc') as total_gral FROM XML_DATA x left join XML_CLIENTES c on c.rfc = x.rfce and c.tipo = 'Proveedor' left join XML_CLIENTES_DET cd on cd.id_cl = c.IDCLIENTE left join xml_tipo_doc td on td.id_tipo = x.id_relacion WHERE RFCE = '$rfc'";
+			$res=$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)){
+				$data[]=$tsArray;
+			}
+			$this->query="SELECT extract(year from fecha) as ejercicio,  max(RFCE), sum(IMPORTE) AS IMPORTE FROM XML_DATA x where rfce='$rfc' and status!='C' group by extract(year from fecha)  
+			";
+			$res =$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)){
+				$data2[]=$tsArray;
+			}
+			$this->query="SELECT x.id_relacion, count(*) AS DOCUMENTOS, coalesce (max(td.descripcion), 'Sin Definir') as descripcion from xml_data x  left join xml_tipo_doc td on td.id_tipo = x.id_relacion where rfce='$rfc' group by x.id_relacion order by count(*) desc ";
+			$res =$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)){
+				$data3[]=$tsArray;
+			}
+			$this->query="SELECT * FROM XML_TIPO_DOC WHERE ID_TIPO >= 2000 AND ID_TIPO < 3000";
+			$res =$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)){
+				$data4[]=$tsArray;
+			}	
+		}else{
+			$this->query="SELECT x.*, c.* , cd.*, td.descripcion as tipo_doc, (SELECT SUM(X1.IMPORTE) FROM XML_DATA X1 WHERE X1.CLIENTE = '$rfc') as total_gral FROM XML_DATA x left join XML_CLIENTES c on c.rfc = x.CLIENTE and c.tipo = 'Cliente' left join XML_CLIENTES_DET cd on cd.id_cl = c.IDCLIENTE left join xml_tipo_doc td on td.id_tipo = x.id_relacion WHERE CLIENTE = '$rfc'";
+			$res=$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)){
+				$data[]=$tsArray;
+			}
+			$this->query="SELECT extract(year from fecha) as ejercicio,  max(CLIENTE), sum(IMPORTE) AS IMPORTE FROM XML_DATA x where CLIENTE='$rfc' and status!='C' group by extract(year from fecha)  
+			";
+			$res =$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)){
+				$data2[]=$tsArray;
+			}
+			$this->query="SELECT x.id_relacion, count(*) AS DOCUMENTOS, coalesce (max(td.descripcion), 'Sin Definir') as descripcion from xml_data x  left join xml_tipo_doc td on td.id_tipo = x.id_relacion where CLIENTE='$rfc' group by x.id_relacion order by count(*) desc ";
+			$res =$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)){
+				$data3[]=$tsArray;
+			}
+			$this->query="SELECT * FROM XML_TIPO_DOC WHERE ID_TIPO >= 1000 AND ID_TIPO < 2000";
+			$res =$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)){
+				$data4[]=$tsArray;
+			}
+		}
+		return array("detalle"=>$data, "tot_anl"=>$data2, "tipo_doc"=>$data3, "tipoDocs"=>$data4);
+	}
 
 
+	function setTD($rfc, $t, $t2, $t3){
+		$m = $t2=='t'? ' ':' and (id_relacion is null or id_relacion = 0) ';
+		$p = $t3=='Recibidos'? "Proveedor":"Cliente";
+		$r = $t3=='Recibidos'? "rfce":"cliente";
+		$this->query="UPDATE XML_DATA SET id_relacion = $t where $r = '$rfc' $m";
+		$res = $this->queryActualiza();
+
+		$this->query="SELECT * FROM XML_CLIENTES_DET WHERE id_cl = (SELECT IDCLIENTE FROM XML_CLIENTES WHERE RFC = '$rfc' and tipo = '$p')";
+		$r = $this->EjecutaQuerySimple();
+		$row = ibase_fetch_object($r);
+		if(!isset($row)){
+			$this->query="INSERT INTO XML_CLIENTES_DET (ID_CL, TIPO_DOCU) VALUES ( (SELECT IDCLIENTE FROM XML_CLIENTES WHERE RFC = '$rfc' and tipo = '$p'), $t)";
+			echo $this->query;
+			$re = $this->grabaBD();
+		}else{
+			$this->query="UPDATE XML_CLIENTES_DET SET TIPO_DOCU = $t where id_cl = (SELECT IDCLIENTE FROM XML_CLIENTES WHERE RFC = '$rfc' and tipo = '$p')";
+			$re = $this->queryActualiza();
+		}
+		return array("mensaje"=>'Se Actualizaron '.$res.' facturas.', "mensaje2"=>'Se actualizo el'.$p);
 	}
 
 }

@@ -154,8 +154,12 @@
                                                <?php } ?>
                                             </td>
                                             <td><?php echo $key->FECHA;?> </td>
-                                            <td><?php echo '('.$key->CLIENTE.')  <br/><b>'.($key->NOMBRE).'<b/>';?></td>
-                                            <td class="impDet"><?php echo '('.$key->RFCE.')  <br/><b>'.$key->EMISOR.'<b/>'?></td>
+
+                                            <td><a href="index.xml.php?action=infoProv&rfc=<?php echo $key->CLIENTE?>&tipo=<?php echo $ide?>" target="_blank" > <?php echo '('.$key->CLIENTE.')  <br/><b>'.($key->NOMBRE).'<b/>';?></a></td>
+
+                                            <td class="impDet"><a href="index.xml.php?action=infoProv&rfc=<?php echo $key->RFCE?>&tipo=<?php echo $ide?>" target="_blank"><?php echo '('.$key->RFCE.')  <br/><b>'.$key->EMISOR.'<b/>'?></a></td>
+
+
                                             <td><?php echo '$ '.number_format($key->SUBTOTAL,2);?></td>
                                             <td class="impDet"><?php echo '$ '.number_format($key->IVA,2);?></td>
                                             <td class="impDet"><?php echo '$ '.number_format($key->IVA_RET,2);?></td>

@@ -24974,9 +24974,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor'), (SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE ID = 1) AS EMISOR, xp.*, xd.*, xp.importe as pimporte, xp.descuento as pdescuento,
     			(SELECT cs.DESCRIPCION FROM CLAVES_SAT cs WHERE cs.CVE_PROD_SERV = xp.clave_sat) as desc_Clave, 
     			(SELECT us.DESCRIPCION FROM UNIDADES_SAT us WHERE us.CLAVE = xp.UNIDAD_SAT) as desc_Unidad, 
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 GROUP BY IMPUESTO),0) AS PIVA,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 GROUP BY IMPUESTO),0) AS PIEPS,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 GROUP BY IMPUESTO),0) AS PISR 
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PIVA,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PIEPS,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PISR,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_IVA,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_ISR
     			from xml_partidas xp 
     				left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor') is not null  
     				and extract(year from xd.fecha)=$anio 
@@ -24986,9 +24988,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente'), (SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE ID = 1) AS EMISOR, xp.*, xd.*, xp.importe as pimporte,xp.descuento as pdescuento,
     			(SELECT cs.DESCRIPCION FROM CLAVES_SAT cs WHERE cs.CVE_PROD_SERV = xp.clave_sat) as desc_Clave, 
     			(SELECT us.DESCRIPCION FROM UNIDADES_SAT us WHERE us.CLAVE = xp.UNIDAD_SAT) as desc_Unidad, 
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0  GROUP BY IMPUESTO),0) AS PIVA,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 GROUP BY IMPUESTO),0) AS PIEPS,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 GROUP BY IMPUESTO),0) AS PISR
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PIVA,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PIEPS,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PISR,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_IVA,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_ISR
     			from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente') is not null and extract(year from xd.fecha)= $anio and xd.tipo= '$doc' $periodo order by xd.fecha, xd.documento";
     	}
     	//echo $this->query;

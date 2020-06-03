@@ -6,11 +6,7 @@ class statics extends database {
 	function verEstadistica($mes, $anio, $tipo, $t){
         $data = array();
         $m = '';
-        if($tipo == 'I'){
-            $rfce = $_SESSION['rfc'];
-            //echo $rfce;
-        }
-        
+        $rfce = $_SESSION['rfc'];        
         if($mes > 0){
             $m = " and extract(Month from fecha) = ".$mes." ";
         }
@@ -46,8 +42,16 @@ class statics extends database {
                               ) as total_cliente,
 
                               (SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE = '$rfce' and Xt.TIPO = '$tipo' and extract(year from xt.FECHA) = $anio $m) as total,
-                              (SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE = '$rfce' and Xt.TIPO = 'E' and extract(year from xt.FECHA) = $anio $m) as total_dev,
-                              (SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE = '$rfce' and Xt.TIPO = 'C' and extract(year from xt.FECHA) = $anio $m) as total_can,
+                              
+                              COALESCE( 
+                                (SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE = '$rfce' and Xt.TIPO = 'E' and extract(year from xt.FECHA) = $anio $m),
+                                0)
+                                 as total_dev,
+                              
+                              COALESCE(
+                                (SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE = '$rfce' and Xt.TIPO = 'C' and extract(year from xt.FECHA) = $anio $m),
+                                0)
+                              as total_can,
 
                               ( (SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE = '$rfce' and Xt.TIPO = '$tipo' and extract(year from xt.FECHA) = $anio $m) 
                                 -(SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE = '$rfce' and Xt.TIPO = 'E' and extract(year from xt.FECHA) = $anio $m)
@@ -69,6 +73,69 @@ class statics extends database {
                               ) desc
                                   "; 
         }else{
+              $this->query=" SELECT X.rfce AS RFC,
+                              (select max(NOMBRE) from XML_CLIENTES C where X.rfce = C.RFC and TIPO = 'Proveedor') as NOMBRE,
+                              sum(X.IMPORTE) as FACTURADO,
+                              (select coalesce(sum(XC.IMPORTE), 0) from XML_DATA XC where XC.CLIENTE = X.rfce and STATUS = 'C') as CANCELADO,
+                              (select coalesce(sum(XNC.IMPORTE), 0) from XML_DATA XNC where XNC.CLIENTE = X.rfce and TIPO = 'E') as NOTAS,
+
+                              (
+                                (coalesce(sum(X.IMPORTE),0)
+                                -
+                                (select coalesce(sum(XNC.IMPORTE), 0) from XML_DATA XNC where XNC.CLIENTE = X.rfce and TIPO = 'E')                                
+                                -
+                                (select coalesce(sum(XC.IMPORTE), 0) from XML_DATA XC where XC.CLIENTE = X.rfce and STATUS = 'C')
+                              )
+                              /
+                              (
+                                (SELECT coalesce(SUM(xt.importe),2) from xml_data xt where Xt.RFCE != '$rfce' and Xt.TIPO = '$tipo' and extract(year from xt.FECHA) = $anio $m) 
+                                -(SELECT coalesce(SUM(xt.importe),2) from xml_data xt where Xt.RFCE != '$rfce' and Xt.TIPO = 'E' and extract(year from xt.FECHA) = $anio $m)
+                                -(SELECT coalesce(SUM(xt.importe),2) from xml_data xt where Xt.RFCE != '$rfce' and Xt.TIPO = 'C' and extract(year from xt.FECHA) = $anio $m)
+                              )  
+                              ) * 100 as PORcentaje,
+
+                              (
+                              sum(X.IMPORTE)  
+                              -
+                                (select coalesce(sum(XNC.IMPORTE), 0) from XML_DATA XNC where XNC.CLIENTE = X.rfce and TIPO = 'E')                                
+                              -
+                                (select coalesce(sum(XC.IMPORTE), 0) from XML_DATA XC where XC.CLIENTE = X.rfce and STATUS = 'C')
+                              ) as total_cliente,
+
+                              (SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE != '$rfce' and Xt.TIPO = '$tipo' and extract(year from xt.FECHA) = $anio $m) as total,
+                              
+                              COALESCE( 
+                                (SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE != '$rfce' and Xt.TIPO = 'E' and extract(year from xt.FECHA) = $anio $m),
+                                0)
+                                 as total_dev,
+                            
+                              COALESCE(
+                                (SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE != '$rfce' and Xt.TIPO = 'C' and extract(year from xt.FECHA) = $anio $m),
+                                0)
+                              as total_can,
+
+                              ( (SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE != '$rfce' and Xt.TIPO = '$tipo' and extract(year from xt.FECHA) = $anio $m) 
+                                -(SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE != '$rfce' and Xt.TIPO = 'E' and extract(year from xt.FECHA) = $anio $m)
+                                -(SELECT coalesce(SUM(xt.importe),0) from xml_data xt where Xt.RFCE != '$rfce' and Xt.TIPO = 'C' and extract(year from xt.FECHA) = $anio $m)
+                              ) as grantotal
+
+                          from XML_DATA X
+                          where X.rfce != '$rfce' and
+                                X.TIPO = '$tipo' and
+                                extract(year from x.FECHA) = $anio
+                                $m
+                          group by X.rfce
+                          order by (
+                              sum(X.IMPORTE)  
+                              -
+                                (select coalesce(sum(XNC.IMPORTE), 0) from XML_DATA XNC where XNC.CLIENTE = X.rfce and TIPO = 'E')                                
+                              -
+                                (select coalesce(sum(XC.IMPORTE), 0) from XML_DATA XC where XC.CLIENTE = X.rfce and STATUS = 'C')
+                              ) desc
+                                  "; 
+                    //echo $this->query;
+
+            /*
             $this->query=" SELECT X.rfce as RFC,
                               (select max(NOMBRE) from XML_CLIENTES C where X.rfce = C.RFC and TIPO = 'Proveedor') as NOMBRE,
                               sum(X.IMPORTE) as FACTURADO,
@@ -83,6 +150,7 @@ class statics extends database {
                           group by X.rfce
                           order by sum(X.IMPORTE) desc
                                   ";
+            */
         }
                 //echo $this->query;
                 $rs=$this->EjecutaQuerySimple();
