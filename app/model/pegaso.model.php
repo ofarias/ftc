@@ -870,7 +870,7 @@ class pegaso extends database{
 		//$newDate30 = $arr[2].'-'.$arr[1].'-'.$arr[0];
     	$PROVV=trim($PROVEEDOR);
 		$pp=str_pad($PROVV, 10, " ", STR_PAD_LEFT);
-
+		
 		$cabecera  =" INSERT INTO COMPO01 (";
 		$cabecera  .="	 TIP_DOC, CVE_DOC, CVE_CLPV, STATUS,";
 		$cabecera  .="	 SU_REFER, FECHA_DOC, FECHA_REC, FECHA_PAG,";

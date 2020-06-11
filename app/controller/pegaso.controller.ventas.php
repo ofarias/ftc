@@ -1513,7 +1513,7 @@ class pegaso_controller_ventas{
                 ->setCellValue('A7','Total Facturado: ')
                 ->setCellValue('A8','Total Saldo: ')
                 ->setCellValue('A9','Usuario Elabora')
-                ->setCellValue('A10','')
+                
                 ;
             $xls->getActiveSheet()
                 ->setCellValue('D3','')
@@ -1523,7 +1523,7 @@ class pegaso_controller_ventas{
                 ->setCellValue('D7','$ '.number_format($t,2))
                 ->setCellValue('D8','$ '.number_format($s,2))
                 ->setCellValue('D9',$usuario)
-                ->setCellValue('D10','')
+                
                 ;
             /// Unir celdas
             $xls->getActiveSheet()->mergeCells('A1:O1');

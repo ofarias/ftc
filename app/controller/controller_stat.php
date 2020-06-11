@@ -74,5 +74,20 @@ class statics_c{
 		}
 	}
 
+	function repTipo($anio, $tipo){
+		if($_SESSION['user']){
+			$data = new statics;
+			$info = $data->repTipo($anio);
+			$anios = $data->traeAnios();
+			$pagina =$this->load_template2('Estadistica de '.$tipo);
+			$html=$this->load_page('app/views/pages/Estadistica/p.repTipo.php');
+	   		ob_start();
+	   		include 'app/views/pages/Estadistica/p.repTipo.php';
+	   		$table = ob_get_clean();
+	   		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+	   		$this->view_page($pagina);
+		}
+	}
+
 
 }?>

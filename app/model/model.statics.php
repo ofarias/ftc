@@ -199,5 +199,22 @@ class statics extends database {
       return $data;
     }
 
+    function repTipo($anio){
+      $this->query="SELECT tipo_doc, tipo as tipo_fiscal, status, max(anio) as anio, sum(TOTAL) as total, sum(subtotal) as subtotal, sum(descuento) as descuento, sum(IVA) as iva  FROM INGRESOS_TIPO where anio = $anio group by tipo_doc, tipo, status order by total desc ";
+      $res=$this->EjecutaQuerySimple();
+      while ($tsArray=ibase_fetch_object($res)) {
+        $data[]=$tsArray;
+      }
+      return $data;
+    }
+
+    function traeAnios(){
+      $this->query="SELECT extract(year from fecha) as anio from xml_data group by extract(year from fecha)";
+      $res=$this->EjecutaQuerySimple();
+      while ($tsArray = ibase_fetch_object($res)) {
+        $data[]=$tsArray;
+      }
+      return $data;
+    }
 }
 ?> 
