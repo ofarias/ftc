@@ -152,6 +152,17 @@
                         <center><a href="index.php?action=ausers" class="btn btn-default"> <img src="app/views/images/AdminUsuarios/AdminUsr.png" width="58" height="60"></a></center>
                     </div>
                 </div>
+            </div>
+            <div class="col-md-3">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4>ESTADISTICAS</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p><b>Usuarios</b></p>
+                        <center><a href="index.php?action=msta" class="btn btn-default"> <img src="app/views/images/AdminUsuarios/AdminUsr.png" width="58" height="60"></a></center>
+                    </div>
+                </div>
             </div>    
             <div class="col-md-3">
                 <div class="panel panel-default">
@@ -163,7 +174,8 @@
                         <center><a href="index.serv.php?action=mserv" class="btn btn-default"> <img src="app/views/images/AdminUsuarios/AdminUsr.png" width="58" height="60"></a></center>
                     </div>
                 </div>
-            </div>    
+            </div>
+
     </div>
 </div>
     

@@ -942,14 +942,19 @@ class CoiDAO extends DataBaseCOI {
                 /// si es nivel 1 la hija entonces en nivel 2, traemos el valor del nivel 1 
                 //echo 'Ultimo Campo'.$row->NIVELACTU.'<br/>';
                 $nivel = substr($papa,-1);
+                //echo '<br/>Valor de nivel: '.$nivel.'<br/>';
                 $n1=0;
                 for ($i=1; $i < $row->NIVELACTU ; $i++) { 
                     $n1 += $row->{$camp.$i};
                 }
                 $nh = $nivel+1;
+                //echo '<br/>Valor de nh '.$nh.'<br/>';
+                
                 $n2 = $row->{$camp.$nh};
+
                 $papa = substr($papa,0,strlen($papa)-1 );
                 //echo 'Cuenta Padre: '.$papa.'<br/>';
+                
                 $this->query="SELECT EJERCICIO FROM ADMPER GROUP BY EJERCICIO";
                 $res=$this->EjecutaQuerySimple();
                 while($tsArray=ibase_fetch_object($res)){
@@ -970,6 +975,7 @@ class CoiDAO extends DataBaseCOI {
                             //$this->query ="SELECT coalesce(MIN(NUM_CTA), 0) as papa, substring(MAX(num_cta) from $inicial for $nivel) as hija, min(cta_raiz) as raiz FROM CUENTAS$eje WHERE NUM_CTA STARTING WITH ('$ctaP') and TIPO ='D'";
                             $this->query="SELECT max(NUM_CTA), '$papa' as PAPA, substring( MAX(num_cta) from ($n1+1) for $n2) as hija, min(cta_raiz) as raiz, max(CODAGRUP) AS IDFISCAL from cuentas18 where cta_papa ='$papa'";
                             //echo'<br/> Se crea la consulta '.$this->query.'<br/>';
+                            //die();
                             $rs = $this->EjecutaQuerySimple();
                             $rowCtaDet= ibase_fetch_object($rs);
                             $ctaPapa = $rowCtaDet->PAPA;
