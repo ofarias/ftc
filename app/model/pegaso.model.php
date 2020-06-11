@@ -25137,7 +25137,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' 
 	    			where 
 	    				xp.rfc = '$rfcr' 
-	    				and (select x.rfce from xml_data x where x.uuid = xp.uuid) = '$rfc' 
+	    				and PARTIDA = $par
 	    				and  xp.CLAVE_SAT = '$cve_sat' 
 	    				and xp.UNIDAD_SAT = '$uni_sat' 
 	    		and 
