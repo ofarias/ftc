@@ -184,7 +184,7 @@ class data_serv extends database {
 					$this->query="INSERT into FTC_SERV_FILES (ID_SF, ID_SERV, UBICACION, NOMBRE, TIPO, TAMANO, USUARIO, TIPO_ARCHIVO, VERSION, FECHA_ALTA, FECHA_BAJA, STATUS, ORIGEN, EMPRESA, OBSERVACIONES, tipo_documento) VALUES (NULL, $servicio, '$ubicacion', '$nombre', '$tipo', $tamano, '$usuario', '$tipo_archivo', 1.00, current_timestamp, null, 1, '$origen', $emp, '$obs', '$tipo_Doc')";
 				}
 			}
-			echo 'Consulta: '.$this->query.'<br/>';
+			//echo 'Consulta: '.$this->query.'<br/>';
 			$this->grabaBD();
 		}
 

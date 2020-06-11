@@ -24974,9 +24974,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor'), (SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE ID = 1) AS EMISOR, xp.*, xd.*, xp.importe as pimporte, xp.descuento as pdescuento,
     			(SELECT cs.DESCRIPCION FROM CLAVES_SAT cs WHERE cs.CVE_PROD_SERV = xp.clave_sat) as desc_Clave, 
     			(SELECT us.DESCRIPCION FROM UNIDADES_SAT us WHERE us.CLAVE = xp.UNIDAD_SAT) as desc_Unidad, 
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 GROUP BY IMPUESTO),0) AS PIVA,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 GROUP BY IMPUESTO),0) AS PIEPS,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 GROUP BY IMPUESTO),0) AS PISR 
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PIVA,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PIEPS,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PISR,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_IVA,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_ISR
     			from xml_partidas xp 
     				left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor') is not null  
     				and extract(year from xd.fecha)=$anio 
@@ -24986,9 +24988,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$this->query="SELECT (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente'), (SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE ID = 1) AS EMISOR, xp.*, xd.*, xp.importe as pimporte,xp.descuento as pdescuento,
     			(SELECT cs.DESCRIPCION FROM CLAVES_SAT cs WHERE cs.CVE_PROD_SERV = xp.clave_sat) as desc_Clave, 
     			(SELECT us.DESCRIPCION FROM UNIDADES_SAT us WHERE us.CLAVE = xp.UNIDAD_SAT) as desc_Unidad, 
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0  GROUP BY IMPUESTO),0) AS PIVA,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 GROUP BY IMPUESTO),0) AS PIEPS,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 GROUP BY IMPUESTO),0) AS PISR
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PIVA,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PIEPS,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PISR,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_IVA,
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_ISR
     			from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente') is not null and extract(year from xd.fecha)= $anio and xd.tipo= '$doc' $periodo order by xd.fecha, xd.documento";
     	}
     	//echo $this->query;
@@ -25098,7 +25102,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     						(select sum(BASE) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_IVA_R, 
     						(select sum(BASE) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_IEPS_R
      						FROM  XML_PARTIDAS x where uuid = '$uuid'";
-    	///echo $this->query;
+    	//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while ($tsArray=ibase_fetch_object($res)) {
     		$data[]=$tsArray;
@@ -25136,7 +25140,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$ccp = $key[3];
 	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' 
 	    			where 
-	    				xp.rfc = '$rfcr' 
+	    				xp.rfc = '$rfcr'
 	    				and PARTIDA = $par
 	    				and  xp.CLAVE_SAT = '$cve_sat' 
 	    				and xp.UNIDAD_SAT = '$uni_sat' 
@@ -27665,6 +27669,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function consolidaPolizas($mes, $anio, $ide, $polizas){
 		$mensaje='a';
+		$usuario = $_SESSION['user']->NOMBRE;
 		$data= array();
 		$this->query="SELECT * FROM XML_POLIZAS WHERE PERIODO = $mes AND  EJERCICIO = $anio and status = 'A'";
 		$res=$this->EjecutaQuerySimple();
@@ -27699,7 +27704,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				}
 				if($in == 0){
 					$mensaje.= '--> No se encontro la poliza '.$ps->POLIZA.'<--';
-					$this->query="UPDATE XML_POLIZAS SET status = 'C' where UUID = '$ps->UUID' and tipo = '$ps->TIPO' AND periodo = $ps->PERIODO and ejercicio = $ps->EJERCICIO and status = 'A'";
+					$this->query="UPDATE XML_POLIZAS SET status = 'C', FECHA_CANCELA = current_timestamp, USUARIO_CANCELA = 'Consolidacion '||'$usuario' where UUID = '$ps->UUID' and tipo = '$ps->TIPO' AND periodo = $ps->PERIODO and ejercicio = $ps->EJERCICIO and status = 'A'";
 					$ra=$this->queryActualiza();
 					if($ra == 1 and $ps->TIPO == 'Dr'){
 						$this->query="UPDATE XML_DATA SET STATUS = 'P' WHERE UUID = '$ps->UUID'";
@@ -27712,7 +27717,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			}
 			//echo 'Total polizas con coincidencia: '.$ok.'<br/>';
 		}else{
-			$this->query="UPDATE XML_POLIZAS SET STATUS = 'C' WHERE periodo = $mes and ejercicio= $anio and tipo = 'Dr' ";
+			$this->query="UPDATE XML_POLIZAS SET STATUS = 'C', FECHA_CANCELA = current_timestamp, USUARIO_CANCELA = 'Cons. COI '||'$usuario' WHERE periodo = $mes and ejercicio= $anio and tipo = 'Dr' ";
 			$this->queryActualiza();
 		}
 		return array("status"=>'C', "mensaje"=>$mensaje);
@@ -28084,5 +28089,79 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	}
     	return $data;
     }	
+
+
+	function verXMLSP_Prov($mes, $anio, $ide, $uuid, $doc){
+    	$data=array();
+    	//$this->uuid_generico(); Funcion para actulizar los nombres de los rfcs genericos del sat.
+    	if(!empty($uuid) and $uuid !='D'){
+    		$uuid = "and uuid = '".$uuid."'";
+    	}elseif ($mes == 0 and $ide == 'Emitidos') {
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and x.cliente != '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
+    	}elseif ($mes == 0 and $ide == 'Recibidos') {
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and cliente = '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
+    	}elseif($ide == 'Emitidos'){
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and x.cliente != '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
+    	}elseif($ide == 'Recibidos'){
+    		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente = '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
+    	}
+    	if($ide== 'Emitidos'){
+					$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
+    					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
+    					CASE x.cliente
+    						when 'XAXX010101000' then (SELECT NOMBRE FROM XML_UUID_GENERICO XUG WHERE XUG.ID_UUID_GEN = x.uuid )
+    						else (select first 1 nombre from xml_clientes xc where xc.rfc = x.cliente) 
+    						end  as nombre,
+    					(SELECT first 1 RAZON_SOCIAL FROM FTC_EMPRESAS WHERE rfc = rfce) as emisor,
+    					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = x.cliente and tipo = 'Cliente') as cuenta_Contable,
+    					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(2000)),'') as poliza
+    					,'' as tp_tes
+    					, fecha_recep as fecha_edo_cta
+    					,COALESCE( 
+    						CAST(
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID or CPD.UUID_PAGO = X.UUID) 
+    						AS VARCHAR(2000)) , '') AS CEPA
+    					
+    					,COALESCE(
+    						CAST(
+    							substring(
+    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID )
+    							 from 1 for 1499)
+    							 AS VARCHAR(1500)
+    						), ''
+    						) AS RELACIONES,
+    					X.importe - coalesce((SELECT sum(monto_Aplicado) from aplicaciones ap where ap.observaciones = x.uuid AND STATUS != 'C'), 0) as saldo_xml,
+    					(SELECT DESCRIPCION FROM XML_TIPO_DOC XT WHERE XT.ID_TIPO = X.ID_RELACION) AS TIPO_DOC 
+						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F' or x.status = 'C') $uuid";
+		}else{
+    				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
+    					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
+    					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
+    					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = rfce) as emisor,
+    					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = rfce and tipo = 'Proveedor') as cuenta_Contable,
+    					COALESCE(CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(2500)),'') as poliza
+    					, COALESCE( 
+    						CAST(
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID or CPD.UUID_PAGO = X.UUID) 
+    						AS VARCHAR(2500)) , '') AS CEPA
+    					,COALESCE(
+    						CAST(
+    						substring( 
+    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) from 1 for 1499)
+    							AS VARCHAR(1500)
+    						), ''
+    						) AS RELACIONES, 
+    						x.importe - coalesce((SELECT SUM(AG.APLICADO) FROM APLICACIONES_GASTOS AG WHERE AG.UUID = x.UUID AND STATUS=0),0) AS SALDO_XML,
+    						(SELECT DESCRIPCION FROM XML_TIPO_DOC XT WHERE XT.ID_TIPO = X.ID_RELACION) AS TIPO_DOC 
+						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
+						WHERE (STATUS= 'D' or x.status = 'C') $uuid";
+						
+    	}
+    	$res=$this->EjecutaQuerySimple();
+    	while($tsArray = ibase_fetch_object($res)){
+    		$data[]=$tsArray;
+    	}
+    	return ($data);
+    }
 
 }?>

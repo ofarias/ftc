@@ -33,6 +33,34 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res = $controller->detNom($_POST['fi'], $_POST['ff'],$_POST['tipo']);
 	echo json_encode($res);
 	return $res;
+}elseif(isset($_POST['setCU'])){
+	$res=$controller->setCU($_POST['cu'],$_POST['anio'], $_POST['tipo']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['setISR'])) {
+	$res = $controller->setISR($_POST['anio'], $_POST['val'], $_POST['tipo']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['gIsr'])) {
+	$res = $controller->gIsr($_POST['gIsr'],$_POST['anio'], $_POST['datos']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['polFred'])) {
+	$res = $controller->polFred($_POST['datos'],$_POST['cta'], $_POST['tipo'], $_POST['mes'], $_POST['anio']);
+	echo json_encode($res);
+	exit();
+}elseif(isset($_POST['gp'])){
+	$res = $controller->gp($_POST['nmes'], $_POST['anio'], $_POST['monto']);
+	echo json_encode($res);
+	exit();
+}elseif(isset($_POST['gpd'])){
+	$res=$controller->gpd($_POST['po'], $_POST['pt'], $_POST['rfc']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['setTD'])) {
+	$res=$controller->setTD($_POST['rfc'], $_POST['t'],$_POST['t2'], $_POST['t3']);
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($_GET['action']){
@@ -86,6 +114,22 @@ else{
 		break;
 	case 'calImp':
 		$controller->calImp($_GET['mes'], $_GET['anio']);
+		break;
+	case 'verProv':
+		$controller->verProv($_GET['mes'], $_GET['anio'], $_GET['ide'], $_GET['doc']);
+		break;
+	case 'calImpIva':
+		$controller->calImpIva($_GET['mes'], $_GET['anio']);
+		break;
+	case 'calDiot':
+		$tipo = isset($_GET['tipo'])? $_GET['tipo']:'';
+		$controller->calDiot($_GET['mes'], $_GET['anio'], $tipo);
+		break;
+	case 'isrDet':
+		$controller->isrDet($_GET['mes'], $_GET['anio'], $_GET['tipo']);
+		break;
+	case 'infoProv':
+		$controller->infoProv($_GET['rfc'], $_GET['tipo']);
 		break;
 	default: 
 		header('Location: index.php?action=login');

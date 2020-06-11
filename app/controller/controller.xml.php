@@ -491,34 +491,37 @@ class controller_xml{
 	            }
 	            $maestro=$key->UUID;
 	            $totalSaldo += ( ($key->PIMPORTE - $key->PDESCUENTO) + $key->PIVA + $key->PIEPS + $key->PISR);
+	            $col= 'A';
 	            $xls->setActiveSheetIndex()
-	                ->setCellValue('A'.$ln,$i)
-	                ->setCellValue('B'.$ln,$key->STATUS)
-	                ->setCellValue('C'.$ln,$key->UUID)
-	                ->setCellValue('D'.$ln,$key->TIPO)
-	                ->setCellValue('E'.$ln,$key->SERIE.$key->FOLIO)
-	                ->setCellValue('F'.$ln,$key->FECHA)
-	                ->setCellValue('G'.$ln,$cliente)
-	                ->setCellValue('H'.$ln,$proveedor)
-	                ->setCellValue('I'.$ln,$key->PARTIDA)//number_format($key->SUBTOTAL,2,".",""))
-	                ->setCellValue('J'.$ln,utf8_encode($key->DESCRIPCION))//number_format($key->IVA,2,".",""))
-	                ->setCellValue('K'.$ln,$key->UNIDAD_SAT)//number_format($key->IVA_RET,2,".",""))
-	                ->setCellValue('L'.$ln,utf8_encode($key->DESC_UNIDAD))
-	                ->setCellValue('M'.$ln,$key->CLAVE_SAT)//number_format($key->IEPS,2,".",""))
-	                ->setCellValue('N'.$ln,utf8_encode($key->DESC_CLAVE))
-	                ->setCellValue('O'.$ln,$key->CUENTA_CONTABLE)//number_format($key->IEPS_RET,2,".",""))
-	                ->setCellValue('P'.$ln,$key->CANTIDAD)//number_format($key->ISR_RET,2,".",""))
-	                ->setCellValue('Q'.$ln,$key->UNITARIO)//number_format($key->DESCUENTO,2,".",""))
-	                ->setCellValue('R'.$ln,$key->PDESCUENTO)//number_format($key->IMPORTEXML,2,".",""))
-	                ->setCellValue('S'.$ln,$key->MONEDA)//number_format($key->MONEDA),".","")
-	                ->setCellValue('T'.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
-	                ->setCellValue('U'.$ln,(($key->CANTIDAD*$key->UNITARIO) - ($key->PDESCUENTO)) )// Subtotal
-	                ->setCellValue('V'.$ln,$key->PIVA) // Iva
-	                ->setCellValue('W'.$ln,$key->PIEPS) // IEPS
-	                ->setCellValue('X'.$ln,$key->PISR) // ISR
-	                ->setCellValue('Y'.$ln,(($key->PIMPORTE - $key->PDESCUENTO) + $key->PIVA +$key->PIEPS + $key->PISR) ) // Total
-	                ->setCellValue('Z'.$ln,'')
-	                ->setCellValue('ZA'.$ln,'')
+	                ->setCellValue($col.$ln,$i)
+	                ->setCellValue(++$col.$ln,$key->STATUS)
+	                ->setCellValue(++$col.$ln,$key->UUID)
+	                ->setCellValue(++$col.$ln,$key->TIPO)
+	                ->setCellValue(++$col.$ln,$key->SERIE.$key->FOLIO)
+	                ->setCellValue(++$col.$ln,$key->FECHA)
+	                ->setCellValue(++$col.$ln,$cliente)
+	                ->setCellValue(++$col.$ln,$proveedor)
+	                ->setCellValue(++$col.$ln,$key->PARTIDA)//number_format($key->SUBTOTAL,2,".",""))
+	                ->setCellValue(++$col.$ln,utf8_encode($key->DESCRIPCION))//number_format($key->IVA,2,".",""))
+	                ->setCellValue(++$col.$ln,$key->UNIDAD_SAT)//number_format($key->IVA_RET,2,".",""))
+	                ->setCellValue(++$col.$ln,utf8_encode($key->DESC_UNIDAD))
+	                ->setCellValue(++$col.$ln,$key->CLAVE_SAT)//number_format($key->IEPS,2,".",""))
+	                ->setCellValue(++$col.$ln,utf8_encode($key->DESC_CLAVE))
+	                ->setCellValue(++$col.$ln,$key->CUENTA_CONTABLE)//number_format($key->IEPS_RET,2,".",""))
+	                ->setCellValue(++$col.$ln,$key->CANTIDAD)//number_format($key->ISR_RET,2,".",""))
+	                ->setCellValue(++$col.$ln,$key->UNITARIO)//number_format($key->DESCUENTO,2,".",""))
+	                ->setCellValue(++$col.$ln,$key->PDESCUENTO)//number_format($key->IMPORTEXML,2,".",""))
+	                ->setCellValue(++$col.$ln,$key->MONEDA)//number_format($key->MONEDA),".","")
+	                ->setCellValue(++$col.$ln,$key->TIPOCAMBIO)//number_format($key->TIPOCAMBIO),".","")
+	                ->setCellValue(++$col.$ln,(($key->CANTIDAD*$key->UNITARIO) - ($key->PDESCUENTO)) )// Subtotal
+	                ->setCellValue(++$col.$ln,$key->PIVA) // Iva
+	                ->setCellValue(++$col.$ln,$key->RET_IVA) // Retencion IVA 
+	                ->setCellValue(++$col.$ln,$key->RET_ISR) // Retencion IVA 
+	                ->setCellValue(++$col.$ln,$key->PIEPS) // IEPS 
+	                ->setCellValue(++$col.$ln,$key->PISR) // ISR
+	                ->setCellValue(++$col.$ln,(($key->PIMPORTE - $key->PDESCUENTO) + $key->PIVA +$key->PIEPS + $key->PISR - $key->RET_IVA - $key->RET_ISR) ) // Total
+	                ->setCellValue(++$col.$ln,'')
+	                ->setCellValue(++$col.$ln,'')
 	            ;
 	            $ln++;
 	        }
@@ -538,64 +541,68 @@ class controller_xml{
 	            ->setCellValue('A1',$df->RAZON_SOCIAL)
 	        ;
 	        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
-	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(5);
-	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(5);
-	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(40);
-	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(5);
-	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth($l_f);
-	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth($l_g);
-	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth($l_h);
-	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(10);
-	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth($l_d);
-	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(10);
-	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth($l_us);
-	        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(10);
-	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth($l_ds);
-	        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(25);
-	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(10);
-	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(10);
-	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(8);
-	        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(8);
-	        $xls->getActiveSheet()->getColumnDimension('T')->setWidth(8);
-	        $xls->getActiveSheet()->getColumnDimension('U')->setWidth(8);
-	        $xls->getActiveSheet()->getColumnDimension('V')->setWidth(8);
-	        $xls->getActiveSheet()->getColumnDimension('W')->setWidth(8);
-	        $xls->getActiveSheet()->getColumnDimension('X')->setWidth(8);
-	        $xls->getActiveSheet()->getColumnDimension('Y')->setWidth(10);
-	        $xls->getActiveSheet()->getColumnDimension('Z')->setWidth(10);
-	        $xls->getActiveSheet()->getColumnDimension('ZA')->setWidth(10);
-	        $xls->getActiveSheet()->getColumnDimension('ZB')->setWidth(10);
+	        $col='A';
+	        $xls->getActiveSheet()->getColumnDimension($col)->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(40);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth($l_f);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth($l_g);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth($l_h);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth($l_d);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth($l_us);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth($l_ds);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(25);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
 	        
 	        // Hacer las cabeceras de las lineas;
 	        //->setCellValue('9','')
+	        $col = 'A';
 	        $xls->getActiveSheet()
-	            ->setCellValue('A9','Ln')
-	            ->setCellValue('B9','Sta')
-	            ->setCellValue('C9','UUID')
-	            ->setCellValue('D9','TIPO')
-	            ->setCellValue('E9','FOLIO')
-	            ->setCellValue('F9','FECHA')
-	          	->setCellValue('G9','RECEPTOR')
-	            ->setCellValue('H9','EMISOR')
-	            ->setCellValue('I9','PARTIDA')
-	            ->setCellValue('J9','DESCRIPCION')
-	            ->setCellValue('K9','UNIDAD SAT')
-	            ->setCellValue('L9','DESCRIPCION')
-	            ->setCellValue('M9','CLAVE SAT')
-	            ->setCellValue('N9','DESCRIPCION')
-	            ->setCellValue('O9','CUENTA CONTABLE')
-	            ->setCellValue('P9','CANTIDAD')
-	            ->setCellValue('Q9','PRECIO')
-	            ->setCellValue('R9','DESCUENTO')
-	            ->setCellValue('S9','MONEDA')
-	            ->setCellValue('T9','TIPO CAMBIO')
-	            ->setCellValue('U9','SUBTOTAL')
-	            ->setCellValue('V9','IVA')
-	            ->setCellValue('W9','IEPS')
-	            ->setCellValue('X9','ISR')
-	            ->setCellValue('Y9','TOTAL')
-	            ->setCellValue('Z9','')
+	            ->setCellValue($col.'9','Ln')
+	            ->setCellValue(++$col.'9','Sta')
+	            ->setCellValue(++$col.'9','UUID')
+	            ->setCellValue(++$col.'9','TIPO')
+	            ->setCellValue(++$col.'9','FOLIO')
+	            ->setCellValue(++$col.'9','FECHA')
+	          	->setCellValue(++$col.'9','RECEPTOR')
+	            ->setCellValue(++$col.'9','EMISOR')
+	            ->setCellValue(++$col.'9','PARTIDA')
+	            ->setCellValue(++$col.'9','DESCRIPCION')
+	            ->setCellValue(++$col.'9','UNIDAD SAT')
+	            ->setCellValue(++$col.'9','DESCRIPCION')
+	            ->setCellValue(++$col.'9','CLAVE SAT')
+	            ->setCellValue(++$col.'9','DESCRIPCION')
+	            ->setCellValue(++$col.'9','CUENTA CONTABLE')
+	            ->setCellValue(++$col.'9','CANTIDAD')
+	            ->setCellValue(++$col.'9','PRECIO')
+	            ->setCellValue(++$col.'9','DESCUENTO')
+	            ->setCellValue(++$col.'9','MONEDA')
+	            ->setCellValue(++$col.'9','TIPO CAMBIO')
+	            ->setCellValue(++$col.'9','SUBTOTAL')
+	            ->setCellValue(++$col.'9','IVA')
+	            ->setCellValue(++$col.'9','Ret IVA')
+	            ->setCellValue(++$col.'9','Ret ISR')
+	            ->setCellValue(++$col.'9','IEPS')
+	            ->setCellValue(++$col.'9','ISR')
+	            ->setCellValue(++$col.'9','TOTAL')
+	            ->setCellValue(++$col.'9','')
 	        ;
 
 	        $nom_mes = $this->nombreMes($mes);
@@ -1526,11 +1533,14 @@ class controller_xml{
 			$datap = new pegaso;
 			$rfcempresa = $_SESSION['rfc'];
 			$info=$data->calImp($mes, $anio);
-			$ventas = $data->traeVentas($anio);
-			$ant = $data->traeAnticipos($anio);
-			$pfin = $data->traeProdFinan($anio);
+			$ventas = $data->traeVentas($anio, $mes, 'gen'); /// inicia la modificacion para filtrar meses.
+			$ant = $data->traeAnticipos($anio, $mes, 'gen');
+			$pfin = $data->traeProdFinan($anio, $mes, 'gen');
 			$oIng = $data->traeOtrIng($anio);
+			$isr = $data->traeIsr($anio);
 			//$totMen = $data->totalMensual($anio, $)
+			$info = $data->infoMesIsr($anio);
+			$files = $data->ftc_files($tipo = 'IMPUESTO', $subtipo='ID_ISR', $anio);
 			$meses = $datap->traeMeses();
 			$pagina=$this->load_template();
 			$html=$this->load_page('app/views/pages/Impuestos/p.calImp.php');
@@ -1545,5 +1555,168 @@ class controller_xml{
 		}	
 	}
 
+	function setCU( $cu, $anio, $tipo){
+		$data= new cargaXML;
+		$res=$data->setCU($cu, $anio, $tipo);
+		return $res;
+	}
+
+	function setISR($anio, $val, $tipo){
+		if($_SESSION['user']){
+			$data=new cargaXML;
+			$res = $data->setISR($anio, $val, $tipo);
+			return $res;
+		}
+	}
+
+	function gIsr($mes, $anio, $datos){
+		if ($_SESSION['user']) {
+			$data = new cargaXML;
+			$res = $data->gIsr($mes, $anio, $datos);
+			return $res;
+		}
+	}
+
+	function verProv($mes, $anio, $ide, $doc){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$data = new pegaso;
+			
+			$user=$_SESSION['user']->NOMBRE;
+  			$cnxcoi=$_SESSION['cnxcoi'];
+  			$uuid='D';
+    		$info=$data->verXMLSP_Prov($mes, $anio, $ide, $uuid, $doc);
+    		$tipoDOC = $data->traeTipo();
+
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/xml/p.verProv.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.verProv.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}	
+	}
+
+	function polFred($datos, $cta, $tipo, $mes, $anio){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$data_coi = new CoiDAO;
+			$documentos = $data->traeDocs($datos, $tipo);
+			$impuestos2=$data->impuestosPolizaFred($documentos, $por='1');
+			$crear = $data_coi->creaPolizaFred($cabecera = false , $detalle=$documentos, $tipo='gasto', $impuestos2, $z=$cta, $anio, $mes);
+			exit();
+		}
+	}
+
+	function gp($mes, $anio, $monto){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$res =$data->gp($mes, $anio, $monto);
+			return $res;
+		}
+	}
+
+	function gCompISR($mes, $anio, $files, $ruta, $tipo, $nmes){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$res = $data->gCompISR($mes, $anio, $files, $ruta, $tipo, $nmes);
+			return $res;
+		}
+	}
+
+	function calImpIva($mes, $anio){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$cargos = $data->docPg($mes, $anio);
+			$abonos = $data->docCb($mes, $anio);
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/Impuestos/p.calImpIva.php');
+   			ob_start();
+   			include 'app/views/pages/Impuestos/p.calImpIva.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
+	function calDiot($mes, $anio, $tipo){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$cargos = $data->docPg($mes, $anio, $tipo);
+			$pagina=$this->load_template();
+			if($tipo=='d'){
+				$html=$this->load_page('app/views/pages/Impuestos/p.calDiotDet.php');
+	   			ob_start();
+	   			include 'app/views/pages/Impuestos/p.calDiotDet.php';   				
+			}else{
+				$html=$this->load_page('app/views/pages/Impuestos/p.calDiot.php');
+	   			ob_start();
+	   			include 'app/views/pages/Impuestos/p.calDiot.php';   				
+			}
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+	}
+
+	function isrDet($mes, $anio, $tipo){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$info = $data->isrDet($mes, $anio, $tipo);
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/Impuestos/p.isrDet.php');
+   			ob_start();
+   			include 'app/views/pages/Impuestos/p.isrDet.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;	
+		}
+	}
+
+	function gpd($po, $pt, $rfc){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$res =$data->gpd($po, $pt, $rfc);
+			return $res;
+		}
+	}
+
+	function infoProv($rfc, $tipo){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$info = $data->infoProv($rfc, $tipo);
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/xml/p.infoProv.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.infoProv.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;	
+		}
+	}
+
+	function setTD($rfc, $t, $t2, $t3){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$res=$data->setTD($rfc, $t, $t2, $t3);
+			return $res;
+		}
+	}
 }?>
 

@@ -2002,6 +2002,234 @@ class CoiDAO extends DataBaseCOI {
         return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Eg'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
     }
 
+     function creaPolizaFred($cabecera, $detalle, $tipo, $impuestos2, $z, $anio, $mes){
+        /// Calcula Folio /// 
+        $saldo = 0;
+        foreach ($detalle as $dts) {
+            $saldo += $dts->IMPORTE;
+        }
+        $z = $z.':'.$saldo;
+        $tipo = $tipo == 'gasto'? 'Eg':'Ig';
+        $usuario=$_SESSION['user']->USER_LOGIN;
+        $i=0;
+        $periodo= $mes;
+        $ejercicio=$anio;
+        $eje=substr($ejercicio,2);
+        $fecha='30'.'.'.$mes.'.'.$anio; 
+        $proveedor=$z;
+        //echo 'Periodo '.$periodo.' Ejercicio: '.$ejercicio.' Eje '.$eje. ' tipo: '.$tipo;
+        //$saldo = $cb->SALDO;
+        $tc = 1;
+        $tbPol= 'POLIZAS'.$eje; 
+        $tbAux= 'AUXILIAR'.$eje;
+        $campo = 'FOLIO'.str_pad($periodo, 2, '0', STR_PAD_LEFT);
+        $ie=$tipo;  
+
+        $this->calculaFolio($periodo, $ejercicio, $tipo);
+
+        foreach($detalle as $dc){
+            $rfcf= '';
+            $proveedorf='';
+            //print_r($dc);
+            //die();
+            if($i>0){
+                if($rfcf==''){
+                    if($rfce != $dc->RFCE){
+                        $rfcf='Multi Proveedor';
+                        $proveedorf='Multi Proveedor';
+                        break;
+                    }else{
+                        $rfcf=$dc->RFCE;
+                        $proveedorf=$dc->NOMBRE;
+                    }
+                }
+            }else{
+                $rfce=$dc->RFCE;
+                $proveedor=$dc->NOMBRE;
+            }
+            $i++;
+        }
+        $rfcf=($rfcf=='')? $rfce:$rfcf;
+        $proveedorf=($proveedorf=='')? $proveedor:$proveedorf;
+        ///creamos el nuevo folio de la poliza y actualizamos para apartarlo
+        $this->query="SELECT $campo FROM FOLIOS where tippol='$tipo' and Ejercicio=$ejercicio";
+        $res=$this->EjecutaQuerySimple();
+        $row= ibase_fetch_object($res);
+        $folion = $row->$campo + 1; 
+        $folio =str_pad($folion, 5, ' ', STR_PAD_LEFT);
+
+        $this->query="UPDATE FOLIOS SET $campo = $folion where tippol='$tipo' and Ejercicio=$ejercicio";
+        $this->queryActualiza();
+        //foreach($cabecera as $pol){
+            $con='Egreso ';
+            $concepto = substr($con.', '.$proveedorf.' -- '.', pago factura ', 0, 110);
+            $cuenta = $z;
+            if($tipo=='Eg'){
+                $nat0 = 'H';
+            }else{
+                $nat0 = 'D';
+            }
+            $this->query="INSERT INTO $tbPol(TIPO_POLI, NUM_POLIZ, PERIODO, EJERCICIO, FECHA_POL, CONCEP_PO, NUM_PART, LOGAUDITA, CONTABILIZ, NUMPARCUA, TIENEDOCUMENTOS, PROCCONTAB, ORIGEN, UUID, ESPOLIZAPRIVADA, UUIDOP) 
+                                values ('$tipo','$folio', $periodo, $ejercicio, '$fecha', substring( (''||' $concepto') from 1 for 120), 0, '', 'N', 0, 1, 0, substring('PHP $usuario' from 1 for 15),'', 0, '')";
+            $this->grabaBD();
+            echo '<br/>Inserta Poliza:'.$this->query.'<br/>';
+            /*
+            $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
+                                values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$fecha', substring( (''||'  $concepto') from 1 for 120), '$nat0' , $saldo, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
+            $this->grabaBD();  
+            */
+            echo '<br/> Inserta Primer Partida'.$this->query.'<br/>';
+            /// Validacion para la insercion de UUID.
+        //}
+
+        $partida = 1;
+        if($tipo == 'Eg'){
+            $subTipo = 'Eg';
+            $dhc = 'D';
+            $dhb = 'H';
+            $dhimppc = 'D';
+            $dhimppe = 'H';
+        }
+        $nat1=($nat0=='H')? 'D':'H';
+        foreach ($detalle as $aux) {
+            $cuenta = '';
+            $partida++;
+            $partAux=$partida;//$aux->PARTIDA;
+            $cuenta = $aux->CUENTA_CONTABLE;
+            $documento = $aux->DOCUMENTO;
+            $proveedor = $aux->NOMBRE;
+            $concepto = substr($documento.', '.$proveedor, 0, 120);
+                $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
+                                values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto', '$nat1', $aux->IMPORTE, 0, $tc, 0, $partida, 0,0, null, null)";
+                $this->grabaBD();   
+                //echo '<br/>'.$aux->UUID.'<br/>';
+                if(count($impuestos2) > 0){
+                    foreach ($impuestos2 as $impInd){
+                        if($aux->UUID == $impInd->UUID){
+                            echo '<br/>No.-'.$partida.' del UUID: '.$impInd->UUID.' El impueso de esta partida es:  '.$impInd->MONTO;
+                            //$partida ++;
+                            //print_r($impt);
+                            $tipoXML='Recibido';
+                            $tasa=(empty($impInd->TASA))? 0:$impInd->TASA;  
+                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE IMPUESTO = '$impInd->IMPUESTO' AND round(TASA,3) = round($tasa,3) AND FACTOR = '$impInd->TIPOFACTOR' AND TIPO = '$impInd->TIPO' AND POLIZA  = '$subTipo' and tipo_xml='$tipoXML'";
+                            $rs=$this->EjecutaQuerySimple();
+                            //echo $this->query;
+                            $rimp = ibase_fetch_object($rs);
+                            if(!empty($rimp->CUENTA_CONTABLE )){ /// Si existe informacion de la cuenta de este impuesto, entonces insertamos la partida 2 partidas la contraparte de diario y la efectiva de Eg/Ig. 
+                                 /// IVA Acreditable pagado 1180-001-000 Debe
+                                $ctaIVAap =$rimp->CUENTA_CONTABLE;
+                                $partida++;
+                                $conceptoIA = $impInd->RFCE.', '.$rimp->NOMBRE;
+                                $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
+                                            VALUES ('$subTipo', '$folio', $partida, $periodo, $ejercicio, '$ctaIVAap', '$fecha', '$conceptoIA', '$dhimppc', $impInd->MONTO, 0, 1, 0, $partida, 0,0, null , null)";
+                                //echo $this->query;
+                                $this->grabaBD();
+                                $bimp = 1 + $tasa;
+                                //echo 'Base de impuesto: '.$bimp;
+                                $this->ingresaDIOT( 
+                                        //$tipo = $impInd->TIPO,
+                                        $tipopol = $subTipo, 
+                                        $numpol = $folio, 
+                                        $fechapol = $fecha, 
+                                        $numpart = $partida, 
+                                        $numcta = $ctaIVAap, 
+                                        $rfcprove = $impInd->RFCE, 
+                                        $tipope = 85, 
+                                        $monconiva = $aux->APLICADO, 
+                                        $mondedisr = $aux->APLICADO / $bimp, 
+                                        $actos15 = $aux->APLICADO / $bimp, 
+                                        $ivaop15 = ($aux->APLICADO / $bimp) * $tasa, 
+                                        $ivatraslad = ($aux->APLICADO / $bimp) * $tasa, 
+                                        $percausac = $fecha, 
+                                        $ivageneral = $impInd->TASA * 100, 
+                                        $ivafronterizo = 11, 
+                                        $tasa*100
+                                        );
+                                /// Buscamos la cuenta de Dr para la contrapartida.
+                                $this->query="SELECT * FROM FTC_PARAM_COI WHERE IMPUESTO = '$impInd->IMPUESTO' AND round(TASA,3) = round($impInd->TASA,3) AND FACTOR = '$impInd->TIPOFACTOR' AND TIPO = '$impInd->TIPO' AND POLIZA  = 'Dr' and tipo_xml='$tipoXML'";
+                                $rs=$this->EjecutaQuerySimple();
+                                $rimpCP = ibase_fetch_object($rs);
+                                //// IVA pendiente de pago  1190-001-000 haber 
+                                $ctaIVApp =$rimpCP->CUENTA_CONTABLE;//'119000100000000000002';
+                                $partida++;
+                                $conceptoIP=$impInd->RFCE.', '.$rimpCP->NOMBRE;
+                                $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
+                                VALUES ('$subTipo', '$folio', $partida, $periodo, $ejercicio, '$ctaIVApp', '$fecha', '$conceptoIP', '$dhimppe', $impInd->MONTO, 0, 1, 0, $partida, 0,0, null , null)";
+                                $this->grabaBD();
+                            }else{ // Si no, no hacemos nada.
+                            } 
+                        }
+                    }
+                }
+                //echo $this->query; 
+            ### Inclusion de Impuestos por Partida ###
+                /// Traemos el arreglo con los impuestos.
+                /// 
+        }
+
+        $a=1;
+        if($saldo > 0.001){  
+            //print_r($detalle);
+            $z=explode(":", $z);
+            if(count($z)>0){
+                print_r($z);
+                $cuentaProv=$z[0];
+            }else{
+                $cuentaProv='';
+            }
+            echo 'Se crea una partida a la cuenta seleccionada por el saldo del documento, se suguiere la cuenta de proveedores diversos'.$saldo;
+            $partida ++; 
+            $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
+                                values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuentaProv','$fecha','Pago a: '||coalesce((SELECT NOMBRE FROM CUENTAS$eje where num_cta = '$cuentaProv'), 'Sin Proveedor,')||', el $fecha', '$nat0', $saldo, 0, $tc, 0, $partida, 0,0, null, null)";
+            //echo $this->query;
+            $this->EjecutaQuerySimple();   
+            $a++; 
+        }
+        /* Se reemplaza por el sistema de Impuestos de forma individual.
+        $par=count($detalle)+$a;
+        if(count($impuestos2) > 0){
+            /// 2.- Busca los parametros en la table de los parametros de impuestos FTC_param_coi
+                foreach ($impuestos2 as $impt) {
+                    //print_r($impt);
+                    $tipoXML='Recibido';
+                    $tasa=(empty($impt->TASA))? 0:$impt->TASA;  
+                    $this->query="SELECT * FROM FTC_PARAM_COI WHERE IMPUESTO = '$impt->IMPUESTO' AND round(TASA,3) = round($tasa,3) AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = '$subTipo' and tipo_xml='$tipoXML'";
+                    $rs=$this->EjecutaQuerySimple();
+                    //echo $this->query;
+                    $rimp = ibase_fetch_object($rs);
+                    if(!empty($rimp->CUENTA_CONTABLE )){ /// Si existe informacion de la cuenta de este impuesto, entonces insertamos la partida 2 partidas la contraparte de diario y la efectiva de Eg/Ig. 
+                         /// IVA Acreditable pagado 1180-001-000 Debe
+                        $ctaIVAap =$rimp->CUENTA_CONTABLE;
+                        $par++;
+                        $conceptoIA = $pol->DOC.' '.$rimp->NOMBRE;
+                        $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
+                                    VALUES ('$subTipo', '$folio', $par, $periodo, $ejercicio, '$ctaIVAap', '$fecha', '$conceptoIA', '$dhimppc', $impt->MONTO, 0, 1, 0, $par, 0,0, null , null)";
+                        //echo $this->query;
+                        //$this->grabaBD();
+                        /// Buscamos la cuenta de Dr para la contrapartida.
+                        $this->query="SELECT * FROM FTC_PARAM_COI WHERE IMPUESTO = '$impt->IMPUESTO' AND round(TASA,3) = round($impt->TASA,3) AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = 'Dr' and tipo_xml='$tipoXML'";
+                        $rs=$this->EjecutaQuerySimple();
+                        $rimpCP = ibase_fetch_object($rs);
+
+                        //// IVA pendiente de pago  1190-001-000 haber 
+                        $ctaIVApp =$rimpCP->CUENTA_CONTABLE;//'119000100000000000002';
+                        $par++;
+                        $conceptoIP=$pol->DOC.' '.$rimpCP->NOMBRE;
+                        $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
+                        VALUES ('$subTipo', '$folio', $par, $periodo, $ejercicio, '$ctaIVApp', '$fecha', '$conceptoIP', '$dhimppe', $impt->MONTO, 0, 1, 0, $par, 0,0, null , null)";
+                        //$this->grabaBD();
+                    }else{ // Si no, no hacemos nada.
+                    }
+                }
+            }else{
+            // Si no hay impuestos, no hace nada. 
+            }
+        */
+        // Pendiente $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo);
+        //exit();
+        return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Eg'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
+    }
+
     function ingresaDIOT($tipo,$tipopol, $numpol, $fechapol, $numpart, $numcta, $rfcprove, $tipope, $monconiva, $mondedisr, $actos15, $ivaop15, $ivatraslad, $percausac, $ivageneral, $ivafronterizo){
         $ivaTras= 0;
         $ivaRet = 0;
@@ -2412,6 +2640,7 @@ class CoiDAO extends DataBaseCOI {
         $cuenta = array();
         $cc = '';
         $coi = '';
+        $eje = substr(date("Y"), 2);
         if(strlen($cccoi) > 0 ){
             $cuenta = explode(":", $cccoi);
             @$coi = $cuenta[0];
@@ -2423,7 +2652,7 @@ class CoiDAO extends DataBaseCOI {
         }
         if((float)$tasa and (float)$tasa < 1 and $factor=='Tasa'){
             $tasa = (float)$tasa;
-            $this->query = "INSERT INTO FTC_PARAM_COI (ID, IMPUESTO, CUENTA_CONTABLE, TIPO, TASA, STATUS, NOMBRE, POLIZA, FACTOR, CUENTA_COI, NAT, TIPO_XML) VALUES (NULL, '$imp', '$cc', '$tipo', $tasa, $status, '$nombre', '$uso', '$factor', '$coi', (SELECT NATURALEZA FROM CUENTAS19 WHERE NUM_CTA = '$cc'), '$aplica')";
+            $this->query = "INSERT INTO FTC_PARAM_COI (ID, IMPUESTO, CUENTA_CONTABLE, TIPO, TASA, STATUS, NOMBRE, POLIZA, FACTOR, CUENTA_COI, NAT, TIPO_XML) VALUES (NULL, '$imp', '$cc', '$tipo', $tasa, $status, '$nombre', '$uso', '$factor', '$coi', (SELECT NATURALEZA FROM CUENTAS$eje WHERE NUM_CTA = '$cc'), '$aplica')";
             if(@$res=$this->grabaBD()){
                 echo '<script type="text/javascript">alert("Se ha insertado correctamente el impuesto")</script>';
             }else{

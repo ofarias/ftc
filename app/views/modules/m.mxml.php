@@ -75,7 +75,7 @@
                             <?php endforeach ?>
                         </select></p>
                     <center>
-                        <a class="btn btn-primary" id="verNomina"> Ver Nominas</a></center>
+                        <a class="btn btn-primary" id="verNomina" <?php echo (count($nomina)>0)? '':'disabled'?>> Ver Nominas</a></center>
                 </div>
             </div>
         </div>
@@ -99,7 +99,9 @@
                                 <option value="<?php echo $m->NUMERO?>"><?php echo $m->NOMBRE?></option>
                             <?php endforeach ?>
                         </select></p>
-                    <p><center><a class="btn-sm btn-primary ci"  >Cualculo de Impuestos</a></center></p>
+                    <p><center><a class="btn-sm btn-primary ci"  >Cualculo ISR</a></center></p>
+                    <p><center><a class="btn-sm btn-primary civa">Calculo IVA</a></center></p>
+                    <p><center><a class="btn-sm btn-primary diot">Calculo DIOT</a></center></p>
                     <p><center><a class="btn-sm btn-primary dec" >Ver Declaraciones</a></center></p>
                 </div>
             </div>
@@ -211,9 +213,20 @@
         $(".ci").click(function(){
             var mes = document.getElementById('impMes').value
             var anio = document.getElementById('impAnio').value
-            alert('Calculo de impuestos' + mes + ' anio ' + anio)
             window.open("index.xml.php?action=calImp&mes="+mes+"&anio="+anio, "popup", 'width=1200,height=600');
             return false;
+        })
+
+        $(".civa").click(function(){
+            var mes = document.getElementById('impMes').value
+            var anio = document.getElementById('impAnio').value
+            window.open("index.xml.php?action=calImpIva&mes="+mes+"&anio="+anio, "popup", 'width=1200, height=600')
+        })
+
+        $(".diot").click(function(){
+            var mes = document.getElementById('impMes').value
+            var anio = document.getElementById('impAnio').value
+            window.open("index.xml.php?action=calDiot&mes="+mes+"&anio="+anio, "popup", 'width=1200, height=600')
         })
 
         $(".dec").click(function(){
@@ -252,4 +265,5 @@
                 })
             }
         })
+
 </script>
