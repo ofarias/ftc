@@ -25117,6 +25117,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$rfc = $cliente[3];
     	$rfcr = $cliente[0];
     	$uuid = $cliente[2];
+    	print_r($cliente);
+
     	if($ide == 'Emitidos'){
 			$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfcr' and tipo = 'Cliente'";
 	    	$this->queryActualiza();
@@ -25126,7 +25128,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$cve_sat = $key[1];
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
-	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat' and PARTIDA = $par";
+	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat' and 
+	    		( 
+	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'P' 
+	    		or  
+	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
+	    		)";
+	    		///and PARTIDA = $par
 	    		$this->queryActualiza();
 	      	}
     	}else{
@@ -25140,8 +25148,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$ccp = $key[3];
 	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' 
 	    			where 
-	    				xp.rfc = '$rfcr' 
-	    				and PARTIDA = $par 
+	    				(select rfce from xml_data x where x.uuid = '$uuid') = '$rfc' 
 	    				and  xp.CLAVE_SAT = '$cve_sat' 
 	    				and xp.UNIDAD_SAT = '$uni_sat' 
 	    		and 
@@ -25149,9 +25156,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'P' 
 	    		or  
 	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
-	    		)";
+	    		)
+	    		";
 	    		//and (cuenta_Contable is null or cuenta_Contable = '') --and PARTIDA = $par
 	    		//echo $this->query;
+	    		//echo '<br/>'.$this->query.'<br/>';
 	    		$this->queryActualiza();
 	      	}	
     	}
