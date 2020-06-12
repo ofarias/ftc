@@ -25147,13 +25147,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
 	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' 
-	    			where 
-<<<<<<< HEAD
-	    				xp.rfc = '$rfcr'
+	    			where (select rfce from xml_data x where x.uuid = '$uuid') = '$rfc' 
 	    				and PARTIDA = $par
-=======
-	    				(select rfce from xml_data x where x.uuid = '$uuid') = '$rfc' 
->>>>>>> cc0aad93bc0dc1123bf985684514e353ccccc1a5
 	    				and  xp.CLAVE_SAT = '$cve_sat' 
 	    				and xp.UNIDAD_SAT = '$uni_sat' 
 	    		and 
