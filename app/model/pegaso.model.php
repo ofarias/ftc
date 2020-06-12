@@ -25117,7 +25117,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$rfc = $cliente[3];
     	$rfcr = $cliente[0];
     	$uuid = $cliente[2];
-    	print_r($cliente);
+    	//print_r($cliente);
 
     	if($ide == 'Emitidos'){
 			$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfcr' and tipo = 'Cliente'";
