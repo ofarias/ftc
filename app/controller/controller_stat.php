@@ -33,6 +33,7 @@ class statics_c{
 		if($_SESSION['user']){
 			$data = new statics;
 			$info=$data->verEstadistica($mes, $anio, $tipo, $t);
+			$gf=$data->gfEst($info);
 			foreach ($info as $i){
 				$total = $i->TOTAL;
 				$total_dev = $i->TOTAL_DEV;
@@ -50,12 +51,13 @@ class statics_c{
 		}
 	}
 
-	function detStat($cliente, $mes, $anio, $tipo){
+	function detStat($cliente, $mes, $anio, $tipo, $gt, $vw){
 		if($_SESSION['user']){
 			$data = new statics;
 			$info = $data->detStat($cliente, $mes, $anio , $tipo);
+			$per=$data->periodos($gt, $anio, $cliente, $tipo);
 			$meses=array("Enero"=>1, "Febrero"=>2, "Marzo"=>3, "Abril"=>4, "Mayo"=>5, "Junio"=>6, "Julio"=>7,"Agosto"=>8,"Septiembre"=>9, "Octubre"=>10, "Noviembre"=>11,"Diciembre"=>12,);
-
+			$_SESSION['sta']=105;
 			$pagina =$this->load_template2('Estadistica de '.$cliente);
 			$html=$this->load_page('app/views/pages/Estadistica/p.detalleEstadistica.php');
 	   		ob_start();

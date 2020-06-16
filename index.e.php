@@ -26,7 +26,9 @@ else{switch ($_GET['action']){
 		$controller_stat->verEstadistica($_GET['mes'], $_GET['anio'], $_GET['tipo'], $_GET['t']);
 		break;
 	case 'detStat':
-		$controller_stat->detStat($_GET['cliente'], $_GET['mes'], $_GET['anio'],$_GET['tipo']);
+		$gt = isset($_GET['gt'])? $_GET['gt']:'M';
+		$vw = isset($_GET['view'])? $_GET['view']:'N';
+		$controller_stat->detStat($_GET['cliente'], $_GET['mes'], $_GET['anio'],$_GET['tipo'], $gt, $vw);
 		break;
 	case 'updateInfo':
 		$controller_stat->updateInfo($_GET['eje']);

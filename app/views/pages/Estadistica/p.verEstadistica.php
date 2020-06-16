@@ -30,6 +30,17 @@
                         <input type="text" name="nomRep" placeholder="Nombre del Reporte">
                         <input title="Al guardar el reporte se puede llamar los parametros posteriormente" type="button" value="Guardar">
                         <input type="button" value="ejecutar">
+                        <br/>
+                        <br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<input type="button" value="Ver Grafica" class="btn-sm btn-primary vg" >
+                        <br class="grafica hidden" />
+                        <br class="grafica hidden" />
+                        <br class="grafica hidden" />
+                        <br class="grafica hidden" />
+                        <br class="grafica hidden" />
+
+                        <img src="app/views/pages/graphs/pie.3d.graph.php?datos=<?php echo $gf?>&anio=<?php echo $anio?>" width="1150px" height="850px" class="grafica hidden" id="gfs"/>
+
                         <div class="panel-body">
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered table-hover" id="dataTables-stat" >
@@ -37,6 +48,7 @@
                                         <tr>
                                             <th>Numero</th>
                                             <th>Cliente</th>
+                                            <th>Documentos</th>
                                             <th>Facturado</th>
                                             <th>Cancelado</th>
                                             <th>Devuelto</th>
@@ -54,8 +66,13 @@
                                         }
                                     ?>
                                         <tr>
-                                            <td><?php echo $i?></td>
-                                            <td><?php echo $key->NOMBRE;?><br/><?php echo $key->RFC ?><a href="index.e.php?action=detStat&cliente=<?php echo $key->RFC?>&mes=<?php echo $mes?>&anio=<?php echo $anio?>&tipo=<?php echo $t?>" target="_blank" class="btn-sm btn-info"> Detalle</a></td>
+                                            <td ><?php echo $i?></td>
+                                            <td>
+                                                <a href="index.xml.php?action=infoProv&rfc=<?php echo $key->RFC?>&tipo=<?php echo $t?>" target="_blank" ><?php echo $key->NOMBRE;?></a><br/><?php echo $key->RFC ?>&nbsp;&nbsp;&nbsp;&nbsp;<a href="index.e.php?action=detStat&cliente=<?php echo $key->RFC?>
+                                            &mes=<?php echo $mes?>&anio=<?php echo $anio?>&tipo=<?php echo $t?>" target="_blank" class="btn-sm btn-info"> Detalle</a>
+
+                                            </td>
+                                            <td align="center"><?php echo $key->DOCUMENTOS?></td>
                                             <td align="right"><font color="green"><?php echo '$ '.number_format($key->FACTURADO,2);?></font></td>
                                             <td align="right"><font color="red"><?php echo '$ '.number_format($key->CANCELADO,2);?></font></td>
                                             <td align="right"><font color="#ffa68e"><b><?php echo '$ '.number_format($key->NOTAS,2);?></b></font></td>
@@ -82,6 +99,22 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(".vg").click(function(){
+        var f = $(this).val()
+        var a = document.getElementsByClassName("grafica")
+        
+        for (var i = a.length - 1; i >= 0; i--) {
+            if(f == "Ocultar Grafica"){
+                a[i].classList.add("hidden")
+                $(this).val("Ver Grafica")
+            }else{
+                a[i].classList.remove("hidden")
+                $(this).val("Ocultar Grafica")
+            }
+        }
+        //a[5].classList.remove("hidden")
+    })
 
     var anio = <?php echo $anio?>;
     var t = <?php echo $t=='Recibidos'? "'Compras / Gastos'":"'Ventas'"?>;
