@@ -575,11 +575,11 @@ if(!empty($_POST['seleccion'])) {
     @$retieneiva = $_POST['retieneiva'];
     @$retieneisr = $_POST['retieneisr'];
     @$retieneflete = $_POST['retieneflete'];
-    
-    $controller->GuardarNuevaCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $retieneiva, $retieneisr, $retieneflete);
+    $id_cla = $_POST['id_cla'];
+    $periodo = $_POST['periodo'];
+    $controller->GuardarNuevaCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $retieneiva, $retieneisr, $retieneflete, $id_cla, $periodo, $_POST['fi'], $_POST['ff'],$_POST['tipo']);
 }elseif(isset($_POST['guardacambioscuenta'])){
-	/*Agregar nuevo campo GDELEON*/
-	$prov = $_POST['prov'];
+	$prov = isset($_POST['prov'])? $_POST['prov']:'';
     $concepto = $_POST['concepto'];
     $descripcion = $_POST['descripcion'];
     $iva = $_POST['iva'];
@@ -593,8 +593,9 @@ if(!empty($_POST['seleccion'])) {
     $retieneflete = (!empty($_POST['retieneflete'])) ? $_POST['retieneflete'] : "0";
     $activo = (!empty($_POST['activo'])) ? $_POST['activo'] : "N";
     $cveprov = $_POST['proveedor'];
-    
-    $controller->GuardarCambiosCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $id, $retieneiva, $retieneisr, $retieneflete, $activo, $cveprov);
+    $id_cla = $_POST['id_cla'];
+    $periodo = $_POST['periodo'];
+    $controller->GuardarCambiosCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $id, $retieneiva, $retieneisr, $retieneflete, $activo, $cveprov, $id_cla, $periodo, $_POST['fi'], $_POST['ff']);
 }elseif(isset($_POST['editcuentagasto'])){
     $id = $_POST['id'];
     $controller->EditCuentaGasto($id);
@@ -636,15 +637,9 @@ if(!empty($_POST['seleccion'])) {
     $clasif = $_POST['clasificacion'];
     $descripcion = $_POST['descripcion'];
     $activo = (!empty($_POST['activo']))? $_POST['activo'] : "N";
-            
     $controller->GuardaCambiosClasG($id,$clasif,$descripcion,$activo);
-    
 }elseif(isset($_POST['nuevaclasifgasto'])){
-    $clasif = $_POST['clasificacion'];
-    $descripcion = $_POST['descripcion'];
-            
-    $controller->GuardaNuevaClaGasto($clasif,$descripcion);
-
+    $controller->GuardaNuevaClaGasto($_POST['clasificacion'],$_POST['descripcion'], $_POST['tipo']);
 }elseif(isset($_POST['guardacr'])){
 	$cr = $_POST['contra'];
 	$idc = $_POST['idcaja'];
@@ -2684,6 +2679,13 @@ exit();
 	$res=$controller->delEdoCta($_POST['id'], $_POST['tipo']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['actImpG'])) {
+	$res = $controller->actImpG($_POST['idg'],$_POST['val'], $_POST['f']);
+	echo json_encode($res);
+	exit();
+}elseif(isset($_POST['creaProy'])){
+	$controller->creaProy($_POST['mes'], $_POST['anio'], $_POST['tipo']);
+	exit();
 }
 else{
 	switch ($action){
@@ -3128,10 +3130,10 @@ else{
         $controller->RVentasVsCobrado($fechaini, $fechafin, $vend);
         break;
     case 'Catalogo_Gastos':
-        $controller->VerCatalogoGastos();
+    	$controller->VerCatalogoGastos( isset($_GET['tipo'])? $_GET['tipo']:'B' );
         break;
     case 'nuevogasto':
-        $controller->NuevaCtaGasto();
+        $controller->NuevaCtaGasto(isset($_GET['tipo'])? $_GET['tipo']:'gasto');
         break;
     case 'imprimircatgastos':
         $controller->ImpCatalogoCuentas();
@@ -3152,7 +3154,7 @@ else{
         	$controller->verFacturas();
         	break;
     case 'clasificacion_gastos':                #### Clasificación de gastos
-        $controller->Clasificacion_gastos();
+        $controller->Clasificacion_gastos(isset($_GET['tipo'])? $_GET['tipo']:'Gasto');
         break;
     case 'nuevaclagasto':
         $controller->NuevaClaGasto();

@@ -341,7 +341,8 @@
             '<div class="form-group">'+
             '<br/>Archivo: <input type="file" name="fileToUpload" class="cl" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"> <br/>'+
             '<br/><font color ="red">Reemplazar las cuentas existentes? </font> <input type="text" placeholder="Si o No" size="5" class="remp" name="x" value=""> '+
-            '<br/>"Si existe una cuenta en los parametros ya establecidos se reemplazar con la cuenta del archivo en excel"' +
+            '<input type="hidden" name="eje" value="'+<?php echo substr($anio,2)?>+'">'+
+            '<br/><label>"Si existe una cuenta en los parametros ya establecidos se reemplazar con la cuenta del archivo en excel"</label>' +
             '</form>',
                 buttons: {
                 formSubmit: {

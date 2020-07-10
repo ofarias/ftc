@@ -1,5 +1,7 @@
 <?php 
 	require_once('app/model/model.mobile.php');
+	require_once('app/model/sync.mobile.php');
+
 
 class mobile_c{
 	
@@ -29,19 +31,25 @@ class mobile_c{
 	}
 
 	
-	function verEstadistica($mes, $anio, $tipo, $t){
-		if($_SESSION['user']){
-			$data = new statics;
-			$info=$data->verEstadistica($mes, $anio, $tipo, $t);
-			$pagina =$this->load_template2('Estadistica de '.$tipo);
-			$html=$this->load_page('app/views/pages/Estadistica/p.verEstadistica.php');
-	   		ob_start();
-	   		include 'app/views/pages/Estadistica/p.verEstadistica.php';
-	   		$table = ob_get_clean();
-	   		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-	   		$this->view_page($pagina);
-		}else{
+	function sync(){
+		if($_SESSION['user'] and $_SESSION['empresa']['mobile']==1){
+			$data = new sync_mobile;
+			$data2 = new sync_mob_mysql;
+			$info=array();
+			$pendientes = $data2->pendientes();
+			$update = $data->update($pendientes, $info);
+			$info = $data->info();
+			//echo 'info:'.count($info);
+			//die;
+			$mySQL = $data2->sync($info);
 
+			$update = $data->update($mySQL, $info);
+			if($update['status'] == 'Ok' ){
+				$cierre =$data2->cierre();
+			}
+			echo $update['mensaje'];
+		}else{
+		
 		}
 	}
 

@@ -13,7 +13,7 @@
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                           Estadistica de <?php echo $tipo ?> del <?php echo $anio?> por tipo de documento.
+                           <label>Estadistica de <?php echo $tipo ?> del <?php echo $anio?> por tipo de documento.</label>
                            <br/>Total Venta: <?php echo '$ '.number_format($total,2)?>
                            <br/>Total Devoluciones: <?php echo '$ '.number_format($total_dev,2)?>
                            <br/>Total Cancelaciones: <?php echo '$ '.number_format($total_can,2)?>

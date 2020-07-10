@@ -256,7 +256,7 @@ class statics extends database {
         $i++;
         $tt =+ $inf->TOTAL_CLIENTE;
         if($i <=10){
-          $datos .= $inf->NOMBRE.':'.$inf->TOTAL_CLIENTE.'|';
+          $datos .= substr($inf->NOMBRE,0,15).':'.$inf->TOTAL_CLIENTE.'|';
         }else{
           $tp=+ $inf->TOTAL_CLIENTE;
         }
@@ -265,5 +265,45 @@ class statics extends database {
       return $datos;
     }
 
+    function compAnual($anio, $per){
+      $a= empty($per)? ' ':' , periodo ';
+      $data = array();
+      $this->query="SELECT EJERCICIO,
+        SUM( IIF(NATURALEZA = 'Venta' and TIPO_FISCAL = 'I' AND STATUS != 'C', TOTAL, 0) ) AS VENTA,
+        SUM( IIF(NATURALEZA = 'Venta' and TIPO_FISCAL = 'E' AND STATUS != 'C', TOTAL, 0) ) AS NC,
+        SUM( IIF(NATURALEZA = 'Compra' and TIPO_FISCAL = 'I' AND STATUS != 'C', TOTAL, 0) ) AS COMPRAS,
+        SUM( IIF(NATURALEZA = 'Compra' and TIPO_FISCAL = 'E' AND STATUS != 'C', TOTAL, 0) ) AS NCC 
+        $a
+        FROM MOBILE GROUP BY EJERCICIO $a";
+      $res=$this->EjecutaQuerySimple();
+      while ($tsArray=ibase_fetch_object($res)) {
+        $data[]=$tsArray;
+      }
+      return $data;
+    }
+
+    function traePro($id){
+      $a =''; $data = array(); $data2=array();
+      if($id > 0){
+        $a = ' where id = '.$id;
+      }
+
+      $this->query="SELECT fp.*, case (fp.STATUS) WHEN 'N' THEN 'Nuevo' when 'A' then 'Activo' when 'F' then 'Finalizado' when 'U' then 'Auditado' when 'C' then 'Cancelado' else 'Nuevo' end as Estado ,
+                      (select first 1 p.nombre from PERIODOS_2016 p where p.numero = fp.periodo) as mes 
+                     FROM FTC_PROYECCION fp ";
+      $res=$this->EjecutaQuerySimple();
+      while ($tsArray=ibase_fetch_object($res)) {
+        $data[]=$tsArray;
+      }
+
+      if($id > 0 ){
+        $this->query="SELECT * FROM FTC_PROY_DET WHERE ID_PR = $id";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+          $data2[]=$tsArray;
+        }
+      }
+      return array("cabecera"=>$data, "detalle"=>$data2);
+    }
 }
 ?> 

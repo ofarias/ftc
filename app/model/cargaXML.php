@@ -380,7 +380,7 @@ class cargaXML extends database {
             fwrite($diot, $info.PHP_EOL);
         }
         fclose($diot);
-        return array("status"=>'ok', "m"=>'Se ha creado el arvivo'.$diot_archivo, "a"=>$diot_archivo);
+        return array("status"=>'ok', "m"=>'Se ha creado el archivo'.$diot_archivo, "a"=>$diot_archivo);
     }
 
     function cs(){

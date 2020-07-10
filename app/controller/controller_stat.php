@@ -79,8 +79,15 @@ class statics_c{
 	function repTipo($anio, $tipo){
 		if($_SESSION['user']){
 			$data = new statics;
+			$per = '';
+			
 			$info = $data->repTipo($anio);
 			$anios = $data->traeAnios();
+			
+			$comp = $data->compAnual($anio, $per);
+			$periodo  = $data->compAnual($anio, $per='periodo');
+			
+
 			$pagina =$this->load_template2('Estadistica de '.$tipo);
 			$html=$this->load_page('app/views/pages/Estadistica/p.repTipo.php');
 	   		ob_start();
@@ -91,5 +98,19 @@ class statics_c{
 		}
 	}
 
+	function verPro($id){
+		if($_SESSION['user']){
+			$data = new statics;
+			$crea = $data->traePro($id);
+			
+			$pagina =$this->load_template('Ver presupuesto');
+			$html=$this->load_page('app/views/pages/gastos/p.proyeccionMensual.php');
+	   		ob_start();
+	   		include 'app/views/pages/gastos/p.proyeccionMensual.php';
+	   		$table = ob_get_clean();
+	   		$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+	   		$this->view_page($pagina);	
+		}
+	}
 
 }?>

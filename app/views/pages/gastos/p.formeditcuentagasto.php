@@ -56,7 +56,7 @@
                 <div class="form-group">
                     <label for="cuentacontable" class="col-lg-2 control-label">Cuenta Contable: </label>
                         <div class="col-lg-10">
-                            <input type="text" class="form-control" name="cuentacontable" placeholder="###-###-###" required = "required" value="<?php echo $row->CUENTA_CONTABLE;?>"/><br>
+                            <input type="text" class="form-control" name="cuentacontable" placeholder="###-###-###" value="<?php echo $row->CUENTA_CONTABLE;?>"/><br>
                         </div>
                 </div>
 
@@ -87,6 +87,37 @@
                             </select>
                         </div>
                 </div>
+
+                 <div class="form-group">
+                    <label for="gasto" class="col-lg-2 control-label">Clasificacion Gasto: </label>
+                        <div class="col-lg-10">
+                            <select class="form-control" name="id_cla" required = "required"><br/>
+                                <option value="<?php echo $row->ID_CLA ?>" ><?php echo ($row->ID_CLA)? $row->CLASIFICACION:'Seleccione una Clasificacion'?></option>
+                                <?php foreach ($tipog as $key):?>
+                                <option value="<?php echo $key->ID;?>"><?php echo $key->CLASIFICACION.' <--> '.$key->DESCRIPCION;?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="cuentacontable" class="col-lg-2 control-label">Periodicidad del gasto: </label>
+                        <div class="col-lg-10">
+                            <select name="periodo" required>
+                                <option value="<?php echo $row->PERIODO?>"><?php echo $row->PERIODO? $row->PER_PAG:'Seleccione la periodicidad del pago'?></option>
+                                <?php foreach ($per as $p){?>
+                                    <option value="<?php echo $p->ID_P?>"><?php echo $p->TIPO?></option>
+                                <?php }?>
+                            </select>
+                        </div>
+                </div>
+                <div class="form-group">
+                    <label for="cuentacontable" class="col-lg-2 control-label">Fecha Inicial / Fecha Final: </label>
+                        <div class="col-lg-10">
+                            <input type="date" name="fi" value="" required>&nbsp;&nbsp;&nbsp;&nbsp;<input type="date" name="ff" value="" required>
+                        </div>
+                </div>
+
                 <label for="presupuesto" class="col-lg-2 control-label">Presupuesto: </label>
                         <div class="col-lg-10">
 <input type="number" class="form-control" name="presupuesto" placeholder="<?php echo "$ " . number_format($row->PRESUPUESTO,2,'.',',');?>" value="<?php echo number_format($row->PRESUPUESTO,2,'.',',');?>"/>
@@ -113,16 +144,15 @@
                 </div>
                 </div>
                 <br/>
-                <!-- Submit Button  -->
                     <div class="form-group">
                         <div class="col-lg-offset-2 col-lg-10">
                             <button name="guardacambioscuenta" type="submit" value="enviar" class="btn btn-warning">Guardar <i class="fa fa-floppy-o"></i></button>
+                            <a form="formulario1" class="btn btn-danger" href="index.php?action=Catalogo_Gastos">Cancelar <i class="fa fa-floppy-o"></i></a>
                         </div>
                     </div>
                 <input type="hidden" name="id" value="<?php echo $row->ID;?>"/>
                 <?php endforeach; ?>
             </form>
-        <!--    </div> -->
         </div>
     </div>
 </div>

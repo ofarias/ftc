@@ -36,6 +36,9 @@ else{switch ($_GET['action']){
 	case 'repTipo':
 		$controller_stat->repTipo($_GET['anio'], $_GET['tipo']);
 		break;
+	case 'verProy':
+		$controller_stat->verPro($_GET['id']);
+		break;
 	default:
 	header('Location: index_log.php?action=scaneaDocumentoRep');
 	break;

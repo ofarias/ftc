@@ -6092,40 +6092,37 @@ function AsignaSecuencia($unidad){
         $pdf->Output('Secuencia entrega unidad .pdf','i');
     }
     
-     function VerCatalogoGastos(){
-        
+     function VerCatalogoGastos($tipo){
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
-        $html=$this->load_page('app/views/pages/p.catalogogastos.php');
+        $html=$this->load_page('app/views/pages/gastos/p.catalogogastos.php');
         ob_start();
-        $exec=$data->VerCatGastos();  
-        if (count($exec)){
-            include 'app/views/pages/p.catalogogastos.php';
-            $table = ob_get_clean();
-            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+        $exec=$data->VerCatGastos($tipo);  
+        $table = ob_get_clean();
+	        if (count($exec)){
+	            include 'app/views/pages/gastos/p.catalogogastos.php';
+	            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+	        }else{
+	            include 'app/views/pages/gastos/p.catalogogastos.php';
+	            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+	        }
+	            $this->view_page($pagina);
         }else{
-            $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
-                }
-            $this->view_page($pagina);
-            }else{
-                $e = "Favor de iniciar Sesión";
-                header('Location: index.php?action=login&e='.urlencode($e)); exit;
-            }
+            $e = "Favor de iniciar Sesión";
+            header('Location: index.php?action=login&e='.urlencode($e)); exit;
+        }
     }
     
-
-    
-    function GuardarNuevaCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $retieneiva, $retieneisr, $retieneflete){
-        
+    function GuardarNuevaCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $retieneiva, $retieneisr, $retieneflete, $id_cla, $periodo, $fi, $ff, $tipo){
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
-            $redireccionar = 'Catalogo_Gastos';			
+            $redireccionar = 'Catalogo_Gastos&tipo='.$tipo;			
             $html = $this->load_page('app/views/pages/p.redirectform.php');
             ob_start();
-            echo $retieneiva . $retieneisr . $retieneflete;
-            $gastos=$data->guardarNuevaCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $retieneiva, $retieneisr, $retieneflete);
+            //echo $retieneiva . $retieneisr . $retieneflete;
+            $gastos=$data->guardarNuevaCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $retieneiva, $retieneisr, $retieneflete, $id_cla, $periodo, $fi, $ff, $tipo);
             include 'app/views/pages/p.redirectform.php';        
             }else{
                 $e = "Favor de iniciar Sesión";
@@ -6135,16 +6132,17 @@ function AsignaSecuencia($unidad){
     
     /*editado por GDELEON 3/Ago/2016*/
     function EditCuentaGasto($id){
-        
         if (isset($_SESSION['user'])){
         $data = new pegaso;
         $pagina=$this->load_template('Pedidos');
-        $html=$this->load_page('app/views/pages/p.formeditcuentagasto.php');
+        $html=$this->load_page('app/views/pages/gastos/p.formeditcuentagasto.php');
         ob_start();
         $exec=$data->editCuentaGasto($id); 
-        $provgasto=$data->traeProveedoresGasto(); 
+        $provgasto=$data->traeProveedoresGasto();
+        $tipog=$data->traeTipoGasto();
+        $per =$data->per();
         if (count($exec)){
-            include 'app/views/pages/p.formeditcuentagasto.php';
+            include 'app/views/pages/gastos/p.formeditcuentagasto.php';
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
         }else{
@@ -6157,37 +6155,32 @@ function AsignaSecuencia($unidad){
             }
     }
 
-        function NuevaCtaGasto(){
-        
+        function NuevaCtaGasto($tipo){
         if (isset($_SESSION['user'])){
         	$data=new pegaso;
-            $pagina=$this->load_template('Pedidos');
-            $html=$this->load_page('app/views/pages/p.formnuevacuentagasto.php');
-            //$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
+        	$pagina=$this->load_template('Pedidos');
+            $html=$this->load_page('app/views/pages/gastos/p.formnuevacuentagasto.php');
             ob_start();
-            $tipog=$data->traeTipoGasto();
-            	include 'app/views/pages/p.formnuevacuentagasto.php';
+            $tipog=$data->traeTipoGasto($tipo);
+            $per =$data->per();
+            	include 'app/views/pages/gastos/p.formnuevacuentagasto.php';
             	$table=ob_get_clean();
             	$pagina=$this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
             	$this->view_page($pagina);
-           // ob_start();
-           // $gastos=$data->VerCatGastos();  
-          //include 'app/views/pages/p.formnuevacuentagasto.php';
         }else{
             $e = "Favor de iniciar Sesión";
             header('Location: index.php?action=login&e='.urlencode($e)); exit;
         }
     }
     
-    function GuardarCambiosCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $id, $retieneiva, $retieneisr, $retieneflete, $activo, $cveprov){
-        
+    function GuardarCambiosCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $id, $retieneiva, $retieneisr, $retieneflete, $activo, $cveprov, $id_cla, $periodo, $fi, $ff){        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
             $redireccionar = 'Catalogo_Gastos';			
             $html = $this->load_page('app/views/pages/p.redirectform.php');
             ob_start();
-            $gastos=$data->guardarCambiosCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $id, $retieneiva, $retieneisr, $retieneflete, $activo, $cveprov);
+            $gastos=$data->guardarCambiosCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $id, $retieneiva, $retieneisr, $retieneflete, $activo, $cveprov, $id_cla, $periodo, $fi, $ff);
             include 'app/views/pages/p.redirectform.php';        
             }else{
                 $e = "Favor de iniciar Sesión";
@@ -6196,7 +6189,6 @@ function AsignaSecuencia($unidad){
     }
     
     function DelCuentaGasto($id){
-        
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -6342,46 +6334,40 @@ function liberaPendientes($doco, $id_preoc, $pxr, $par){
 		}
     }
         
-        function Clasificacion_gastos(){
-            
-            if(isset($_SESSION['user'])){
-            $data = new pegaso;	
-            $pagina=$this->load_template('pedidos');				
-            $html = $this->load_page('app/views/pages/p.clasificacionesgastos.php');
-            ob_start();
-            $exec = $data->traeClasificacionGastos();
-            if(count($exec) > 0){
-            	include 'app/views/pages/p.clasificacionesgastos.php';
-		$table = ob_get_clean();
-		$pagina = $this->replace_content('/\#CONTENIDO\#/ms' , $table, $pagina);
-            }else{
-		$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay resultados</h2>', $pagina);
-            }
-            $this ->view_page($pagina);
-            }else{
+    function Clasificacion_gastos($tipo){
+        if(isset($_SESSION['user'])){
+        	$data = new pegaso;	
+        	$pagina=$this->load_template('pedidos');				
+        	$html = $this->load_page('app/views/pages/gastos/p.clasificacionesgastos.php');
+        	ob_start();
+        	$exec = $data->traeClasificacionGastos();
+        	if(count($exec) > 0){
+	    	    include 'app/views/pages/gastos/p.clasificacionesgastos.php';
+				$table = ob_get_clean();
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms' , $table, $pagina);
+        	}else{
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay resultados</h2>', $pagina);
+        	}
+         	$this ->view_page($pagina);
+        }else{
             $e = "Favor de iniciar sesión";
             header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}
-        }
+    }
         
-        function NuevaClaGasto(){
-        
+    function NuevaClaGasto(){    
         if (isset($_SESSION['user'])){
             $pagina=$this->load_template('Pedidos');
-            $html=$this->load_page('app/views/pages/p.formnuevaclasificaciongasto.php');
+            $html=$this->load_page('app/views/pages/gastos/p.formnuevaclasificaciongasto.php');
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
             $this->view_page($pagina);
-           // ob_start();
-           // $gastos=$data->VerCatGastos();  
-           // include 'app/views/pages/p.formnuevacuentagasto.php';
         }else{
             $e = "Favor de iniciar Sesión";
             header('Location: index.php?action=login&e='.urlencode($e)); exit;
         }
-        }
+    }
         
-        function EditClaGasto($id){
-            
+    function EditClaGasto($id){            
             if(isset($_SESSION['user'])){
                 $data = new pegaso;	
                 $pagina=$this->load_template('pedidos');				
@@ -6400,69 +6386,65 @@ function liberaPendientes($doco, $id_preoc, $pxr, $par){
                 $e = "Favor de iniciar sesión";
                 header('Location: index.php?action=login&e='.urlencode($e)); exit;
             }
-        }
+    }
         
-        function GuardaCambiosClasG($id,$clasif,$descripcion,$activo){
-            
-            if(isset($_SESSION['user'])){
-                $data = new pegaso;	
-                $pagina=$this->load_template('pedidos');				
-                $html = $this->load_page('app/views/pages/p.clasificacionesgastos.php');
-                ob_start();
-                $exec = $data->guardaCambiosCG($id,$clasif,$descripcion,$activo);
-                if($exec != ''){
-                    header('Location: index.php?action=clasificacion_gastos');
-                }else{
-                    $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay resultados</h2>', $pagina);
-                }
-                $this ->view_page($pagina);
+    function GuardaCambiosClasG($id,$clasif,$descripcion,$activo){            
+        if(isset($_SESSION['user'])){
+            $data = new pegaso;	
+            $pagina=$this->load_template('pedidos');				
+            $html = $this->load_page('app/views/pages/gastos/p.clasificacionesgastos.php');
+            ob_start();
+            $exec = $data->guardaCambiosCG($id,$clasif,$descripcion,$activo);
+            if($exec != ''){
+                header('Location: index.php?action=clasificacion_gastos');
             }else{
-            $e = "Favor de iniciar sesión";
-            header('Location: index.php?action=login&e='.urlencode($e)); exit;
-		}
-        }
-        
-        function GuardaNuevaClaGasto($clasif,$descripcion){
-            
-            if(isset($_SESSION['user'])){
-                $data = new pegaso;	
-                $pagina=$this->load_template('pedidos');				
-                $html = $this->load_page('app/views/pages/p.clasificacionesgastos.php');
-                ob_start();
-                $exec = $data->guardaNuevaClaGasto($clasif,$descripcion);
-                if($exec != ''){
-                    header('Location: index.php?action=clasificacion_gastos');
-                }else{
-                    $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay resultados</h2>', $pagina);
-                }
-                $this ->view_page($pagina);
-            }else{
-            $e = "Favor de iniciar sesión";
-            header('Location: index.php?action=login&e='.urlencode($e)); exit;
-		}
-        }
-
-
-      function verEntregas(){
-        
-        if (isset($_SESSION['user'])){
-        $data = new pegaso;
-        $pagina=$this->load_template('Pedidos');
-        $html=$this->load_page('app/views/pages/p.verentregas.php');
-        ob_start();
-        $entregas=$data->verEntregas(); 
-        if (count($entregas)){
-            include 'app/views/pages/p.verentregas.php';
-            $table = ob_get_clean();
-            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-        }else{
-            $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>', $pagina);
-                }
-            $this->view_page($pagina);
-            }else{
-                $e = "Favor de iniciar Sesión";
-                header('Location: index.php?action=login&e='.urlencode($e)); exit;
+                $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay resultados</h2>', $pagina);
             }
+            $this ->view_page($pagina);
+        }else{
+	        $e = "Favor de iniciar sesión";
+	        header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+    }
+        
+    function GuardaNuevaClaGasto($cl,$des, $t){
+        if(isset($_SESSION['user'])){
+            $data = new pegaso;	
+            $pagina=$this->load_template('pedidos');				
+            $html = $this->load_page('app/views/pages/gastos/p.clasificacionesgastos.php');
+            ob_start();
+            $exec=$data->guardaNuevaClaGasto($cl, $des, $t);
+            $redireccionar='clasificacion_gastos';
+            $pagina=$this->load_template('Pedidos');
+	        $html = $this->load_page('app/views/pages/p.redirectform.php');
+	        include 'app/views/pages/p.redirectform.php';
+	        $this->view_page($pagina); 
+        }else{
+	        $e = "Favor de iniciar sesión";
+	        header('Location: index.php?action=login&e='.urlencode($e)); exit;
+		}
+    }
+
+
+    function verEntregas(){    
+        if (isset($_SESSION['user'])){
+        	$data = new pegaso;
+        	$pagina=$this->load_template('Pedidos');
+        	$html=$this->load_page('app/views/pages/p.verentregas.php');
+        	ob_start();
+        	$entregas=$data->verEntregas(); 
+        	if (count($entregas)){
+        	    include 'app/views/pages/p.verentregas.php';
+        	    $table = ob_get_clean();
+        	    $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+        	}else{
+        	    $pagina = $this->replace_content('/\CONTENIDO\#/ms',$html.'<div class="alert-info"><center><h2>No hay datos para mostrar</h2><center></div>',$pagina);
+            }
+            $this->view_page($pagina);
+        }else{
+            $e = "Favor de iniciar Sesión";
+            header('Location: index.php?action=login&e='.urlencode($e)); exit;
+        }
     }
 
 
@@ -6886,14 +6868,12 @@ function liberaPendientes($doco, $id_preoc, $pxr, $par){
 
     }
 
-    /*modificado por GDELEON 3/Ago/2016*/
     function DelClaGasto($id){
-            
             if(isset($_SESSION['user'])){
                 $data = new pegaso;	
                 $pagina=$this->load_template('pedidos');				
                 ob_start();
-                $exec = $data->delClaGasto($id); //delClaGasto
+                $exec = $data->delClaGasto($id); 
                 if($exec != ''){
                     header('Location: index.php?action=clasificacion_gastos');
                 }else{
@@ -20810,6 +20790,32 @@ function ImpSolicitud2($idsol){
     		$data= new pegaso;
     		$res=$data->delEdoCta($id, $tipo);
     		return $res;
+    	}
+    }
+
+    function actImpG($idg, $val, $f ){
+    	if($_SESSION['user']){
+    		$data  = new pegaso;
+    		$act = $data->actImpG($idg, $val, $f);
+    		return $act;
+    	}
+    }
+
+    function creaProy($mes, $anio, $tipo){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$crea = $data->creaProy($mes, $anio, $tipo);
+    		$id= $crea['id'];
+    		$pagina=$this->load_template('pedidos');				
+        	$html = $this->load_page('app/views/pages/gastos/p.proyeccionMensual.php');
+        	ob_start();
+        	include 'app/views/pages/gastos/p.proyeccionMensual.php';
+			$table = ob_get_clean();
+			$pagina = $this->replace_content('/\#CONTENIDO\#/ms' , $table, $pagina);
+        	$this ->view_page($pagina);
+        }else{
+            $e = "Favor de iniciar sesión";
+            header('Location: index.php?action=login&e='.urlencode($e)); exit;
     	}
     }
 }?>

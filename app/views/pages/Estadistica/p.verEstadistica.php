@@ -4,7 +4,7 @@
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                           Estadistica <?php echo $t=='Recibidos'? 'Proveedores':'Clientes'?> del <?php echo $anio?>
+                           <label>Estadistica <?php echo $t=='Recibidos'? 'Proveedores':'Clientes'?> del <?php echo $anio?></label>
                            <br/>Total Venta: <?php echo '$ '.number_format($total,2)?>
                            <br/>Total Devoluciones: <?php echo '$ '.number_format($total_dev,2)?>
                            <br/>Total Cancelaciones: <?php echo '$ '.number_format($total_can,2)?>
@@ -120,7 +120,7 @@
     var t = <?php echo $t=='Recibidos'? "'Compras / Gastos'":"'Ventas'"?>;
     $(".rep").click(function(){
         
-        window.open("index.e.php?action=repTipo&anio="+anio+"&tipo="+t, "_blank")
+        window.open("index.e.php?action=repTipo&anio="+anio+"&tipo=", "_blank")
 
     })
 

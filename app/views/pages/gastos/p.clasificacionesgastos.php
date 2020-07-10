@@ -3,9 +3,8 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                Clasificación de gastos 
+                Clasificación de Documentos
             </div>
-            <!-- /.panel-heading -->
             <div class="panel-body">
                 <div class="table-responsive">                            
                     <table class="table table-striped table-bordered table-hover" id="">
@@ -14,8 +13,9 @@
                                 <th>ID</th>
                                 <th>Clasificación</th>
                                 <th>Descripción</th>
+                                <th>Tipo <br/> de Documento</th>
                                 <th class="text-center">Editar</th>
-                                <th class="text-center">Eliminar</th>
+                                <th class="text-center">Habilitar / Deshabilitar</th>
                             </tr>
                         </thead>
                         <tfoot>
@@ -30,18 +30,37 @@
                                 <td><?php echo $row->ID;?></td>
                                 <td><?php echo $row->CLASIFICACION;?></td>
                                 <td><?php echo $row->DESCRIPCION;?></td>
-                                <form action="index.php" method="post">
+                                <td><?php echo ($row->TIPO =='G')? 'Egreso':'Ingreso' ?></td>
+                                <form action="index.php" method="post" id="formulario">
                                  <input type="hidden" name="id" value="<?php echo $row->ID;?>"/>
                                 <td class="text-center"><button type="submit" name="editclasificaciongasto" class="btn btn-warning"><i class="fa fa-pencil-square-o"></i></button></td>
-                                <td class="text-center"><button type="submit" name="delclasificaciongasto" class="btn btn-warning" onclick="return confirm('¿Seguro que desea eliminar la cuenta?');" ><i class="fa fa-trash"></i></button></td>
+                                <td class="text-center">
+                                    <button type="submit" id="cambio" name="delclasificaciongasto" class="btn btn-success" ><i class="fa fa-check"></i>
+                                    </button>
+                                </td>
                                 </form>
                             </tr>
                             <?php endforeach ?>
                         </tbody>
                     </table>
-                    <!-- /.table-responsive -->
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="/resources/demos/style.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+<script type="text/javascript">
+    
+    $("#cambio").click(function(){
+        alert('Desea cambiar el registro?')
+        var form = document.getElementByID('formulario')
+        form.submit()
+    })
+
+
+</script>

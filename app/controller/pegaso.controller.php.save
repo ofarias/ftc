@@ -6320,43 +6320,38 @@ function liberaPendientes($doco, $id_preoc, $pxr, $par){
 		}
     }
         
-        function Clasificacion_gastos(){
-            
-            if(isset($_SESSION['user'])){
-            $data = new pegaso;	
-            $pagina=$this->load_template('pedidos');				
-            $html = $this->load_page('app/views/pages/p.clasificacionesgastos.php');
-            ob_start();
-            $exec = $data->traeClasificacionGastos();
-            if(count($exec) > 0){
+    function Clasificacion_gastos(){        
+        if(isset($_SESSION['user'])){
+        	$data = new pegaso;	
+        	$pagina=$this->load_template('pedidos');				
+        	$html = $this->load_page('app/views/pages/p.clasificacionesgastos.php');
+        	ob_start();
+        	$exec = $data->traeClasificacionGastos();
+        	if(count($exec) > 0){
             	include 'app/views/pages/p.clasificacionesgastos.php';
-		$table = ob_get_clean();
-		$pagina = $this->replace_content('/\#CONTENIDO\#/ms' , $table, $pagina);
-            }else{
-		$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay resultados</h2>', $pagina);
-            }
+				$table = ob_get_clean();
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms' , $table, $pagina);
+        	}else{
+				$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html.'<h2>No hay resultados</h2>', $pagina);
+        	}
             $this ->view_page($pagina);
-            }else{
+        }else{
             $e = "Favor de iniciar sesión";
             header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}
-        }
+    }
         
-        function NuevaClaGasto(){
-        
+    function NuevaClaGasto(){
         if (isset($_SESSION['user'])){
             $pagina=$this->load_template('Pedidos');
             $html=$this->load_page('app/views/pages/p.formnuevaclasificaciongasto.php');
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
             $this->view_page($pagina);
-           // ob_start();
-           // $gastos=$data->VerCatGastos();  
-           // include 'app/views/pages/p.formnuevacuentagasto.php';
-        }else{
+    	}else{
             $e = "Favor de iniciar Sesión";
             header('Location: index.php?action=login&e='.urlencode($e)); exit;
         }
-        }
+    }
         
         function EditClaGasto($id){
             

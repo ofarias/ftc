@@ -199,7 +199,7 @@
                 url:'index.mobile.php',
                 type:'post',
                 dataType:'json',
-                datat:{},
+                data:{sync:1},
                 success:function(data){
                     alert('Se ha sincronizado correctamente')
                 },

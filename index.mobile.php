@@ -10,16 +10,16 @@ if(isset($_GET['action'])){
 }else{
 	$action = '';
 }
-
-if (isset($_POST['sincronizar'])){
-	$controller->InsertaUsuarioN($_POST['usuario'], $_POST['contrasena'], $_POST['email'], $_POST['rol'], $_POST['letra']);	
+if (isset($_POST['sync'])){
+	$controller->sync();
+	exit();	
 }
 else{switch ($_GET['action']){
 	case 'stat':
 		$controller_stat->verEstadistica($_GET['mes'], $_GET['anio'], $_GET['tipo'], $_GET['t']);
 		break;
 	default:
-	header('Location: index_log.php?action=scaneaDocumentoRep');
+	header('Location: index_log.php?action=index.php');
 	break;
 	}
 

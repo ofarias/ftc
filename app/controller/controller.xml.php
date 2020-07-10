@@ -463,9 +463,11 @@ class controller_xml{
 	            if($ide == 'Emitidos'){
 	        		$cliente='('.$key->CLIENTE.')'.utf8_encode($key->NOMBRE);
 	        		$proveedor = '('.$key->RFCE.')'.utf8_encode($key->EMISOR);
+	        		$tipo = 'Cliente';
 	        	}elseif($ide == 'Recibidos'){
 					$proveedor='('.$key->RFCE.')'.utf8_encode($key->NOMBRE);
 	        		$cliente='('.$key->CLIENTE.')'.utf8_encode($key->EMISOR);
+	        		$tipo = 'Proveedor';
 	        	}else{
 	        		$proveedor='';
 	        		$cliente='';
@@ -520,7 +522,7 @@ class controller_xml{
 	                ->setCellValue(++$col.$ln,$key->PIEPS) // IEPS 
 	                ->setCellValue(++$col.$ln,$key->PISR) // ISR
 	                ->setCellValue(++$col.$ln,(($key->PIMPORTE - $key->PDESCUENTO) + $key->PIVA +$key->PIEPS + $key->PISR - $key->RET_IVA - $key->RET_ISR) ) // Total
-	                ->setCellValue(++$col.$ln,'')
+	                ->setCellValue(++$col.$ln,$key->CUENTA_CAB)
 	                ->setCellValue(++$col.$ln,'')
 	            ;
 	            $ln++;
@@ -570,7 +572,7 @@ class controller_xml{
 	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
 	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
 	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
-	        
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(30);
 	        // Hacer las cabeceras de las lineas;
 	        //->setCellValue('9','')
 	        $col = 'A';
@@ -589,7 +591,7 @@ class controller_xml{
 	            ->setCellValue(++$col.'9','DESCRIPCION')
 	            ->setCellValue(++$col.'9','CLAVE SAT')
 	            ->setCellValue(++$col.'9','DESCRIPCION')
-	            ->setCellValue(++$col.'9','CUENTA CONTABLE')
+	            ->setCellValue(++$col.'9','CUENTA PARTIDA')
 	            ->setCellValue(++$col.'9','CANTIDAD')
 	            ->setCellValue(++$col.'9','PRECIO')
 	            ->setCellValue(++$col.'9','DESCUENTO')
@@ -602,7 +604,7 @@ class controller_xml{
 	            ->setCellValue(++$col.'9','IEPS')
 	            ->setCellValue(++$col.'9','ISR')
 	            ->setCellValue(++$col.'9','TOTAL')
-	            ->setCellValue(++$col.'9','')
+	            ->setCellValue(++$col.'9','CUENTA '.strtoupper($tipo))
 	        ;
 
 	        $nom_mes = $this->nombreMes($mes);

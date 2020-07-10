@@ -176,8 +176,19 @@ class CoiDAO extends DataBaseCOI {
         if($this->grabaBD()){
             /// Debemos de asegurarnos que nuestro proveedor solo tenga una cuenta.
             //$this->query="UPDATE CUENTAS18 SET RFC = '' WHERE RFC = '$rfc_e' "
-            $this->query="UPDATE CUENTAS19 SET RFC='$rfc_e' where num_cta = '$cuenta'";
-            $this->grabaBD();
+            /// Recorremos los ejercicios.
+            $this->query="SELECT EJERCICIO FROM ADMPER GROUP BY EJERCICIO";
+            $res=$this->EjecutaQuerySimple();
+            while ($tsArray=ibase_fetch_object($res)) {
+                $periodos[] = $tsArray;
+            }
+
+            foreach ($periodos as $peri) {
+                $eje = substr($peri->EJERCICIO,2);
+                $this->query="UPDATE CUENTAS$eje SET RFC='$rfc_e' where num_cta = '$cuenta'";
+                $this->queryActualiza();
+            }
+            
             $partidas=explode("###", $partidas);
             //var_dump($partidas);
             foreach ($partidas as $key) {
@@ -949,12 +960,9 @@ class CoiDAO extends DataBaseCOI {
                 }
                 $nh = $nivel+1;
                 //echo '<br/>Valor de nh '.$nh.'<br/>';
-                
                 $n2 = $row->{$camp.$nh};
-
                 $papa = substr($papa,0,strlen($papa)-1 );
                 //echo 'Cuenta Padre: '.$papa.'<br/>';
-                
                 $this->query="SELECT EJERCICIO FROM ADMPER GROUP BY EJERCICIO";
                 $res=$this->EjecutaQuerySimple();
                 while($tsArray=ibase_fetch_object($res)){
@@ -973,7 +981,7 @@ class CoiDAO extends DataBaseCOI {
                             /// esta formula esta topada al tipo de cuenta 4-3-3 (DIGCTA1 4, DIGCTA2 3, DIGCTA3 3) debemos de analizar el formato de cuenta desde la tabla, PARAEMP y poder calcular correctamente la cuenta de Detalle. 
                             /// copiar el codigo agrupador del SAT
                             //$this->query ="SELECT coalesce(MIN(NUM_CTA), 0) as papa, substring(MAX(num_cta) from $inicial for $nivel) as hija, min(cta_raiz) as raiz FROM CUENTAS$eje WHERE NUM_CTA STARTING WITH ('$ctaP') and TIPO ='D'";
-                            $this->query="SELECT max(NUM_CTA), '$papa' as PAPA, substring( MAX(num_cta) from ($n1+1) for $n2) as hija, min(cta_raiz) as raiz, max(CODAGRUP) AS IDFISCAL from cuentas18 where cta_papa ='$papa'";
+                            $this->query="SELECT max(NUM_CTA), '$papa' as PAPA, substring( MAX(num_cta) from ($n1+1) for $n2) as hija, min(cta_raiz) as raiz, max(CODAGRUP) AS IDFISCAL from cuentas$eje where cta_papa ='$papa'";
                             //echo'<br/> Se crea la consulta '.$this->query.'<br/>';
                             //die();
                             $rs = $this->EjecutaQuerySimple();
@@ -2704,7 +2712,7 @@ class CoiDAO extends DataBaseCOI {
         return $data;
     }
 
-    function upl_param($file, $x){
+    function upl_param($file, $x, $eje){
         $d = new pegaso;
         $inputFileType=PHPExcel_IOFactory::identify($file);
         $objReader=PHPExcel_IOFactory::createReader($inputFileType);
@@ -2712,28 +2720,29 @@ class CoiDAO extends DataBaseCOI {
         $sheet=$objPHPExcel->getSheet(0);
         $highestRow = $sheet->getHighestRow(); 
         $highestColumn = $sheet->getHighestColumn();
-        for ($row=12; $row <= $highestRow; $row++){ //10
+        for ($row=10; $row <= ($highestRow -2); $row++){ //10
             $par = $sheet->getCell("I".$row)->getValue();
             $ctaPar=$sheet->getCell("O".$row)->getValue();
-            $ctaCab=$sheet->getCell("Z".$row)->getValue();
+            $ctaCab=$sheet->getCell("AB".$row)->getValue();
             $uuid = $sheet->getCell("C".$row)->getValue();
-            echo $sheet->getCell("A".$row)->getValue()." - ";
-            echo $sheet->getCell("B".$row)->getValue()." - ";
-            echo $sheet->getCell("C".$row)->getValue()." - ";
-            echo $sheet->getCell("I".$row)->getValue()." - ";
-            echo $sheet->getCell("O".$row)->getValue()." - ";
-            echo $sheet->getCell("Z".$row)->getValue()." - ";
-            echo "<br>";
+            //echo 'Linea '.$row.' -->';
+            //echo $sheet->getCell("A".$row)->getValue()." - ";
+            //echo $sheet->getCell("B".$row)->getValue()." - ";
+            //echo $sheet->getCell("C".$row)->getValue()." - ";
+            //echo $sheet->getCell("I".$row)->getValue()." - ";
+            //echo $sheet->getCell("O".$row)->getValue()." - ";
+            //echo $sheet->getCell("Z".$row)->getValue()." - ";
+            //echo "<br>";
             for ($i=0; $i <= 1; $i++) {
                 if($i == 0){
                     $cta = $ctaPar;
                 }elseif($i == 1 ){
                     $cta = $ctaCab;
                 }
-                $this->query="SELECT * FROM CUENTAS_FTC WHERE CUENTA = '$cta'";
+                $this->query="SELECT * FROM CUENTAS_FTC_$eje WHERE CUENTA = '$cta' or CUENTA_COI = '$cta'";  
                 $res=$this->EjecutaQuerySimple();
                 $lin=ibase_fetch_object($res);
-                if(isset($lin)){
+                if($lin){
                     if($i == 0){
                         $cuentaPartida=$lin->CUENTA_COI;                
                         $a=$d->actCtaPar($cuentaPartida, $uuid, $par, $x);
@@ -2741,16 +2750,16 @@ class CoiDAO extends DataBaseCOI {
                         $cuentaCabecera=$lin->CUENTA_COI;
                         $b=$d->actCtacab($cuentaCabecera, $uuid, $par, $x);
                     }
-
                 }else{
-                    echo 'No tiene Valor y sigue con la siguiente Linea, podria poner un reporte por correo con los resultados';
+                    //print_r($lin);
+                    //echo '<br/>'.$this->query ;
+                    echo '<br/>La linea: '.$row.', con la cuenta '.$cta.', podria poner un reporte por correo con los resultados<br/>';
+                    //echo $_SESSION['r_coi'];
+                    die();
                 }
             }
         }
         return;
     }
-
-
-
 }      
 ?>

@@ -5596,8 +5596,6 @@ $this->query="SELECT ftcpocd.cve_doc as cve_ftcpoc,ftcpocd.status_log2, ftcpocd.
                 $filtrovend = "and v.nombre LIKE '($vend%'";
                 else
                     $filtrovend = " ";
-
-
            	$this->query="SELECT f.*, iif(substring(trim(fa.doc_ant) from 1 for 1) = '0',
 						(select fr.doc_ant from factr01 fr where fr.cve_doc = fa.doc_ant) , fa.doc_ant) as doc_ant, u.NOMBRE AS NOMBREVENDEDOR
 						FROM FACTURAS f 
@@ -5606,56 +5604,6 @@ $this->query="SELECT ftcpocd.cve_doc as cve_ftcpoc,ftcpocd.status_log2, ftcpocd.
 						(select fr.doc_ant from factr01 fr where fr.cve_doc = fa.doc_ant) , fa.doc_ant) from 1 for  1) and (u.sub_letra is null or u.sub_letra = '')
 						where UPPER(f.vendedor) containing UPPER('')
 						AND f.fecha_doc BETWEEN '$fechaini' AND '$fechafin' order by u.nombre";
-            
-           /* $this->query = "SELECT
-                                cm.CVE_CLIE AS CLIENTE,
-                                cm.REFER AS REFERENCIA,
-                                iif(fd.CVE_DOC IS NULL, '',fd.CVE_DOC) AS NC_ASOCIADA,
-                                cm.FECHAELAB AS FECHA_ELABORACION,
-                                cd.FECHA_APLI AS FECHA_APLICACION,
-                                cm.IMPORTE AS IMPORTE_VENDIDO,
-                                SUM(iif(cd.IMPORTE IS null, 0, cd.IMPORTE)) AS IMPORTE_COBRADO,
-                                iif(fd.IMPORTE IS NULL, 0, fd.IMPORTE) AS IMPORTE_NC,
-                                round(cm.IMPORTE,2) - round((iif(fd.IMPORTE IS NULL, 0, fd.IMPORTE)),2) AS VENTA_REAL,
-                                round(cm.IMPORTE,2) - round(SUM(iif(cd.IMPORTE IS null, 0, cd.IMPORTE)),2) AS SALDO,
-                                iif(v.nombre IS NULL, '', v.nombre) AS VENDEDOR,
-                                (cm.IMPORTE - (iif(fd.IMPORTE IS NULL, 0, fd.IMPORTE))) - (cm.IMPORTE - SUM(iif(cd.IMPORTE IS null, 0, cd.IMPORTE))) AS VENTA_SALDO,
-                                (((cm.IMPORTE - (iif(fd.IMPORTE IS NULL, 0, fd.IMPORTE))) - (cm.IMPORTE - SUM(iif(cd.IMPORTE IS null, 0, cd.IMPORTE)))) / 1.16) * 0.01 AS COMISION
-                                FROM
-                                    ((cuen_m01 cm
-                                    LEFT JOIN factd01 as fd
-                                    ON fd.doc_ant = cm.refer)
-                                    LEFT JOIN vend01 v
-                                    ON v.CVE_VEND = cm.strcvevend)
-                                    INNER JOIN cuen_det01 cd
-                                    ON cm.refer = cd.refer
-								WHERE
-								cm.tipo_mov = 'C'
-                                GROUP BY
-                                cm.CVE_CLIE,
-                                cm.REFER ,
-                                fd.CVE_DOC,
-                                cm.FECHAELAB,
-                                cd.FECHA_APLI,
-                                cm.IMPORTE,
-                                fd.IMPORTE,
-                                cm.IMPORTE,
-                                v.nombre
-								HAVING
-								cd.FECHA_APLI BETWEEN '$fechaini' AND '$fechafin'
-								$filtrovend
-								ORDER BY REFERENCIA";
-			*/
-            $resultado = $this->QueryObtieneDatosN();
-            while($tsArray = ibase_fetch_object($resultado)){
-                $data[] = $tsArray;
-            }
-            //var_dump($this->query);
-            return $data;
-        }
-        
-        function VerCatGastos(){
-            $this->query = "SELECT * FROM CAT_GASTOS WHERE ACTIVO = 'S' ORDER BY ID ASC";
             $resultado = $this->QueryObtieneDatosN();
             while($tsArray = ibase_fetch_object($resultado)){
                 $data[] = $tsArray;
@@ -5663,18 +5611,34 @@ $this->query="SELECT ftcpocd.cve_doc as cve_ftcpoc,ftcpocd.status_log2, ftcpocd.
             return $data;
         }
         
-        function guardarNuevaCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $retieneiva, $retieneisr, $retieneflete){
+        function VerCatGastos($tipo){
+        	$data = array();
+        	$t='';
+        	if($tipo != 'B'){
+        		$t=" and ct.tipo = '".substr(strtoupper($tipo), 0 , 1)."'";
+        	}
+            $this->query = "SELECT ct.*, cl.clasificacion as clasificacion, fp.tipo as PER_PAG, fp.factor, fp.leyenda FROM CAT_GASTOS CT left join cla_gastos cl on cl.id = ct.id_cla left join ftc_sta_per fp on fp.id_p = ct.periodo WHERE ct.ACTIVO = 'S' $t ORDER BY ct.ID ASC";
+            //echo $this->query;
+            $resultado = $this->EjecutaQuerySimple();
+            while($tsArray = ibase_fetch_object($resultado)){
+                $data[] = $tsArray;
+            }
+            return $data;
+        }
+        
+        function guardarNuevaCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $retieneiva, $retieneisr, $retieneflete, $id_cla, $periodo, $fi, $ff, $tipo){
+        	$t = substr(strtoupper($tipo),0,1);
             $viva = (!empty($retieneiva) ? $retieneiva : 0);
             $visr = (!empty($retieneisr) ? $retieneisr : 0);
             $vflete = (!empty($retieneflete) ? $retieneflete : 0);
-            $this->query= "INSERT INTO CAT_GASTOS (CONCEPTO,DESCRIPCION,CAUSA_IVA,CENTRO_COSTOS,CUENTA_CONTABLE,GASTO,PRESUPUESTO,IVA,ISR,FLETE)
-                           VALUES ('$concepto', '$descripcion', '$iva', '$cc', '$cuenta', '$gasto', $presupuesto, $viva, $visr, $vflete)";
-            $resultado = $this->EjecutaQuerySimple();
+            $this->query= "INSERT INTO CAT_GASTOS (CONCEPTO,DESCRIPCION,CAUSA_IVA,CENTRO_COSTOS,CUENTA_CONTABLE,GASTO,PRESUPUESTO,IVA,ISR,FLETE, id_cla, periodo, FECHA_INI, FECHA_FIN, TIPO)
+                           VALUES ('$concepto', '$descripcion', '$iva', '$cc', '$cuenta', '$gasto', $presupuesto, $viva, $visr, $vflete, $id_cla, $periodo, '$fi', '$ff', '$t')";
+            $resultado = $this->grabaBD();
             return $resultado;
         }
         
         function editCuentaGasto($id){
-            $this->query = "SELECT * FROM CAT_GASTOS WHERE ID = $id";
+            $this->query = "SELECT ct.*, cl.clasificacion as clasificacion, fp.tipo as PER_PAG FROM CAT_GASTOS CT left join cla_gastos cl on cl.id = ct.id_cla left join ftc_sta_per fp on fp.id_p = ct.periodo WHERE CT.ID = $id";
             $resultado = $this->QueryObtieneDatosN();
             while($tsArray = ibase_fetch_object($resultado)){
                 $data[] = $tsArray;
@@ -5682,38 +5646,29 @@ $this->query="SELECT ftcpocd.cve_doc as cve_ftcpoc,ftcpocd.status_log2, ftcpocd.
             return $data;
         }
         
-        function guardarCambiosCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $id, $retieneiva, $retieneisr, $retieneflete, $activo, $cveprov){
-        	if (empty($presupuesto)){
-        		$presupuesto = 0;
-        	}
-
+        function guardarCambiosCuenta($concepto, $descripcion, $iva, $cc, $cuenta, $gasto, $presupuesto, $id, $retieneiva, $retieneisr, $retieneflete, $activo, $cveprov, $id_cla, $periodo, $fi, $ff){
+        	$presupuesto = empty($presupuesto)? 0:$presupuesto;
         	if (empty($cveprov)){
-        		$cveprov ='No';
-        		$Nombre = 'No';
+        		$cveprov='No';
+        		$Nombre='No';
         	}else{
-        	$a="SELECT NOMBRE FROM PROV01 WHERE CLAVE = '$cveprov'";
-        	$this->query=$a;
-        	$result=$this->QueryObtieneDatosN();
+        	$this->query="SELECT NOMBRE FROM PROV01 WHERE CLAVE = '$cveprov'";
+        	$result=$this->EjecutaQuerySimple();
         	$row=ibase_fetch_object($result);
         	$Nombre=$row->NOMBRE;
         	}
-
             $this->query= "UPDATE CAT_GASTOS SET CONCEPTO = '$concepto',DESCRIPCION = '$descripcion',CAUSA_IVA = '$iva',
-                           CENTRO_COSTOS = '$cc',CUENTA_CONTABLE = '$cuenta',GASTO = '$gasto',PRESUPUESTO = iif($presupuesto=0,presupuesto,$presupuesto), IVA = $retieneiva, ISR = $retieneisr, FLETE = $retieneflete, ACTIVO = '$activo', cve_prov = iif('$cveprov' = 'No',cve_prov, '$cveprov'), proveedor=iif('$Nombre'= 'No', proveedor,'$Nombre')
-                           WHERE ID = $id";
-            $resultado = $this->EjecutaQuerySimple();
-            return $resultado;
+                           CENTRO_COSTOS = '$cc',CUENTA_CONTABLE = '$cuenta',GASTO = '$gasto',PRESUPUESTO = iif($presupuesto=0,presupuesto,$presupuesto), IVA = $retieneiva, ISR = $retieneisr, FLETE = $retieneflete, ACTIVO = '$activo', cve_prov = iif('$cveprov' = 'No',cve_prov, '$cveprov'), proveedor=iif('$Nombre'= 'No', proveedor,'$Nombre'), id_cla = $id_cla, periodo = $periodo, fecha_ini='$fi', fecha_fin = '$ff' WHERE ID = $id";
+            $this->queryActualiza();
+            return;
         }
         
-        /*editado por GDELEON 3/Ago/2016*/
         function delCuentaGasto($id){
-        	/*no eliminar solo cambiar ACTIVO N*/
-            //$this->query = "DELETE FROM CAT_GASTOS WHERE ID = $id";
-            $this->query = "UPDATE CAT_GASTOS 
-            				SET ACTIVO = 'N'
-            				WHERE ID = $id";
-            $resultado = $this->EjecutaQuerySimple();
-            return $resultado;
+        	$this->query="UPDATE CAT_GASTOS SET ACTIVO = 'N' WHERE ID = $id";
+            $this->queryActualiza();
+            $this->query="UPDATE XML_TIPO_DOC X set  WHERE X.ID_Tipo = (SELECT ID_TC FROM CLA_GASTOS WHERE ID = $id) ";
+            $this->queryActualiza();
+            return;
         }
 		
 		/*Modificado por GDELEON 3/Ago/2016*/
@@ -6125,10 +6080,20 @@ function ReEnrutar($id_preoc, $pxr, $doco){
             return $resultado;
         }
         
-        function guardaNuevaClaGasto($clasif,$descripcion){
-            $this->query="INSERT INTO CLA_GASTOS (CLASIFICACION, DESCRIPCION) VALUES ('$clasif','$descripcion')";
-            $resultado = $this->EjecutaQuerySimple();
-            return $resultado;
+        function guardaNuevaClaGasto($cl,$des, $t){
+        	$usuario =$_SESSION['user']->NOMBRE;
+            $this->query="INSERT INTO CLA_GASTOS (CLASIFICACION, DESCRIPCION, TIPO) VALUES ('$cl','$des', '$t')";
+            $resultado = $this->grabaBD();
+            if($t == 'V'){
+            	$a = 'SELECT MAX(ID_TIPO) FROM XML_TIPO_DOC WHERE ID_TIPO BETWEEN 1000 AND 2000';
+
+            }else if($t == 'G'){
+            	$a = 'SELECT MAX(ID_TIPO) FROM XML_TIPO_DOC WHERE ID_TIPO BETWEEN 2000 AND 3000';
+            }
+            $this->query="INSERT INTO XML_TIPO_DOC (ID_TD, ID_TIPO, DESCRIPCION, STATUS, USUARIO, FECHA_ALTA) 
+            				VALUES ((SELECT MAX(ID_TD) FROM XML_TIPO_DOC) + 1, ($a)+1, '$cl', 'A', '$usuario', current_date )";
+            $this->grabaBD();
+            return;
         }
     
 	function verEntregas(){
@@ -8954,10 +8919,9 @@ function ReEnrutar($id_preoc, $pxr, $doco){
 	
 	/*creado por GDELEON 3/Ago/2016*/
         function delClaGasto($id){
-        	$this->query = "UPDATE CLA_GASTOS
-        					SET ACTIVO = 'N'
-        					WHERE ID = $id";
+        	$this->query = "UPDATE CLA_GASTOS SET ACTIVO = 'N' WHERE ID = $id";
         	$resultado = $this->EjecutaQuerySimple();
+        	
             return $resultado;
         }
 		
@@ -9276,14 +9240,19 @@ function VerCobranzaC($cc){
     	return $data;
     }
 
+    ### Integracion de sat2app para leer los proveedores de los XML. 
+
     function traeProveedoresGasto(){
-    	$a="SELECT * FROM PROV01
-    		INNER JOIN PROV_CLIB01 ON CLAVE = CVE_PROV 
-    		WHERE (UPPER(CAMPLIB2) STARTING WITH UPPER('G'))";
-    		$this->query=$a;
-    		$result=$this->QueryObtieneDatosN();
+    		$data = array();
+    		$this->query="SELECT Clave, NOMBRE FROM PROV01 INNER JOIN PROV_CLIB01 ON CLAVE = CVE_PROV WHERE (UPPER(CAMPLIB2) STARTING WITH UPPER('G'))";
+    		$result=$this->EjecutaQuerySimple();
     		while ($tsArray=ibase_fetch_object($result)){
     			$data[]=$tsArray;
+    		}
+    		$this->query="SELECT IDCLIENTE AS CLAVE, NOMBRE FROM XML_CLIENTES WHERE tipo = 'Proveedor'";
+    		$res=$this->EjecutaQuerySimple();
+    		while ($ts=ibase_fetch_object($res)) {
+    			$data[]=$ts;
     		}
     		return $data;
     }
@@ -11316,17 +11285,23 @@ function Pagos() {
          return $respuesta;
       }
 
-      function traeTipoGasto(){
-      	$this->query="SELECT * FROM CLA_GASTOS";
-      	$rs=$this->QueryObtieneDatosN();
+     function traeTipoGasto($tipo){
+      	$t = substr(strtoupper($tipo), 0,1);
+      	if($t== 'G'){
+      		$this->query="SELECT * FROM CLA_GASTOS where tipo ='$t'";
+      	}else{
+      		$this->query="SELECT ID_TD AS ID, DESCRIPCION AS CLASIFICACION, DESCRIPCION FROM XML_TIPO_DOC WHERE ID_TIPO BETWEEN 1000 AND 2000 AND STATUS ='A'";
+      	}
+	    $rs=$this->EjecutaQuerySimple();
       	while($tsArray=ibase_fetch_object($rs)){
       		$data[]=$tsArray;
       	}
+
       	return $data;
        }
 
-              function verFallidas(){
-   	$this->query="SELECT a.*, b.NOMBRE, c.OPERADOR, d.cve_doc as Recepcion
+    function verFallidas(){
+   		$this->query="SELECT a.*, b.NOMBRE, c.OPERADOR, d.cve_doc as Recepcion
    				  from compo01 a
    				  left join prov01 b on a.cve_clpv = b.clave
    				  left join unidades c on a.unidad = c.numero  
@@ -24978,7 +24953,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PIEPS,
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PISR,
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_IVA,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_ISR
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_ISR,
+    			(select xc.CUENTA_CONTABLE from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor') AS CUENTA_CAB
     			from xml_partidas xp 
     				left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.rfce = xc.rfc and xc.tipo ='Proveedor') is not null  
     				and extract(year from xd.fecha)=$anio 
@@ -24992,7 +24968,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='003' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PIEPS,
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Traslado' GROUP BY IMPUESTO),0) AS PISR,
     			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='002' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_IVA,
-    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_ISR
+    			coalesce((SELECT SUM(MONTO) FROM XML_IMPUESTOS I2 WHERE I2.PARTIDA = XP.PARTIDA AND I2.UUID = XP.UUID AND IMPUESTO='001' and I2.status= 0 AND I2.TIPO='Retencion' GROUP BY IMPUESTO),0) AS RET_ISR,
+    			(select xc.CUENTA_CONTABLE from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente') AS CUENTA_CAB
     			from xml_partidas xp left join xml_data xd on xd.uuid = xp.uuid where (select xc.nombre from xml_clientes xc where xd.cliente = xc.rfc and xc.tipo ='Cliente') is not null and extract(year from xd.fecha)= $anio and xd.tipo= '$doc' $periodo order by xd.fecha, xd.documento";
     	}
     	//echo $this->query;
@@ -25113,12 +25090,12 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     function actualizaCuentaCliente($cliente, $partidas, $ide){
     	$cliente = explode(":", $cliente);
     	$partidas = explode("###", $partidas);
-    	$cc =$cliente[1];
-    	$rfc = $cliente[3];
-    	$rfcr = $cliente[0];
-    	$uuid = $cliente[2];
+    	$cc =$cliente[1];	// cuenta contable 
+    	$rfcr = $cliente[0];// rfc receptor XAXX010101000
+    	$rfce = $cliente[3];// Rfc emisor
+    	$uuid = $cliente[2];// uuid 
     	//print_r($cliente);
-
+    	//die();
     	if($ide == 'Emitidos'){
 			$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfcr' and tipo = 'Cliente'";
 	    	$this->queryActualiza();
@@ -25137,8 +25114,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		///and PARTIDA = $par
 	    		$this->queryActualiza();
 	      	}
-    	}else{
-    		$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfc' and tipo = 'Proveedor'";
+
+    	}else{  /// cuando es un documento recibido.
+
+    		$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfce' and tipo = 'Proveedor'";
 	    	$this->queryActualiza();	
 	    	foreach ($partidas as $key){
 	    		$key=explode(":", $key);
@@ -25146,11 +25125,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$cve_sat = $key[1];
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
-	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' 
-	    			where (select rfce from xml_data x where x.uuid = '$uuid') = '$rfc' 
-	    				and PARTIDA = $par
-	    				and  xp.CLAVE_SAT = '$cve_sat' 
-	    				and xp.UNIDAD_SAT = '$uni_sat' 
+
+	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' where (select x.rfce from xml_data x where x.uuid = xp.uuid) = '$rfce' 
+	    				and  xp.CLAVE_SAT = '$cve_sat'
+	    				and xp.UNIDAD_SAT = '$uni_sat'
 	    		and 
 	    		( 
 	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'P' 
@@ -25158,6 +25136,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
 	    		)
 	    		";
+	    		//and PARTIDA = $par
 	    		//and (cuenta_Contable is null or cuenta_Contable = '') --and PARTIDA = $par
 	    		//echo $this->query;
 	    		//echo '<br/>'.$this->query.'<br/>';
@@ -26471,19 +26450,15 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 
 	function guardaProveedor($nombre,$rfc,$marca,$telefono,$calle,$ext,$int,$ciudad,$cp,$pais,$deleg,$mun,$correoGen,$contPrim){
-		
 		$this->query="SELECT * FROM TBLCONTROL01 where ID_TABLA = 12";
 		$res=$this->EjecutaQuerySimple();
 		$row=ibase_fetch_object($res);
 		$clave = $row->ULT_CVE + 1;
-
 		$this->query="UPDATE TBLCONTROL01 SET ULT_CVE = $clave where ID_TABLA = 12";
 		$this->grabaBD();
-
 		$this->query="INSERT INTO PROV01 (CLAVE, STATUS, NOMBRE, RFC, CALLE, NUMINT, NUMEXT, COLONIA, CODIGO, MUNICIPIO, ESTADO, CVE_PAIS, TELEFONO, EMAILPRED, RESP_COMPRA )
 		 VALUES (LPAD('$clave',10), 'A', '$nombre', '$rfc', '$calle', '$int', '$ext','$mun', '$cp', '$deleg', '$ciudad', '$pais', '$telefono', '$correoGen', '$contPrim')";
 		$this->grabaBD();
-
 		return $nombre;
 	}
 
@@ -28172,5 +28147,88 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	}
     	return ($data);
     }
+
+    function per(){
+    	$data = array();
+    	$this->query="SELECT * FROM ftc_sta_per";
+    	$res=$this->EjecutaQuerySimple();
+    	while ($tsArray=ibase_fetch_object($res)) {
+    		$data[]=$tsArray;
+    	}
+    	return $data;
+    }
+
+    function actImpG($idg, $val, $f){
+    	$this->query="UPDATE CAT_GASTOS SET PRESUPUESTO = $val where id = $idg";
+    	$res=$this->queryActualiza();
+    	if($res == 1){
+    		return array("status"=>'ok', "mensaje"=>"Se actualizo correctamente el importe", "val"=>'$ '.number_format($val,2),"v"=>($val*$f));
+    	}else{
+    		return array("status"=>'no', "mensaje"=>"Ocurrio un problema al actualizar el importe, favor de revisar que se capture un monto sin simbolos ni letras");
+    	}
+    }
+
+    function creaProy($mes, $anio, $tipo){
+    	$x=''; $data=array();
+    	if($mes == '' or $anio == ''){
+    		$mes = date('m'); $anio = date('Y');$usuario=$_SESSION['user']->NOMBRE;
+    	}
+    	if($tipo != ''){
+    		$x = " where id in (".$tipo."";
+    	}
+    	$this->query ="SELECT CG.* FROM CAT_GASTOS CG where status is null";
+    	$res = $this->EjecutaQuerySimple();
+    	while ($tsArray = ibase_fetch_object($res)) {
+    		$data[]=$tsArray;
+    	}
+    	$g=0;$v=0;
+    	foreach ($data as $p) {
+    		$ga = $p->TIPO=='G'?  $g++:$g+0;
+    		$ve = $p->TIPO=='V'?  $v++:$v+0;
+    	}
+    	if($g > 0 AND $v > 0 ){
+    		$t='A';
+    	}elseif($g > 0 AND $v == 0 ){
+    		$tipo = 'G';
+    	}elseif($g == 0 AND $v > 0){
+    		$t='V';
+    	}
+    	
+    	$this->query="INSERT INTO FTC_PROYECCION (IDPR, TIPO, MONTO_INI_V, MONTO_FIN_V, FECHA_INI, FECHA_FIN, PERIODO, EJERCICIO, USUARIO, STATUS, FECHA_BAJA, USUARIO_BAJA, RESULTADO,OBSERVACIONES, ID_P, MONTO_INI_G, MONTO_FIN_G) VALUES ( NULL, '$t', 0, 0, current_date, null , $mes, $anio, '$usuario', 'N', NULL, '', '', '', 1, 0 , 0) RETURNING IDPR";
+    	$row = $this->grabaBD();
+    	$idpr = ibase_fetch_object($row)->IDPR;
+    	foreach ($data as $pd) {
+    		$this->query="INSERT INTO FTC_PROY_DET (IDDPR, ID_PR, ID_CAT_GAS, ID_STA_PER, MONTO_INI, MONTO_FIN, DIFERENCIA, FECHA_EST_PAGO, FECHA_FACTURA, FECHA_EDO_CTA, MONTO_PAGADO, STATUS, USUARIO, FOLIO_X_BANCO, ID_G, ID_CP, 
+    		CONCEPTO, DESCRIPCION, CAUSA_IVA, CENTRO_COSTOS, CUENTA_CONTABLE, GASTO, PRESUPUESTO, IVA, ISR, FLETE, ACTIVO, CVE_PROV, PROVEEDOR, ID_CLA, PERIODO, FECHA_INI, FECHA_FIN, TIPO) values (null, $idpr, $pd->ID, 1, ($pd->PRESUPUESTO * (select sp.factor from ftc_sta_per sp where sp.id_p = $pd->PERIODO) ) /12 , 0, 0, NULL, NULL, NULL, 0, 'N', '$usuario', '', '', '', 
+    			'$pd->CONCEPTO', '$pd->DESCRIPCION', '$pd->CAUSA_IVA', '$pd->CENTRO_COSTOS', '$pd->CUENTA_CONTABLE', '$pd->GASTO', $pd->PRESUPUESTO, $pd->IVA, $pd->ISR, $pd->FLETE, '$pd->ACTIVO', '$pd->CVE_PROV', '$pd->PROVEEDOR', $pd->ID_CLA, $pd->PERIODO, '$pd->FECHA_INI', '$pd->FECHA_FIN', '$pd->TIPO')";
+    		$this->grabaBD();
+    	}
+    	$this->query="UPDATE FTC_PROYECCION SET 
+    									MONTO_INI_V = (SELECT SUM(pd.MONTO_INI) FROM FTC_PROY_DET pd WHERE pd.ID_PR = $idpr and pd.tipo= 'V') , 
+    									MONTO_INI_G = (SELECT SUM(pd.MONTO_INI) FROM FTC_PROY_DET pd WHERE pd.ID_PR = $idpr and pd.tipo= 'G') 
+    					where idpr = $idpr";
+    	$this->queryActualiza();
+
+    	$this->query="SELECT * FROM FTC_PROYECCION WHERE IDPR = $idpr";
+    	$res=$this->EjecutaQuerySimple();
+    	$row= ibase_fetch_object($res);
+    	$this->query="SELECT ct.*, cl.clasificacion as clasificacion, fp.tipo as PER_PAG, fp.factor, fp.leyenda FROM FTC_PROY_DET ct  
+    					left join cla_gastos cl on cl.id = ct.id_cla 
+    					left join ftc_sta_per fp on fp.id_p = ct.periodo 
+    					WHERE ct.ID_PR = $idpr AND ct.ACTIVO = 'S'";
+    	$res = $this->EjecutaQuerySimple();
+
+    	$this->query = "SELECT ct.*, cl.clasificacion as clasificacion, fp.tipo as PER_PAG, fp.factor, fp.leyenda 
+
+    		FROM CAT_GASTOS CT left join cla_gastos cl on cl.id = ct.id_cla left join ftc_sta_per fp on fp.id_p = ct.periodo WHERE ct.ACTIVO = 'S' $t ORDER BY ct.ID ASC";
+
+    	while ($tsArray=ibase_fetch_object($res)) {
+    		$data4[]=$tsArray;
+    	}
+    	return array("cabecera"=>$row, "detalle"=>$data4, "id"=>$idpr);
+    }
+
+
+
 
 }?>

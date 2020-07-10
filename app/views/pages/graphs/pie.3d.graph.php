@@ -10,6 +10,7 @@ $datos = explode("|", str_replace('"', "",$datos));
 $x = array(); // Clientes;
 $y = array(); //
 $t = array(); // Montos;
+//var_dump($datos);
 foreach ($datos as $key => $value){
 	$a = explode(":",$value);
 	array_push($t, $a[1]);

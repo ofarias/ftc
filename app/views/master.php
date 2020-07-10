@@ -1331,6 +1331,31 @@ $('#dataTables-ocf').DataTable({
         /*Termina totales*/
             
         });
+
+        $('#dataTables-proyeccion-gastos').DataTable({
+                responsive: true,
+        lengthMenu: [[500,-1], [500,"Todo"]],
+        columnDefs:[
+          {
+            targets: [0],
+            searchable: false
+          }
+        ],
+          language: {
+          lengthMenu: "Mostrando _MENU_ por pagina",
+          zeroRecords: "No hay dato para mostrar",
+          info: "Mostrando página _PAGE_ de _PAGES_",
+          sSearch: "Buscar: ",
+          sInfoFiltered:   "(Filtrado de un total de _MAX_ registros)",         
+          oPaginate: {
+                  "sFirst":    "Primero",
+                  "sLast":     "Último",
+                  "sNext":     "Siguiente",
+                  "sPrevious": "Anterior"
+                }
+        }
+        });
+
 /* datatables tablita 3*/       //14062016
         $('#dataTables-table-3').DataTable({
                 responsive: true,

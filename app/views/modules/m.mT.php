@@ -140,7 +140,7 @@
             <div class="col-md-2">
                 <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4> Catalogo de gastos</h4>
+                        <h4> Proyeccion de Ventas / Gastos</h4>
                     </div>
                     <div class="panel-body">
                         <p><br/></p>
@@ -151,7 +151,7 @@
             <div class="col-md-2">
                 <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
-                        <h4> Clasificación de gastos</h4>
+                        <h4> Clasificación de Documentos</h4>
                     </div>
                     <div class="panel-body">
                         <p><br/></p>
