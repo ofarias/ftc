@@ -7221,7 +7221,6 @@ function liberaPendientes($doco, $id_preoc, $pxr, $par){
     }
 
     function CerrarVentana(){
-    	
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');

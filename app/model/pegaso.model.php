@@ -27301,8 +27301,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						$abono = empty($key[3])? 0:$key[3];
 						$cargo = empty($key[4])? 0:$key[4];
 						$tipo = $key[6];
-						$uuid = $key[7];
-						$obs = substr(utf8_encode($key[8]),0,255);
+						$uuid = @$key[7];
+						$obs = substr(utf8_encode(@$key[8]),0,255);
 						if($cargo <> 0 and $abono <> 0 ){
 							$e++;
 							echo $clave.' <font color="red">No Inserta la linea por que el valor cargo y valor de abono son mayores a 0.00 .</font><br/>';

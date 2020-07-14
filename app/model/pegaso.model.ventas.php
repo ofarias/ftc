@@ -953,9 +953,7 @@ class pegaso_ventas extends database{
 
     function parCotSMB($folio, $partida, $por2){
         $this->query="UPDATE FTC_COTIZACION_DETALLE SET MARGEN_BAJO = 'Si', MARGEN_MINIMO = 0, UTILIDAD = $por2 WHERE CDFOLIO = $folio and CVE_ART = $partida";
-        $rs=$this->EjecutaQuerySimple();
-        //echo $this->query;
-        //break;
+        $rs=$this->queryActualiza();
         return;
     }
 
@@ -975,11 +973,8 @@ class pegaso_ventas extends database{
     }
 
     function autMB($folio, $partida, $utilAuto, $precio){
-
         $this->query="UPDATE FTC_COTIZACION_DETALLE SET DBIMPPRE = $precio,  MARGEN_MINIMO = $utilAuto where CDFOLIO = $folio and CVE_ART = $partida";
-        $rs=$this->EjecutaQuerySimple();
-
-        echo $this->query;
+        $rs=$this->queryActualiza();
         $this->query="SELECT * FROM FTC_COTIZACION_DETALLE WHERE CDFOLIO = $folio";
         $rs=$this->EjecutaQuerySimple();
                 while($tsarray=ibase_fetch_object($rs)){

@@ -51,15 +51,25 @@ class pegaso_controller_ventas{
 	
 
       function CerrarVentana(){
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])){
             $data = new pegaso;
-            ///$redireccionar = "pantalla2";
             $pagina=$this->load_template('Pedidos');
             $html = $this->load_page('app/views/pages/p.cerrarventana.php');
             $exec = $data->reenviaCaja($factura,$caja);
             include 'app/views/pages/p.cerrarventana.php';
-            //header('Location: index.php?action=mercanciaRecibidaImp');
+            $this->view_page($pagina);
+        }else{
+                $e = "Favor de iniciar Sesión";
+                header('Location: index.php?action=login&e='.urlencode($e)); exit;
+        }
+    }
+
+    function CerrarVentana2(){
+        if (isset($_SESSION['user'])){
+            $data = new pegaso;
+            $pagina=$this->load_template('Pedidos');
+            $html = $this->load_page('app/views/pages/p.cerrarventana.php');
+            include 'app/views/pages/p.cerrarventana.php';
             $this->view_page($pagina);
         }else{
                 $e = "Favor de iniciar Sesión";
@@ -1034,7 +1044,6 @@ class pegaso_controller_ventas{
 
 
     function parCotSMB($folio, $partida, $por2){
-        //session_cache_limiter('private_no_expire');
         if($_SESSION['user']){
             $datav=new pegaso_ventas;
             ob_start();
@@ -1042,12 +1051,11 @@ class pegaso_controller_ventas{
             $cliente = '';
             $articulo = '';
             $descripcion = '';
-            $this->CerrarVentana();
+            $this->CerrarVentana2();
         }
     }
 
     function verSMB(){
-        //session_cache_limiter('private_no_expire');
         if($_SESSION['user']){
             $datav = new pegaso_ventas;
             $pagina=$this->load_template('Pedidos');

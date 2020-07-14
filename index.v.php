@@ -385,7 +385,6 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	$folio=$_POST['folio'];
 	$partida = $_POST['partida'];
 	$por2 = $_POST['por2'];
-	//echo $por2;
 	$controller_v->parCotSMB($folio, $partida, $por2);
 }elseif (isset($_POST['autMB'])) {
 	$folio =$_POST['folio'];
