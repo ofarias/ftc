@@ -1,4 +1,31 @@
-<br /><br />
+<style type="text/css">
+  #carga{
+    height: 100%; 
+    width:20%;
+    float: left;
+
+  }
+
+  #descarga{
+    height: 100%;
+    width:80%;
+    float: right;
+  }
+
+  div.img.span{
+     line-height:normal;
+     font-size:11px;
+     display:table-caption;
+     margin:0;
+     background:#646464;
+     color:white;
+     font-style:italic;
+     padding:5px;
+     text-align:center;
+  }
+</style>
+
+  <br /><br />
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
@@ -100,17 +127,32 @@
                       </div>
             </div>
         </div>
+  </div>
 </div>
-</div>
-<div>
-  <label>Adjuntar Estado de cuenta</label>
-  <form action="upload_edocta.php" method="post" enctype="multipart/form-data">
-      <input type="file" name="fileToUpload" id="fileToUpload" accept=".pdf">
-      <input type="hidden" name="idb" value="<?php echo $data->ID?>">
-      <input type="hidden" name="mes" value="<?php echo $mes?>">
-      <input type="hidden" name="anio" value="<?php echo $anio?>">
-      <button name="subirEdoCta" type="submit" value="enviar">Adjuntar</button>
-  </form>
+<div class="<?php echo $mes !=0? '':'hidden' ?>" id="cont">
+  <div id="carga">
+    <label>Adjuntar Estado de cuenta</label>
+      <form action="upload_edocta.php" method="post" enctype="multipart/form-data">
+          <input type="file" name="fileToUpload" id="fileToUpload" accept=".pdf">
+          <input type="hidden" name="idb" value="<?php echo $data->ID?>">
+          <input type="hidden" name="mes" value="<?php echo $mes?>">
+          <input type="hidden" name="anio" value="<?php echo $anio?>">
+          <input type="hidden" name="datos" value="<?php echo $banco.':'.$cuenta.':'.$mes.':'.$anio?>">
+          <input type="hidden" name="o" value="v3">
+          <button name="subirEdoCta" type="submit" value="enviar">Adjuntar</button>
+      </form>  
+  </div>
+  <div id="descarga">
+    <?php if(count($desc) > 0){?>
+      <?php $i=0; foreach ($desc as $d): $i++; ?>
+          <?php $x = explode(":", $d->DESCRIPCION);
+                $da = $x[1];$dm = $x[0];
+                if($da == $anio and $i < 14): ?>
+                  <a title="<?php echo substr($d->NOMBRE,21).'--> '.$dm.'-->'.$da ?>" href="/uploads/edocta/<?php echo $d->NOMBRE?>" download ><img border='0' src='app/views/images/pdf.jpg' width='80' height='80'></a>&nbsp;&nbsp;
+          <?php endif; ?>
+      <?php endforeach ?>
+    <?php }?>
+  </div>
 </div>
 
 <?php if(count($cierre)>0){?>

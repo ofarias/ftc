@@ -10692,6 +10692,7 @@ function imprimirFacturasAcuse(){
         	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta_v3.php');
         	ob_start();
         	$mes = 0;
+        	$cierre = array();
         	$meses=$data->traeMeses();
         	$bancos=$data->CuentasBancarias($banco, $cuenta);
         	$exec=$data->estado_de_cuenta($banco, $cuenta);
@@ -10738,6 +10739,7 @@ function imprimirFacturasAcuse(){
         	$totCr=$data->totalCredito($mes,$banco, $anio, $cuenta);	//ok
         	$cierre = $data->cierreBanco($banco, $cuenta, $mes, $anio);
         	$inicial = $data->sinicial($banco, $cuenta, $mes, $anio);
+        	$desc = $data->descargas($banco, $cuenta, $mes, $anio);
         	if (count($bancos)){
             	include 'app/views/pages/Contabilidad/p.EstadoDeCuenta_v2.php';
             	$table = ob_get_clean();
@@ -10780,8 +10782,7 @@ function imprimirFacturasAcuse(){
     }
 
 
-    function estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio, $nvaFechComp){
-    	
+    function estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio, $nvaFechComp){	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10806,7 +10807,7 @@ function imprimirFacturasAcuse(){
         	$totCr=$data->totalCredito($mes,$banco, $anio, $cuenta);
         	$cierre = $data->cierreBanco($banco, $cuenta, $mes, $anio);
         	$inicial = $data->sinicial($banco, $cuenta, $mes, $anio);
-        	
+        	$desc = $data->descargas($banco, $cuenta, $mes, $anio);
         	if (count($bancos)){
             	include 'app/views/pages/Contabilidad/p.EstadoDeCuenta_v3.php';
             	$table = ob_get_clean();
@@ -20690,15 +20691,20 @@ function ImpSolicitud2($idsol){
 		return $res;
 	}
 
-	function cargaEdoCtaXLS($target_file, $datos, $banco, $cuenta){
+	function cargaEdoCtaXLS($target_file, $datos, $banco, $cuenta, $fileType,  $nombre, $target_dir, $o){
 		if($_SESSION['user']){
 			$data = new pegaso;
 			$pagina = $this->load_template('Pagos');        	
         	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta.php');
-        	$res= $data->revisaXLSX($target_file, $datos);
-			if($res['status']== 'ok'){
-				$carga=$data->cargaXLSX($datos, $res['data'], $banco, $cuenta);
-			}
+
+        	if(strtoupper($fileType) == 'PDF'){
+        		$reg = $data->regfile($target_file, $fileType, $datos, $banco, $cuenta, $nombre, $target_dir);
+        	}else{
+        		$res= $data->revisaXLSX($target_file, $datos);
+				if($res['status']== 'ok'){
+					$carga=$data->cargaXLSX($datos, $res['data'], $banco, $cuenta);
+				}	
+        	}
 			$html = $this->load_page('app/views/pages/p.redirectform.php');
 			$redireccionar="estado_de_cuenta&banco={$banco}&cuenta={$cuenta}";
 			$pagina=$this->load_template('Pedidos');
