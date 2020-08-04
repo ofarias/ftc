@@ -61,7 +61,7 @@
                                         foreach ($bancos as $data):                           
                                         ?>
                                        <tr>
-                                            <td align="right"><?php echo $data->BANCO;?><input type="hidden" name="banco" id="banco" value="<?php echo $data->BANCO?>"></td>
+                                            <td><?php echo $data->BANCO;?><input type="hidden" name="banco" id="banco" value="<?php echo $data->BANCO?>"><p><a class="btn-sm btn-primary" href="index.php?action=verCargas&b=<?php echo $data->BANCO?>&c=<?php echo $data->NUM_CUENTA?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=600'); return false;">Ver cargas</a></p></td>
                                             <td><?php echo $data->NUM_CUENTA;?><input type="hidden" name="banco" id="cuenta" value="<?php echo $data->NUM_CUENTA?>"></td>
                                             <td><?php echo $data->CTA_CONTAB;?></td>
                                             <td align="center"><b><?php echo $data->DIA_CORTE?></b></td>
@@ -92,7 +92,7 @@
                                   <th width="10%"> Seleccionar Mes: </th>
                                   <th width="5%"> </th>
                                   <th width="10%"> Seleccionar Año: </th>
-                                  <th width="75%"></th>
+                                  <th width="5%"></th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -120,6 +120,7 @@
                                           <input type="hidden" name="cuenta" value="<?php echo $data->NUM_CUENTA?>" id="fc">
                                     <?php endforeach ?>
                                         <button name="FiltrarEdoCta" value="enviar" onclick="filtrar()"> Aplicar </button>
+                                        <td align="lefth"> <input type="checkbox" name="f" id="f"><b> Mantener carga Excel</b></td>
                                     </td>
                                     </tr>
                               </tbody>
@@ -138,7 +139,7 @@
           <input type="hidden" name="mes" value="<?php echo $mes?>">
           <input type="hidden" name="anio" value="<?php echo $anio?>">
           <input type="hidden" name="datos" value="<?php echo $banco.':'.$cuenta.':'.$mes.':'.$anio?>">
-          <input type="hidden" name="o" value="v3">
+          <input type="hidden" name="o" value="v2">
           <button name="subirEdoCta" type="submit" value="enviar">Adjuntar</button>
       </form>  
   </div>
@@ -307,9 +308,10 @@
                         </div>
                            <div class="panel-body">
                             <div class="table-responsive">                                                 
-                                <table class="table table-striped table-bordered table-hover" >
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-EdoCtaV3">
                                     <thead>
                                         <tr style='background:yellow'>
+                                            <th></th>
                                             <th>Tipo</th>
                                             <th>Folio / UUID </th>
                                             <th>Fecha Registro</th>
@@ -368,6 +370,7 @@
 
                                           ?>
                                        <tr class="odd gradeX" <?php echo $color;?> id="<?php echo $i;?>">
+                                            <td><?php echo $i?></td>
                                             <td><?php echo $datos->S==4? 'Gasto':$datos->TIPO;?></td>
                                             <td><?php echo $datos->CONSECUTIVO.' / '.$datos->TP_TES.'<br/>'.$datos->OBS;?></td>
                                             <td><?php echo substr($datos->FECHAMOV,0, 10) ;?></td>
@@ -475,10 +478,10 @@
                               <input type="hidden" name="anio" value="<?php echo $anio ?>">
                               <input type="hidden" name="cuenta" value="<?php echo $cuenta?>">
                               <input type="hidden" name="banco" value="<?php echo $banco?>">
+                              <input type="hidden" name="f" value="<?php echo $f?>">
                               <button type="submit" name="cerrarEdoCtaMes" value="enviar" > Cierre de Estado de Cuenta</button>
                             </form>
                             </center>
-                            <!-- /.table-responsive -->
                       </div>
             </div>
         </div>
@@ -488,8 +491,8 @@
 <div>
     <div id="column-left">
             <font size="4px" color="black">SaldoIncial =</font> <font color="blue" size="4pxs" id="si" > <?php echo '$ '.number_format($saldoInicial,2)?> </font> <br/>
-            <font size="4px" color="black"> Abonos (seleccionados) = </font> <font color="green" size="4pxs" id = "total_abonos"> $ 0.00 </font><br/>
-            <font size="4px" color="black"> Cargos (seleccionados)= </font> <font color = "red" size="4pxs" id = "total_cargos"> $ 0.00 </font><br/>
+            <font size="4px" color="black"> Abonos (seleccionados) = </font><b><font color="blue" size="5pxs" id = "total_abonos"> $ 0.00 </font></b><br/>
+            <font size="4px" color="black"> Cargos (seleccionados)= </font><b><font color = "black" size="5pxs" id = "total_cargos"> $ 0.00 </font></b><br/>
             <font size="4px" color="black"> Saldo Final = </font> <font color = "#FE2EF7" size="4pxs" id = "saldoFinal"> $ 0.00 </font>
     </div>
 </div>
@@ -510,6 +513,7 @@
     <input type="hidden" name="banco" value="<?php echo $banco?>">
     <input type="hidden" name="cuenta" value="<?php echo $cuenta?>">
     <input type="hidden" name="anio" value ="<?php echo $anio?>">
+    <input type="hidden" name="f" value="<?php echo $f?>">
   <input type="hidden" name="guardaEdoCta" value="enviar">
 </form>
 
@@ -528,7 +532,13 @@
     var anio = document.getElementById('fa').value
     var cuenta = document.getElementById('fc').value
     var banco = document.getElementById('fb').value
-    window.open("index.php?action=FiltrarEdoCta&mes="+mes+"&anio="+anio+"&cuenta="+cuenta+"&banco="+banco , "_self")
+    var f = document.getElementById('f').checked
+    if(f){
+      f='si'
+    }else{
+      f='no'
+    }
+    window.open("index.php?action=FiltrarEdoCta&mes="+mes+"&anio="+anio+"&cuenta="+cuenta+"&banco="+banco+"&f="+f , "_self")
 
   }
 
@@ -738,7 +748,7 @@
                                       renglon.style.background="#BEF4BB";
                                       document.getElementById('caja_'+identificador).checked=true;
                                       var actSaldo = actualizaSaldo()
-                                      alert("El Registro se Actualizo correctamente");
+                                      //alert("El Registro se Actualizo correctamente");
                                       
                               }else if(data.status == "NO"){
                                    alert("No se pudo actualizar, intente mas tarde, favor de enviar correo con la informacion a sistemas, (ofarias@ftcenlinea.com)");
@@ -784,7 +794,7 @@ function test(a, docu, tipo){
                                               renglon.style.background="#BEF4BB";
                                               document.getElementById('caja_'+a).checked=true;
                                               document.getElementById('fn_'+a).readOnly=true;
-                                           alert("El Registro se Actualizo correctamente...");
+                                           //alert("El Registro se Actualizo correctamente...");
                                               
                                       }else if(data.status == "NO"){
                                            alert("No se pudo actualizar, intente mas tarde, favor de enviar correo con la informacion a sistemas, (ofarias@ftcenlinea.com)");
@@ -836,7 +846,7 @@ function test(a, docu, tipo){
     }
 
     if(a != 'j'){
-    alert('Actualizando el Saldo...');
+    //alert('Actualizando el Saldo...');
     }
             var abonos = 0;
             var pagos = '';         

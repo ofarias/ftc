@@ -1434,8 +1434,8 @@ cast((select list(documento||'—-'|| round( cantidad)) from ftc_facturas_detall
 		return 0;
 	}
 
-	function PorFacturarEntrega(){		//01072016
-
+	function PorFacturarEntrega(){
+		$data = array();
 		$this->query="SELECT a.cotiza, 
 		sum(rec_faltante) as Faltante, 
 		MAX(NOM_CLI) AS NOM_CLI, 
@@ -10226,13 +10226,13 @@ function Pagos() {
 	}
 
        function listarCuentasBancarias(){
+       		$data=array();
             $this->query = "SELECT ID, BANCO, NUM_CUENTA, B.DESCR FROM PG_BANCOS A INNER JOIN MONED01 B ON A.MONEDA = B.NUM_MONED";
             $result = $this->QueryObtieneDatosN();
             $data = array();
             while ($tsArray = (ibase_fetch_object($result))) {
                     $data[] = $tsArray;
             }
-            //echo $this->query;
             return $data;            
         }
         
@@ -10666,12 +10666,6 @@ function Pagos() {
     		$data[]=$tsArray;
     	}
 
-    	//$this->query="SELECT 'Gasto' AS TIPO, FOLIO_PAGO AS CONSECUTIVO, FECHA AS FECHAMOV, MONTO AS MONTO, 0 AS SALDO, TRIM(SUBSTRING(CUENTA_BANCARIA FROM 1 FOR 9)) AS BANCO, USUARIO_REGISTRA AS USUARIO 
-    	//		FROM PAGO_GASTO WHERE CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') and status = 'V'";
-    	//$rs=$this->QueryObtieneDatosN();
-    	//while ($tsArray=ibase_fetch_object($rs)){
-    	//	$data[]=$tsArray;
-    	//}
     	$this->query="SELECT 'Compra' AS TIPO, CVE_DOC AS CONSECUTIVO, FECHAELAB AS FECHAMOV, IMPORTE AS MONTO, 0 AS SALDO, BANCO AS BANCO, '' AS USUARIO, 'tipoCompra' as TP, CVE_DOC as IDENTIFICADOR FROM COMPR01 WHERE BANCO = ('$banco'||' - '||'$cuenta')";
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray = ibase_fetch_object($rs)){
@@ -10689,7 +10683,6 @@ function Pagos() {
     	}
     	$this->query="SELECT iif(MONTO_FINAL is null, 0, MONTO_FINAL) AS INICIAL FROM FTC_CTRL_BANCOS WHERE BANCO = '$banco' and Cuenta = '$cuenta' and periodo = $mes and anio = $anio";
     	$rs=$this->EjecutaQuerySimple();
-    	//echo $this->query;
     	$row=ibase_fetch_object($rs);
     	if(empty($row)){
     		$this->CuentasBancarias($banco, $cuenta);
@@ -10699,53 +10692,43 @@ function Pagos() {
     	}else{
     		$inicial = $row->INICIAL;
     	}
-    	//exit($inicial);
     	return $inicial;
-
     }
  
-	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio){
-	   	/// Pendientes edo de cuenta 
-    	/// Ordenar por fecha.
-    	/// cambiar el formato de los numero 
-		$data = array();
-		######### Ajustes de Manejo de dia de corte##########
-		####
-			$this->query="SELECT * FROM PG_BANCOS WHERE BANCO = '$banco' and num_cuenta='$cuenta'";
-			$res=$this->EjecutaQuerySimple();
-			$bn=ibase_fetch_object($res);
-			$corte = $bn->DIA_CORTE;
-			$fechaIni=$corte.'.'.$mes.'.'.$anio;
-			//$mesf = $mes;
-			//$aniof= $anio;
-			//if($mesf == 12){
-			//	$mesf = 0;
-			//	$aniof = $anio + 1;
-			//}
-			if($corte == 1){
-				$month = $anio.'-'.$mes;
-				$aux = date('Y-m-d', strtotime("{$month} + 1 month"));
-				$last_day = date('d.m.Y', strtotime("{$aux} - 1 day"));
-				$fechafin=($last_day);/// extraer el ultimo dia del mes. 
-			}else{
-				if($mes == 12){
-					$mes=1;
-					$anio = $anio+1;
-				}else{
-					$mes++;
-				}
-				$fechafin=($corte-1).'.'.$mes.'.'.$anio;
-			}
-		#####################################################
-		//echo 'Banco'.$banco.' Cuenta: '.$cuenta.'<p>'; 
-    	$this->query="SELECT 1 as s, FECHA_RECEP AS sort, 'Venta' AS TIPO,  iif(FOLIO_X_BANCO = 'TR', (FOLIO_X_BANCO||id), FOLIO_X_BANCO) AS CONSECUTIVO, FECHA_RECEP AS FECHAMOV, MONTO AS ABONO, 0 AS CARGO, SALDO AS SALDO, BANCO AS BANCO, USUARIO AS USUARIO, tipo_pago as TP, id as identificador, registro as registro, folio_acreedor as FA , fecha_recep as fe, '' as comprobado, contabilizado, seleccionado, contabilizado as tp_tes, obs, MONTO_ACREEDOR as duplicados
+	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $f){
+	   	$pr=array();
+		$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
+		$fechaIni=$fe['fi'];$fechafin=$fe['ff'];
+		$param2 = "and (fecha_recep between '".$fechaIni."' and '".$fechafin."')";
+	   	$param3 = " and ( fecha_edo_cta between '".$fechaIni."' and '".$fechafin."' or g.fecha_doc between '".$fechaIni."' and '".$fechafin."') ";	   
+	   	if($f == 'si'){
+    		if($mes <12){
+    			$mi=$mes; $mf=$mes+1;
+    		}else{
+    			$mi=$mes; $mf=1;
+    		}
+    		$this->query="SELECT * FROM FTC_MEDIA_FILES M WHERE M.TIPO = 'EDOCTA' AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$banco' and (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$cuenta' and MI=$mi and MF = $mf and status = 'A'";
+    		$res=$this->EjecutaQuerySimple();
+    		while ($tsArray=ibase_fetch_object($res)) {
+    			$pr[]=$tsArray;
+    		}
+    		$param2='';$param3='';
+    		if(count($pr) == 1){
+    			foreach ($pr as $k){
+    				$param2 = ' and registro = '.$k->ID;
+    				$param3 = ' and NUM_PAR  = '.$k->ID;
+     			}
+    		}elseif(count($pr) > 1) {
+    			return $m='Se encontraron mas de 1 carga de excel, por lo cual no se puede determinar la conincidencia unica';
+    		}
+    	}
+    	$data = array();
+		$this->query="SELECT 1 as s, FECHA_RECEP AS sort, 'Venta' AS TIPO,  iif(FOLIO_X_BANCO = 'TR', (FOLIO_X_BANCO||id), FOLIO_X_BANCO) AS CONSECUTIVO, FECHA_RECEP AS FECHAMOV, MONTO AS ABONO, 0 AS CARGO, SALDO AS SALDO, BANCO AS BANCO, USUARIO AS USUARIO, tipo_pago as TP, id as identificador, registro as registro, folio_acreedor as FA , fecha_recep as fe, '' as comprobado, contabilizado, seleccionado, contabilizado as tp_tes, obs, MONTO_ACREEDOR as duplicados
     		   from carga_pagos 
     		   where BANCO = ('$banco'||' - '||'$cuenta') 
-    		   		and fecha_recep between '$fechaIni' and '$fechafin'
-    		   		
+    		   		$param2
     		   		AND STATUS <> 'C' and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  and (guardado = 0 or guardado is null)
     		   		order by fecha_recep asc";
-    		   		//and extract(year from fecha_recep) = $anio 
     	//echo $this->query;
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
@@ -10756,11 +10739,9 @@ function Pagos() {
     			FROM GASTOS g
     			left join pago_gasto pg on pg.idgasto = g.id
     			WHERE pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') 
-    				and (fecha_edo_cta between '$fechaIni' and '$fechafin' or g.fecha_doc between '$fechaIni' and '$fechafin' ) 	
+    				$param3
     				and g.status = 'V'  and (seleccionado = 1 or seleccionado = 0 or seleccionado is null) and (guardado is null or guardado = 0)";
     		//echo $this->query;
-    				// and iif(fecha_edo_cta is null, extract(month from g.FECHA_DOC) , extract(month from fecha_edo_cta) ) = $mes 
-    				// and iif(fecha_edo_cta is null, extract(year from g.FECHA_DOC), extract(year from fecha_edo_cta)) = $anio 
     	$rs=$this->QueryObtieneDatosN();
     		
     	while ($tsArray=ibase_fetch_object($rs)){
@@ -10774,8 +10755,6 @@ function Pagos() {
     			  and (seleccionado = 1 or seleccionado = 0 or seleccionado is null) order by edocta_fecha asc";
     	$rs=$this->QueryObtieneDatosN();
     	//echo $this->query;
-    	// and extract(month from edocta_fecha) = $mes
-    	// and extract(year from edocta_fecha) = $anio
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
@@ -10787,8 +10766,6 @@ function Pagos() {
     			and (seleccionado = 1 or seleccionado = 0 or seleccionado is null) order by edocta_fecha asc";
     	$rs=$this->QueryObtieneDatosN();
     	//echo $this->query;
-    			/// and extract(month from edocta_fecha) = $mes 
-    			/// and extract(year from edocta_fecha) = $anio  
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
@@ -10805,8 +10782,6 @@ function Pagos() {
     			and fecha_edo_cta between '$fechaIni' and '$fechafin'
     			and (tipo = 'compra' or tipo='Anticipo'  or tipo='otro') and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  order by fecha_edo_cta asc ";
     	//echo 'Esta es de tipo compra(CR): '.$this->query;
-    			/// and extract(month from fecha_EDO_CTA) = $mes 
-    			/// and extract(year from fecha_edo_cta) = $anio 
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
@@ -10817,8 +10792,6 @@ function Pagos() {
     			and fecha_edo_cta between '$fechaIni' and '$fechafin'
     			and tipo = 'gasto'  and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  order by fecha_edo_cta asc ";
     	//echo 'Esta es de tipo Gasto Directo(CR): '.$this->query;
-    			// and extract(month from fecha_EDO_CTA) = $mes 
-    			// and extract(year from fecha_EDO_CTA) = $anio 
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
@@ -10828,8 +10801,6 @@ function Pagos() {
     		where fechaedo_cta between '$fechaIni' and '$fechafin'
     			and banco = ('$banco'||' - '||'$cuenta')  and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  order by fechaedo_cta asc";
     		//echo $this->query;
-    			//and extract(year from fechaedo_cta) = $anio 
-    			//extract(month from fechaedo_cta) = $mes 
     			
     	$rs= $this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
@@ -10840,9 +10811,8 @@ function Pagos() {
 			WHERE (fecha_edo_cta between '$fechaIni' and '$fechafin' or fecha between '$fechaIni' and '$fechafin')
 				and banco_final=('$banco'||' - '||'$cuenta')  and (seleccionado = 1 or seleccionado = 0 or seleccionado is null) order by fecha_edo_cta asc";
     	//echo $this->query;
-				/// iif(fecha_edo_cta is null, extract(month from fecha),  EXTRACT(month from fecha_edo_cta)) = $mes 
-				/// and iif(fecha_edo_cta is null, extract(year from fecha),  EXTRACT(year from fecha_edo_cta)) = $anio 
-    	$rs=$this->QueryObtieneDatosN();
+		
+		$rs=$this->QueryObtieneDatosN();
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
@@ -10861,42 +10831,40 @@ function Pagos() {
     	return @$data;
     }
 
-    function estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio){
+    function estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio, $f){
+    	$pr=array();
+		$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
+		$fechaIni=$fe['fi'];$fechafin=$fe['ff'];
+	   	$param2 = "and (fecha_recep between '".$fechaIni."' and '".$fechafin."')";
+	   	$param3 = " and (fecha_edo_cta between '".$fechaIni."' and '".$fechafin."' or g.fecha_doc between '".$fechaIni."' and '".$fechafin."') ";	   
+	   	if($f == 'si'){
+    		if($mes <12){
+    			$mi=$mes; $mf=$mes+1;
+    		}else{
+    			$mi=$mes; $mf=1;
+    		}
+    		$this->query="SELECT * FROM FTC_MEDIA_FILES M WHERE M.TIPO = 'EDOCTA' AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$banco' and (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$cuenta' and MI=$mi and MF = $mf and status = 'A'";
+    		$res=$this->EjecutaQuerySimple();
+    		while ($tsArray=ibase_fetch_object($res)) {
+    			$pr[]=$tsArray;
+    		}
+    	
+    		$param2='';$param3='';
+    		if(count($pr) == 1){
+    			foreach ($pr as $k){
+    				$param2 = ' and registro = '.$k->ID;
+    				$param3 = ' and NUM_PAR  = '.$k->ID;
+     			}
+    		}elseif(count($pr) > 1) {
+    			return $m='Se encontraron mas de 1 carga de excel, por lo cual no se puede determinar la conincidencia unica';
+    		}
+    	}
     	$data = array();
-	   	 /// Pendientes edo de cuenta 
-    	 /// Ordenar por fecha.
-    	 /// cambiar el formato de los numero 
-    	################  AJUSTE DE FECHAS ######################
-    	$this->query="SELECT * FROM PG_BANCOS WHERE BANCO = '$banco' and num_cuenta='$cuenta'";
-			$res=$this->EjecutaQuerySimple();
-			$bn=ibase_fetch_object($res);
-			$corte = $bn->DIA_CORTE;
-			$fechaIni=$corte.'.'.$mes.'.'.$anio;
-			$mesf = $mes;
-			$aniof= $anio;
-			if($mesf == 12){
-				$mesf = 0;
-				$aniof = $anio + 1;
-			}
-
-			if($corte == 1){
-				$fechafin=($corte).'.'.($mesf+1).'.'.$aniof;
-			}else{
-				if($mes == 12){
-					$mes=1;
-					$anio = $anio+1;
-				}else{
-					$mes++;
-				}
-				$fechafin=($corte-1).'.'.$mes.'.'.$anio;
-			}
-			
 		###########################################################
-
 		$this->query="SELECT 1 as s, FECHA_RECEP AS sort, 'Venta' AS TIPO,  iif(FOLIO_X_BANCO = 'TR', (FOLIO_X_BANCO||id), FOLIO_X_BANCO) AS CONSECUTIVO, FECHA_RECEP AS FECHAMOV, MONTO AS ABONO, 0 AS CARGO, SALDO AS SALDO, BANCO AS BANCO, USUARIO AS USUARIO, tipo_pago as TP, id as identificador, registro as registro, folio_acreedor as FA , fecha_recep as fe, '' as comprobado, contabilizado, seleccionado, '' as tp_tes, CEP, ARCHIVO_CEP, obs, MONTO_ACREEDOR as duplicados 
     		   from carga_pagos 
     		   where BANCO = ('$banco'||' - '||'$cuenta') 
-    		   		and fecha_recep between '$fechaIni' and '$fechafin'
+    		   		$param2
     		   		AND STATUS <> 'C' and guardado =1  
     		   		order by fecha_recep asc";
     	//echo '<br/>'.$this->query.'<br/>';
@@ -10905,31 +10873,13 @@ function Pagos() {
     		$data[]=$tsArray;
     	}
 
-/*
-    	$this->query="SELECT 1 as s, FECHA_RECEP AS sort, 'Venta' AS TIPO,  iif(FOLIO_X_BANCO = 'TR', (FOLIO_X_BANCO||id), FOLIO_X_BANCO) AS CONSECUTIVO, FECHA_RECEP AS FECHAMOV, MONTO AS ABONO, 0 AS CARGO, SALDO AS SALDO, BANCO AS BANCO, USUARIO AS USUARIO, tipo_pago as TP, id as identificador, registro as registro, folio_acreedor as FA , fecha_recep as fe, '' as comprobado, contabilizado, seleccionado, '' as TP_TES, CEP, ARCHIVO_CEP
-    		   from carga_pagos 
-    		   where BANCO = ('$banco'||' - '||'$cuenta') and extract(month from fecha_recep) = $mes and extract(year from fecha_recep) = $anio AND STATUS <> 'C' and (seleccionado = 2 )  order by fecha_recep asc";
-    	$rs=$this->QueryObtieneDatosN();
-    	while($tsArray=ibase_fetch_object($rs)){
-    		$data[]=$tsArray;
-    	}
-
-    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort, 'Gasto' AS TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, TIPO_PAGO as tp_tes, REFERENCIA as obs
-    			FROM GASTOS g
-    			left join pago_gasto pg on pg.idgasto = g.id
-    			WHERE pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') 
-    				and iif(fecha_edo_cta is null,extract(month from g.FECHA_DOC), extract(month from fecha_edo_cta)) = $mes and iif(fecha_edo_cta is null, extract(year from g.FECHA_DOC), extract(year from fecha_edo_cta)) = $anio and g.status = 'V'  and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  ";
-
-  */  	
     	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort, 'Gasto' AS TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, G.SALDO AS SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, tipo_pago as Tp_tes, '' AS CEP, referencia as obs, NUM_PAR as duplicados
     			FROM GASTOS g
     			left join pago_gasto pg on pg.idgasto = g.id
     			WHERE pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') 
-    				and (fecha_edo_cta between '$fechaIni' and '$fechafin' or g.fecha_doc between '$fechaIni' and '$fechafin' ) 	
+    				$param3
     				and g.status = 'V'  and (seleccionado = 2 or guardado = 1) ";
     		//echo $this->query;
-    				// and iif(fecha_edo_cta is null,extract(month from g.FECHA_DOC), extract(month from fecha_edo_cta)) = $mes 
-    				// and iif(fecha_edo_cta is null, extract(year from g.FECHA_DOC), extract(year from fecha_edo_cta)) = $anio 
     	$rs=$this->QueryObtieneDatosN();
     		
     	while ($tsArray=ibase_fetch_object($rs)){
@@ -10941,10 +10891,7 @@ function Pagos() {
     			and edocta_fecha between '$fechaIni' and '$fechafin'	
     			and (seleccionado = 2 ) order by edocta_fecha asc";
     	$rs=$this->QueryObtieneDatosN();
-    	///echo $this->query;
-    			// and extract(month from edocta_fecha) = $mes 
-    			// and extract(year from edocta_fecha) = $anio  
-    			
+    	///echo $this->query;   			
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
@@ -10956,8 +10903,6 @@ function Pagos() {
     				and seleccionado = 2 order by edocta_fecha asc";
     	$rs=$this->QueryObtieneDatosN();
     	//echo $this->query;
-    	///and extract(month from edocta_fecha) = $mes 
-    	///and extract(year from edocta_fecha) = $anio  			
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
@@ -10967,8 +10912,6 @@ function Pagos() {
     		and fecha_edo_cta between '$fechaIni' and '$fechafin' 
     		and (tipo = 'compra' or tipo='Anticipo'  or tipo='otro') and (seleccionado = 2 ) order by fecha_edo_cta asc ";
     	//echo 'Esta es de tipo compra(CR): '.$this->query;
-    	/// and extract(month from fecha_EDO_CTA) = $mes 
-    	/// and extract(year from fecha_edo_cta) = $anio 
     		
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray = ibase_fetch_object($rs)){
@@ -10980,8 +10923,6 @@ function Pagos() {
     			and fecha_edo_cta between '$fechaIni' and '$fechafin'
     			and tipo = 'gasto'  and (seleccionado = 2 )  order by fecha_edo_cta asc ";
     	//echo 'Esta es de tipo Gasto Directo(CR): '.$this->query;
-    	/// and extract(month from fecha_EDO_CTA) = $mes 
-    	/// and extract(year from fecha_EDO_CTA) = $anio 
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
@@ -10991,8 +10932,6 @@ function Pagos() {
     		where fechaedo_cta between '$fechaIni' and '$fechafin'
     			and banco = ('$banco'||' - '||'$cuenta')  and (seleccionado = 2 )  order by fechaedo_cta asc";
     		//echo $this->query;
-    		//  extract(month from fechaedo_cta) = $mes 
-    		//  and extract(year from fechaedo_cta) = $anio 
     	$rs= $this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
@@ -11002,9 +10941,7 @@ function Pagos() {
 			WHERE (fecha_edo_cta between '$fechaIni' and '$fechafin' or fecha between '$fechaIni' and '$fechafin')
 				and banco_final=('$banco'||' - '||'$cuenta')  and (seleccionado = 2 ) order by coalesce(fecha_edo_cta, fecha) asc";
     	//echo $this->query;
-		/// iif(fecha_edo_cta is null, EXTRACT(month from fecha), EXTRACT(month from fecha_edo_cta)) = $mes 
-		/// and iif(fecha_edo_cta is null, extract(year from fecha), extract(year from fecha_edo_cta)) = $anio 
-    	$rs=$this->QueryObtieneDatosN();
+		$rs=$this->QueryObtieneDatosN();
     	while($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
@@ -11022,7 +10959,6 @@ function Pagos() {
     	return @$data;
     }
 
-    
     function saldosBancos($mes, $banco , $cuenta, $anio){
     	$data = array();
     	if($mes == 1){
@@ -13113,9 +13049,6 @@ function Pagos() {
 
     function recConta($folio){
     	$usuario = $_SESSION['user']->NOMBRE;
-    	//echo $folio;
-    	//break;
-
     	if(substr($folio, 0,2) == 'ch'){
     		$tabla = 'P_CHEQUES';
     		$campo = 'CHEQUE';
@@ -13136,25 +13069,22 @@ function Pagos() {
     		$vf = $doc[2];
     	$this->query = "UPDATE $tabla set status = 'Recibido', fecha_rec_conta = current_timestamp, usuario_recibe = '$usuario' where upper(TP_TES_FINAL) = upper('$vttf') and folio = $vf";
     	$rs = $this->EjecutaQuerySimple();
-    	echo $this->query;
+    	//echo $this->query;
     	return;
     	}
-
     	$this->query="SELECT DOCUMENTO, BANCO FROM $tabla where $campo = '$folio'";
 		$res=$this->EjecutaQuerySimple();
 		$row = ibase_fetch_object($res);
 		$doc = $row->DOCUMENTO;
 		$banco = $row->BANCO;
-
-		echo 'Obtener el documento: '.$this->query.'<p>';
+		//echo 'Obtener el documento: '.$this->query.'<p>';
     	$this->query="UPDATE FTC_POC SET edocta_fecha = CURRENT_TIMESTAMP, USUARIO_CONTA = '$usuario', banco = '$banco', TP_TES = '$folio' where oc = upper('$doc')";
     	$rs = $this->EjecutaQuerySimple();
-		echo 'Actualiza el documento: '.$this->query.'<p>';
+		//echo 'Actualiza el documento: '.$this->query.'<p>';
     	$this->query="UPDATE $tabla SET STATUS_CONTABILIDAD = 1, fecha_rec_conta = current_timestamp, usuario_recibe = '$usuario' where $campo = '$folio'";
     	$rs= $this->EjecutaQuerySimple();
-		echo 'Actualiza el pago: '.$this->query.'<p>';
+		//echo 'Actualiza el pago: '.$this->query.'<p>';
 
-    	//break;
     	return $rs;
     }
 
@@ -13209,8 +13139,6 @@ function Pagos() {
     	}
     	$this->query = "UPDATE $tabla set FECHA_EDO_CTA = '$fecha', usuario_edo_cta = '$usuario', status_contabilidad = 2 where $campo = '$folio'";
     	$rs=$this->EjecutaQuerySimple();
-
-    	
     	$this->query = "SELECT BANCO FROM $tabla where $campo = '$folio '";
     	$rs=$this->QueryObtieneDatosN();
     	$row = ibase_fetch_object($rs);
@@ -13218,35 +13146,20 @@ function Pagos() {
     	if (empty($banco)){
     		$banco = 'Sin Banco';
     	}
-
     	$this->query = "UPDATE COMPO01 SET EDOCTA_FECHA= '$fecha', edocta_reg = current_timestamp, usuario_recibe='$usuario', fecha_edo_cta_ok = '1', banco = '$banco' 
     	where cve_doc ='$doc' ";
     	$rs=$this->EjecutaQuerySimple();
-
     	//echo $this->query;
-
     	return $rs;    	
     }
 
     function buscarPagos($campo){
-
     	$this->query="SELECT ID , 'NA' AS DOCUMENTO, BANCO, monto, saldo, FOLIO_X_BANCO, USUARIO, FOLIO_ACREEDOR, fecha_recep from CARGA_PAGOS WHERE (MONTO CONTAINING('$campo') OR upper(FOLIO_X_BANCO) CONTAINING (upper('$campo'))) AND STATUS = ''";
     	$rs=$this->QueryObtieneDatosN();
 
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
-
-    	/*if(!empty($data)){
-    		$this->query="SELECT cp.ID, DOCUMENTO, cp.BANCO, cp.FOLIO_X_BANCO, cp.folio_acreedor, cp.monto, cp.saldo , a.USUARIO 
-    				FROM APLICACIONES a
-    				left join CARGA_PAGOS cp on cp.id = a.idpago
-    				WHERE UPPER(DOCUMENTO) = UPPER('$campo') AND CANCELADO = 0";
-    		$rs=$this->QueryObtieneDatosN();
-    	while($tsArray=ibase_fetch_object($rs)){
-    		$data[] = $tsArray;
-    		}
-    	}*/
     	return @$data; 
     }
 
@@ -13278,109 +13191,106 @@ function Pagos() {
     	return $rs; 
     }
 
-    function totalMensual($mes, $banco, $cuenta, $anio){
-    	################  AJUSTE DE FECHAS ######################
-    	$this->query="SELECT * FROM PG_BANCOS WHERE BANCO = '$banco' and num_cuenta='$cuenta'";
-			$res=$this->EjecutaQuerySimple();
-			$bn=ibase_fetch_object($res);
-			$corte = $bn->DIA_CORTE;
-			$fechaIni=$corte.'.'.$mes.'.'.$anio;	
-			if($corte == 1){
-				$month = $anio.'-'.$mes;
-				$aux = date('Y-m-d', strtotime("{$month} + 1 month"));
-				$last_day = date('d.m.Y', strtotime("{$aux} - 1 day"));
-				$fechafin=($last_day);/// extraer el ultimo dia del mes. 
-			}else{
-				if($mes == 12){
-					$mes = 1;
-					$anio = $anio+1;
-				}else{
-					$mes++;
-				}
-				$fechafin=($corte-1).'.'.$mes.'.'.$anio;
-			}
-			//echo 'Fecha Inicio: '.$fechaIni.'<br/>';
-			//echo 'Fecha Fin: '.$fechafin.'<br/>';
-
-		###########################################################
-    	$this->query="SELECT SUM(MONTO) AS MONTO FROM CARGA_PAGOS 
-    				WHERE Banco = (trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' 
-    				and fecha_recep between '$fechaIni' and '$fechafin'
-    		   		and extract(year from fecha_recep) = $anio ";
+    function totalMensual($mes, $banco, $cuenta, $anio, $f){
+    	$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
+		$fi=$fe['fi'];$ff=$fe['ff'];
+		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
+		if($f == 'si'){
+    		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
+    		$param0 = " registro = ".$p['id']." ";
+    	}	
+		$this->query="SELECT SUM(MONTO) AS MONTO FROM CARGA_PAGOS WHERE Banco = (trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and $param0";
     	$rs=$this->QueryObtieneDatosN();
-    	//echo '<br/>'.$this->query.'<br/>';
     	$row=ibase_fetch_object($rs);
-    	$data = $row->MONTO;
-    	return @$data;
+    	return @$row->MONTO;
     }
 
-    function ventasMensual($mes, $banco, $cuenta, $anio){
+    function ventasMensual($mes, $banco, $cuenta, $anio, $f){
+    	$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
+		$fi=$fe['fi'];$ff=$fe['ff'];
+		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
+		if($f == 'si'){
+    		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
+    		$param0 = " registro = ".$p['id']." ";
+    	}
 
-    	/// Falta Manejo de periodos
-    	 
-    	$this->query="SELECT iif(SUM(MONTO) is null, 0, sum(monto)) AS MONTO FROM CARGA_PAGOS WHERE EXTRACT(MONTH FROM FECHA_RECEP) = $mes and extract(year from fecha_recep) = $anio and Banco = (trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago is null and (seleccionado >= 1 or seleccionado = 2) and guardado = 1" ;
-    	//echo $this->query;
+    	$this->query="SELECT iif(SUM(MONTO) is null, 0, sum(monto)) AS MONTO FROM CARGA_PAGOS WHERE $param0 AND Banco = (trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago is null and (seleccionado >= 1 or seleccionado = 2) and guardado = 1" ;
+    	
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
     	$data=$row->MONTO;
     	return @$data; 
     }
 
-    function transfer($mes, $banco, $cuenta, $anio){
-    	/// Falta Manejo de periodos
-    	
-
-    	$this->query="SELECT iif(SUM(MONTO) is null, 0, SUM(MONTO)) AS MONTO FROM CARGA_PAGOS WHERE extract(year from fecha_recep)=$anio and EXTRACT(MONTH FROM FECHA_RECEP) = $mes and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago = 'oTEC' and (seleccionado >= 1 or seleccionado = 2) and guardado = 1";
+    function transfer($mes, $banco, $cuenta, $anio, $f){
+    	$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
+		$fi=$fe['fi'];$ff=$fe['ff'];
+		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
+		if($f == 'si'){
+    		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
+    		$param0 = " registro = ".$p['id']." ";
+    	}
+    	$this->query="SELECT iif(SUM(MONTO) is null, 0, SUM(MONTO)) AS MONTO FROM CARGA_PAGOS WHERE $param0 and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago = 'oTEC' and (seleccionado >= 1 or seleccionado = 2) and guardado = 1";
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
     	$data=$row->MONTO;
     	return @$data;
     }
 
-    function devCompra($mes, $banco, $cuenta, $anio){
-    	/// Falta Manejo de periodos
-    	
+    function devCompra($mes, $banco, $cuenta, $anio, $f){
+    	$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
+		$fi=$fe['fi'];$ff=$fe['ff'];
+		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
+		if($f == 'si'){
+    		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
+    		$param0 = " registro = ".$p['id']." ";
+    	}
+    	$this->query="SELECT iif(SUM(MONTO) is null, 0, SUM(MONTO)) AS MONTO FROM CARGA_PAGOS WHERE $param0 and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago = 'DC' and (seleccionado >= 1 or seleccionado = 2) and guardado = 1 ";
+    	$rs=$this->QueryObtieneDatosN();
+    	$row=ibase_fetch_object($rs);
+    	return @$row->MONTO;;
+    }
+
+    function devGasto($mes, $banco, $cuenta, $anio, $f){
+    	$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
+		$fi=$fe['fi'];$ff=$fe['ff'];
+		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
+		if($f == 'si'){
+    		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
+    		$param0 = " registro = ".$p['id']." ";
+    	}
     	$this->query="SELECT iif(SUM(MONTO) is null, 0, SUM(MONTO)) AS MONTO FROM CARGA_PAGOS 
-    	WHERE extract(year from fecha_recep)=$anio and  EXTRACT(MONTH FROM FECHA_RECEP) = $mes and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago = 'DC' and (seleccionado >= 1 or seleccionado = 2) and guardado = 1 ";
+    	WHERE $param0 and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago = 'DG' and (seleccionado >= 1 or seleccionado = 2) and guardado = 1 ";
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
     	$data=$row->MONTO;
     	return @$data;
     }
 
-    function devGasto($mes, $banco, $cuenta, $anio){
-    	/// Falta Manejo de periodos
-    	
-    	$this->query="SELECT iif(SUM(MONTO) is null, 0, SUM(MONTO)) AS MONTO FROM CARGA_PAGOS 
-    	WHERE extract(year from fecha_recep)=$anio and EXTRACT(MONTH FROM FECHA_RECEP) = $mes and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago = 'DG' and (seleccionado >= 1 or seleccionado = 2) and guardado = 1 ";
+    function pcc($mes, $banco, $cuenta, $anio, $f){
+    	$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
+		$fi=$fe['fi'];$ff=$fe['ff'];
+		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
+		if($f == 'si'){
+    		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
+    		$param0 = " registro = ".$p['id']." ";
+    	}
+    	$this->query = "SELECT iif(SUM(MONTO) is null, 0, SUM(MONTO)) AS MONTO FROM CARGA_PAGOS WHERE $param0 and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and (tipo_pago = 'oPCC' or tipo_pago = 'PP') and (seleccionado >= 1 or seleccionado = 2) and guardado = 1 ";
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
     	$data=$row->MONTO;
     	return @$data;
     }
 
-    function pcc($mes, $banco, $cuenta, $anio){
-    	/// Falta Manejo de periodos
-    	
-    	$this->query = "SELECT iif(SUM(MONTO) is null, 0, SUM(MONTO)) AS MONTO FROM CARGA_PAGOS WHERE extract(year from fecha_recep) = $anio and  EXTRACT(MONTH FROM FECHA_RECEP) = $mes and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and (tipo_pago = 'oPCC' or tipo_pago = 'PP') and (seleccionado >= 1 or seleccionado = 2) and guardado = 1 ";
-    	$rs=$this->QueryObtieneDatosN();
-    	$row=ibase_fetch_object($rs);
-    	$data=$row->MONTO;
-    	return @$data;
-    }
-
-    function pagosAplicados($mes,$banco,$anio,$cuenta){
-    	/// Falta Manejo de periodos
-    	
-    	$this->query="SELECT sum(monto) as Total, sum(saldo) as Faltante 
-    				from carga_pagos 
-    				WHERE extract(month from fecha_recep) = $mes
-    				and extract(year from fecha_recep) = $anio 
-    				and banco  = '$banco'||' - '||'$cuenta'
-    				and status <>'C'
-    				and (tipo_pago is null or tipo_pago = '')
-    				and seleccionado = 2
-    				";
+    function pagosAplicados($mes,$banco,$anio,$cuenta, $f){
+    	$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
+		$fi=$fe['fi'];$ff=$fe['ff'];
+		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
+		if($f == 'si'){
+    		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
+    		$param0 = " registro = ".$p['id']." ";
+    	}
+    	$this->query="SELECT sum(monto) as Total, sum(saldo) as Faltante from carga_pagos WHERE $param0 and banco  = '$banco'||' - '||'$cuenta' and status <>'C' and (tipo_pago is null or tipo_pago = '') and seleccionado = 2";
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
@@ -13388,21 +13298,15 @@ function Pagos() {
     	return @$data;
     }
 
-	function pagosAcreedores($mes,$banco,$anio,$cuenta){
-		/// Falta Manejo de periodos
-    	
-    	$this->query="SELECT sum(a.monto) as ACREEDORES, sum(cp.saldo) as Faltante 
-    				from acreedores a
-    				left join carga_pagos cp on cp.id = a.id_pago
-    				WHERE extract(month from cp.fecha_recep) = $mes
-    				and extract(year from cp.fecha_recep) = $anio
-    				and cp.banco  = '$banco'||' - '||'$cuenta'
-    				and cp.status <>'C'
-    				and (cp.tipo_pago is null or tipo_pago = '')
-    				and a.status <> 99
-    				and seleccionado = 2
-    				";
-    	//echo $this->query;
+	function pagosAcreedores($mes,$banco,$anio,$cuenta, $f){
+		$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
+		$fi=$fe['fi'];$ff=$fe['ff'];
+		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
+		if($f == 'si'){
+    		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
+    		$param0 = " registro = ".$p['id']." ";
+    	}
+    	$this->query="SELECT sum(a.monto) as ACREEDORES, sum(cp.saldo) as Faltante from acreedores a left join carga_pagos cp on cp.id = a.id_pago	WHERE $param0 and cp.banco  = '$banco'||' - '||'$cuenta' and cp.status <>'C' and (cp.tipo_pago is null or tipo_pago = '') and a.status <> 99 and seleccionado = 2";
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
@@ -13447,23 +13351,70 @@ function Pagos() {
     	return $totalAplicado;
     }
 
-    function totalCompras($mes, $banco, $anio, $cuenta){
+    function periodoEC($banco, $cuenta, $mes, $anio){
+    	$this->query="SELECT * FROM PG_BANCOS WHERE banco = '$banco' and num_cuenta = '$cuenta'";
+    	$res=$this->EjecutaQuerySimple();
+    	$row = ibase_fetch_object($res);
+    	$fi='';$ff='';
+    	$m = $anio.'-'.$mes; $a = date('Y-m-d', strtotime("{$m} + 1 month")); $ld = date('d', strtotime("{$a}-1 day"));
+    	$dia = $row->DIA_CORTE;
+    	if($dia != 1){
+    		if($mes < 12){
+    			$fi=($dia + 1).'.'.$mes.'.'.$anio; 
+    			$ff=$dia.'.'.($mes + 1).'.'.$anio;  
+    		}elseif($mes == 12){
+    			$fi = ($dia +1).'.'.$mes.'.'.$anio;
+    			$ff = $dia.'.1.'.($anio+1);
+    		}
+    	}else{
+    		if($mes < 12){
+    			$fi= '1.'.$mes.'.'.$anio;
+    			$ff = $ld.'.'.$mes.'.'.$anio;
+    		}else{
+    			$fi= '1.'.$mes.'.'.$anio;
+    			$ff = $ld.'.1.'.$anio;
+    		}
+    	}	
+    	return array("fi"=>$fi, "ff"=>$ff);
+    }
 
-    	/// Falta Manejo de periodos
+    function paramEdoCta($banco, $cuenta, $mes, $anio, $f){
+    	$pr=array();
+    	if($f == 'si'){
+    		if($mes < 12){
+    			$mi=$mes; $mf=$mes+1;
+    		}else{
+    			$mi=$mes; $mf=1;
+    		}
+    		$this->query="SELECT * FROM FTC_MEDIA_FILES M WHERE M.TIPO = 'EDOCTA' AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$banco' and (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$cuenta' and MI=$mi and MF = $mf and status = 'A'";
+    		$res=$this->EjecutaQuerySimple();
+    		while ($tsArray=ibase_fetch_object($res)) {
+    			$pr[]=$tsArray;
+    		}
+    	}
+    	if(count($pr) == 1){
+    		foreach ($pr as $k){    			
+     		}
+    	}elseif(count($pr) > 1) {
+    		return $m='Se encontraron mas de 1 carga de excel, por lo cual no se puede determinar la conincidencia unica';
+    	}
+    	return array("id"=>$k->ID);
+    }
+
+    function totalCompras($mes, $banco, $anio, $cuenta, $f){
+    	$f = $this->periodoEC($banco, $cuenta, $mes, $anio);
+    	$fi = $f['fi']; $ff=$f['ff'];
+    	$param0 = " edocta_fecha between '".$fi."' and '".$ff."' ";
 
     	$this->query = "SELECT iif(SUM(iif(monto_final = 0, importe, monto_final)) is null, 0, SUM(iif(monto_final = 0, importe, monto_final))) as totCompras from compo01 
-    		where 
-    		extract(month from edocta_fecha) = $mes 
-    		and extract(year from edocta_fecha) = $anio
+    		where $param0
     		and banco = ('$banco'||' - ' ||'$cuenta')
     		and (seleccionado = 1 or seleccionado = 2) ";
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
    		$totc=$row->TOTCOMPRAS;
    		$this->query = "SELECT sum(pago_tes) as totCompras from ftc_poc 
-    		where 
-    		extract(month from edocta_fecha) = $mes 
-    		and extract(year from edocta_fecha) = $anio
+    		where $param0
     		and banco = ('$banco'||' - ' ||'$cuenta')
     		and (seleccionado = 1 or seleccionado = 2) 
     		and guardado = 1";
@@ -13474,28 +13425,30 @@ function Pagos() {
    		return $totc;
     }
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-    function totalGasto($mes, $banco, $anio, $cuenta){
-    	/// Falta Manejo de periodos
-    	
-
+    function totalGasto($mes, $banco, $anio, $cuenta, $f){
+    	$f = $this->periodoEC($banco, $cuenta, $mes, $anio);
+    	$fi = $f['fi']; $ff=$f['ff'];
+    	$param0 = " (fecha_edo_cta between '".$fi."' and '".$ff."' or fecha_doc between '".$fi."' and '".$ff."') ";
+    	if($f == 'si'){
+    		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
+    		$param0 = " num_par = ".$p['id']." ";
+    	}
     	$this->query = "SELECT SUM(g.monto_pago) AS TOTGASTO 
     					FROM GASTOS g 
     					left join PAGO_GASTO pg on pg.idgasto = g.id and pg.cuenta_bancaria =('$banco'||' - '||'$cuenta')
-    					where 
-    					pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') and iif(fecha_edo_cta is null,extract(month from g.FECHA_DOC), extract(month from fecha_edo_cta)) = $mes and iif(fecha_edo_cta is null, extract(year from g.FECHA_DOC), extract(year from fecha_edo_cta)) = $anio and g.status = 'V'  and (seleccionado = 1 or seleccionado = 2) and guardado = 1";
-    	//echo $this->query;
+    					where $param0    					
+    					and pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') 
+    					and g.status = 'V'  and (seleccionado = 1 or seleccionado = 2) and guardado = 1";
     	$rs=$this->QueryObtieneDatosN();
     	$row=ibase_fetch_object($rs);
     	$totg=$row->TOTGASTO;
     	$this->query="SELECT iif(SUM(IMPORTE) IS NULL, 0 , SUM(IMPORTE)) as GastoDirecto
     				  FROM CR_DIRECTO 
-    				  WHERE extract(month from fecha_edo_cta) = $mes
-    				  and extract(year from fecha_edo_cta) = $anio
+    				  WHERE fecha_edo_cta between '$fi' and '$ff' 
     				  and banco = '$banco'
     				  and cuenta = '$cuenta' 
     				  and (seleccionado = 1 or seleccionado = 2) and guardado = 1";
 		$rs= $this->QueryObtieneDatosN();
-		//echo $this->query;
 		$row=ibase_fetch_object($rs);
 		$totgd = $row->GASTODIRECTO;
 		$totg =$totg + $totgd; 
@@ -13503,14 +13456,11 @@ function Pagos() {
     }
 
     function totalDeudores($mes, $banco, $anio, $cuenta){
-    	/// Falta Manejo de periodos
-    	
-
+    	$f = $this->periodoEC($banco, $cuenta, $mes, $anio);
+    	$fi = $f['fi']; $ff=$f['ff'];
     	$this->query="SELECT iif(SUM(importe)is null, 0, Sum(importe)) as TOTALDEUDORES 
     			FROM DEUDORES 
-    			WHERE extract(month from FECHAEDO_CTA)= $mes and extract(year from fechaedo_cta)= $anio 
-    			and banco = ('$banco'||' - '||'$cuenta')
-    			and (seleccionado = 1 or seleccionado = 2)  and guardado = 1";
+    			WHERE FECHAEDO_CTA between '$fi' and '$ff' and banco = ('$banco'||' - '||'$cuenta')	and (seleccionado = 1 or seleccionado = 2)  and guardado = 1";
     	$rs=$this->QueryObtieneDatosN();
     	$row = ibase_fetch_object($rs);
     	$totg= $row->TOTALDEUDORES;
@@ -13518,14 +13468,10 @@ function Pagos() {
     }
 
     function totalCredito($mes, $banco, $anio, $cuenta){
-    	/// Falta Manejo de periodos
-    	
-
+    	$f = $this->periodoEC($banco, $cuenta, $mes, $anio);
+    	$fi = $f['fi']; $ff=$f['ff'];
     	$this->query="SELECT iif(sum(monto_final) is null,0, sum(monto_final)) as totalcredito from SOLICITUD_PAGO 
-    				where extract(month from fecha_edo_cta) = $mes 
-    				and extract(year from fecha_edo_cta) = $anio
-    				and banco_final = ('$banco'||' - '||'$cuenta')
-    				and (seleccionado = 1 or seleccionado = 2) and guardado = 1";
+    				where fecha_edo_cta between '$fi' and '$ff'	and banco_final = ('$banco'||' - '||'$cuenta') and (seleccionado = 1 or seleccionado = 2) and guardado = 1";
     	$rs=$this->QueryObtieneDatosN();
     	$row = ibase_fetch_object($rs);
     	$totCr = $row->TOTALCREDITO;
@@ -25225,7 +25171,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$cve_sat = $key[1];
 	    		$uni_sat = $key[2];
 	    		$ccp = $key[3];
-
 	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' where (select x.rfce from xml_data x where x.uuid = '$uuid') = '$rfce' 
 	    				and  xp.CLAVE_SAT = '$cve_sat'
 	    				and xp.UNIDAD_SAT = '$uni_sat'
@@ -25236,9 +25181,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
 	    		)
 	    		";
-	    		//and PARTIDA = $par
-	    		//and (cuenta_Contable is null or cuenta_Contable = '') --and PARTIDA = $par
-	    		//echo $this->query;
 	    		//echo '<br/>'.$this->query.'<br/>';
 	    		$this->queryActualiza();
 	      	}	
@@ -27232,7 +27174,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
                  		, '$usuario', '$cuentaCompleta', '$fecha', '$fecha' 
                  		, '$folio'
                  		, (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid')
-                 		, 0, 0, 0, null, '0', '$tpago', '', 0, 0, 0, NULL, NULL, NULL, NULL, 0, 0, '$uuid', 0,''
+                 		, 0, 0, 0, null, 0, '$tpago', '', 0, 0, 0, NULL, NULL, NULL, NULL, 0, 0, '$uuid', 0,''
                  		--, (SELECT SERIE||FOLIO FROM XML_DATA WHERE UUID = '$uuid')||' -- '||'$obs')
                  		, '$obs'||' -- '||(SELECT SERIE||FOLIO FROM XML_DATA WHERE UUID = '$uuid'))
                  		 RETURNING ID";
@@ -27303,9 +27245,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	function regfile($target_file, $fileType, $datos, $banco, $cuenta, $nombre, $ubicacion){
 		$usuario =$_SESSION['user']->NOMBRE;
 		$mes = $datos[2];$anio = $datos[3];
-		$this->query="INSERT INTO FTC_MEDIA_FILES (ID, TIPO, SUB_TIPO, ID_REF, NOMBRE, UBICACION, DESCRIPCION, FECHA_ALTA, USUARIO_ALTA, STATUS ) VALUES (NULL, 'EDOCTA', 'PG_BANCOS',(SELECT ID FROM PG_BANCOS WHERE BANCO = '$banco' and NUM_CUENTA = '$cuenta'), '$nombre', '$ubicacion', '$mes:$anio',current_timestamp, '$usuario', 'A')";
-		$this->grabaBD();
-		return;
+		$this->query="INSERT INTO FTC_MEDIA_FILES (ID, TIPO, SUB_TIPO, ID_REF, NOMBRE, UBICACION, DESCRIPCION, FECHA_ALTA, USUARIO_ALTA, STATUS ) VALUES (NULL, 'EDOCTA', 'PG_BANCOS',(SELECT ID FROM PG_BANCOS WHERE BANCO = '$banco' and NUM_CUENTA = '$cuenta'), '$nombre', '$ubicacion', '$mes:$anio',current_timestamp, '$usuario', 'A') RETURNING ID";
+		$r=ibase_fetch_object($this->grabaBD());
+		return $r->ID;
 	}
 
 	function descargas($banco, $cuenta, $mes, $anio){
@@ -27490,7 +27432,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		}
 	}
 
-	function cargaXLSX($datos, $data, $banco, $cuenta){
+	function cargaXLSX($datos, $data, $banco, $cuenta, $reg){
 		$usuario = $_SESSION['user']->NOMBRE;
 		foreach ($data as $key) {
 			$monto = $key['monto'];
@@ -27501,10 +27443,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$obs=$key['obs'];	
 			if($key['ca']=='a'){
 				$folio=$this->folioBanco($banco, $cuenta);
-				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs' ) ";
+				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS, REGISTRO) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs', $reg) ";
 				$this->grabaBD();
 			}elseif($key['ca']=='c'){
-				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto') RETURNING ID";
+				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo, NUM_PAR) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto', $reg) RETURNING ID";
 				$foliog=$this->grabaBD();
 				$row=ibase_fetch_object($foliog);
 				switch ($tipo) {
@@ -27523,6 +27465,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				//echo '<br/>'.$this->query;
 				$this->grabaBD();
 				$this->revisaGasto($row->ID);
+				$this->verCargas($banco, $cuenta, $t=9);
 			}
 		}
 		$dup=$this->revisaDuplicado(); /// Revisa los gastos vs cr_directos y actualiza ambos si encuentra un registro con la misma informacion de Fecha / Importe / Banco / Tipo.
@@ -28356,7 +28299,94 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	return array("cabecera"=>$row, "detalle"=>$data4, "id"=>$idpr);
     }
 
+    function verCargas($b, $c, $t){
+    	$data=array();
+    	$this->query="SELECT M.*, '$b' as BANCO, '$c' AS CUENTA, COALESCE ((SELECT SUM(MONTO_PAGO) FROM GASTOS WHERE NUM_PAR = M.ID),0) AS CARGOS, COALESCE ((SELECT SUM(MONTO) FROM CARGA_PAGOS WHERE REGISTRO = M.ID), 0) AS ABONOS, 
+    		COALESCE( (SELECT MIN(FECHA_RECEP) FROM CARGA_PAGOS WHERE REGISTRO = M.ID), '') AS FICP,  
+    		COALESCE( (SELECT MAX(FECHA_RECEP) FROM CARGA_PAGOS WHERE REGISTRO = M.ID), '') AS FFCP,
+    		COALESCE( (SELECT MIN(FECHA_EDO_CTA) FROM GASTOS WHERE NUM_PAR = M.ID), '') AS FIG,
+    		COALESCE( (SELECT MAX(FECHA_EDO_CTA) FROM GASTOS WHERE NUM_PAR = M.ID), '') AS FFG  
+    		FROM FTC_MEDIA_FILES M WHERE M.TIPO = 'EDOCTA' AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$b' and (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$c'";
+    	$res=$this->EjecutaQuerySimple();
+    	while ($tsArray=ibase_fetch_object($res)) {
+    		$data[]=$tsArray;
+    	}
+    	if($t ==9){
+	    	foreach ($data as $d){
+				$FF='';
+	            if($d->FICP == ''){
+	                $FI = $d->FIG;
+	            }elseif($d->FIG == ''){
+	                $FI = $d->FICP;
+	            }elseif($d->FICP == '' AND $d->FIG == ''){
+	                $FI = '';    
+	            }else{
+	                $f1 = strtotime($d->FICP);
+	                $f2 = strtotime($d->FIG);
+	                if($f1 > $f2){
+	                    $FI = $d->FIG;
+	                }else{
+	                    $FI = $d->FICP;
+	                }
+	            }
 
+	            if($d->FFCP == ''){
+	                $FF = $d->FFG;
+	            }elseif($d->FFG == ''){
+	                $FF = $d->FFCP;
+	            }elseif($d->FFCP == '' AND $d->FFG == ''){
+	                $FF = '';    
+	            }else{
+	                $f1 = strtotime($d->FFCP);
+	                $f2 = strtotime( $d->FFG);
+	                if($f1 < $f2){
+	                    $FF = $d->FFG;
+	                }else{
+	                    $FF = $d->FFCP;
+	                }
+	            }
+	            if($FF != '' and $FI !=''){
+	            	$mi=date('m', strtotime($FI));
+	            	$mf=date('m', strtotime($FF));
+	            	$this->query="UPDATE FTC_MEDIA_FILES SET MI = $mi, MF = $mf WHERE ID = $d->ID";
+	            	$this->EjecutaQuerySimple();
+	            }
+	    	}
+    	}
+    	return $data;
+    }
 
+    function delCarga($idc){
+    	$res=$this->valCarga($idc);
+    	if($res['sta']=='ok'){
+    		$this->query="UPDATE FTC_MEDIA_FILES set status = 'B' where id = $idc";
+    		$this->queryActualiza();
+    		$this->query="DELETE FROM CARGA_PAGOS WHERE REGISTRO = $idc";
+    		$this->grabaBD();
+    		$this->query="DELETE FROM PAGA_GASTO PG WHERE PG.ID_GASTO IN (SELECT ID FROM GASTOS G WHERE G.NUM_PAR = $idc)";
+    		$this->grabaBD();
+    		$this->query="DELETE FROM GASTOS WHERE NUM_PAR = $idc";
+    		$this->grabaBD();
+    	}
+    	return;
+    }
+
+    function valCarga($idc){
+    	$this->query="SELECT COUNT(*) as apli FROM CARGA_PAGOS WHERE REGISTRO = $idc and MONTO <> SALDO";
+    	$res=$this->EjecutaQuerySimple();
+    	$row1 =ibase_fetch_object($res);
+    	$aplia = $row1->APLI;
+
+    	$this->query="SELECT COUNT(*) AS apli from gastos where num_par = $idc and TOTAL <> SALDO";
+    	$res=$this->EjecutaQuerySimple();
+    	$row2 = ibase_fetch_object($res);
+    	$aplic = $row2->APLI;
+
+    	if(($aplic + $aplia) > 0){
+    		return array("sta"=>'no', "mensaje"=>'No se puede eliminar si ya se tienen regitsrado aplicaciones.', "aplia"=>$aplia, "aplic"=>$aplic);
+    	}else{
+    		return array("sta"=>'ok', "mensaje"=>'No se encontraron aplicaciones');
+    	}
+    }
 
 }?>

@@ -10594,16 +10594,13 @@ function imprimirFacturasAcuse(){
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
-        	$html = $this->load_page('app/views/pages/p.listadocuentas.php');
+        	$html = $this->load_page('app/views/pages/Contabilidad/p.listadocuentas.php');
         	ob_start();
         	$exec=$data->listarCuentasBancarias();
-        	if (count($exec)){
-            	include 'app/views/pages/p.listadocuentas.php';
-            	$table = ob_get_clean();
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-        	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>Hubo un error al mostrar los pagos para imprimir</h2><center></div>', $pagina);
-        	}
+            $table = ob_get_clean();
+        	include 'app/views/pages/Contabilidad/p.listadocuentas.php';
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+        	
         	$this->view_page($pagina);
     	} else {
         	$e = "Favor de Iniciar Sesión";
@@ -10616,16 +10613,12 @@ function imprimirFacturasAcuse(){
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
-        	$html = $this->load_page('app/views/pages/Clientes/p.listadocuentas_docs.php');
+        	$html = $this->load_page('app/views/pages/Contabilidad/p.listadocuentas_docs.php');
         	ob_start();
         	$exec=$data->listarCuentasBancarias();
-        	if (count($exec)){
-            	include 'app/views/pages/Clientes/p.listadocuentas_docs.php';
-            	$table = ob_get_clean();
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-        	} else {
-            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html . '<div class="alert-danger"><center><h2>NO SE ENCONTRO INFORMACION PARA MOSTRAR</h2><center></div>', $pagina);
-        	}
+        	include 'app/views/pages/Contabilidad/p.listadocuentas_docs.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
         	$this->view_page($pagina);
     	} else {
         	$e = "Favor de Iniciar Sesión";
@@ -10711,7 +10704,7 @@ function imprimirFacturasAcuse(){
     	}			    	
     }
 
- 	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $nvaFechComp){
+ 	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $nvaFechComp, $f){
  		if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina = $this->load_template('Menu Admin');        	
@@ -10720,23 +10713,23 @@ function imprimirFacturasAcuse(){
         	$meses=$data->traeMeses();
         	$bancos=$data->CuentasBancarias($banco, $cuenta);
         	$mesactual=$data->traeMes($mes, $anio);
-        	$exec=$data->estado_de_cuenta_mes($mes, $banco, $cuenta, $anio);
+        	$exec=$data->estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $f);
         	$saldos = $data->saldosBancos($mes, $banco , $cuenta, $anio);
-        	$total=$data->totalMensual($mes, $banco, $cuenta, $anio);
+        	$total=$data->totalMensual($mes, $banco, $cuenta, $anio, $f);
         	/// Abonos
-        	$ventas=$data->ventasMensual($mes,$banco, $cuenta, $anio);  // ok
-        	$transfer=$data->transfer($mes, $banco, $cuenta, $anio);   //ok
-        	$devCompra=$data->devCompra($mes,$banco, $cuenta, $anio);  //ok
-        	$devGasto=$data->devGasto($mes, $banco, $cuenta, $anio);   //ok
-        	$pcchica=$data->pcc($mes, $banco, $cuenta, $anio);    //ok
+        	$ventas=$data->ventasMensual($mes,$banco, $cuenta, $anio, $f);  // ok
+        	$transfer=$data->transfer($mes, $banco, $cuenta, $anio, $f);   //ok
+        	$devCompra=$data->devCompra($mes,$banco, $cuenta, $anio, $f);  //ok
+        	$devGasto=$data->devGasto($mes, $banco, $cuenta, $anio, $f);   //ok
+        	$pcchica=$data->pcc($mes, $banco, $cuenta, $anio, $f);    //ok
 
-        	$pagosaplicados=$data->pagosAplicados($mes,$banco,$anio,$cuenta);    //ok
-        	$pagosacreedores=$data->pagosAcreedores($mes,$banco,$anio,$cuenta);  //ok
+        	$pagosaplicados=$data->pagosAplicados($mes,$banco,$anio,$cuenta, $f);    //ok
+        	$pagosacreedores=$data->pagosAcreedores($mes,$banco,$anio,$cuenta, $f);  //ok
         	//// Cargos
-        	$totC=$data->totalCompras($mes,$banco, $anio,$cuenta);  //ok
-        	$totG=$data->totalGasto($mes, $banco, $anio, $cuenta);	//ok
-        	$totD=$data->totalDeudores ($mes,$banco, $anio, $cuenta);  //ok 
-        	$totCr=$data->totalCredito($mes,$banco, $anio, $cuenta);	//ok
+        	$totC=$data->totalCompras($mes,$banco, $anio,$cuenta, $f);  //ok
+        	$totG=$data->totalGasto($mes, $banco, $anio, $cuenta, $f);	//ok
+        	$totD=$data->totalDeudores ($mes,$banco, $anio, $cuenta, $f);  //ok 
+        	$totCr=$data->totalCredito($mes,$banco, $anio, $cuenta, $f);	//ok
         	$cierre = $data->cierreBanco($banco, $cuenta, $mes, $anio);
         	$inicial = $data->sinicial($banco, $cuenta, $mes, $anio);
         	$desc = $data->descargas($banco, $cuenta, $mes, $anio);
@@ -10756,8 +10749,7 @@ function imprimirFacturasAcuse(){
     	}			   
     }
 
-    function cerrarEdoCtaMes($mes, $anio, $abonos,$cargos, $inicial, $final, $cuenta, $banco){
-    	
+    function cerrarEdoCtaMes($mes, $anio, $abonos,$cargos, $inicial, $final, $cuenta, $banco, $f){
     	if(isset($_SESSION['user'])){
     		$data= new pegaso;
     		$pagina = $this->load_template('Pagos');
@@ -10770,7 +10762,7 @@ function imprimirFacturasAcuse(){
 	            include 'app/views/pages/p.redirectform.php';
 	            $this->view_page($pagina);	
     		}else{
-    			$redireccionar = 'estado_de_cuenta_mes&mes={$mes}&banco={$banco}&cuenta={$cuenta}&anio={$anio}&nvaFechComp=""';
+    			$redireccionar = "estado_de_cuenta_mes&mes={$mes}&banco={$banco}&cuenta={$cuenta}&anio={$anio}&nvaFechComp=''&f={$f}";
 	    		$pagina=$this->load_template('Pedidos');
 	    		$pagina = $this->replace_content('/\#CONTENIDO\#/ms', '<div class="alert-danger"><center><h2>Hubo un error al cerrar el estado de cuenta, "Solo se permite cerrar Estados Consecutivos", favor de revisar la informaicon</h2><center></div>', $pagina);
 	            $html = $this->load_page('app/views/pages/p.redirectform.php');
@@ -10782,7 +10774,7 @@ function imprimirFacturasAcuse(){
     }
 
 
-    function estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio, $nvaFechComp){	
+    function estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio, $nvaFechComp, $f){	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10791,23 +10783,26 @@ function imprimirFacturasAcuse(){
         	$meses=$data->traeMeses();
         	$bancos=$data->CuentasBancarias($banco, $cuenta);
         	$mesactual=$data->traeMes($mes, $anio);
-        	$exec=$data->estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio);
+        	$exec=$data->estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio, $f);
         	$saldos = $data->saldosBancos($mes, $banco , $cuenta, $anio);
-        	$total=$data->totalMensual($mes, $banco, $cuenta, $anio);
-        	$ventas=$data->ventasMensual($mes,$banco, $cuenta, $anio);
-        	$transfer=$data->transfer($mes, $banco, $cuenta, $anio);
-        	$devCompra=$data->devCompra($mes,$banco, $cuenta, $anio);
-        	$devGasto=$data->devGasto($mes, $banco, $cuenta, $anio);
-        	$pcchica=$data->pcc($mes, $banco, $cuenta, $anio);
-        	$pagosaplicados=$data->pagosAplicados($mes,$banco,$anio,$cuenta);
-        	$pagosacreedores=$data->pagosAcreedores($mes,$banco,$anio,$cuenta);
-        	$totC=$data->totalCompras($mes,$banco, $anio,$cuenta);
-        	$totG=$data->totalGasto($mes, $banco, $anio, $cuenta);
-        	$totD=$data->totalDeudores ($mes,$banco, $anio, $cuenta);
-        	$totCr=$data->totalCredito($mes,$banco, $anio, $cuenta);
+        	$total=$data->totalMensual($mes, $banco, $cuenta, $anio, $f);
+        	$ventas=$data->ventasMensual($mes,$banco, $cuenta, $anio, $f);
+        	$transfer=$data->transfer($mes, $banco, $cuenta, $anio, $f);
+        	$devCompra=$data->devCompra($mes,$banco, $cuenta, $anio, $f);
+        	$devGasto=$data->devGasto($mes, $banco, $cuenta, $anio, $f);
+        	$pcchica=$data->pcc($mes, $banco, $cuenta, $anio, $f);
+        	$pagosaplicados=$data->pagosAplicados($mes,$banco,$anio,$cuenta, $f);
+        	$pagosacreedores=$data->pagosAcreedores($mes,$banco,$anio,$cuenta, $f);
+
+        	$totC=$data->totalCompras($mes,$banco, $anio,$cuenta, $f);
+        	$totG=$data->totalGasto($mes, $banco, $anio, $cuenta, $f);
+        	$totD=$data->totalDeudores ($mes,$banco, $anio, $cuenta, $f);
+        	$totCr=$data->totalCredito($mes,$banco, $anio, $cuenta, $f);
+
         	$cierre = $data->cierreBanco($banco, $cuenta, $mes, $anio);
         	$inicial = $data->sinicial($banco, $cuenta, $mes, $anio);
         	$desc = $data->descargas($banco, $cuenta, $mes, $anio);
+        	
         	if (count($bancos)){
             	include 'app/views/pages/Contabilidad/p.EstadoDeCuenta_v3.php';
             	$table = ob_get_clean();
@@ -10823,10 +10818,7 @@ function imprimirFacturasAcuse(){
     	}			   
     }
 
-
-
     function buscaFactura(){
-    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10866,7 +10858,6 @@ function imprimirFacturasAcuse(){
     }
 
     function cambiarFactura($docf1, $tipo){
-    	
     	if (isset($_SESSION['user'])) {
         	$data = new pegaso;
         	$pagina = $this->load_template('Pagos');        	
@@ -10890,8 +10881,7 @@ function imprimirFacturasAcuse(){
 
     }
 
-   function buscarCajaEmabalar(){
-		
+   function buscarCajaEmabalar(){		
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/pages/p.BusquedaCajasEmbalar.php');
@@ -10903,13 +10893,12 @@ function imprimirFacturasAcuse(){
 		}
 	}
 
-	function porFacturarEmbalar($docp){
-		 
-		 if(isset($_SESSION['user'])){
+	function porFacturarEmbalar($docp){		 
+		if(isset($_SESSION['user'])){
 			$data = new pegaso;				
-		$pagina=$this->load_template('Alta Unidades');				
-		$html = $this->load_page('app/views/pages/p.pedidos.php');
-		ob_start(); 
+			$pagina=$this->load_template('Alta Unidades');				
+			$html = $this->load_page('app/views/pages/p.pedidos.php');
+			ob_start(); 
 			$pedidos=$data->porFacturarEmbalar($docp); //// se utiliza la misma que GUstavo 
 			///$facturas=$data->FacturaSinMaterial(); /// se deja la consulta actual para las que ya facturo Gustavo 
 			if( count($pedidos > 0)){
@@ -13431,8 +13420,7 @@ function ImpSolicitud2($idsol){
        		}		 		
      	}
 
-     	function buscarContrarecibos($campo){
-     		
+     	function buscarContrarecibos($campo){     		
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13455,8 +13443,7 @@ function ImpSolicitud2($idsol){
         	}		 		
      	}
 
-     	function editIngresoBodega($idi, $costo, $proveedor, $cant, $unidad){
-    	        
+    function editIngresoBodega($idi, $costo, $proveedor, $cant, $unidad){	        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	            
@@ -13479,8 +13466,7 @@ function ImpSolicitud2($idsol){
      	}	
     }
 
-    function revAplicaciones(){
-    		        
+    function revAplicaciones(){    		        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos');        	            
@@ -13503,9 +13489,7 @@ function ImpSolicitud2($idsol){
      	}	
     }
 
-
-    function dirVerFacturas($mes, $vend, $anio){
-    	        
+    function dirVerFacturas($mes, $vend, $anio){    	        
      	if (isset($_SESSION['user'])) {            
              $data = new pegaso;
              $pagina = $this->load_template('Pagos'); 
@@ -13554,8 +13538,7 @@ function ImpSolicitud2($idsol){
     }
 
 
-    function buscaOC($fechaedo){
-    		
+    function buscaOC($fechaedo){    		
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
     		$fecha = $fechaedo;
@@ -13573,7 +13556,6 @@ function ImpSolicitud2($idsol){
     }
 
     function traeOC($campo, $fechaedo){
-    	
         	if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13599,7 +13581,6 @@ function ImpSolicitud2($idsol){
 
 
     function procesarOC($doco, $idb, $fechaedo, $montof, $factura, $tpf){
-    	
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
@@ -13620,8 +13601,7 @@ function ImpSolicitud2($idsol){
 
 
     function deudores($fechaedo, $banco){
-    	
-        	if (isset($_SESSION['user'])){
+        if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
             $html = $this->load_page('app/views/pages/p.deudores.php');
@@ -13639,12 +13619,11 @@ function ImpSolicitud2($idsol){
             $e = "Favor de Iniciar Sesión";
             header('Location: index.php?action=login&e=' . urlencode($e));
             exit;
-        	}		 	
+       	}		 	
     }
 
     function guardaDeudor($fechaedo, $monto,$proveedor, $banco, $tpf, $referencia, $destino){
-    	
-        	if (isset($_SESSION['user'])){
+        if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina = $this->load_template('Compra Venta');
             $html = $this->load_page('app/views/pages/p.deudores.php');
@@ -13660,24 +13639,23 @@ function ImpSolicitud2($idsol){
 	}
 
 	function transfer($fechaedo, $bancoO){
-			
         	if (isset($_SESSION['user'])){
-            $data = new pegaso;
-            $pagina = $this->load_template('Compra Venta');
-            $html = $this->load_page('app/views/pages/p.transfer.php');
-            ob_start();
-            $banco =$data->CuentasBancos();
-            $transfer = $data->transferyprestamo($fechaedo, $bancoO);
-            $fechaedo = $fechaedo;
-            $banco =$banco;
-            include 'app/views/pages/p.transfer.php';
-            $table = ob_get_clean();
-            $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
-            $this->view_page($pagina);
+            	$data = new pegaso;
+            	$pagina = $this->load_template('Compra Venta');
+            	$html = $this->load_page('app/views/pages/p.transfer.php');
+            	ob_start();
+            	$banco =$data->CuentasBancos();
+            	$transfer = $data->transferyprestamo($fechaedo, $bancoO);
+            	$fechaedo = $fechaedo;
+            	$banco =$banco;
+            	include 'app/views/pages/p.transfer.php';
+            	$table = ob_get_clean();
+            	$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
+            	$this->view_page($pagina);
         	} else {
-            $e = "Favor de Iniciar Sesión";
-            header('Location: index.php?action=login&e=' . urlencode($e));
-            exit;
+            	$e = "Favor de Iniciar Sesión";
+            	header('Location: index.php?action=login&e=' . urlencode($e));
+            	exit;
         	}		 	
 	}
 
@@ -17197,26 +17175,17 @@ function ImpSolicitud2($idsol){
 		}
 	}
 
-	function guardaEdoCta($pagos, $compras, $gastos, $anio, $mes, $cuenta, $banco){
+	function guardaEdoCta($pagos, $compras, $gastos, $anio, $mes, $cuenta, $banco, $f){
 		if($_SESSION['user']){
 			$data = new pegaso;
 			$pagina =$this->load_template('Pedidos');
 			ob_start();
 			$guardar=$data->guardaEdoCta($pagos, $compras, $gastos);
-			///if($banco == 'Banco Az'){
-	        ///    	$banco = 'Banco Azteca';
-	        ///    	$cuenta = '0110239668';
-	        ///}elseif ($banco == 'Scotiaba'){
-	        ///    	$banco = 'Scotiabank';
-	        ///    	$cuenta= '044180001025870734';
-	        ///}
-	           // echo 'mes'.$mes.' anio '.$anio.' cuenta '.$cuenta.' banco '.$banco;
-	           // break;
-	         $redireccionar="estado_de_cuenta_mes&mes={$mes}&banco={$banco}&cuenta={$cuenta}&anio={$anio}&nvaFechComp=''";
-	         $pagina = $this->load_template('Pedidos');
-	         $html=$this->load_page('app/views/pages/p.redirectform.php');
-	         include 'app/views/pages/p.redirectform.php';
-	         $this->view_page($pagina);
+			$redireccionar="estado_de_cuenta_mes&mes={$mes}&banco={$banco}&cuenta={$cuenta}&anio={$anio}&nvaFechComp=''&f={$f}";
+	        $pagina = $this->load_template('Pedidos');
+	        $html=$this->load_page('app/views/pages/p.redirectform.php');
+	        include 'app/views/pages/p.redirectform.php';
+	        $this->view_page($pagina);
 		}else{
 			$e = "Favor de iniciar Sesión";
 	    	header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -20696,13 +20665,11 @@ function ImpSolicitud2($idsol){
 			$data = new pegaso;
 			$pagina = $this->load_template('Pagos');        	
         	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta.php');
-
-        	if(strtoupper($fileType) == 'PDF'){
-        		$reg = $data->regfile($target_file, $fileType, $datos, $banco, $cuenta, $nombre, $target_dir);
-        	}else{
+        	$reg = $data->regfile($target_file, $fileType, $datos, $banco, $cuenta, $nombre, $target_dir);
+        	if(strtoupper($fileType) != 'PDF'){
         		$res= $data->revisaXLSX($target_file, $datos);
 				if($res['status']== 'ok'){
-					$carga=$data->cargaXLSX($datos, $res['data'], $banco, $cuenta);
+					$carga=$data->cargaXLSX($datos, $res['data'], $banco, $cuenta, $reg);
 				}	
         	}
 			$html = $this->load_page('app/views/pages/p.redirectform.php');
@@ -20710,7 +20677,6 @@ function ImpSolicitud2($idsol){
 			$pagina=$this->load_template('Pedidos');
             $html = $this->load_page('app/views/pages/p.redirectform.php');
             include 'app/views/pages/p.redirectform.php';
-            //$this->view_page($pagina);    
 		}
 	}
 
@@ -20821,6 +20787,32 @@ function ImpSolicitud2($idsol){
         }else{
             $e = "Favor de iniciar sesión";
             header('Location: index.php?action=login&e='.urlencode($e)); exit;
+    	}
+    }
+
+    function verCargas($b, $c){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$t = 'x';
+    		$carga=$data->verCargas($b, $c, $t);
+    		$pagina=$this->load_template_popup('Estado de Cuenta');				
+        	$html = $this->load_page('app/views/pages/Contabilidad/p.verCargas.php');
+        	ob_start();
+        	include 'app/views/pages/Contabilidad/p.verCargas.php';
+			$table = ob_get_clean();
+			$pagina = $this->replace_content('/\#CONTENIDO\#/ms' , $table, $pagina);
+        	$this ->view_page($pagina);
+        }else{
+            $e = "Favor de iniciar sesión";
+            header('Location: index.php?action=login&e='.urlencode($e)); exit;
+    	}
+    }
+
+    function delCarga($idc){
+    	if($_SESSION['user']){
+    		$data = new pegaso;
+    		$res = $data->delCarga($idc);
+    		return $res;
     	}
     }
 }?>

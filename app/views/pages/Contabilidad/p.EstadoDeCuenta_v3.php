@@ -39,7 +39,7 @@
                                         foreach ($bancos as $data):                           
                                         ?>
                                        <tr>
-                                            <td align="right"><?php echo $data->BANCO;?></td>
+                                            <td ><?php echo $data->BANCO;?><p><a class="btn-sm btn-primary" href="index.php?action=verCargas&b=<?php echo $data->BANCO?>&c=<?php echo $data->NUM_CUENTA?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=600'); return false;">Ver cargas</a></p></td>
                                             <td><?php echo $data->NUM_CUENTA;?></td>
                                             <td><?php echo $data->CTA_CONTAB;?></td>
                                             <td><?php echo $data->ABONOS_ACTUAL;?></td>
@@ -69,7 +69,7 @@
                                   <th width="10%"> Seleccionar Mes: </th>
                                   <th width="5%"> </th>
                                   <th width="10%"> Seleccionar Año: </th>
-                                  <th width="75%"></th>
+                                  <th width="5%"></th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -98,6 +98,7 @@
                                           <input type="hidden" name="cuenta" value="<?php echo $data->NUM_CUENTA?>">
                                     <?php endforeach ?>
                                         <button name='FiltrarEdoCta_v3' type = "submit" value="enviar"> Aplicar </button>
+                                        <td align="lefth"> <input type="checkbox" name="f" id="f" value="si"><b> Mantener carga Excel</b></td>
                                     </td>
                                     </form>
                                     </tr>
@@ -211,6 +212,7 @@
                                 <table class="table table-striped table-bordered table-hover" >
                                     <thead>
                                         <tr>
+                                            <th></th>
                                             <th>TIPO</th>
                                             <th>FOLIO / UUID </th>
                                             <th>FECHA REGISTRO</th>
@@ -265,6 +267,7 @@
                                               }           
                                           ?>
                                        <tr class="odd gradeX" <?php echo $color;?> id="<?php echo $i;?>">
+                                            <td><?php echo $i?></td>
                                             <td><?php echO $datos->TIPO;?></td>
                                             <td><?php echo $datos->CONSECUTIVO;?></td>
                                             <td><?php echo substr($datos->FECHAMOV,0, 10) ;?></td>
@@ -376,6 +379,7 @@ if (empty($exec)){
                               <input type="hidden" name="anio" value="<?php echo $anio ?>">
                               <input type="hidden" name="cuenta" value="<?php echo $cuenta?>">
                               <input type="hidden" name="banco" value="<?php echo $banco?>">
+                              <input type="hidden" name="f" value="<?php echo $f?>">
                               <button type="submit" name="cerrarEdoCtaMes" value="enviar" > Cierre de Estado de Cuenta</button>
                             </form>
                             </center>
@@ -393,9 +397,10 @@ if (empty($exec)){
                         </div>
                            <div class="panel-body">
                             <div class="table-responsive">                            
-                                <table class="table table-striped table-bordered table-hover" >
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-EdoCtaV3">
                                     <thead>
                                         <tr>
+                                            <th></th>
                                             <th>TIPO</th>
                                             <th>FOLIO / UUID </th>
                                             <th>FECHA REGISTRO</th>
@@ -446,6 +451,7 @@ if (empty($exec)){
                                                }        
                                           ?>
                                        <tr class="odd gradeX" <?php echo $color;?> id="<?php echo $i;?>">
+                                            <td><?php echo $i?></td>
                                             <td><?php echO $datos->TIPO;?></td>
                                             <td><?php echo $datos->CONSECUTIVO.' / '.$datos->TP_TES.'<br/>'.$datos->OBS;?></td>
                                             <td><?php echo substr($datos->FECHAMOV,0, 10) ;?></td>

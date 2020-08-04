@@ -24,7 +24,7 @@
                                         foreach ($bancos as $data):                           
                                         ?>
                                        <tr>
-                                            <td align="right"><?php echo $data->BANCO;?></td>
+                                            <td align="lefth"><?php echo $data->BANCO;?><br/><br/><a class="btn-sm btn-primary" href="index.php?action=verCargas&b=<?php echo $data->BANCO?>&c=<?php echo $data->NUM_CUENTA?>" target="popup" onclick="window.open(this.href, this.target, 'width=1000,height=600'); return false;">Ver cargas</a></td>
                                             <td><?php echo $data->NUM_CUENTA;?></td>
                                             <td><?php echo $data->CTA_CONTAB;?></td>
                                             <td><?php echo $data->ABONOS_ACTUAL;?></td>
@@ -33,8 +33,13 @@
                                             <td>
                                               <form action="upload_EdoCta.php" method="post" enctype="multipart/form-data">
                                                 <input type="file" name="fileToUpload">
-                                                <input type="submit" name="enviar" value="Cargar">
                                                 <input type="hidden" name="datos" value="<?php echo $data->BANCO.':'.$data->NUM_CUENTA.':'.$data->CTA_CONTAB?>">
+                                                <input type="hidden" name="idb" value="<?php echo $data->ID?>">
+                                                <input type="hidden" name="mes" value="0">
+                                                <input type="hidden" name="anio" value="0">
+                                                <input type="hidden" name="datos" value="<?php echo $banco.':'.$cuenta.':0:0'?>">
+                                                <input type="hidden" name="o" value="v1">
+                                                <input type="submit" name="enviar" value="Cargar">
                                               </form>
                                               <a href="app/tmp/LayOut_edo_cta.xlsx" download>Descarga LayOut</a>
                                             </td>
@@ -61,7 +66,7 @@
                                   <th width="10%"> Seleccionar Mes: </th>
                                   <th width="5%"> </th>
                                   <th width="10%"> Seleccionar Año: </th>
-                                  <th width="75%"></th>
+                                  <th width="5%"></th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -90,6 +95,7 @@
                                     <?php endforeach ?>
                                         <button name="FiltrarEdoCta" value="enviar" onclick="filtrar()"> Aplicar </button>
                                     </td>
+                                    <td align="lefth"> <input type="checkbox" name="f" id="f"><b> Mantener carga Excel</b></td>
                                     </tr>
                               </tbody>
                          </table>                             
@@ -99,26 +105,25 @@
 </div>
 </div>
 
-<?php if($mes!=0)
-  { ?>
-<?php 
-if (empty($exec)){
-?>
-<div class="row">
-                <div class="col-lg-12">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                          Pagos Registrados en <?php echo $mesactual->NOMBRE.'
-                          durante el periodo del '.$mesactual->FECHA_INI.' al '.$mesactual->FECHA_FIN;?>.
-                        </div>
-                           <div class="panel-body">
-                            <div class="table-responsive">                            
-                              NO SE ENCONTRO INFORMAICON DEL MES DE <?php echo $mesactual->NOMBRE?>
-                            <!-- /.table-responsive -->
-                      </div>
-            </div>
-        </div>
-</div>
+<?php if($mes!=0){ ?>
+
+<?php if(empty($exec)){ ?>
+    <!--
+      <div class="row">
+                      <div class="col-lg-12">
+                          <div class="panel panel-default">
+                              <div class="panel-heading">
+                                Pagos Registrados en <?php echo $mesactual->NOMBRE.'
+                                durante el periodo del '.$mesactual->FECHA_INI.' al '.$mesactual->FECHA_FIN;?>.
+                              </div>
+                                 <div class="panel-body">
+                                  <div class="table-responsive">                            
+                                    NO SE ENCONTRO INFORMAICON DEL MES DE <?php echo $mesactual->NOMBRE?>
+                            </div>
+                  </div>
+              </div>
+      </div>
+    -->
 <?php }
 else
 { 
@@ -301,6 +306,7 @@ else
 ?>
 <?php }
 ?>
+<!--
   <form action="index.php" method=post id="formulario1" target="el-iframe"> 
     <input type="hidden" name="fecha" id="fnvaFecha" value=""> 
     <input type="hidden" name="iden" id="fiden" value="">
@@ -308,6 +314,7 @@ else
     <input type="hidden" name="regnvafecha"> 
   </form>
   <iframe name="el-iframe" type="hidden"></iframe>
+-->
 <!--Modified by GDELEON 3/Ago/2016-->
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -322,7 +329,13 @@ else
     var anio = document.getElementById('fa').value
     var cuenta = document.getElementById('fc').value
     var banco = document.getElementById('fb').value
-    window.open("index.php?action=FiltrarEdoCta&mes="+mes+"&anio="+anio+"&cuenta="+cuenta+"&banco="+banco , "_self")
+    var f = document.getElementById('f').checked
+    if(f){
+      f='si'
+    }else{
+      f='no'
+    }
+    window.open("index.php?action=FiltrarEdoCta&mes="+mes+"&anio="+anio+"&cuenta="+cuenta+"&banco="+banco+"&f="+f , "_self")
 
   }
 

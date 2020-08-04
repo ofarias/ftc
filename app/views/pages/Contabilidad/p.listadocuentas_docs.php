@@ -3,11 +3,12 @@
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                Estado de cuenta
+                Listado de cuentas bancarias
             </div>
             <div class="panel-body">
                 <div class="table-responsive">  
-                    <span>Listado de cuentas bancarias</span>
+                    <span></span>
+                <?php if(count($exec) >0 ){?>
                     <table class="table table-striped table-bordered table-hover" id="dataTables">
                         <thead>
                             <tr>
@@ -16,32 +17,41 @@
                                 <th>MONEDA</th>
                             </tr>
                         </thead>   
+
                         <tbody>
-                            <?php $i=0; foreach ($exec as $data): $i++;?>
+                            <?php foreach ($exec as $data): ?>
                                 <tr class="odd gradeX" onmousemove="this.style.fontWeight = 'bold';
                                         this.style.cursor = 'pointer'" onmouseout="this.style.fontWeight = 'normal';
                                                 this.style.cursor = 'default';"
-                                    onclick="seleccionaCuenta(<?php echo $i?>);">
-                                    <input name="identificador" id="<?php echo $i?>_identificador" type="hidden" value="<?php echo $data->ID; ?>"/>
-                                    <input name="numero_cuenta" id="<?php echo $i?>_cuenta" type="hidden" value="<?php echo $data->NUM_CUENTA;?>"/>
-                                    <input name="banco" id="<?php echo $i?>_banco" type="hidden" value="<?php echo $data->BANCO;?>"/>
+                                    onclick="seleccionaCuenta('<?php echo $data->ID; ?>','<?php echo $data->BANCO;?>','<?php echo $data->NUM_CUENTA;?>');">
                                     <td><?php echo $data->BANCO; ?></td>
                                     <td><?php echo $data->NUM_CUENTA; ?></td>
-                                    <td><?php echo $data-> DESCR; ?></td>
+                                    <td><?php echo $data->DESCR; ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                <?php }else{?>
+                    <div class="alert-danger"><center><h2>No existen cuentas bancarias</h2><center></div>
+                <?php }?>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<form action="index.php" method="POST" id="FORM_ACTION_ESTADOCUENTA">
+    <input name="identificador" id="identificador" type="hidden" value=""/>
+    <input name="numero_cuenta" id="cuenta" type="hidden" value=""/>
+    <input name="banco" id="banco" type="hidden" value=""/>
+    <input name="ESTADO_DE_CUENTA_DOCS" type="hidden" value="ESTADO_DE_CUENTA_DOCS"/>
+</form>
+
 <script language="javascript">
-    function seleccionaCuenta(i) {
-        var iden = document.getElementById(i+"_identificador").value 
-        var banco = document.getElementById(i+"_banco").value
-        var cuenta = document.getElementById(i+"_cuenta").value
-        window.open("index.php?action=ESTADO_DE_CUENTA&identificador="+iden+"&banco="+banco+"&cuenta="+cuenta, "_self")
+    function seleccionaCuenta(identificador, banco, cuenta) {
+        document.getElementById("identificador").value = identificador;
+        document.getElementById("banco").value = banco;
+        document.getElementById("cuenta").value = cuenta;
+        var form = document.getElementById("FORM_ACTION_ESTADOCUENTA");
+        form.submit();
     }
 </script>

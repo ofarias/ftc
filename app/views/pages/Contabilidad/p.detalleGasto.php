@@ -147,7 +147,7 @@
                                 <table class="table table-striped table-bordered table-hover" id="dataTables-aplicaGasto">
                                     <thead>
                                         <tr>
-                                            <th>UUID</th>
+                                            <th>UUID <br/> Factura</th>
                                             <th>Proveedor</th>
                                             <th>Fecha Edo de Cta</th>
                                             <th>Monto </th>
@@ -218,11 +218,11 @@
                             dataType:'json',
                             data:{canapl:1, idp, ida, valor, uuid}
                         }).done(function(response){
-                            self.setContentAppend('<div>Done</div>')
+                            self.setContentAppend('<div>Se ha cancelado la aplicación.</div>')
                         }).fail(function(){
-                            self.setContentAppend('<div>Fail</div>')
+                            //self.setContentAppend('<div>Fail</div>')
                         }).always(function(){
-                            self.setContentAppend('<div>Always</div>')
+                            self.setContentAppend('<div>Se ha cancelado la aplicaión.</div>')
                             location.reload(true)
                         })
             }, 
@@ -230,7 +230,7 @@
                 self.setContentAppend('<div>Content loaded!</div>');
             },
             onContentReady:function(){
-                this.setContentAppend('<div>Content Listo</div>')
+                this.setContentAppend('<div>Se actualizara en 3 segundos...</div>')
             }
         })
     });
@@ -326,11 +326,11 @@
                     dataType:'json', 
                     data:{contabiliza:1, tipo, idp, a, obs}
                 }).done(function(response){
-                    self.setContentAppend('<div>Done</div>')
+                    self.setContentAppend('<div>Contabilizacion en COI.</div>')
                 }).fail(function(){
-                    self.setContentAppend('<div>Fail</div>')
+                    //self.setContentAppend('<div>Fail</div>')
                 }).always(function(){
-                    self.setContentAppend('<div>Always</div>')
+                    self.setContentAppend('<div>Favor de revisar la informacion en COI</div>')
                     location.reload(true)
                 })
             }, 

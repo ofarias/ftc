@@ -1138,7 +1138,8 @@ elseif(isset($_POST['cambiarStatus'])){
         	}else{
         		$nvaFechComp = '01.01.2016';
         	}
-	$controller->estado_de_cuenta_mes_docs($mes,$banco,$cuenta, $anio, $nvaFechComp);
+    $f = isset($_POST['f'])? $_POST['f']:'no';
+	$controller->estado_de_cuenta_mes_docs($mes,$banco,$cuenta, $anio, $nvaFechComp, $f);
 }elseif(isset($_POST['FiltrarEdoCta'])){
 	$mes=$_POST['mes'];
 	$banco=$_POST['banco'];
@@ -2072,11 +2073,7 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	$cuenta = $_POST['cuenta'];
 	$banco =$_POST['banco'];
 	$anio = $_POST['anio'];
-	///var_dump($pagos).'<p>';
-	///var_dump($compras).'<p>';
-	///var_dump($gastos).'<p>';
-	///break;
-	$controller->guardaEdoCta($pagos, $compras, $gastos, $anio, $mes, $cuenta, $banco);
+	$controller->guardaEdoCta($pagos, $compras, $gastos, $anio, $mes, $cuenta, $banco, $_POST['f']);
 }elseif (isset($_POST['actFecha'])) {
 	$tipo =$_POST['tipo'];
 	$docu = $_POST['docu'];
@@ -2685,6 +2682,10 @@ exit();
 	exit();
 }elseif(isset($_POST['creaProy'])){
 	$controller->creaProy($_POST['mes'], $_POST['anio'], $_POST['tipo']);
+	exit();
+}elseif (isset($_POST['delCarga'])) {
+	$res=$controller->delCarga($_POST['idc']);
+	echo json_encode($res);
 	exit();
 }
 else{
@@ -3468,11 +3469,7 @@ else{
         	$banco =$_GET['banco'];
         	$anio = $_GET['anio'];
         	$nvaFechComp=$_GET['nvaFechComp'];
-        	//echo $mes;
-        	//echo $cuenta;
-        	//echo $banco; 
-        	//echo $anio;
-        	$controller->estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $nvaFechComp);
+        	$controller->estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $nvaFechComp, $_GET['f']);
         	break;
         case 'ValidaRecepcionConFolio';
         	$docr = $_GET['docr'];
@@ -4333,11 +4330,16 @@ else{
    			}else{
    				$nvaFechComp = '01.01.2016';
    			}
-   			$controller->estado_de_cuenta_mes($mes,$banco,$cuenta, $anio, $nvaFechComp);
+   			$controller->estado_de_cuenta_mes($mes,$banco,$cuenta, $anio, $nvaFechComp, $_GET['f']);
+   			break;
    		case 'ESTADO_DE_CUENTA':
    			$banco = $_GET['banco'];
 			$cuenta = $_GET['cuenta'];
 			$controller->estado_de_cuenta($banco, $cuenta);
+			break;
+		case 'verCargas':
+			$controller->verCargas($_GET['b'], $_GET['c']);
+			break;
 		default: 
 			$controller->login();
 			break;

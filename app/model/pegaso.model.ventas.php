@@ -2026,6 +2026,12 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
                 $this->EjecutaQuerySimple();
                 $this->query="EXECUTE PROCEDURE  SP_CARGA_CUENM_SAE ($folio, '$serie', '$doc', '$uuid', '$tipo')";
                 $this->EjecutaQuerySimple();    
+            if($tipo == 'I'){
+                $this->query = "UPDATE CFDI01 SET XML_DOC = SUBSTRING(XML_DOC FROM 4), tipo_doc='F'  WHERE CVE_DOC = '$doc'";
+            }else{
+                $this->query = "UPDATE CFDI01 SET XML_DOC = SUBSTRING(XML_DOC FROM 4), tipo_doc='D' WHERE CVE_DOC = '$doc'";
+            }
+            $this->queryActualiza();
         }else{
             $res=$this->cargaCEP($doc, $ruta2, $rfcr, $serie, $folio);
         }   
