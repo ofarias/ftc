@@ -23726,6 +23726,12 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
         $respuesta = $this->grabaBD();
         $this->insertaXMLData($archivo, $tipo, $uuid);
         $this->actParametros($uuid, $tipo);
+        /// Manejo de XML 3.2
+        $this->query="UPDATE xml_data set tipo = 'I' where tipo = 'ingreso'";
+        $this->queryActualiza();
+		$this->"UPDATE xml_data set tipo = 'E' where tipo = 'egreso'";
+		$this->queryActualiza();
+
         return $respuesta;
     }
 
