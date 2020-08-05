@@ -24338,7 +24338,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            }elseif($tipo2 == 'C'){
 			            	$this->query = "INSERT INTO XML_DATA_CANCELADOS (UUID, CLIENTE, SUBTOTAL, IMPORTE, FOLIO, SERIE, FECHA, RFCE, DESCUENTO, STATUS, TIPO, FILE )";
 				            $this->query.= "VALUES ('$uuid', '$rfc', '$subtotal', '$total', '$folio', '$serie', '$fecha', '$rfce', $descuento, 'C', '$tipo2', '$archivo')";
-				            //echo "<p>query: ".$this->query."</p>";
+				            echo "<p>query: ".$this->query."</p>";
 							//$respuesta = $this->grabaDB();
 							$respuesta = $this->grabaBD();
 			            }
