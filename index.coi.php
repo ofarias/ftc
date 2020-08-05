@@ -89,6 +89,10 @@ if (isset($_POST['usuario'])){
 	$res=$controller_coi->creaCC($_POST['uuid'], $_POST['papa']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['edoXls'])) {
+	$res=$controller_coi->edoXls($_POST['a'],$_POST['m'],$_POST['b'],$_POST['c'],$_POST['f'], $_POST['v']);
+	echo json_encode($res);
+	exit();
 }
 else{switch ($_GET['action']){
 	//case 'inicio':

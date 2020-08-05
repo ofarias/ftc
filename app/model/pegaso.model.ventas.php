@@ -2156,10 +2156,7 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
             default:
             break;
         }
-        $fecha='';
-        $cls='';
-        $detalle= '';
-        $cd="";
+        $fecha=''; $cls=''; $detalle= ''; $cd=""; $campos='';
         if($op4!='' and $op5!=''){
             // Quiere decir que se parametizan las fechas
             $fecha = " and fecha_doc >= '".$op4."' and fecha_doc <='".$op5."' ";    
@@ -2180,15 +2177,18 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
             $cls=" and trim(cliente) in (".substr($cls,0,-1).")";
         }
         if($op2 == 'Detallado'){
+            $campos = " , t2.SUBTOTAL AS SUBTOTAL_P, t2.TOTAL AS TOTAL_P, t2.DESC1 AS DESC1_P, t2.DESC2 AS DESC2_P, t2.DESC3 AS DESC3_P, t2.DESCF AS DESCF_P  ";
             $detalle = " left join ".$tabla2." on t2.documento = t1.documento ";
-            $cd="*.t2, ";
+            $cd="t2.*, ";
         }
 
         if($op3 == 'Agrupado'){
-            $this->query="SELECT t1.*, $cd (SELECT C.NOMBRE FROM CLIE01 C WHERE trim(C.CLAVE) = t1.cliente ) FROM $tabla $detalle where t1.status is not null  $fecha $cls order by cliente";
+            $this->query="SELECT t1.*, $cd (SELECT C.NOMBRE FROM CLIE01 C WHERE trim(C.CLAVE) = t1.cliente ) $campos FROM $tabla $detalle where t1.status is not null  $fecha $cls order by cliente";
         }else{
-            $this->query="SELECT t1.*, $cd (SELECT C.NOMBRE FROM CLIE01 C WHERE trim(C.CLAVE) = t1.cliente ) FROM $tabla $detalle where t1.status is not null  $fecha $cls";
+            $this->query="SELECT t1.*, $cd (SELECT C.NOMBRE FROM CLIE01 C WHERE trim(C.CLAVE) = t1.cliente ) $campos FROM $tabla $detalle where t1.status is not null  $fecha $cls";
         }
+        //echo $this->query;
+        //die;
         $res=$this->EjecutaQuerySimple();
         while($tsarray=ibase_fetch_object($res)){
             $data[]=$tsarray;

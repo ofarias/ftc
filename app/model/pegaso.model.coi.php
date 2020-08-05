@@ -2761,5 +2761,9 @@ class CoiDAO extends DataBaseCOI {
         }
         return;
     }
+
+    function traeinfo($pol, $e, $per, $cta){
+        
+    }
 }      
 ?>

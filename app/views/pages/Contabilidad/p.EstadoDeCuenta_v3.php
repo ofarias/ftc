@@ -264,7 +264,10 @@
                                                }   
                                                if($datos->DUPLICADOS > 1){
                                                 $color = "style='background-color:#F1E4FF' title='Se encontraron ".$datos->DUPLICADOS." posibles duplicados, favor de revisar la información.'";
-                                              }           
+                                              }    
+                                              if(!empty($datos->CONTABILIZADO) ){
+                                                $color = "style='background-color:#FFF7C6' title='Pendiente de contabilizar.'";
+                                              }       
                                           ?>
                                        <tr class="odd gradeX" <?php echo $color;?> id="<?php echo $i;?>">
                                             <td><?php echo $i?></td>
@@ -278,7 +281,9 @@
                                               <a href="index.php?action=pagoFacturas&idp=<?php echo $datos->IDENTIFICADOR?>" target="_blank"?> <?php echo $desc;?> </a>
                                             </td> 
                                             <td><?php echo $datos->USUARIO;?></td>
+
                                             <td><?php echo $datos->CONTABILIZADO?><br><input type="button" value="Valida Poliza"></td>
+                                            
                                               <td><?php echo $cep?>
                                               <?php if($datos->CEP > 0 and $datos->CEP<999999){ ?>
                                               <a href="/Facturas/FacturasJson/<?php echo $datos->ARCHIVO_CEP.'.pdf'?>" download > <img border="0" src="app/views/images/pdf.jpg" width="25" height="30"></a>
@@ -369,19 +374,21 @@ if (empty($exec)){
                                     </tr>
                                  </table>
 
-                                 <center>
-                            <form action="index.php" method="post">
-                              <input type="hidden" name="abonosCierre" id="acierre" value="<?php echo ($total)?>" >
-                              <input type="hidden" name="cargosCierre" id="ccierre" value="<?php echo (($totC + $totG + $totD + $totCr)) ?>" >
-                              <input type="hidden" name="inicialCierre" id="icierre" value="<?php echo ($inicial)?>" >
-                              <input type="hidden" name="finalCierre"  id="fcierre" value="<?php echo (($inicial + $total)-($totC + $totG + $totD + $totCr)) ?>" >
-                              <input type="hidden" name="mes" value="<?php echo $mes ?>">
-                              <input type="hidden" name="anio" value="<?php echo $anio ?>">
-                              <input type="hidden" name="cuenta" value="<?php echo $cuenta?>">
-                              <input type="hidden" name="banco" value="<?php echo $banco?>">
-                              <input type="hidden" name="f" value="<?php echo $f?>">
-                              <button type="submit" name="cerrarEdoCtaMes" value="enviar" > Cierre de Estado de Cuenta</button>
-                            </form>
+                            <center>
+                                <form action="index.php" method="post">
+                                  <input type="hidden" name="abonosCierre" id="acierre" value="<?php echo ($total)?>" >
+                                  <input type="hidden" name="cargosCierre" id="ccierre" value="<?php echo (($totC + $totG + $totD + $totCr)) ?>" >
+                                  <input type="hidden" name="inicialCierre" id="icierre" value="<?php echo ($inicial)?>" >
+                                  <input type="hidden" name="finalCierre"  id="fcierre" value="<?php echo (($inicial + $total)-($totC + $totG + $totD + $totCr)) ?>" >
+                                  <input type="hidden" name="mes" value="<?php echo $mes ?>">
+                                  <input type="hidden" name="anio" value="<?php echo $anio ?>">
+                                  <input type="hidden" name="cuenta" value="<?php echo $cuenta?>">
+                                  <input type="hidden" name="banco" value="<?php echo $banco?>">
+                                  <input type="hidden" name="f" value="<?php echo $f?>">
+                                  <button type="submit" name="cerrarEdoCtaMes" value="enviar" class="btn-sm btn-warning"> Cierre de Estado de Cuenta</button>
+                                </form>
+                                <br/>
+                                <button class="btn-sm btn-primary xls" a ="<?php echo $anio?>" m="<?php echo $mes?>" b="<?php echo $banco?>" c ="<?php echo $cuenta?>" f="<?php echo $f?>">Descargar a Excel</button>
                             </center>
                       </div>
             </div>
@@ -448,7 +455,10 @@ if (empty($exec)){
                                                if($datos->CEP > 0 and $datos->CEP<999999){
                                                $color="style='background-color:#A9F5A9'";
                                                $cep = 'P'.$datos->CEP;
-                                               }        
+                                               }   
+                                               if(empty($datos->CONTABILIZADO) ){
+                                                $color = "style='background-color:#FFF7C6' title='Pendiente de contabilizar.'";
+                                              }       
                                           ?>
                                        <tr class="odd gradeX" <?php echo $color;?> id="<?php echo $i;?>">
                                             <td><?php echo $i?></td>
@@ -468,7 +478,11 @@ if (empty($exec)){
                                               <?php }?>
                                             </td>
                                             <td><?php echo $datos->USUARIO;?></td>
-                                            <td><?php echo $datos->CONTABILIZADO?><br><input type="button" value="Valida Poliza" class="validaPol" pol="<?php echo $datos->CONTABILIZADO?>" a="<?php echo $anio?>" per="<?php echo $mes?>" cta="<?php echo $cuenta?>" id="<?php echo $datos->CONSECUTIVO?>"></td>
+                                            <td><?php echo $datos->CONTABILIZADO?><br>
+                                              <?php if(!empty($datos->CONTABILIZADO)){?>
+                                                <input type="button" value="Valida Poliza" class="validaPol" pol="<?php echo $datos->CONTABILIZADO?>" a="<?php echo $anio?>" per="<?php echo $mes?>" cta="<?php echo $cuenta?>" id="<?php echo $datos->CONSECUTIVO?>">
+                                              <?php }?>
+                                            </td>
                                             <td><?php echo $cep?>
                                               <?php if($datos->CEP > 0 and $datos->CEP<999999){ ?>
                                               <a href="/Facturas/FacturasJson/<?php echo $datos->ARCHIVO_CEP.'.pdf'?>" download > <img border="0" src="app/views/images/pdf.jpg" width="25" height="30"></a>
@@ -481,22 +495,12 @@ if (empty($exec)){
                                         </tr>
                                  </tbody>
                             </table>
-                            <!-- /.table-responsive -->
                       </div>
             </div>
         </div>
 </div>
 <?php } ?>
 <?php } ?>
-<!--
-  <form action="index.php" method=post id="formulario1" target="el-iframe"> 
-    <input type="hidden" name="fecha" id="fnvaFecha" value=""> 
-    <input type="hidden" name="iden" id="fiden" value="">
-    <input type="hidden" name="valor" id="valor" value="">
-    <input type="hidden" name="regnvafecha"> 
-  </form>
-  <iframe name="el-iframe" type="hidden"></iframe>
--->
 
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
@@ -505,6 +509,23 @@ if (empty($exec)){
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script>
+
+  $(".xls").click(function(){
+      var m = $(this).attr('m'); var a = $(this).attr('a'); var b = $(this).attr('b'); var c = $(this).attr('c'); var v = 3; var f = $(this).attr('f');
+      $.ajax({
+        url:'index.coi.php',
+        type:'post',
+        dataType:'json',
+        data:{edoXls:1, m, a, b, c, f, v},
+        success:function(data){
+          //window.open('/', 'download')
+        },
+        error:function(){
+          $.alert('No se pudo generar el XLS, favor de revisar la informacion')
+        }
+
+      })
+  })
 
   $(document).ready(function() {
     $(".date1").datepicker({dateFormat: 'dd.mm.yy'});

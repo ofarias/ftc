@@ -1421,96 +1421,128 @@ class pegaso_controller_ventas{
             $datav=new pegaso_ventas;
             $datos=$datav->repVenta($op1, $op2, $op3, $op4, $op5, $op6, $op7);
             if($op1= 'Excel'){
-                $res=$this->repVentaXLS($datos['datos'], $op4, $op5);
+                $res=$this->repVentaXLS($datos['datos'], $op4, $op5, $op2);
                 return $res;
             }
             return $datos;
         }
     }
 
-    function repVentaXLS($datos, $op4, $op5){
+    function repVentaXLS($datos, $op4, $op5, $op2){
             $xls= new PHPExcel();
             $data= new pegaso; 
             $df= $data->traeDF($idem = 1);
             $usuario =$_SESSION['user']->NOMBRE;
             $fecha = date('d-m-Y h:i:s');
-            $ln = 10;
-            $i = 0;
-            $t=0;
-            $s=0;
+            $ln = 11; $i = 0; $t=0; $s=0;
             foreach ($datos as $key) {
+                $col = 'A';
                 $i++;
                 $t += $key->TOTAL;
                 $s += $key->SALDO_FINAL;
                 $xls->setActiveSheetIndex()
-                    ->setCellValue('A'.$ln,$key->DOCUMENTO)
-                    ->setCellValue('B'.$ln,$key->FECHA_DOC)
-                    ->setCellValue('C'.$ln,$key->NOMBRE)
-                    ->setCellValue('D'.$ln,$key->SUBTOTAL)
-                    ->setCellValue('E'.$ln,$key->IVA)
-                    ->setCellValue('F'.$ln,$key->TOTAL)
-                    ->setCellValue('G'.$ln,$key->SALDO_FINAL)
-                    ->setCellValue('H'.$ln,$key->USO_CFDI)
-                    ->setCellValue('I'.$ln,$key->FORMADEPAGOSAT)//number_format($key->SUBTOTAL,2,".",""))
-                    ->setCellValue('J'.$ln,$key->METODO_PAGO)//number_format($key->IVA,2,".",""))
-                    ->setCellValue('K'.$ln,$key->MONEDA)//number_format($key->IVA_RET,2,".",""))
-                    ->setCellValue('L'.$ln,$key->TIPO_CAMBIO)
-                    ->setCellValue('M'.$ln,$key->USUARIO)//number_format($key->IEPS,2,".",""))
-                    ->setCellValue('N'.$ln,$key->UUID)
-                    ->setCellValue('O'.$ln,$key->STATUS)
+                    ->setCellValue($col.$ln,$key->DOCUMENTO)
+                    ->setCellValue(++$col.$ln,$key->FECHA_DOC)
+                    ->setCellValue(++$col.$ln,$key->NOMBRE)
+                ;
+                if($op2 == 'Detallado'){
+                    $xls->setActiveSheetIndex()
+                        ->setCellValue(++$col.$ln,$key->UM)
+                        ->setCellValue(++$col.$ln,$key->ARTICULO)
+                        ->setCellValue(++$col.$ln,$key->DESCRIPCION)
+                        ->setCellValue(++$col.$ln,$key->CANTIDAD)
+                        ->setCellValue(++$col.$ln,$key->PRECIO)
+                        ->setCellValue(++$col.$ln,$key->DESCUENTO)
+                        ->setCellValue(++$col.$ln,$key->SUBTOTAL_P)
+                        ->setCellValue(++$col.$ln,($key->IMP1/100) * $key->PRECIO)
+                        ->setCellValue(++$col.$ln,$key->IMP2)
+                        ->setCellValue(++$col.$ln,$key->IMP3)
+                        ->setCellValue(++$col.$ln,$key->TOTAL_P)
+                        ->setCellValue(++$col.$ln,$key->CLAVE_SAT)
+                        ->setCellValue(++$col.$ln,$key->MEDIDA_SAT)
+
+                    ;
+                }else{
+                    $xls->setActiveSheetIndex()
+                        ->setCellValue(++$col.$ln,$key->SUBTOTAL)
+                        ->setCellValue(++$col.$ln,$key->IVA)
+                        ->setCellValue(++$col.$ln,$key->TOTAL)
+                        ->setCellValue(++$col.$ln,$key->SALDO_FINAL)
+                    ;
+                }
+
+                $xls->setActiveSheetIndex()
+                    ->setCellValue(++$col.$ln,$key->USO_CFDI)
+                    ->setCellValue(++$col.$ln,$key->FORMADEPAGOSAT)//number_format($key->SUBTOTAL,2,".",""))
+                    ->setCellValue(++$col.$ln,$key->METODO_PAGO)//number_format($key->IVA,2,".",""))
+                    ->setCellValue(++$col.$ln,$key->MONEDA)//number_format($key->IVA_RET,2,".",""))
+                    ->setCellValue(++$col.$ln,$key->TIPO_CAMBIO)
+                    ->setCellValue(++$col.$ln,$key->USUARIO)//number_format($key->IEPS,2,".",""))
+                    ->setCellValue(++$col.$ln,$key->UUID)
+                    ->setCellValue(++$col.$ln,$key->STATUS)
                 ;
                 $ln++;
             }
             $ln++;
             $xls->setActiveSheetIndex()
                 ->setCellValue('A'.$ln,'Fin del resumen de los documentos.');
-              //->setCellValue('B'.$ln,'')
-              //->setCellValue('C'.$ln,'$ '.number_format($key->SALDOFINAL-$key->IMP_TOT4,2))
-              //->setCellValue('D'.$ln,'$ '.number_format($key->IMP_TOT4,2))
-              //->setCellValue('E'.$ln,'$ '.number_format($key->IMPORTE,2))
-              //->setCellValue('F'.$ln,'$ '.number_format($key->SALDO,2))
-              //->setCellValue('G'.$ln,$key->FECHA_INI_COB)
-              //->setCellValue('H'.$ln,$key->CVE_PEDI)
-              //->setCellValue('I'.$ln,$key->OC);
-            /// 
+    
             $xls->getActiveSheet()
                 ->setCellValue('A1',$df->RAZON_SOCIAL)
             ;
             /// CAMBIANDO EL TAMAÑO DE LA LINEA.
-            $xls->getActiveSheet()->getColumnDimension('A')->setWidth(10);
-            $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
-            $xls->getActiveSheet()->getColumnDimension('C')->setWidth(40);
-            $xls->getActiveSheet()->getColumnDimension('D')->setWidth(15);
-            $xls->getActiveSheet()->getColumnDimension('E')->setWidth(15);
-            $xls->getActiveSheet()->getColumnDimension('F')->setWidth(15);
-            $xls->getActiveSheet()->getColumnDimension('G')->setWidth(15);
-            $xls->getActiveSheet()->getColumnDimension('H')->setWidth(10);
-            $xls->getActiveSheet()->getColumnDimension('I')->setWidth(10);
-            $xls->getActiveSheet()->getColumnDimension('J')->setWidth(10);
-            $xls->getActiveSheet()->getColumnDimension('K')->setWidth(10);
-            $xls->getActiveSheet()->getColumnDimension('L')->setWidth(10);
-            $xls->getActiveSheet()->getColumnDimension('M')->setWidth(30);
-            $xls->getActiveSheet()->getColumnDimension('N')->setWidth(40);
-            $xls->getActiveSheet()->getColumnDimension('O')->setWidth(10);
+            $col= 'A';
+            $xls->getActiveSheet()->getColumnDimension($col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(40);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(30);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(40);
+            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
             
             // Hacer las cabeceras de las lineas;
             //->setCellValue('9','')
+            $col = 'A';
             $xls->getActiveSheet()
-                ->setCellValue('A9','Documento')
-                ->setCellValue('B9','Fecha')
-                ->setCellValue('C9','Nombre')
-                ->setCellValue('D9','SubTotal')
-                ->setCellValue('E9','Iva')
-                ->setCellValue('F9','Total')
-                ->setCellValue('G9','Saldo')
-                ->setCellValue('H9','Uso CFDI')
-                ->setCellValue('I9','Forma Pago')
-                ->setCellValue('J9','Metodo Pago')
-                ->setCellValue('K9','Moneda')
-                ->setCellValue('L9','TC')
-                ->setCellValue('M9','Usuario')
-                ->setCellValue('N9','UUID')
-                ->setCellValue('O9','STATUS')
+                ->setCellValue($col.'10','Documento')
+                ->setCellValue(++$col.'10','Fecha')
+                ->setCellValue(++$col.'10','Nombre')
+            ;
+            if($op2 == 'Detallado'){
+                $xls->getActiveSheet()
+                    ->setCellValue(++$col.'10','UM')
+                    ->setCellValue(++$col.'10','Articulo')
+                    ->setCellValue(++$col.'10','Descripcion')
+                    ->setCellValue(++$col.'10','Cantidad')
+                    ->setCellValue(++$col.'10','Precio')
+                    ->setCellValue(++$col.'10','Descuento')
+                    ->setCellValue(++$col.'10','Sub Total')
+                    ->setCellValue(++$col.'10','IVA')
+                    ->setCellValue(++$col.'10','IVA RET')
+                    ->setCellValue(++$col.'10','IEPS')
+                    ->setCellValue(++$col.'10','Total')
+                    ->setCellValue(++$col.'10','Clave SAT')
+                    ->setCellValue(++$col.'10','Unidad SAT')
+                ;
+            }
+
+            $xls->getActiveSheet()
+                ->setCellValue(++$col.'10','Uso CFDI')
+                ->setCellValue(++$col.'10','Forma Pago')
+                ->setCellValue(++$col.'10','Metodo Pago')
+                ->setCellValue(++$col.'10','Moneda')
+                ->setCellValue(++$col.'10','TC')
+                ->setCellValue(++$col.'10','Usuario')
+                ->setCellValue(++$col.'10','UUID')
+                ->setCellValue(++$col.'10','STATUS')
             ;
 
             $xls->getActiveSheet()

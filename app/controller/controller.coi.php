@@ -18,6 +18,51 @@ class controller_coi{
 	var $contexto_local = "http://SERVIDOR:8081/pegasoFTC/app/";
 	var $contexto = "http://SERVIDOR:8081/pegasoFTC/app/";
 	
+	function nombreMes($mes){
+		switch ($mes) {
+			case 1:
+				$nombre = 'Enero';
+				break;
+			case 2:
+				$nombre = 'Febrero';
+				break;
+			case 3:
+				$nombre = 'Marzo';
+				break;
+			case 4:
+				$nombre = 'Abril';
+				break;
+			case 5:
+				$nombre = 'Mayo';
+				break;
+			case 6:
+				$nombre = 'Junio';
+				break;
+			case 7:
+				$nombre = 'Julio';
+				break;
+			case 8:
+				$nombre = 'Agosto';
+				break;
+			case 9:
+				$nombre = 'Septiembre';
+				break;
+			case 10:
+				$nombre = 'Octubre';
+				break;
+			case 11:
+				$nombre = 'Noviembre';
+				break;
+			case 12:
+				$nombre = 'Diciembre';
+				break;
+			default:
+				$nombre ='Desconocido';
+				break;
+		}
+		return $nombre;
+	}
+
 	function load_template($title='Sin Titulo'){
 		$pagina = $this->load_page('app/views/master.php');
 		$header = $this->load_page('app/views/sections/s.header.php');
@@ -323,9 +368,9 @@ class controller_coi{
 
 	function validaPol($pol, $e, $per, $cta){
 		if ($_SESSION['user']) {
-			$data = new pegaso;
+			$data = new CoiDAO;
 			$data_coi = new CoiDAO;
-			$info = $data->traeinfo($pol);
+			$info = $data->traeinfo($pol, $e, $per, $cta);
 		}
 	}
 
@@ -345,6 +390,177 @@ class controller_coi{
   			$res=$data_coi->creaCC($info, $papa);
   			return $res;
 		}
+	}
+
+	function edoXls($a, $m, $b, $c, $t, $v){
+		if($_SESSION['user']){
+			$data = new pegaso;
+			$xls= new PHPExcel();
+			$nom_mes = $this->nombreMes($m);
+			$exec = $data->estado_de_cuenta_mes_docs($m, $b, $c, $a, $t);;
+			$ln=9; 
+			$i=0;
+			$ta = 0; $tc = 0; $tp = 0; $pd=0; $mc=0; $dep=0; $cgs=0;
+			foreach ($exec as $k){
+				$cl = 'A';
+				$i++;
+				$ln++;
+				$xls->setActiveSheetIndex()
+	                ->setCellValue($cl.$ln,$i)
+	                ->setCellValue(++$cl.$ln, $k->TIPO)
+	                ->setCellValue(++$cl.$ln, $k->CONSECUTIVO)
+	                ->setCellValue(++$cl.$ln, substr($k->FECHAMOV, 0 , 10 ))
+	                ->setCellValue(++$cl.$ln, '$ '.number_format($k->ABONO))
+	                ->setCellValue(++$cl.$ln, '$ '.number_format($k->CARGO))
+	                ->setCellValue(++$cl.$ln, '$ '.number_format($k->SALDO))
+	                ->setCellValue(++$cl.$ln, $k->USUARIO)
+	                ->setCellValue(++$cl.$ln, $k->CONTABILIZADO)
+	                ->setCellValue(++$cl.$ln, $k->CEP)
+	        	;	
+	        	$ta = $ta + $k->ABONO; $tc = $tc + $k->CARGO; $tp= $tp + $k->SALDO; 
+	        	if(empty($k->CONTABILIZADO)){
+	        		$pd++;
+	        	}else{
+	        		$mc++;
+	        	}
+	        	if($k->ABONO>0){$dep++;}
+	        	if($k->CARGO>0){$cgs++;}
+	       		
+			}
+	        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+			$col = 'A';
+	        $xls->getActiveSheet()->getColumnDimension($col)->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(25);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+
+	        // Hacer las cabeceras de las lineas;
+	        //->setCellValue('9','')
+	        $lin=9;
+	        $col = 'A';
+	        $xls->getActiveSheet()
+	            ->setCellValue($col.$lin,'Ln')
+	            ->setCellValue(++$col.$lin,'Tipo')
+	            ->setCellValue(++$col.$lin,'Folio')
+	            ->setCellValue(++$col.$lin,'Fecha de Registro')
+	            ->setCellValue(++$col.$lin,'Deposito')
+	            ->setCellValue(++$col.$lin,'Retiro')
+	            ->setCellValue(++$col.$lin,'por conciliar / aplicar')
+	            ->setCellValue(++$col.$lin,'Usuario Registra')
+	            ->setCellValue(++$col.$lin,'Poliza')
+	            ->setCellValue(++$col.$lin,'Comprobante')
+	        ;
+
+	        $df= $data->traeDF($idem = 1);
+	        $xls->setActiveSheetIndex()
+	        	->setCellValue('A1', $df->RAZON_SOCIAL)
+	        	->setCellValue('A2', 'Banco: ')
+	        	->setCellValue('C2', $b)
+				->setCellValue('A3', 'Cuenta: ')
+	        	->setCellValue('C3', $c)
+	        	->setCellValue('A4', 'Periodo')
+	        	->setCellValue('C4', $m.'/'.$a)
+	        	->setCellValue('A5', 'Depositos ('.$dep.'): ')
+	        	->setCellValue('C5', '$ '.number_format($ta,2))
+	        	->setCellValue('A6', 'Retiros ('.$cgs.'): ')
+	        	->setCellValue('C6', '$ '.number_format($tc,2))
+	        	->setCellValue('A7', 'Total de Movimientos: ')
+	        	->setCellValue('C7', $i)
+	        	->setCellValue('D7', 'Movimientos Contabilizados: ')
+	        	->setCellValue('E7', $mc)
+	        	->setCellValue('F7', 'Movimientos Pendientes: ')
+	        	->setCellValue('G7', $pd)
+	        	->setCellValue('A8', 'Pendiente por Conciliar: ')
+	        	->setCellValue('C8', '$ '.number_format($tp,2))
+	        ;
+
+	        /// Unir celdas
+	        $xls->getActiveSheet()->mergeCells('A1:K1');
+	        $xls->getActiveSheet()->mergeCells('A2:B2');
+	        $xls->getActiveSheet()->mergeCells('A3:B3');
+	        $xls->getActiveSheet()->mergeCells('A4:B4');
+	        $xls->getActiveSheet()->mergeCells('A5:B5');
+	        $xls->getActiveSheet()->mergeCells('A6:B6');
+	        $xls->getActiveSheet()->mergeCells('A7:B7');
+	        $xls->getActiveSheet()->mergeCells('A8:B8');
+
+
+	        // Alineando
+	        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+	        /// Estilando
+
+	        $xls->getActiveSheet()->getStyle('F10')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_00);
+
+	        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>20,
+	                )
+	            )
+	        );
+	        //// Bordes
+	        ///$xls->getActiveSheet()->getStyle('A3:D3')->applyFromArray(
+	        ///    array(
+	        ///        'font'=> array(
+	        ///            'bold'=>true
+	        ///        ),
+	        ///        'borders'=>array(
+	        ///            'allborders'=>array(
+	        ///                'style'=>PHPExcel_Style_Border::BORDER_THIN
+	        ///            )
+	        ///        )
+	        ///    )
+	        ///);
+
+	        /// Colores
+			$a=10;
+	        foreach ($exec as $kc){
+	        	if(empty($kc->CONTABILIZADO)){
+	        		$xls->getActiveSheet()->getStyle('A'.$a.':J'.$a)->getFill()->applyFromArray(
+	            			array(
+	                			'font'=> array(
+	                			    'bold'=>true
+	                			),
+	                			'borders'=>array(
+	                			    'allborders'=>array(
+	                			        'style'=>PHPExcel_Style_Border::BORDER_THIN
+	                			    )
+	                			), 
+	                			'type' => PHPExcel_Style_Fill::FILL_SOLID,
+	        					'startcolor' => array(
+	        					     'rgb' => 'FFF7C6'
+	        					)
+	            			)
+	        			);
+	        	}	
+	        	$a++;
+	        }
+
+	        //// Crear una nueva hoja 
+	            //$xls->createSheet();
+	        /// Crear una nueva hoja llamada Mis Datos
+	        /// Descargar
+	            $ruta='C:\\xampp\\htdocs\\EdoCtaXLS\\';
+	            $nom='Estado de Cuenta '.$b.' de '.$c.' '.$nom_mes.'-'.$a.'_'.date('h_i_s').'.xlsx';
+	            //header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+	            //header("Content-Disposition: attachment;filename=01simple.xlsx");
+	            //header('Cache-Control: max-age=0');
+	        /// escribimos el resultado en el archivo;
+	            $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+	        /// salida a descargar
+	            $x->save($ruta.$nom);
+	            ob_end_clean();
+	           // $x->save('php://output');
+	        /// salida a ruta :
+	            return array("status"=>'ok', "archivo"=>$nom);
+
+		}
+
 	}
 }?>
 
