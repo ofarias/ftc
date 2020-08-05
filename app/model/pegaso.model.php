@@ -23821,6 +23821,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
             }
 
+            if($serie == 'NOMINA'){
+            	$this->query="UPDATE XML_DATA_FILES SET TIPO = '$serie' where Nombre = '$archivo'";
+            	$this->queryActualiza();
+            }
+
             if(($tipo == 'I' or $tipo == 'E' or $tipo == 'ingreso' or $tipo == 'egreso' or $tipo== 'P') and $serie != 'NOMINA'){
             			$this->query="UPDATE XML_DATA_FILES SET TIPO = '$tipo' WHERE NOMBRE='$archivo'";
             			$this->EjecutaQuerySimple();

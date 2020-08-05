@@ -1495,10 +1495,14 @@ class pegaso_controller_ventas{
             $xls->getActiveSheet()->getColumnDimension($col)->setWidth(10);
             $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
             $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(40);
-            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
-            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
-            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
-            $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+
+            
+                $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+                $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+                $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+                $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+
+
             $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
             $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
             $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
