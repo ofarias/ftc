@@ -23829,7 +23829,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
             if(($tipo == 'I' or $tipo == 'E' or $tipo == 'ingreso' or $tipo == 'egreso' or $tipo== 'P') and $serie != 'NOMINA'){
             	echo 'Entro a la carga: '.$serie.' <br/> Archivo: '.$archivo.' <br/> tipo: '.$tipo.'<br/> ';
-            			$this->query="UPDATE XML_DATA_FILES SET TIPO = '$tipo' WHERE NOMBRE='$archivo'";
+            			$this->query="UPDATE XML_DATA_FILES SET TIPO = upper(substring('$tipo' from 1 for 1)) WHERE NOMBRE='$archivo'";
             			$this->EjecutaQuerySimple();
 
 			        	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
