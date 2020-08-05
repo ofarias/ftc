@@ -23824,6 +23824,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             if($serie == 'NOMINA'){
             	$this->query="UPDATE XML_DATA_FILES SET TIPO = '$serie' where Nombre = '$archivo'";
             	$this->queryActualiza();
+            	echo $this->query;
             }
 
             if(($tipo == 'I' or $tipo == 'E' or $tipo == 'ingreso' or $tipo == 'egreso' or $tipo== 'P') and $serie != 'NOMINA'){
@@ -24340,10 +24341,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							//$respuesta = $this->grabaDB();
 							$respuesta = $this->grabaBD();
 			            }
-			        }	
+			}	
 			        //return;// $respuesta;
     	    		
-    			if($tipo == 'N'){
+    		if($tipo == 'N'){
 	    			$this->query="UPDATE XML_DATA_FILES SET TIPO = 'N' WHERE nombre = '$archivo'";
 	    			$this->queryActualiza();
     				foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
@@ -24564,6 +24565,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			}
     			
     		}
+
     		if($tipo2 == 'C'){
        
             	foreach ($data as $row):
