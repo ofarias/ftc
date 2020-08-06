@@ -24246,6 +24246,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$i=$i+1;
 			            	}
 
+			            if($version == '3.3'){ 
 			            	if(count($parte_partida) > 0){
 			            		foreach ($parte_partida as $pp ){
 			            			$parte_unidad = $pp[0];
@@ -24288,6 +24289,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					            	}
 			            		}
 			            	}
+			            }
 
 			            	if(count($pago)>0){
 			            		foreach ($pago as $keyPago){
