@@ -24044,6 +24044,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			          		}
 
 			            }
+
 			          	//// Revisamos si tiene el nodo Pago  $xml->xpath('//impl:ImpuestosLocales//impl:TrasladosLocales'
 			          	$pago = array();
 			          	$pagoDetalle=array();
@@ -24348,6 +24349,29 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							//$respuesta = $this->grabaDB();
 							$respuesta = $this->grabaBD();
 			            }
+
+			    ////Manejo de impuestos cuando es XML 3.2 (Ya que no se desglozan por partida, entonces todo el impuesto se coloca en la partida 1 )
+			            if($version = '3.2'){
+			            	if($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos')){
+			            		if($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Traslados')){
+			            			foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Traslados//cfdi:Traslado') as $impTr32){
+			            				$impTr32_nom =  isset($impTr32['impuesto'])? $impTr32['impuesto']:'N/I';
+			            				$impTr32_tasa = isset($impTr32['tasa'])? $impTr32['tasa']:0;
+			            				$impTr32_mon =  isset($impTr32['importe'])? $impTr32['importe']:0;
+			            				echo 'Se encontraron los traslados del documento: '.$uuid.' el impuesto encontrado es: '.$impTr32_nom.' con una tasa del: '.$impTr32_tasa.' y el monto por: '.$impTr32_mon;
+			            			}
+			            		}
+			            		if($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Retenciones')){
+			            			foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Retenciones//cfdi:Retencion') as $impTr32){
+			            				$impTr32_nom =  isset($impTr32['impuesto'])? $impTr32['impuesto']:'N/I';
+			            				$impTr32_tasa = isset($impTr32['tasa'])? $impTr32['tasa']:0;
+			            				$impTr32_mon =  isset($impTr32['importe'])? $impTr32['importe']:0;
+			            				echo 'Se encontraron los traslados del documento: '.$uuid.' el impuesto encontrado es: '.$impTr32_nom.' con una tasa del: '.$impTr32_tasa.' y el monto por: '.$impTr32_mon;
+			            			}
+			            		}
+			            	}
+			            }
+
 			}	
 			        //return;// $respuesta;
     	    		
