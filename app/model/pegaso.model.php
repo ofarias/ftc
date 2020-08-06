@@ -24374,7 +24374,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            					$impTasa32 = $impTr32_tasa;
 			            				}
 
-			            				$this->query="INSERT INTO XML_IMPUESTOS (ID, IMPUESTO, TASA, MONTO, PARTIDA, UUID, FACTURA, TIPOFACTOR, BASE, TIPO, STATUS) VALUES (NULL,'$impTipo32', $impTasa32, $impTr32_mon, COALESCE( (SELECT MAX(XI.PARTIDA) FROM XML_IMPUESTOS XI WHERE XI.UUID == '$uuuid'), 0 ) + 1, '$uuid', ('$serie'||'-'||'$folio'), 'Tasa', $subtotal, 'Traslado', 0)";
+			            				$this->query="INSERT INTO XML_IMPUESTOS (ID, IMPUESTO, TASA, MONTO, PARTIDA, UUID, FACTURA, TIPOFACTOR, BASE, TIPO, STATUS) VALUES (NULL,'$impTipo32', $impTasa32, $impTr32_mon, COALESCE( (SELECT MAX(XI.PARTIDA) FROM XML_IMPUESTOS XI WHERE XI.UUID = '$uuid'), 0 ) + 1, '$uuid', ('$serie'||'-'||'$folio'), 'Tasa', $subtotal, 'Traslado', 0)";
 			            				if($rs=$this->grabaBD() === false){
 						            		echo 'Falla al insertar la partida de impuestos trasladados de la version 3.2 :<br/>';
 						            		echo $this->query.'<br/>';
@@ -24396,7 +24396,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            					$impTipo32 = '000';
 			            				}
 
-			            				$this->query="INSERT INTO XML_IMPUESTOS (ID, IMPUESTO, TASA, MONTO, PARTIDA, UUID, FACTURA, TIPOFACTOR, BASE, TIPO, STATUS) VALUES (NULL,'$impTipo32', 0, $impTr32_mon, COALESCE( (SELECT MAX(XI.PARTIDA) FROM XML_IMPUESTOS XI WHERE XI.UUID == '$uuuid'), 0 ) + 1, '$uuid', ('$serie'||'-'||'$folio'), 'Tasa', $subtotal, 'Traslado', 0)";
+			            				$this->query="INSERT INTO XML_IMPUESTOS (ID, IMPUESTO, TASA, MONTO, PARTIDA, UUID, FACTURA, TIPOFACTOR, BASE, TIPO, STATUS) VALUES (NULL,'$impTipo32', 0, $impTr32_mon, COALESCE( (SELECT MAX(XI.PARTIDA) FROM XML_IMPUESTOS XI WHERE XI.UUID = '$uuid'), 0 ) + 1, '$uuid', ('$serie'||'-'||'$folio'), 'Tasa', $subtotal, 'Traslado', 0)";
 			            				if($rs=$this->grabaBD() === false){
 						            		echo 'Falla al insertar la partida de impuestos retenidos de la version 3.2 :<br/>';
 						            		echo $this->query.'<br/>';
