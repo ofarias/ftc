@@ -23827,7 +23827,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
             }
 
-            if($serie == 'NOMINA'){
+            if($serie == 'NOMINA' or $serie = 'NOMA'){
             	$this->query="UPDATE XML_DATA_FILES SET TIPO_FISCAL = '$serie' where Nombre = '$archivo'";
             	//echo $this->query;
             	$this->queryActualiza();
