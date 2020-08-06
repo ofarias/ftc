@@ -23729,7 +23729,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
         /// Manejo de XML 3.2
         $this->query="UPDATE xml_data set tipo = 'I' where tipo = 'ingreso'";
         $this->queryActualiza();
-		$this->"UPDATE xml_data set tipo = 'E' where tipo = 'egreso'";
+		$this->query="UPDATE xml_data set tipo = 'E' where tipo = 'egreso'";
 		$this->queryActualiza();
 
         return $respuesta;
@@ -23834,7 +23834,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             }
 
             if(($tipo == 'I' or $tipo == 'E' or $tipo == 'ingreso' or $tipo == 'egreso' or $tipo== 'P') and $serie != 'NOMINA'){
-            	echo 'Entro a la carga: '.$serie.' <br/> Archivo: '.$archivo.' <br/> tipo: '.$tipo.'<br/> ';
+            	//echo 'Entro a la carga: '.$serie.' <br/> Archivo: '.$archivo.' <br/> tipo: '.$tipo.'<br/> ';
             			$this->query="UPDATE XML_DATA_FILES SET TIPO = upper(substring('$tipo' from 1 for 1)) WHERE NOMBRE='$archivo'";
             			$this->EjecutaQuerySimple();
 
