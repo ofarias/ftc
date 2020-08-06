@@ -24359,19 +24359,52 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            				$impTr32_tasa = isset($impTr32['tasa'])? $impTr32['tasa']:0;
 			            				$impTr32_mon =  isset($impTr32['importe'])? $impTr32['importe']:0;
 			            				echo 'Se encontraron los traslados del documento: '.$uuid.' el impuesto encontrado es: '.$impTr32_nom.' con una tasa del: '.$impTr32_tasa.' y el monto por: '.$impTr32_mon;
+			            				if(strtoupper($impTr32_nom) == 'IVA' or strtoupper($impTr32_nom) == 'I.V.A.' or strtoupper($impTr32_nom) == 'I.V.A'){
+			            					$impTipo32 = '002';
+			            				}elseif(strtoupper($impTr32_nom) == 'ISR' or strtoupper($impTr32_nom) == 'I.S.R.' or strtoupper($impTr32_nom) == 'I.S.R'){
+			            					$impTipo32 = '001';
+			            				}elseif(strtoupper($impTr32_nom) == 'IEPS' or strtoupper($impTr32_nom) == 'I.E.P.S.' or strtoupper($impTr32_nom) == 'I.E.P.S'){
+			            					$impTipo32 = '003';
+			            				}else{
+			            					$impTipo32 = '000';
+			            				}
+			            				if($impTr32_tasa > 0){
+			            					$impTasa32 = $impTr32_tasa / 100;
+			            				}else{
+			            					$impTasa32 = $impTr32_tasa;
+			            				}
+
+			            				$this->query="INSERT INTO XML_IMPUESTOS (ID, IMPUESTO, TASA, MONTO, PARTIDA, UUID, FACTURA, TIPOFACTOR, BASE, TIPO, STATUS) VALUES (NULL,'$impTipo32', $impTasa32, $impTr32_mon, 1, '$uuid', ('$serie'||'-'||'$folio'), 'Tasa', $subtotal, 'Traslado', 0)";
+			            				if($rs=$this->grabaBD() === false){
+						            		echo 'Falla al insertar la partida de impuestos trasladados de la version 3.2 :<br/>';
+						            		echo $this->query.'<br/>';
+					            		}	
 			            			}
 			            		}
 			            		if($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Retenciones')){
-			            			foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Retenciones//cfdi:Retencion') as $impTr32){
-			            				$impTr32_nom =  isset($impTr32['impuesto'])? $impTr32['impuesto']:'N/I';
-			            				$impTr32_tasa = isset($impTr32['tasa'])? $impTr32['tasa']:0;
-			            				$impTr32_mon =  isset($impTr32['importe'])? $impTr32['importe']:0;
-			            				echo 'Se encontraron los traslados del documento: '.$uuid.' el impuesto encontrado es: '.$impTr32_nom.' con una tasa del: '.$impTr32_tasa.' y el monto por: '.$impTr32_mon;
+			            			foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Retenciones//cfdi:Retencion') as $impRt32){
+			            				$impRt32_nom =  isset($impRt32['impuesto'])? $impRt32['impuesto']:'N/I';
+			            				$impRt32_mon =  isset($impRt32['importe'])? $impRt32['importe']:0;
+			            				echo 'Se enconRtaron los Rtaslados del documento: '.$uuid.' el impuesto enconRtado es: '.$impRt32_nom.' con una tasa del: '.$impRt32_tasa.' y el monto por: '.$impRt32_mon;
+			            				if(strtoupper($impRt32_nom) == 'IVA' or strtoupper($impRt32_nom) == 'I.V.A.' or strtoupper($impRt32_nom) == 'I.V.A'){
+			            					$impTipo32 = '002';
+			            				}elseif(strtoupper($impRt32_nom) == 'ISR' or strtoupper($impRt32_nom) == 'I.S.R.' or strtoupper($impRt32_nom) == 'I.S.R'){
+			            					$impTipo32 = '001';
+			            				}elseif(strtoupper($impRt32_nom) == 'IEPS' or strtoupper($impRt32_nom) == 'I.E.P.S.' or strtoupper($impRt32_nom) == 'I.E.P.S'){
+			            					$impTipo32 = '003';
+			            				}else{
+			            					$impTipo32 = '000';
+			            				}
+
+			            				$this->query="INSERT INTO XML_IMPUESTOS (ID, IMPUESTO, TASA, MONTO, PARTIDA, UUID, FACTURA, TIPOFACTOR, BASE, TIPO, STATUS) VALUES (NULL,'$impTipo32', 0, $impTr32_mon, 1, '$uuid', ('$serie'||'-'||'$folio'), 'Tasa', $subtotal, 'Traslado', 0)";
+			            				if($rs=$this->grabaBD() === false){
+						            		echo 'Falla al insertar la partida de impuestos retenidos de la version 3.2 :<br/>';
+						            		echo $this->query.'<br/>';
+					            		}		
 			            			}
 			            		}
 			            	}
 			            }
-
 			}	
 			        //return;// $respuesta;
     	    		
