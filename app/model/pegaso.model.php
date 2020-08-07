@@ -24620,7 +24620,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			
     		}
 
-    		if(@$xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Nomina') and $version=='3.2'){
+    		if( ($serie== 'NOMINA' or $serie == 'NOMA') and $version=='3.2'){
             	$this->query="UPDATE XML_DATA_FILES SET TIPO_FISCAL = '$serie' where Nombre = '$archivo'";
             	$this->queryActualiza();
 
