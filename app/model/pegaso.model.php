@@ -23777,6 +23777,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             $xml->registerXPathNamespace('t', $ns['tfd']);
             @$xml->registerXPathNamespace('impl', $ns['implocal']);
             @$xml->registerXPathNamespace('p10',$ns['pago10']);
+            //@$xml->registerXPathNamespace('p10',$ns['pago10']);
             foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
             	  $version = $cfdiComprobante['version'];
 				  if($version == ''){
@@ -24619,7 +24620,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			
     		}
 
-    		if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Nomina') and $version=='3.2'){
+    		if(@$xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Nomina') and $version=='3.2'){
             	$this->query="UPDATE XML_DATA_FILES SET TIPO_FISCAL = '$serie' where Nombre = '$archivo'";
             	$this->queryActualiza();
 
