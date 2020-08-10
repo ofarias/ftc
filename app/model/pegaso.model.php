@@ -27686,9 +27686,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			if($key['ca']=='a'){
 				$folio=$this->folioBanco($banco, $cuenta);
 				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS, REGISTRO) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs', $reg) ";
+				//echo '<br/>Consulta Carga Pagos: <br/>'.$this->query.'<br/>';
 				$this->grabaBD();
 			}elseif($key['ca']=='c'){
 				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo, NUM_PAR) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto', $reg) RETURNING ID";
+				//echo '<br/>Consulta Gastos: <br/>'.$this->query.'<br/>';
 				$foliog=$this->grabaBD();
 				$row=ibase_fetch_object($foliog);
 				switch ($tipo) {
@@ -27704,7 +27706,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$folio=$this->generaFolio($tipo);
 				$folio=$folio[0]->FOLIO;
 				$this->query="INSERT INTO PAGO_GASTO (ID, IDGASTO, CUENTA_BANCARIA, MONTO, FECHA_REGISTRO, USUARIO_REGISTRA, FECHA_PAGO, CONCILIADO, FOLIO_PAGO) VALUES ((select coalesce(max(ID),0)+1 FROM PAGO_GASTO), '$row->ID','$banco'||' - '||'$cuenta', $monto, current_timestamp, '$usuario', '$fecha', 0, '$folio')";
-				//echo '<br/>'.$this->query;
+				//echo 'Consulta Pago Gastos: <br/>'.$this->query;
 				$this->grabaBD();
 				$this->revisaGasto($row->ID);
 				$this->verCargas($banco, $cuenta, $t=9);
@@ -27738,7 +27740,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		}
 		if(count($data2)>0){
 			foreach ($data2 as $key2) {
-				$this->query="UPDATE GASTOS SET num_par = $key2->CANTIDAD_FILAS WHERE FECHA_EDO_CTA = '$key2->FECHA_EDO_CTA' AND TOTAL = $key2->TOTAL and CUENTA_BANCARIA = '$key2->CUENTA_BANCARIA' and TIPO_PAGO = '$key2->TIPO_PAGO'";
+				$this->query="UPDATE GASTOS G SET num_par = $key2->CANTIDAD_FILAS WHERE FECHA_EDO_CTA = '$key2->FECHA_EDO_CTA' AND TOTAL = $key2->TOTAL and ( SELECT PG.CUENTA_BANCARIA FROM PAGA_GASTO PG WHERE G.ID = PG.IDGASTO) = '$key2->CUENTA_BANCARIA' and TIPO_PAGO = '$key2->TIPO_PAGO'";
 				//echo $this->query;
 				$this->queryActualiza();
 			}	
