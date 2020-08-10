@@ -23777,7 +23777,52 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             $xml->registerXPathNamespace('t', $ns['tfd']);
             @$xml->registerXPathNamespace('impl', $ns['implocal']);
             @$xml->registerXPathNamespace('p10',$ns['pago10']);
-            //@$xml->registerXPathNamespace('p10',$ns['pago10']);
+            @$xml->registerXPathNamespace('nomina',$ns['nomina']);
+
+           	/*
+		        $this->query = "SELECT * FROM XML_DATA_FILES WHERE ID >= 10145";
+		        $res=$this->EjecutaQuerySimple();
+		        while ($tsArray=ibase_fetch_object($res)) {
+		        	$data[]=$tsArray;
+		        }
+		        
+		        foreach ($data as $k) {
+		           		$this->query="DELETE FROM XML_DATA WHERE UUID ='$k->UUID'";
+		           		$this->grabaBD();
+		           		$this->query="DELETE FROM XML_IMPUESTOS WHERE UUID = '$k->UUID'";
+		           		$this->grabaBD();
+		           		$this->query="DELETE FROM XML_PARTIDAS WHERE UUID = '$k->UUID'";
+		           		$this->grabaBD();
+		           		$this->query="DELETE FROM XML_DATA_FILES WHERE UUID = '$k->UUID'";
+		           		$this->grabaBD();
+		        }
+		        /// LIMPIAR NOMINA
+		        $this->query="DELETE FROM XML_NOMINA_DEDUCCIONES WHERE ID_ND > 0";
+				$this->grabaBD();
+		        $this->query="DELETE FROM XML_NOMINA_DETALLE WHERE ID_NPD > 0";
+				$this->grabaBD();
+		        $this->query="DELETE FROM XML_NOMINA_EMPLEADOS WHERE ID > 0 ";
+				$this->grabaBD();
+		        $this->query="DELETE FROM XML_NOMINA_PERCEPCIONES WHERE ID_NP > 0 ";
+				$this->grabaBD();
+		        $this->query="DELETE FROM XML_NOMINA_RECEPTOR where ID > 0";
+				$this->grabaBD();
+		        $this->query="DELETE FROM XML_NOMINA_TRABAJADOR WHERE ID_NT > 0 ";
+				$this->grabaBD();
+				die();
+				*/					
+			$verNom = 'No';
+            if(@$xml->xpath('//cfdi:Comprobante//nomina12:Nomina')){
+            	//echo '<br/>El comprobante: '.$uuid.' , es nomina 12';
+            	$verNom = '1.2';
+            }elseif($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina:Nomina')){
+            	//echo '<br/>El comropbante: '.$uuid.' , es nomina 1.1';
+            	$verNom = '1.1';
+            }else{
+            	$verNom = 'No';
+            	//echo '<br/>El comprobante: '.$uuid.' , no es de nomina';
+            }
+
             foreach ($xml->xpath('//cfdi:Comprobante') as $cfdiComprobante){
             	  $version = $cfdiComprobante['version'];
 				  if($version == ''){
@@ -23821,14 +23866,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					  $MetodoPago = $cfdiComprobante['MetodoPago'];
 				  }
 			}
-			
             if($tipo == 'P'){
             	$serieComp = $serie; 
             	$folioComp = $folio;
-
             }
+           	//die;
 
-            if(($tipo == 'I' or $tipo == 'E' or $tipo == 'ingreso' or $tipo == 'egreso' or $tipo== 'P') and $serie != 'NOMINA' and $serie != 'NOMA'){
+            if(($tipo == 'I' or $tipo == 'E' or $tipo == 'ingreso' or $tipo == 'egreso' or $tipo== 'P') and $verNom == 'No'){
             	//echo 'Entro a la carga: '.$serie.' <br/> Archivo: '.$archivo.' <br/> tipo: '.$tipo.'<br/> ';
             			$this->query="UPDATE XML_DATA_FILES SET TIPO = upper(substring('$tipo' from 1 for 1)) WHERE NOMBRE='$archivo'";
             			$this->EjecutaQuerySimple();
@@ -24004,6 +24048,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			          				if($version == '3.2'){
 			          					$numPed = $infoAdu['NumeroPedimento'];
 			          					$fechaPed = isset($infoAdu['fechaPedimento'])? $infoAdu['fechaPedimento']:'01.01.1909';
+			          					$cantiPed = isset($infoAdu['cantidad'])? $infoAdu['cantidad']:$cantidad; 
 			          					$parInfoAduana[]=array($numPed, $parIT, $fechaPed, $cantiPed, $descripcion);
 			          				}elseif($version == '3.3'){
 			          					$numPed = $infoAdu['NumeroPedimento'];
@@ -24189,7 +24234,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					            	//$partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte); 
 					            	$this->query = "INSERT INTO XML_IMPUESTOS values (null,'$nombre', '$tasa', $importe, $pi, '$uuid', ('$serie'||'-'||'$folio'), '$tipoFactor', $base, '$tipoImp', 0)";
 					            	if($rs=$this->grabaBD() === false){
-					            		echo 'Fallo al insertar en la tabla de impuestos <br/>'; 
+					            		echo 'Fallo al insertar en la tabla de impuestos de la Partida<br/>'; 
 					            		echo $this->query.'<br/>';
 					            	}          
 					            	$i=$i+1;	
@@ -24209,7 +24254,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 				            		$this->query="INSERT INTO XML_IMPUESTOS values (null,'$iltrasN', '', $iltrasM, $pi + 1, '$uuid', ('$serie'||'-'||'$folio'), '$iltrasF', 0, 'local', 0)";
 				            		if($rs=$this->grabaBD() === false){
-					            		echo 'Fallo al insertar en la tabla de impuestos <br/>'; 
+					            		echo 'Fallo al insertar en la tabla de impuestos Locales de la Partida <br/>'; 
 					            		echo $this->query.'<br/>';
 					            	}
 			            		}	
@@ -24381,7 +24426,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		if($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Retenciones')){
 			            			foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Retenciones//cfdi:Retencion') as $impRt32){
 			            				$impRt32_nom =  isset($impRt32['impuesto'])? $impRt32['impuesto']:'N/I';
-			            				$impRt32_mon =  isset($impRt32['importe'])? $impRt32['importe']:0;
+			            				$impRt32_mon =  (isset($impRt32['importe']) OR $impRt32['importe']=='')? $impRt32['importe']:0;
 			            				//echo 'Se enconRtaron los Rtaslados del documento: '.$uuid.' el impuesto enconRtado es: '.$impRt32_nom.' con una tasa del: '.$impRt32_tasa.' y el monto por: '.$impRt32_mon;
 			            				if(strtoupper($impRt32_nom) == 'IVA' or strtoupper($impRt32_nom) == 'I.V.A.' or strtoupper($impRt32_nom) == 'I.V.A'){
 			            					$impTipo32 = '002';
@@ -24392,6 +24437,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            				}else{
 			            					$impTipo32 = '000';
 			            				}
+
+
 
 			            				$this->query="INSERT INTO XML_IMPUESTOS (ID, IMPUESTO, TASA, MONTO, PARTIDA, UUID, FACTURA, TIPOFACTOR, BASE, TIPO, STATUS) VALUES (NULL,'$impTipo32', 0, $impTr32_mon, COALESCE( (SELECT MAX(XI.PARTIDA) FROM XML_IMPUESTOS XI WHERE XI.UUID = '$uuid'), 0 ) + 1, '$uuid', ('$serie'||'-'||'$folio'), 'Tasa', $subtotal, 'Traslado', 0)";
 			            				if($rs=$this->grabaBD() === false){
@@ -24405,7 +24452,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			}	
 			        //return;// $respuesta;
     	    		
-    		if($tipo == 'N'){
+    		if($tipo=='N' or $verNom == '1.2'){
 	    			$this->query="UPDATE XML_DATA_FILES SET TIPO = 'N' WHERE nombre = '$archivo'";
 	    			$this->queryActualiza();
     				foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
@@ -24423,11 +24470,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			        }
 
 			        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Receptor') as $Nomina12Receptor) {
-			            	if($version == '3.2'){
-			            		$rfc= $Nomina12Receptor['rfc'];
-			           		 	$nombre_recep = $Nomina12Receptor['nombre'];
-			            		$usoCFDI = '';
-			            	}elseif($version == '3.3'){
+			            	if($version == '3.3' or $verNom == '1.2'){
 			            		$curp= $Nomina12Receptor['Curp'];
 			            		$numss=$Nomina12Receptor['NumSeguridadSocial'];
 			            		$FechaInicioRelLaboral =$Nomina12Receptor['FechaInicioRelLaboral'];
@@ -24494,9 +24537,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			        }
 
 			    	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Nomina') as $nomVal) {
-			    			if ($version == '3.2') {
-			    				echo 'Este es un recibo de nomia version 3.2';
-			    			}else{
+			    			if ($version == '3.3' or $verNom == '1.2'){
 			    				$fechaInicialPago = $nomVal['FechaInicialPago'];
 			    				$fechaFinalPago = $nomVal['FechaFinalPago'];
 			    				$fechaPago = $nomVal['FechaPago'];
@@ -24507,7 +24548,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			    				$totalOtrosPagos = isset($nomVal['TotalOtrosPagos'])? $nomVal['TotalOtrosPagos']:0;
 			    				$versionNomina = $nomVal['Version'];
 			    			}
-
+			    			if( strlen($formaPago)>3){$formaPago = '99';}
 			    			$this->query="INSERT INTO xml_nomina_trabajador (ID_NT, FECHA_INICIAL, FECHA_FINAL, FECHA_PAGO, DIAS, TIPO_NOMINA, DEDUCCIONES, PERCEPCIONES, VERSION_NOMINA, REG_PATRONAL, UUID_NOMINA, FORMA_PAGO) values (NULL, '$fechaInicialPago', '$fechaFinalPago', '$fechaPago', $numDiasPagados, '$tipoNomina', $totalDeducciones, $totalPercepciones, '$versionNomina', null, '$uuid', '$formaPago') RETURNING ID_NT";
 			    			$RS=$this->grabaBD();
 			    			$r_id_nt = ibase_fetch_object($RS)->ID_NT;
@@ -24620,7 +24661,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			
     		}
 
-    		if( ($serie== 'NOMINA' or $serie == 'NOMA') and $version=='3.2'){
+    		if( $version=='3.2' and $verNom=='1.1'){
             	$this->query="UPDATE XML_DATA_FILES SET TIPO_FISCAL = '$serie' where Nombre = '$archivo'";
             	$this->queryActualiza();
 
@@ -24737,7 +24778,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						}
 				}
 
-				if($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina:Deduccion')){
+				if(@$xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina:Deduccion')){
 						foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Deducciones//nomina:Deduccion') as $nomDed32){
 				    					$claveDed = $nomDed32['Clave'];
 				    					$concepDed = $nomDed32['Concepto'];
@@ -24882,7 +24923,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			$result=$this->queryActualiza();
     			//print_r($result);
     			if($result < 1){
-    				echo '<br/>Error al guardar Impuesto: <br/>'.$this->query;
+    				echo '<br/>Error al guardar Impuesto: <br/> UPDATE XML_DATA SET $campo = $monto where UUID = '.$key->UUID;
     				$this->query="INSERT INTO XML_EXCEPCION (ID, UUID, TIPO) VALUES (NULL, '$key->UUID', 'IMP')";
     				if($this->grabaBD()){
     	
