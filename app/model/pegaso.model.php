@@ -24252,7 +24252,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						        	$iltrasF= isset($il['TipoFactor'])? $il['TipoFactor']:'';
 						        	$ilretF= isset($il['TipoFactor'])? $il['TipoFactor']:'';
 
-				            		$this->query="INSERT INTO XML_IMPUESTOS values (null,'$iltrasN', '', $iltrasM, $pi + 1, '$uuid', ('$serie'||'-'||'$folio'), '$iltrasF', 0, 'local', 0)";
+				            		$this->query="INSERT INTO XML_IMPUESTOS values (null,'$iltrasN', '', $iltrasM, coalesce($pi,0) + 1, '$uuid', ('$serie'||'-'||'$folio'), '$iltrasF', 0, 'local', 0)";
 				            		if($rs=$this->grabaBD() === false){
 					            		echo 'Fallo al insertar en la tabla de impuestos Locales de la Partida <br/>'; 
 					            		echo $this->query.'<br/>';
@@ -24918,21 +24918,23 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     				$campo = 'IEPS_RET';
     			}
     			//exit('Este es el campo donde se pretende al actualizacion'.$campo);
-    			$this->query="UPDATE XML_DATA SET $campo = $monto where UUID = '$key->UUID'";
-    			//echo '<br/>Error al guardar: <br/>'.$this->query;
-    			$result=$this->queryActualiza();
-    			//print_r($result);
-    			if($result < 1){
-    				echo '<br/>Error al guardar Impuesto: <br/> UPDATE XML_DATA SET $campo = $monto where UUID = '.$key->UUID;
-    				$this->query="INSERT INTO XML_EXCEPCION (ID, UUID, TIPO) VALUES (NULL, '$key->UUID', 'IMP')";
-    				if($this->grabaBD()){
-    	
-    				}else{
-    					echo '<br/>Error al guardar: <br/>'.$this->query;
+    			if(isset($campo)){
+	    			$this->query="UPDATE XML_DATA SET $campo = $monto where UUID = '$key->UUID'";
+	    			//echo '<br/>Error al guardar: <br/>'.$this->query;
+	    			$result=$this->queryActualiza();
+	    			//print_r($result);
+	    			if($result < 1){
+	    				echo '<br/>Error al guardar Impuesto: <br/> UPDATE XML_DATA SET '.$campo.' = '.$monto.' where UUID = '.$key->UUID;
+	    				$this->query="INSERT INTO XML_EXCEPCION (ID, UUID, TIPO) VALUES (NULL, '$key->UUID', 'IMP')";
+	    				if($this->grabaBD()){
+	    	
+	    				}else{
+	    					echo '<br/>Error al guardar: <br/>'.$this->query;
+	    				}
+    				}elseif($result >= 1){
+    					$this->query="UPDATE XML_DATA SET STATUS = 'P'  WHERE UUID = '$key->UUID'";
+	    				$this->queryActualiza();
     				}
-    			}elseif($result >= 1){
-    				$this->query="UPDATE XML_DATA SET STATUS = 'P'  WHERE UUID = '$key->UUID'";
-	    			$this->queryActualiza();
     			}
     			unset($data2);
 	    		}
