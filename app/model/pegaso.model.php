@@ -24230,7 +24230,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					            	$importe = empty($key[4])? 0:$key[4];
 					            	$tipoFactor = $key[2];
 					            	$tipoImp = $key[5];
-					            	$pi = $key[6];
+					            	$pi = isset($key[6])? $key[6]:0;
 					            	//$partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte); 
 					            	$this->query = "INSERT INTO XML_IMPUESTOS values (null,'$nombre', '$tasa', $importe, $pi, '$uuid', ('$serie'||'-'||'$folio'), '$tipoFactor', $base, '$tipoImp', 0)";
 					            	if($rs=$this->grabaBD() === false){
