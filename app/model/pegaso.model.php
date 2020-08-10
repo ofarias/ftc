@@ -24230,7 +24230,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					            	$importe = empty($key[4])? 0:$key[4];
 					            	$tipoFactor = $key[2];
 					            	$tipoImp = $key[5];
-					            	$pi = isset($key[6])? $key[6]:0;
+					            	$pi = (isset($key[6]))? $key[6]:0;
 					            	//$partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte); 
 					            	$this->query = "INSERT INTO XML_IMPUESTOS values (null,'$nombre', '$tasa', $importe, $pi, '$uuid', ('$serie'||'-'||'$folio'), '$tipoFactor', $base, '$tipoImp', 0)";
 					            	if($rs=$this->grabaBD() === false){
@@ -24251,8 +24251,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						        	$ilretM= isset($il['Importe'])? $il['Importe']:0;
 						        	$iltrasF= isset($il['TipoFactor'])? $il['TipoFactor']:'';
 						        	$ilretF= isset($il['TipoFactor'])? $il['TipoFactor']:'';
-
-				            		$this->query="INSERT INTO XML_IMPUESTOS values (null,'$iltrasN', '', $iltrasM, coalesce($pi,0) + 1, '$uuid', ('$serie'||'-'||'$folio'), '$iltrasF', 0, 'local', 0)";
+						        	$pi = (empty($pi))? 0:$pi;
+				            		$this->query="INSERT INTO XML_IMPUESTOS values (null,'$iltrasN', '', $iltrasM, $pi+1, '$uuid', ('$serie'||'-'||'$folio'), '$iltrasF', 0, 'local', 0)";
 				            		if($rs=$this->grabaBD() === false){
 					            		echo 'Fallo al insertar en la tabla de impuestos Locales de la Partida <br/>'; 
 					            		echo $this->query.'<br/>';
