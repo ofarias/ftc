@@ -3498,7 +3498,8 @@ else{
        	break;
         case 'pagoFacturas':
         	$idp = $_GET['idp'];
-        	$controller->pagoFacturas($idp);
+        	$opc = isset($_GET['opc'])? $_GET['opc']:'m'; 
+        	$controller->pagoFacturas($idp, $opc);
        	break;
        	case 'buscaContrarecibos':
        		$controller->buscaContrarecibos();
@@ -4318,7 +4319,8 @@ else{
 			break;
 		case 'detalleGasto':
 			$idg=$_GET['idg'];
-			$controller->detalleGasto($idg);
+			$opc = isset($_GET['opc'])? $_GET['opc']:'m';
+			$controller->detalleGasto($idg, $opc);
 			break;
 		case 'FiltrarEdoCta':
 			$mes=$_GET['mes'];

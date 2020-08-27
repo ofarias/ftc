@@ -518,7 +518,7 @@ if (empty($exec)){
         dataType:'json',
         data:{edoXls:1, m, a, b, c, f, v},
         success:function(data){
-          //window.open('/', 'download')
+          window.open('/EdoCtaXLS/'+data.archivo, 'download')
         },
         error:function(){
           $.alert('No se pudo generar el XLS, favor de revisar la informacion')

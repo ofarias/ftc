@@ -1185,5 +1185,13 @@ class pegaso_controller_cobranza{
         }
     }
 
+    function aplUUID($uuid){
+        if($_SESSION['user']){
+            $data = new pegasoCobranza;
+            $res = $data->aplUUID($uuid);
+            return $res;
+        }
+    }
+
 }
 ?>

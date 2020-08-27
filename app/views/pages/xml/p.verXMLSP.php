@@ -167,8 +167,11 @@
                                             <td class="impDet"><?php echo '$ '.number_format($key->IEPS_RET,2);?></td>
                                             <td class="impDet"><?php echo '$ '.number_format($key->ISR_RET,2);?></td>
                                             <td><?php echo '$ '.number_format($key->DESCUENTO,2);?></td>
-                                            <td><?php echo '$ '.number_format($key->IMPORTEXML,2);?> <br/>
-                                            <font color="blue"><?php echo '$ '.number_format($key->SALDO_XML,2)?></font> </td>
+                                            
+                                            <td title="Informacion del pago" id="tip_<?php echo $ln?>">
+                                                <?php echo '$ '.number_format($key->IMPORTEXML,2);?> <br/>
+                                            <font color="blue"><label class="infoPago" ln="<?php echo $ln?>" uuid="<?php echo $key->UUID?>"><?php echo '$ '.number_format($key->SALDO_XML,2)?></label></font> </td>
+
                                             <td><?php echo '<b>'.$key->MONEDA.'<b/>';?> </td>
                                             <td><?php echo '$ '.number_format($key->TIPOCAMBIO,2);?> </td>
                                             <td align="center" title="" id="ia_<?php echo $ln?>" class="infoAdicional" >
@@ -241,6 +244,25 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(".infoPago").mouseover(function(){
+        var text = 'Nuevo Texto'
+        var id = $(this).attr('ln')
+        var uuid = $(this).attr('uuid')
+        $.ajax({
+            url:'index.cobranza.php',
+            type:'post',
+            dataType:'json',
+            data:{aplUUID:1, uuid},
+            success:function(data){
+                
+            },
+            error:function(){
+                text = 'Sin pago detectado'
+            }
+        })
+        $("#tip_"+id).attr('title',text)
+    })
 
     $(".verProv").click(function(){
         var mes = $(this).attr('mes')

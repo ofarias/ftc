@@ -13367,7 +13367,7 @@ function ImpSolicitud2($idsol){
      		}
      	}        
 
-     	function pagoFacturas($idp){
+     	function pagoFacturas($idp, $opc){
         	if (isset($_SESSION['user'])){
 	            $data = new pegaso;
 	            $rol=$_SESSION['user']->USER_ROL;
@@ -13388,7 +13388,7 @@ function ImpSolicitud2($idsol){
 	            $y = $x-$total;
 	            //echo $y;
 	            if($x > $total){
-	       			$facturasP=$data->facturasMaestro($pago);
+	       			$facturasP=$data->facturasMaestro($pago, $opc);
 	       		}
 
 	            $bancos = $data->traeBancosSAT();
@@ -20680,7 +20680,7 @@ function ImpSolicitud2($idsol){
 		}
 	}
 
-	function detalleGasto($idg){
+	function detalleGasto($idg, $opc){
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$datos = $data->detalleGasto($idg, $tipo=false, $obs=false);
@@ -20689,7 +20689,7 @@ function ImpSolicitud2($idsol){
 			}
 			$a=date("y", strtotime($a));
 			$aplicaciones =$data->aplicacionesGasto($idg, $tipo=false);
-			$facturas = $data->facturasProvPendientes($uuid = false);
+			$facturas = $data->facturasProvPendientes($uuid = false, $opc, $i->FECHA_EDO_CTA);
 			$pagina = $this->load_template_popup();
   			$html=$this->load_page('app/views/pages/Contabilidad/p.detalleGasto.php');
   			ob_start();

@@ -136,11 +136,22 @@
         <button name="FORM_ACTION_PAGO_FACTURAS_NUEVO" type="submit" value="enviar" class = "btn btn-info"> Buscar </button>    
     </form>
 </div>
+
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <p>Facturas Pendientes de Pago:</p>
+                            <form action="index.php?action=detalleGasto" method="get">
+                            <p>
+                               <b>Mes Actual y Mes anterior:</b> <input type="radio" name="opc"  value="m1" <?php echo ($opc=='m1')? 'checked':''?>> 
+                               <b>Mes Actual:</b> <input type="radio" name="opc"  value="m" <?php echo ($opc=='m')? 'checked':''?>> 
+                               <b>Mes Anterior y Mes posterior:</b> <input type="radio" name="opc" value="m2" <?php echo ($opc=='m2')? 'checked':''?>> 
+                               <b>Todas:</b> <input type="radio" name="opc" value="t" <?php echo ($opc=='t')? 'checked':''?>>
+                               <input type="hidden" name="idg" value="<?php echo $idg?>">
+                               <button type="submit" name="action" value="detalleGasto" class="btn btn-info"> Ver </button>
+                               </p>
+                            </form>
                         </div>
                         <div class="panel-body">
                             <div class="table-responsive">

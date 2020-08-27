@@ -45,7 +45,7 @@
   //Cuando la página esté cargada completamente
   $(document).ready(function(){
     //Cada 10 segundos (10000 milisegundos) se ejecutará la función refrescar
-    //setTimeout(refrescar, 10000);
+    //setTimeout(refrescar, 120000);
   });
   function refrescar(){
     //Actualiza la página

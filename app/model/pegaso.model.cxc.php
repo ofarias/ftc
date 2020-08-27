@@ -975,9 +975,13 @@ class pegasoCobranza extends database {
 
     function aplicaInd($idp, $monto, $uuid){
         $usuario=$_SESSION['user']->NOMBRE;
-        $this->query="SELECT x.*, (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento) as Aplicado, x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento) as SaldoDOC,(SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and (STATUS = '0' or status = 'I'))-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0) AS SALDOPAGO,
+        $this->query="SELECT x.*, 
+            (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where (observaciones = '$uuid' or x.documento = a.documento) and a.status != 'C') as Aplicado, 
+            x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where (observaciones = '$uuid' or x.documento = a.documento) and a.status != 'C') as SaldoDOC,
+            (SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and (STATUS = '0' or status = 'I'))-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0) AS SALDOPAGO,
             ((SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and (STATUS = '0' or status = 'I'))-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0))-(x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid' or x.documento = a.documento)) as SaldoInsPago
             FROM XML_DATA x WHERE UUID = '$uuid'";
+            ///echo $this->query;
          $res=$this->EjecutaQuerySimple();
         $row=ibase_fetch_object($res);
 
@@ -1025,5 +1029,14 @@ class pegasoCobranza extends database {
         return $data;
     }
 
+    function aplUUID($uuid){
+        $data=array();
+        $this->query="SELECT * FROM APLICACIONES a where a.OBSERVACIONES = '$uuid' and status!='C'";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
 }
 ?> 

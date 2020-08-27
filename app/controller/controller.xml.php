@@ -188,6 +188,8 @@ class controller_xml{
 			$pagina =$this->load_template2('Pedidos');
 			$html=$this->load_page('app/views/pages/xml/p.verMetaDatosDet.php');
    			ob_start();
+
+   			
    			$md = $data->verMetaDatosDet($archivo);
    			include 'app/views/pages/xml/p.verMetaDatosDet.php';
    			$table = ob_get_clean();
@@ -197,6 +199,84 @@ class controller_xml{
 			$e = "Favor de Revisar sus datos";
 			header('Location: index.php?action=login&e='.urlencode($e)); exit;
 		}
+	}
+
+
+	function ReporteRetenciones(){
+			$xls= new PHPExcel();
+			$data = new pegaso;
+			$info=$data->traeRetenciones();
+
+			$col = 'A'; $ln=9; $i = 0;
+			foreach ($info as $r) {
+				$i++;
+				$ln++;
+				$xls->setActiveSheetIndex()
+		                ->setCellValue($col.$ln,$i)
+		                ->setCellValue(++$col.$ln,$r->RFCE)
+		                ->setCellValue(++$col.$ln,$r->EMISOR)
+		                ->setCellValue(++$col.$ln,$r->RFCR)
+		                ->setCellValue(++$col.$ln,$r->RECEPTOR)
+		                ->setCellValue(++$col.$ln,$r->UUID)
+		                ->setCellValue(++$col.$ln,$r->FECHA)
+		                ->setCellValue(++$col.$ln,$r->DOCUMENTO)
+		                ->setCellValue(++$col.$ln,$r->SUBTOTAL)
+		                ->setCellValue(++$col.$ln,$r->IVA)
+		                ->setCellValue(++$col.$ln,$r->RET_IVA)
+		                ->setCellValue(++$col.$ln,$r->RET_ISR)
+		                ->setCellValue(++$col.$ln,$r->DESCUENTO)
+		                ->setCellValue(++$col.$ln,$r->IMPORTE)
+		        ;
+			}
+
+			$xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+			/// Unir celdas
+	        $xls->getActiveSheet()->mergeCells('A1:O1');
+	        // Alineando
+	        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+	        /// Estilando
+	        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>20,
+	                )
+	            )
+	        );
+	        $xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+	        $xls->getActiveSheet()->mergeCells('A3:F3');
+	        $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>15,
+	                )
+	            )
+	        );
+
+	        $xls->getActiveSheet()->getStyle('A3:D3')->applyFromArray(
+	            array(
+	                'font'=> array(
+	                    'bold'=>true
+	                ),
+	                'borders'=>array(
+	                    'allborders'=>array(
+	                        'style'=>PHPExcel_Style_Border::BORDER_THIN
+	                    )
+	                )
+	            )
+	        );
+	        //// Crear una nueva hoja 
+	            //$xls->createSheet();
+	        /// Crear una nueva hoja llamada Mis Datos
+	        /// Descargar
+	            $ruta='C:\\xampp\\htdocs\\EdoCtaXLS\\';
+	            $nom='Documentos '.$ide.' de '.$df->RAZON_SOCIAL.' '.$nom_mes.'-'.$anio.'.xlsx';
+	            //header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+	            //header("Content-Disposition: attachment;filename=01simple.xlsx");
+	            //header('Cache-Control: max-age=0');
+	        /// escribimos el resultado en el archivo;
+	            $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+	        /// salida a descargar
+	            $x->save($ruta.$nom);
+	            ob_end_clean();
+
 	}
 
 	function xmlExcel($mes, $anio, $ide, $doc, $t){

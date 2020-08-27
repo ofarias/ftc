@@ -17,8 +17,9 @@
     <input type="button" name="grabaP" onclick="grabaParam('<?php echo $ide?>')" class="btn btn-info" value="Guarda Parametros">
     <input type="hidden" name="tipoxml" id="tipoxml" value="<?php echo substr($ide, 0, -1)?>">
 <br/><br/>
-    <?php if(empty($polizas)){?>
-        <input type="button" name="grabaP" onclick="crearPolizas('<?php echo $ide?>')" class="btn btn-success" value="Crear Polizas">
+    <?php if(empty($pol->PROVI)){?>
+        <input type="button" name="grabaP" onclick="crearPolizas('<?php echo $ide?>')" class="btn btn-success" value="Crear Polizas Provision">
+        <br/> <b><?php echo $polizas?></b>
     <?php }else{?>
         <b><?php echo $polizas?></b><br/>
     <?php }?>

@@ -557,7 +557,7 @@ class controller_coi{
 	            ob_end_clean();
 	           // $x->save('php://output');
 	        /// salida a ruta :
-	            return array("status"=>'ok', "archivo"=>$nom);
+	        return array("status"=>'ok', "archivo"=>$nom, "ruta"=>$ruta.$nom);
 
 		}
 

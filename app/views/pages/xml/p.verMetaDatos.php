@@ -19,7 +19,8 @@
                                 <th>Cancelados</th>
                                 <th>Usuario</th>
                                 <th>Fecha de Carga</th>
-                                <th>Ver Detalle</th>   
+                                <th>Ver Detalle</th>
+                                <th>Rep Retenciones</th>   
                             </tr>
                         </thead>
                         <tbody>
@@ -43,6 +44,7 @@
                                 <td><?php echo $row->USUARIO;?></td>
                                 <td><?php echo $row->FECHA_CARGA?></td>
                                 <td><a href="index.xml.php?action=verMetaDatosDet&archivo=<?php echo $row->ARCHIVO?>" target="popup" onclick="window.open(this.href, this.target, 'width=2000, heigth=800')" class="btn btn-info">Ver Detalle</a></td>
+                                <td>Reporte Retenciones</td>
                             </tr>
                             <?php endforeach ?>
                         </tbody>

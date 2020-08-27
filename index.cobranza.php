@@ -120,6 +120,10 @@ if (isset($_POST['cobranza'])){
 	$res=$controller_cxc->aplicaInd($_POST['idp'],$_POST['monto'], $_POST['uuid']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['aplUUID'])) {
+	$res=$controller_cxc->aplUUID($_POST['uuid']);
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($_GET['action']){

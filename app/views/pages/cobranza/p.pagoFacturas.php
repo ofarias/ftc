@@ -32,7 +32,9 @@
                                         <input type="hidden" id="sdo" value="<?php echo $key->SALDO?>">
                                         <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                         <?php if(empty($key->POLIZA_INGRESO)){?>
-                                            <a class="btn btn-info conta" tipo="total" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a><br/>
+                                            <a class="btn btn-info conta" tipo="total" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a>
+                                            <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br/>
+                                            <br/>
                                             Observaciones: &nbsp;&nbsp;<input type="text" id="obs" value="<?php echo $key->OBS?>"><br/>
                                         <?php }else{?>
                                             <font color="BLUE"><b><?php echo 'Poliza: '.$key->POLIZA_INGRESO.' Ejercicio: '.substr($key->FECHA_RECEP,0,4).' Peridod: '.substr($key->FECHA_RECEP,5,2) ?></b></font>
@@ -148,20 +150,23 @@
                                 ?>
                                     <label><?php echo $key->BANCO?></label>
                                     <label> El monto del pago es de: $ <?php echo number_format($key->MONTO,2)?> </label><br>
+                                    <label> Fecha del pago: <?php echo substr($key->FECHA_RECEP,0,10)?></label><br/>
                                     <label> El saldo actual es de: $ <?php echo number_format($key->SALDO,2)?></label>
                                     <input type="hidden" id="sdo" value="<?php echo $key->SALDO?>"> 
                                     &nbsp;&nbsp;&nbsp;
                                     <form action="index.php" method="post">
                                         <input type="hidden" name="idpago" value="<?php echo $key->ID?>">
-                                        <button name='imprimirComprobante' value="enviar" type="submit" class="btn btn-info">IMPRIMIR RELACION DEL PAGO</button>
-                                    <br/> 
+                                        <button name='imprimirComprobante' value="enviar" type="submit" class="btn-sm btn-info">IMPRIMIR RELACION DEL PAGO</button>
                                     </form>
+                                    <br/> 
                                     <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 
                                     <?php if(empty($key->POLIZA_INGRESO)){?>
 
-                                    <a class="btn btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a>
+                                    <a class="btn-sm btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a>
+                                    
                                     <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br/>
+
                                     Observaciones: &nbsp;&nbsp;<input type="text" id="obs" value="<?php echo $key->OBS?>"><br/>
                                     
                                     <?php }else{?>
@@ -250,6 +255,16 @@ Factura: <input type="text" name="fact"  maxlength="20" minlength="3" id="bfactu
             <div class="panel-heading">
                <p><font color="black"><b>FACTURAS CON SALDO.</font> <?php echo $maestro?></b></p>
                <p><b>Se muestran solo las facturas con fecha anterior al pago.</b></p>
+               <form action="index.php?action=pagoFacturas" method="get">
+                    <p>
+                       <b>Mes Actual y Mes anterior:</b> <input type="radio" name="opc"  value="m1" <?php echo ($opc=='m1')? 'checked':''?>> 
+                       <b>Mes Actual:</b> <input type="radio" name="opc"  value="m" <?php echo ($opc=='m')? 'checked':''?>> 
+                       <b>Mes Anterior y Mes posterior:</b> <input type="radio" name="opc" value="m2" <?php echo ($opc=='m2')? 'checked':''?>> 
+                       <b>Todas:</b> <input type="radio" name="opc" value="t" <?php echo ($opc=='t')? 'checked':''?>>
+                       <input type="hidden" name="idp" value="<?php echo $idp?>">
+                       <button type="submit" name="action" value="pagoFacturas" class="btn btn-info"> Ver </button>
+                    </p>
+                </form>
             </div>
                     <div class="panel-body">
                             <div class="table-responsive">

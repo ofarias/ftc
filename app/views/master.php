@@ -376,6 +376,7 @@
     $('#dataTables-aplicaGasto').DataTable({
                 responsive: true,
                 lengthMenu: [[1000,-1], [1000,"Todo"]],
+                order: [[ 2, "asc" ]],
                 columnDefs:[
                     {
                         targets: [6,7,8],
