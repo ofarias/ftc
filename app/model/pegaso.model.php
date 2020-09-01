@@ -27845,6 +27845,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$data=array();
 		$rfc = $_SESSION['rfc'];
 		$a = '';
+		$op = '';
 		if($uuid){
 			$a =" and X.UUID = '".$uuid."'";
 		}
@@ -27861,7 +27862,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$m = date("m", strtotime($f)); $mi=$m-1; $mf=$m; $anio=date("Y", strtotime($f));
 			$op = ' AND extract(month from x.fecha) between '.$mi.' and '.$mf.' and extract(year from x.fecha) = '.$anio. ' order by x.fecha asc' ;
 		}
-
 		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') 
 			FROM XML_DATA X WHERE X.RFCE != '$rfc' and x.tipo ='I' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) $a $op";
 		$res=$this->EjecutaQuerySimple();
@@ -27921,16 +27921,18 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function aplicaGasto($idp , $uuid, $valor){
 		$usuario=$_SESSION['user']->NOMBRE;
-		$valFact=$this->facturasProvPendientes($uuid);
+		$valFact=$this->facturasProvPendientes($uuid, $opc=null, $f = null);
+		print_r($valFact);
 		$valConta = $this->valContable($uuid);
 		if(isset($valFact['status'])){
 			return $valFact;
 		}elseif(isset($valConta['status'])){
 			return $valConta;
 		}
-		//echo 'res1: '.($valFact[0]->IMPORTE - $valFact[0]->APLICADO).'<br/>'; 
-		//echo '<br/>Res2: '.(($valFact[0]->IMPORTE - $valFact[0]->APLICADO)- $valor).'<br/>';
+		echo 'res1: '.($valFact[0]->IMPORTE - $valFact[0]->APLICADO).'<br/>'; 
+		echo '<br/>Res2: '.(($valFact[0]->IMPORTE - $valFact[0]->APLICADO)- $valor).'<br/>';
 		$mensaje= 'No hizo nada: '.$valor;
+		die();
 		if( ((float)$valFact[0]->IMPORTE - (float)$valFact[0]->APLICADO) >= (-0.1) and  ( (((float)$valFact[0]->IMPORTE - (float)$valFact[0]->APLICADO) - $valor) >= (-0.1)) and $valor > 0){ // Validacion de la factura
 			$this->query="SELECT * FROM gastos where id = $idp";
 			$res=$this->EjecutaQuerySimple();
