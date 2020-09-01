@@ -10720,6 +10720,8 @@ function Pagos() {
      			}
     		}elseif(count($pr) > 1) {
     			return $m='Se encontraron mas de 1 carga de excel, por lo cual no se puede determinar la conincidencia unica';
+    		}else{
+    			return $m="No";
     		}
     	}
     	$data = array();
@@ -13387,15 +13389,19 @@ function Pagos() {
     		}
     		$this->query="SELECT * FROM FTC_MEDIA_FILES M WHERE M.TIPO = 'EDOCTA' AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$banco' and (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$cuenta' and MI=$mi and MF = $mf and status = 'A'";
     		$res=$this->EjecutaQuerySimple();
+    		//echo $this->query;
     		while ($tsArray=ibase_fetch_object($res)) {
     			$pr[]=$tsArray;
     		}
     	}
+
     	if(count($pr) == 1){
     		foreach ($pr as $k){    			
      		}
     	}elseif(count($pr) > 1) {
     		return $m='Se encontraron mas de 1 carga de excel, por lo cual no se puede determinar la conincidencia unica';
+    	}else{
+    		return $m='No se encontro una carga que coincida';
     	}
     	return array("id"=>$k->ID);
     }
@@ -28632,12 +28638,15 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		COALESCE( (SELECT MAX(FECHA_RECEP) FROM CARGA_PAGOS WHERE REGISTRO = M.ID), '') AS FFCP,
     		COALESCE( (SELECT MIN(FECHA_EDO_CTA) FROM GASTOS WHERE NUM_PAR = M.ID), '') AS FIG,
     		COALESCE( (SELECT MAX(FECHA_EDO_CTA) FROM GASTOS WHERE NUM_PAR = M.ID), '') AS FFG  
-    		FROM FTC_MEDIA_FILES M WHERE M.TIPO = 'EDOCTA' AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$b' and (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$c'";
+    		FROM FTC_MEDIA_FILES M 
+    		WHERE M.TIPO = 'EDOCTA' 
+    			AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$b' 
+    			AND (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$c'";
     	$res=$this->EjecutaQuerySimple();
     	while ($tsArray=ibase_fetch_object($res)) {
     		$data[]=$tsArray;
     	}
-    	if($t ==9){
+    	if($t==9){
 	    	foreach ($data as $d){
 				$FF='';
 	            if($d->FICP == ''){

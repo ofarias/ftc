@@ -10714,6 +10714,10 @@ function imprimirFacturasAcuse(){
         	$bancos=$data->CuentasBancarias($banco, $cuenta);
         	$mesactual=$data->traeMes($mes, $anio);
         	$exec=$data->estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $f);
+        	if($exec == 'No'){
+        		echo  "<script>alert('No se Encontro el Archivo');</script>";
+        		$this->estado_de_cuenta($banco, $cuenta);
+        	}
         	$saldos = $data->saldosBancos($mes, $banco , $cuenta, $anio);
         	$total=$data->totalMensual($mes, $banco, $cuenta, $anio, $f);
         	/// Abonos
