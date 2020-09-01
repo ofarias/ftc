@@ -27922,17 +27922,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	function aplicaGasto($idp , $uuid, $valor){
 		$usuario=$_SESSION['user']->NOMBRE;
 		$valFact=$this->facturasProvPendientes($uuid, $opc=null, $f = null);
-		print_r($valFact);
 		$valConta = $this->valContable($uuid);
 		if(isset($valFact['status'])){
 			return $valFact;
 		}elseif(isset($valConta['status'])){
 			return $valConta;
 		}
-		echo 'res1: '.($valFact[0]->IMPORTE - $valFact[0]->APLICADO).'<br/>'; 
-		echo '<br/>Res2: '.(($valFact[0]->IMPORTE - $valFact[0]->APLICADO)- $valor).'<br/>';
 		$mensaje= 'No hizo nada: '.$valor;
-		die();
 		if( ((float)$valFact[0]->IMPORTE - (float)$valFact[0]->APLICADO) >= (-0.1) and  ( (((float)$valFact[0]->IMPORTE - (float)$valFact[0]->APLICADO) - $valor) >= (-0.1)) and $valor > 0){ // Validacion de la factura
 			$this->query="SELECT * FROM gastos where id = $idp";
 			$res=$this->EjecutaQuerySimple();
