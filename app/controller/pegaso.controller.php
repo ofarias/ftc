@@ -11858,7 +11858,12 @@ function fallarOC($doco){
         $usuario = $_SESSION['user']->NOMBRE;
         $pdf = new FPDF('P','mm','Letter');
         $pdf->AddPage();
-        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
+        //$pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],10,10,50,15);
+        if(isset($DF->RUTA_LOGO)){
+	       	if(file_exists('app/views/images/logos/'.$DF->RUTA_LOGO)){
+	       		$pdf->Image('app/views/images/logos/'.$DF->RUTA_LOGO,10,3,60,30);	
+	       	}       		
+       	}
         $pdf->Ln(25); 
         $pdf->SetFont('Arial', 'B', 8);
         foreach ($generales as $data){

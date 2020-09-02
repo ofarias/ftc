@@ -1277,7 +1277,7 @@ class cargaXML extends database {
 	}
 
 	function infoProv($rfc, $tipo){
-		$data = array();
+		$data=array();$data2=array();$data3=array();$data4=array();
 		if($tipo == 'Recibidos'){
 			$this->query="SELECT x.*, c.* , cd.*, td.descripcion as tipo_doc, (SELECT SUM(X1.IMPORTE) FROM XML_DATA X1 WHERE X1.RFCE = '$rfc') as total_gral FROM XML_DATA x left join XML_CLIENTES c on c.rfc = x.rfce and c.tipo = 'Proveedor' left join XML_CLIENTES_DET cd on cd.id_cl = c.IDCLIENTE left join xml_tipo_doc td on td.id_tipo = x.id_relacion WHERE RFCE = '$rfc'";
 			$res=$this->EjecutaQuerySimple();

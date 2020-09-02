@@ -2090,7 +2090,8 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	$final = $_POST['finalCierre'];
 	$cuenta = $_POST['cuenta'];
 	$banco = $_POST['banco'];
-	$controller->cerrarEdoCtaMes($mes, $anio, $abonos,$cargos, $inicial, $final, $cuenta, $banco);
+	$f = $_POST['f'];
+	$controller->cerrarEdoCtaMes($mes, $anio, $abonos,$cargos, $inicial, $final, $cuenta, $banco, $f);
 }elseif (isset($_POST['recibeRec'])){
 	$id = $_POST['id'];
 	$tipo2 = $_POST['tipo'];
