@@ -139,7 +139,7 @@ class pegaso extends database{
 	}
 
 	function salir(){
-		if($_SESSION['bd'] && $_SESSION['bd']!=""){
+		if(@$_SESSION['bd'] && @$_SESSION['bd']!=""){
 			$php= session_id();
 			$usuario = $_SESSION['user']->USER_LOGIN;
 			$this->query="UPDATE FTC_INICIO_LOGS SET STATUS = 'O', salida = current_timestamp WHERE PHP='$php' and USR_LOGIN='$usuario' and status='I' ";
@@ -10828,13 +10828,12 @@ function Pagos() {
     						VALUES('$key->TIPO', '$key->CONSECUTIVO', '$key->FECHAMOV', $key->ABONO, $key->CARGO,$key->SALDO, '$key->BANCO', '$key->USUARIO', '$key->TP', '$key->IDENTIFICADOR', '$key->REGISTRO', '$key->FA', '$key->FE', '$key->COMPROBADO', $mes,$anio)"; 
     		$rs=$this->EjecutaQuerySimple();	
     	}*/
-
     	sort($data);
     	return @$data;
     }
 
     function estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio, $f){
-    	$pr=array();
+    	$pr=array();$param2='';$param3='';
 		$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
 		$fechaIni=$fe['fi'];$fechafin=$fe['ff'];
 	   	$param2 = "and (fecha_recep between '".$fechaIni."' and '".$fechafin."')";
@@ -10850,8 +10849,6 @@ function Pagos() {
     		while ($tsArray=ibase_fetch_object($res)) {
     			$pr[]=$tsArray;
     		}
-    	
-    		$param2='';$param3='';
     		if(count($pr) == 1){
     			foreach ($pr as $k){
     				$param2 = ' and registro = '.$k->ID;
@@ -13198,12 +13195,14 @@ function Pagos() {
 		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
 		if($f == 'si'){
     		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
-    		$param0 = " registro = ".$p['id']." ";
+    		if($p['status'] == 'S'){
+    			$param0 = " registro = ".$p['id']." ";
+    		}
     	}	
-		$this->query="SELECT SUM(MONTO) AS MONTO FROM CARGA_PAGOS WHERE Banco = (trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and $param0";
-    	$rs=$this->QueryObtieneDatosN();
-    	$row=ibase_fetch_object($rs);
-    	return @$row->MONTO;
+		$this->query="SELECT COALESCE(SUM(MONTO),0) AS MONTO FROM CARGA_PAGOS WHERE Banco = (trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and $param0";
+		$rs=$this->QueryObtieneDatosN();
+		$row=ibase_fetch_object($rs);
+		return @$row->MONTO;
     }
 
     function ventasMensual($mes, $banco, $cuenta, $anio, $f){
@@ -13212,9 +13211,12 @@ function Pagos() {
 		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
 		if($f == 'si'){
     		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
-    		$param0 = " registro = ".$p['id']." ";
-    	}
+    		if($p['status'] == 'N'){
 
+    		}else{
+    			$param0 = " registro = ".$p['id']." ";
+    		}	
+    	}
     	$this->query="SELECT iif(SUM(MONTO) is null, 0, sum(monto)) AS MONTO FROM CARGA_PAGOS WHERE $param0 AND Banco = (trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago is null and (seleccionado >= 1 or seleccionado = 2) and guardado = 1" ;
     	
     	$rs=$this->QueryObtieneDatosN();
@@ -13229,7 +13231,9 @@ function Pagos() {
 		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
 		if($f == 'si'){
     		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
-    		$param0 = " registro = ".$p['id']." ";
+    		if($p['status']=='S'){
+    			$param0 = " registro = ".$p['id']." ";
+    		}
     	}
     	$this->query="SELECT iif(SUM(MONTO) is null, 0, SUM(MONTO)) AS MONTO FROM CARGA_PAGOS WHERE $param0 and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago = 'oTEC' and (seleccionado >= 1 or seleccionado = 2) and guardado = 1";
     	$rs=$this->QueryObtieneDatosN();
@@ -13244,7 +13248,9 @@ function Pagos() {
 		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
 		if($f == 'si'){
     		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
-    		$param0 = " registro = ".$p['id']." ";
+    		if($p['status']=='S'){
+    			$param0 = " registro = ".$p['id']." ";
+    		}
     	}
     	$this->query="SELECT iif(SUM(MONTO) is null, 0, SUM(MONTO)) AS MONTO FROM CARGA_PAGOS WHERE $param0 and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago = 'DC' and (seleccionado >= 1 or seleccionado = 2) and guardado = 1 ";
     	$rs=$this->QueryObtieneDatosN();
@@ -13258,7 +13264,7 @@ function Pagos() {
 		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
 		if($f == 'si'){
     		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
-    		$param0 = " registro = ".$p['id']." ";
+    		if($p['status']=='S'){$param0 = " registro = ".$p['id']." ";}
     	}
     	$this->query="SELECT iif(SUM(MONTO) is null, 0, SUM(MONTO)) AS MONTO FROM CARGA_PAGOS 
     	WHERE $param0 and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and tipo_pago = 'DG' and (seleccionado >= 1 or seleccionado = 2) and guardado = 1 ";
@@ -13274,7 +13280,7 @@ function Pagos() {
 		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
 		if($f == 'si'){
     		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
-    		$param0 = " registro = ".$p['id']." ";
+    		if($p['status']=='S'){$param0 = " registro = ".$p['id']." ";}
     	}
     	$this->query = "SELECT iif(SUM(MONTO) is null, 0, SUM(MONTO)) AS MONTO FROM CARGA_PAGOS WHERE $param0 and Banco =(trim('$banco')||' - '||trim('$cuenta')) and status <> 'C' and (tipo_pago = 'oPCC' or tipo_pago = 'PP') and (seleccionado >= 1 or seleccionado = 2) and guardado = 1 ";
     	$rs=$this->QueryObtieneDatosN();
@@ -13289,7 +13295,7 @@ function Pagos() {
 		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
 		if($f == 'si'){
     		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
-    		$param0 = " registro = ".$p['id']." ";
+    		if($p['status']=='S'){$param0 = " registro = ".$p['id']." ";}
     	}
     	$this->query="SELECT sum(monto) as Total, sum(saldo) as Faltante from carga_pagos WHERE $param0 and banco  = '$banco'||' - '||'$cuenta' and status <>'C' and (tipo_pago is null or tipo_pago = '') and seleccionado = 2";
     	$rs=$this->QueryObtieneDatosN();
@@ -13305,7 +13311,7 @@ function Pagos() {
 		$param0 = " fecha_recep between '".$fi."' and '".$ff."' ";
 		if($f == 'si'){
     		$p = $this->paramEdoCta($banco, $cuenta, $mes, $anio, $f);
-    		$param0 = " registro = ".$p['id']." ";
+    		if($p['status']=='S'){$param0 = " registro = ".$p['id']." ";}
     	}
     	$this->query="SELECT sum(a.monto) as ACREEDORES, sum(cp.saldo) as Faltante from acreedores a left join carga_pagos cp on cp.id = a.id_pago	WHERE $param0 and cp.banco  = '$banco'||' - '||'$cuenta' and cp.status <>'C' and (cp.tipo_pago is null or tipo_pago = '') and a.status <> 99 and seleccionado = 2";
     	$rs=$this->QueryObtieneDatosN();
@@ -13389,21 +13395,20 @@ function Pagos() {
     		}
     		$this->query="SELECT * FROM FTC_MEDIA_FILES M WHERE M.TIPO = 'EDOCTA' AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$banco' and (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$cuenta' and MI=$mi and MF = $mf and status = 'A'";
     		$res=$this->EjecutaQuerySimple();
-    		//echo $this->query;
+    		//echo '<br/>'.$this->query;
     		while ($tsArray=ibase_fetch_object($res)) {
     			$pr[]=$tsArray;
     		}
     	}
-
     	if(count($pr) == 1){
     		foreach ($pr as $k){    			
      		}
     	}elseif(count($pr) > 1) {
-    		return $m='Se encontraron mas de 1 carga de excel, por lo cual no se puede determinar la conincidencia unica';
+    		return array("status"=>'N', "m"=>'Se encontraron mas de 1 carga de excel, por lo cual no se puede determinar la conincidencia unica');
     	}else{
-    		return $m='No se encontro una carga que coincida';
+    		return array("status"=>'N', "m"=>'No se encontro una carga que coincida');
     	}
-    	return array("id"=>$k->ID);
+    	return array("id"=>$k->ID, "status"=>'S');
     }
 
     function totalCompras($mes, $banco, $anio, $cuenta, $f){

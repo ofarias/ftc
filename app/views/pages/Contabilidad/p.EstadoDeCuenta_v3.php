@@ -151,8 +151,8 @@
                         </div>
                            <div class="panel-body">
                             <div class="table-responsive">                            
-                                <table class="table table-striped table-bordered table-hover" id="dataTables">
-                                  <tr>
+                                  <table class="table table-striped table-bordered table-hover" id="dataTables">
+                                    <tr>
                                     <?php foreach ($pagosacreedores as $data):
                                       $acreedores = $data->ACREEDORES;
                                       endforeach;
@@ -193,7 +193,10 @@
                                     <br/>
                                     </td>
                                     </tr>
-                                 </table>
+                                  </table>
+                                  <center>
+                                    <button class="btn-sm btn-primary xls" a ="<?php echo $anio?>" m="<?php echo $mes?>" b="<?php echo $banco?>" c ="<?php echo $cuenta?>" f="<?php echo $f?>">Descargar a Excel</button>
+                                  </center>
                       </div>
             </div>
         </div>
@@ -220,7 +223,6 @@
                                             <th>CARGO</th>
                                             <th>POR CONCILIAR/APLICAR</th>
                                             <th>TIPO PAGO</th>
-                                            
                                             <th>USUARIO QUE REGISTRO</th>
                                             <th>Contabilizado?</th>
                                             <th>CEP</th>
@@ -418,7 +420,6 @@ if (empty($exec)){
                                             <th>USUARIO QUE REGISTRO</th>
                                             <th>Contabilizado?</th>
                                             <th>CEP</th>
-                                            
                                         </tr>
                                     </thead>
                                   <tbody>

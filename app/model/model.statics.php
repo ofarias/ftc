@@ -220,30 +220,32 @@ class statics extends database {
     }
 
     function periodos($gt, $anio, $cliente, $tipo){
-      $d_s='';
+      $d_s=''; $p=array();
       $this->query="SELECT FD.*, (SELECT TIPO FROM FTC_STA_PER WHERE LEYENDA='$gt') as NOMBRE FROM FTC_STA_PER_DET FD WHERE FD.TIPO = '$gt'";
       $res=$this->EjecutaQuerySimple();
       while ($tsArray=ibase_fetch_object($res)) {
         $p[]=$tsArray;
       }
       $campo = $tipo=='Recibidos'? 'rfce':'Cliente';
-      $i=0;      
-      foreach ($p as $per){
-        $i++;
-        $mi= $per->MES_INICIA; 
-        $mf= $per->MES_FINALIZA;
-        $this->query="SELECT sum(IMPORTE) AS TOTAL FROM XML_DATA X WHERE FECHA 
-              between 
-                (SELECT FECHA_INI FROM PERIODOS_2016 WHERE NUMERO = $mi and anhio = $anio) 
-                and  
-                (SELECT FECHA_FIN FROM PERIODOS_2016 WHERE NUMERO = $mf and anhio = $anio)
-                and $campo = TRIM('$cliente') and x.tipo ='I' and status != 'C'
-                ";
-        $res=$this->EjecutaQuerySimple();
-        $row=ibase_fetch_object($res);
-        $d_s.=$gt.$i.':'.(empty($row->TOTAL)? 0:$row->TOTAL).',';
-      }
-      $d_s .= $per->NOMBRE;
+      $i=0;  
+      if(count($p)>0){
+        foreach ($p as $per){
+          $i++;
+          $mi= $per->MES_INICIA; 
+          $mf= $per->MES_FINALIZA;
+          $this->query="SELECT sum(IMPORTE) AS TOTAL FROM XML_DATA X WHERE FECHA 
+                between 
+                  (SELECT FECHA_INI FROM PERIODOS_2016 WHERE NUMERO = $mi and anhio = $anio) 
+                  and  
+                  (SELECT FECHA_FIN FROM PERIODOS_2016 WHERE NUMERO = $mf and anhio = $anio)
+                  and $campo = TRIM('$cliente') and x.tipo ='I' and status != 'C'
+                  ";
+          $res=$this->EjecutaQuerySimple();
+          $row=ibase_fetch_object($res);
+          $d_s.=$gt.$i.':'.(empty($row->TOTAL)? 0:$row->TOTAL).',';
+        }
+        $d_s .= $per->NOMBRE;
+      }    
       return $d_s;
     }
 

@@ -63,7 +63,14 @@
                                             <td><?php echo $d->BANCO.' - '.$d->CUENTA;?></td>
                                             <td><?php echo $d->FECHA_ALTA;?></td>
                                             <td><?php echo $d->USUARIO_ALTA;?></td>
-                                            <td><?php echo substr($d->NOMBRE,21);?><br/><a class="btn-sm btn-primary" href="index.php?">Trabajar Estado</a></td>
+                                            <td><?php echo substr($d->NOMBRE,21);?><br/>
+                                                <?php if(strtoupper(substr($d->NOMBRE, strpos($d->NOMBRE, ".")+1)) == 'PDF'){?>
+                                                    <a class="btn-sm btn-info" href="index.php?">Descarga Archivo</a>
+                                                <?php }elseif(strtoupper(substr($d->NOMBRE, strpos($d->NOMBRE, ".")+1))=='XLSX' and $d->STATUS == 'A'){?>
+                                                    <a class="btn-sm btn-primary" href="index.php?action=FiltrarEdoCta&mes=<?php echo date("n", strtotime($FI))?>&banco=<?php echo $d->BANCO?>&cuenta=<?php echo $d->CUENTA?>&anio=<?php echo date("Y", strtotime($FI))?>&f=si">Trabajar Estado</a>
+                                                <?php }?>
+
+                                        </td>
                                             <td><?php echo $f=strtoupper(substr($d->NOMBRE, strpos($d->NOMBRE, ".")+1));?></td>
 											<td align="right"><font color="blue"><?php echo '$ '.number_format($d->ABONOS,2);?></font><br/><font color="brown"><?php echo '$ '.number_format($d->CARGOS,2);?></font></td>
                                             <td align="right"><b><?php echo substr($FI,0,10)?><br/><?php echo substr($FF, 0,10)?></b></td>

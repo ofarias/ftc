@@ -10737,6 +10737,10 @@ function imprimirFacturasAcuse(){
         	$cierre = $data->cierreBanco($banco, $cuenta, $mes, $anio);
         	$inicial = $data->sinicial($banco, $cuenta, $mes, $anio);
         	$desc = $data->descargas($banco, $cuenta, $mes, $anio);
+        	if(count($exec) == 0 and $f == 'si'){
+        		$this->estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio, $nvaFechComp, $f);
+        		die();
+        	}
         	if (count($bancos)){
             	include 'app/views/pages/Contabilidad/p.EstadoDeCuenta_v2.php';
             	$table = ob_get_clean();
@@ -10776,7 +10780,6 @@ function imprimirFacturasAcuse(){
     		
     	}
     }
-
 
     function estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio, $nvaFechComp, $f){	
     	if (isset($_SESSION['user'])) {
