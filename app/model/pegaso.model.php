@@ -25435,7 +25435,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
     		$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfce' and tipo = 'Proveedor'";
 	    	$this->queryActualiza();	
-	    	foreach ($partidas as $key){
+	    	foreach ($partidas as $key){ /// guarda el general en todos los xml.
 	    		$key=explode(":", $key);
 	    		$par = $key[0];
 	    		$cve_sat = $key[1];
@@ -25451,9 +25451,27 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
 	    		)
 	    		";
-	    		//echo '<br/>'.$this->query.'<br/>';
 	    		$this->queryActualiza();
-	      	}	
+	      	}
+	      	foreach ($partidas as $key){ // guarda el Detalle por documento.
+	    		$key=explode(":", $key);
+	    		$par = $key[0];
+	    		$cve_sat = $key[1];
+	    		$uni_sat = $key[2];
+	    		$ccp = $key[3];
+	    		$this->query="UPDATE XML_PARTIDAS xp SET xp.CUENTA_CONTABLE = '$ccp' where (select x.rfce from xml_data x where x.uuid = '$uuid') = '$rfce' 
+	    				and  xp.CLAVE_SAT = '$cve_sat'
+	    				and xp.UNIDAD_SAT = '$uni_sat'
+	    		and 
+	    		( 
+	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'P' 
+	    		or  
+	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
+	    		) and xp.partida = $par and xp.uuid = '$uuid'
+	    		";
+	    		$this->queryActualiza();
+	      	}
+
     	}
     }
 
