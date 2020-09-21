@@ -60,5 +60,32 @@ class sync_mobile extends database {
       }
   }
 
+  function leeempresa(){
+    $bd_original = $_SESSION['bd'];
+    $path = "C:\\users\\gense\\desktop\\Datos\\";
+    $dir = scandir($path);
+    for ($i=2; $i < count($dir) ; $i++){ 
+      if(!is_file($dir[$i])){
+        $files= scandir($path.$dir[$i]);
+        for($j=0; $j < count($files); $j++){
+          if(is_file($path.$dir[$i].'\\'.$files[$j])){
+            $info = new SplFileInfo($path.$dir[$i].'\\'.$files[$j]);
+            $ext = pathinfo($info->getFilename(), PATHINFO_EXTENSION);
+            $name = pathinfo($info->getFilename(), PATHINFO_BASENAME);
+            if(strtoupper($ext) == 'FDB'){
+              $_SESSION['bd']= $name; $_SESSION['folder'] = $dir[$i];
+              $this->query="SELECT * FROM PARAMEMP";
+              $res = $this->EjecutaQuerySimple();
+              $row = ibase_fetch_object($res);
+              //print_r($row);
+              echo '<br/>'.utf8_decode($row->NOMBRE).'<br/>';
+            }
+          }
+        }
+      }
+    }
+    $_SESSION['bd'] = $bd_original;
+    die();
+  }
 }
 ?> 

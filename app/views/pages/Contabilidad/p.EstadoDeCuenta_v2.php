@@ -61,7 +61,7 @@
                                         foreach ($bancos as $data):                           
                                         ?>
                                        <tr>
-                                            <td><?php echo $data->BANCO;?><input type="hidden" name="banco" id="banco" value="<?php echo $data->BANCO?>"><p><a class="btn-sm btn-primary" href="index.php?action=verCargas&b=<?php echo $data->BANCO?>&c=<?php echo $data->NUM_CUENTA?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=600'); return false;">Ver cargas</a></p></td>
+                                            <td><?php echo $data->BANCO;?><input type="hidden" name="banco" id="banco" value="<?php echo $data->BANCO?>"><p><a class="btn-sm btn-primary" href="index.php?action=verCargas&b=<?php echo $data->BANCO?>&c=<?php echo $data->NUM_CUENTA?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=600'); return false;">Cargas</a></p></td>
                                             <td><?php echo $data->NUM_CUENTA;?><input type="hidden" name="banco" id="cuenta" value="<?php echo $data->NUM_CUENTA?>"></td>
                                             <td><?php echo $data->CTA_CONTAB;?></td>
                                             <td align="center"><b><?php echo $data->DIA_CORTE?></b></td>
@@ -120,7 +120,7 @@
                                           <input type="hidden" name="cuenta" value="<?php echo $data->NUM_CUENTA?>" id="fc">
                                     <?php endforeach ?>
                                         <button name="FiltrarEdoCta" value="enviar" onclick="filtrar()"> Aplicar </button>
-                                        <td align="lefth"> <input type="checkbox" name="f" id="f"><b> Mantener carga Excel</b></td>
+                                        <td align="lefth"> <!--<input type="checkbox" name="f" id="f"><b> Mantener carga Excel</b>--></td>
                                     </td>
                                     </tr>
                               </tbody>

@@ -33,6 +33,8 @@ class mobile_c{
 	
 	function sync(){
 		if($_SESSION['user'] and $_SESSION['empresa']['mobile']==1){
+			$this->leeempresa();
+			die();
 			$data = new sync_mobile;
 			$data2 = new sync_mob_mysql;
 			$info=array();
@@ -51,6 +53,12 @@ class mobile_c{
 		}else{
 		
 		}
+	}
+
+	function leeempresa(){
+		$data = new sync_mobile;
+		$info = $data->leeempresa();
+		die;
 	}
 
 	function detStat($cliente, $mes, $anio, $tipo){

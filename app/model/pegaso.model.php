@@ -10695,19 +10695,23 @@ function Pagos() {
     	return $inicial;
     }
  
-	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $f){
+	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $f, $idfl){
 	   	$pr=array();
 		$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
 		$fechaIni=$fe['fi'];$fechafin=$fe['ff'];
 		$param2 = "and (fecha_recep between '".$fechaIni."' and '".$fechafin."')";
 	   	$param3 = " and ( fecha_edo_cta between '".$fechaIni."' and '".$fechafin."' or g.fecha_doc between '".$fechaIni."' and '".$fechafin."') ";	   
 	   	if($f == 'si'){
-    		if($mes <12){
-    			$mi=$mes; $mf=$mes+1;
-    		}else{
-    			$mi=$mes; $mf=1;
-    		}
-    		$this->query="SELECT * FROM FTC_MEDIA_FILES M WHERE M.TIPO = 'EDOCTA' AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$banco' and (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$cuenta' and MI=$mi and MF = $mf and status = 'A'";
+	   		/// Se cambia por la obtencion de fechas desdes la funcion periodosEC
+    		///if($mes <12){
+    		///	$mi=$mes; $mf=$mes+1;
+    		///}else{
+    		///	$mi=$mes; $mf=1;
+    		///}
+    		$file = ''; $mi= ''; $mf=''; 
+    		if($idfl > 0 ){$file=' and id = '.$idfl;}else{$mi = $fe['mi'];$mf=$fe['mf']; $file = 'and MI='.$mi.' and MF = '.$mf;}
+    		$this->query="SELECT * FROM FTC_MEDIA_FILES M WHERE M.TIPO = 'EDOCTA' AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$banco' and (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$cuenta' and status = 'A' $file";
+    		//echo $this->query;
     		$res=$this->EjecutaQuerySimple();
     		while ($tsArray=ibase_fetch_object($res)) {
     			$pr[]=$tsArray;
@@ -13382,7 +13386,7 @@ function Pagos() {
     			$ff = $ld.'.1.'.$anio;
     		}
     	}	
-    	return array("fi"=>$fi, "ff"=>$ff);
+    	return array("fi"=>$fi, "ff"=>$ff, "mi"=>date("n", strtotime($fi)), "mf"=>date("n", strtotime($fi)));
     }
 
     function paramEdoCta($banco, $cuenta, $mes, $anio, $f){
@@ -25391,8 +25395,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     						(select sum(BASE) from xml_impuestos xi where impuesto = '001' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_ISR_R,
     						(select sum(BASE) from xml_impuestos xi where impuesto = '002' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_IVA_R, 
     						(select sum(BASE) from xml_impuestos xi where impuesto = '003' and xi.partida = x.partida and xi.uuid = x.uuid and xi.tipo='Retencion' and xi.status = 0) as B_IEPS_R
-     						FROM  XML_PARTIDAS x where uuid = '$uuid'";
-    	//echo $this->query;
+     						FROM  XML_PARTIDAS x where uuid = '$uuid' order by x.partida";
     	$res=$this->EjecutaQuerySimple();
     	while ($tsArray=ibase_fetch_object($res)) {
     		$data[]=$tsArray;

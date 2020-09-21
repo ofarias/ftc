@@ -10704,7 +10704,7 @@ function imprimirFacturasAcuse(){
     	}			    	
     }
 
- 	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $nvaFechComp, $f){
+ 	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $nvaFechComp, $f, $idfl){
  		if (isset($_SESSION['user'])){
         	$data = new pegaso;
         	$pagina = $this->load_template('Menu Admin');        	
@@ -10713,7 +10713,7 @@ function imprimirFacturasAcuse(){
         	$meses=$data->traeMeses();
         	$bancos=$data->CuentasBancarias($banco, $cuenta);
         	$mesactual=$data->traeMes($mes, $anio);
-        	$exec=$data->estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $f);
+        	$exec=$data->estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $f, $idfl);
         	if($exec == 'No'){
         		echo  "<script>alert('No se Encontro el Archivo');</script>";
         		$this->estado_de_cuenta($banco, $cuenta);
@@ -10737,7 +10737,7 @@ function imprimirFacturasAcuse(){
         	$cierre = $data->cierreBanco($banco, $cuenta, $mes, $anio);
         	$inicial = $data->sinicial($banco, $cuenta, $mes, $anio);
         	$desc = $data->descargas($banco, $cuenta, $mes, $anio);
-        	if(count($exec) == 0 and $f == 'si'){
+        	if(@count($exec) == 0 and $f == 'si'){
         		$this->estado_de_cuenta_mes_docs($mes, $banco, $cuenta, $anio, $nvaFechComp, $f);
         		die();
         	}

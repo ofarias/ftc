@@ -1147,10 +1147,11 @@ elseif(isset($_POST['cambiarStatus'])){
 	$anio=$_POST['anio'];
 	if(isset($_GET['nvaFechComp'])){
         		$nvaFechComp=$_GET['nvaFechComp'];
-        	}else{
+    }else{
         		$nvaFechComp = '01.01.2016';
-        	}
-   $controller->estado_de_cuenta_mes($mes,$banco,$cuenta, $anio, $nvaFechComp);
+    }
+   	$idfl= isset($_POST['idfl'])? $_POST['idfl']:0;
+   $controller->estado_de_cuenta_mes($mes,$banco,$cuenta, $anio, $nvaFechComp, $idfl);
 }elseif (isset($_POST['traeFactura'])) {
 	$docf =$_POST['docf'];
 	exit();
@@ -4333,7 +4334,8 @@ else{
    			}else{
    				$nvaFechComp = '01.01.2016';
    			}
-   			$controller->estado_de_cuenta_mes($mes,$banco,$cuenta, $anio, $nvaFechComp, $_GET['f']);
+   			$idfl= isset($_GET['idfl'])? $_GET['idfl']:0;
+   			$controller->estado_de_cuenta_mes($mes,$banco,$cuenta, $anio, $nvaFechComp, $_GET['f'], $idfl);
    			break;
    		case 'ESTADO_DE_CUENTA':
    			$banco = $_GET['banco'];

@@ -361,6 +361,7 @@ class controller_coi{
 		if($_SESSION['user']){
 			$data= new CoiDAO;
 			$act = $data->upl_param($file, $x, $eje);
+			echo $act['m'];
 			return $act;
 			
 		}

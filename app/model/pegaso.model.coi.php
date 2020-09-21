@@ -2720,19 +2720,12 @@ class CoiDAO extends DataBaseCOI {
         $sheet=$objPHPExcel->getSheet(0);
         $highestRow = $sheet->getHighestRow(); 
         $highestColumn = $sheet->getHighestColumn();
+        $na=0; $acc=0; $acp=0; 
         for ($row=10; $row <= ($highestRow -2); $row++){ //10
             $par = $sheet->getCell("I".$row)->getValue();
             $ctaPar=$sheet->getCell("O".$row)->getValue();
             $ctaCab=$sheet->getCell("AB".$row)->getValue();
             $uuid = $sheet->getCell("C".$row)->getValue();
-            //echo 'Linea '.$row.' -->';
-            //echo $sheet->getCell("A".$row)->getValue()." - ";
-            //echo $sheet->getCell("B".$row)->getValue()." - ";
-            //echo $sheet->getCell("C".$row)->getValue()." - ";
-            //echo $sheet->getCell("I".$row)->getValue()." - ";
-            //echo $sheet->getCell("O".$row)->getValue()." - ";
-            //echo $sheet->getCell("Z".$row)->getValue()." - ";
-            //echo "<br>";
             for ($i=0; $i <= 1; $i++) {
                 if($i == 0){
                     $cta = $ctaPar;
@@ -2746,20 +2739,19 @@ class CoiDAO extends DataBaseCOI {
                     if($i == 0){
                         $cuentaPartida=$lin->CUENTA_COI;                
                         $a=$d->actCtaPar($cuentaPartida, $uuid, $par, $x);
+                        $acp++;
                     }elseif($i == 1){
                         $cuentaCabecera=$lin->CUENTA_COI;
                         $b=$d->actCtacab($cuentaCabecera, $uuid, $par, $x);
+                        $acc++;
                     }
                 }else{
-                    //print_r($lin);
-                    //echo '<br/>'.$this->query ;
-                    echo '<br/>La linea: '.$row.', con la cuenta '.$cta.', podria poner un reporte por correo con los resultados<br/>';
-                    //echo $_SESSION['r_coi'];
-                    die();
+                    $na++;
+                    echo '<br/>La linea: '.$row.', con la cuenta '.$cta.', no es valida<br/>';
                 }
             }
         }
-        return;
+        return array("m"=>'Se actualizaron '.$acp.' partidas y '.$acc.' proveedores, sin informacion o con informacion no valida '.$na);
     }
 
     function traeinfo($pol, $e, $per, $cta){

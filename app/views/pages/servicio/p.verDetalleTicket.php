@@ -12,6 +12,7 @@
     }
     }
 ?>
+<?php foreach($t as $ticket){}?>
 <br/>
 <?php foreach($t as $tic):?>
 <div class="row">
@@ -127,14 +128,14 @@
                     <div class="form-group">
                         <label for="requerido" class="col-lg-2 control-label">Descripcion copleta del problema: </label>
                             <div class="col-lg-8">
-                                <textarea name="completa" cols="100" rows="8"></textarea>
+                                <textarea name="completa" cols="100" rows="8"><?php echo $ticket->COMPLETA?></textarea>
                                 <br/><label class="comentario">Este campo se puede editar hasta antes de cerrar el ticket.</label>
                             </div>
                     </div>
                     <div class="form-group">
                         <label for="requerido" class="col-lg-2 control-label">Solución: </label>
                             <div class="col-lg-8">
-                                <textarea name="solucion" cols="100" rows="8"></textarea>
+                                <textarea name="solucion" cols="100" rows="8"><?php echo $ticket->SOLUCION?></textarea>
                                 <br/><label class="comentario">Este campo se puede editar hasta antes de cerrar el ticket.</label>
                             </div>
                     </div>

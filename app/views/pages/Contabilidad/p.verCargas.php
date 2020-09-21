@@ -67,7 +67,7 @@
                                                 <?php if(strtoupper(substr($d->NOMBRE, strpos($d->NOMBRE, ".")+1)) == 'PDF'){?>
                                                     <a class="btn-sm btn-info" href="index.php?">Descarga Archivo</a>
                                                 <?php }elseif(strtoupper(substr($d->NOMBRE, strpos($d->NOMBRE, ".")+1))=='XLSX' and $d->STATUS == 'A'){?>
-                                                    <a class="btn-sm btn-primary" href="index.php?action=FiltrarEdoCta&mes=<?php echo date("n", strtotime($FI))?>&banco=<?php echo $d->BANCO?>&cuenta=<?php echo $d->CUENTA?>&anio=<?php echo date("Y", strtotime($FI))?>&f=si">Trabajar Estado</a>
+                                                    <a class="btn-sm btn-primary" href="index.php?action=FiltrarEdoCta&mes=<?php echo date("n", strtotime($FI))?>&banco=<?php echo $d->BANCO?>&cuenta=<?php echo $d->CUENTA?>&anio=<?php echo date("Y", strtotime($FI))?>&f=si&idfl=<?php echo $d->ID?>">Trabajar Estado</a>
                                                 <?php }?>
 
                                         </td>
