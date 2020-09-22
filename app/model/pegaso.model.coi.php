@@ -184,8 +184,9 @@ class CoiDAO extends DataBaseCOI {
             }
 
             foreach ($periodos as $peri) {
-                $eje = substr($peri->EJERCICIO,2);
-                $this->query="UPDATE CUENTAS$eje SET RFC='$rfc_e' where num_cta = '$cuenta'";
+                $eje=substr($peri->EJERCICIO,2);
+                $r=($_SESSION['rfc'] == $rfc_e)? $rfc:$rcf_e; 
+                $this->query="UPDATE CUENTAS$eje SET RFC='$r' where num_cta = '$cuenta'";
                 $this->queryActualiza();
             }
             
