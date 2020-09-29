@@ -3,7 +3,10 @@
 require_once('app/model/model.serv.php');
 require_once('app/model/pegaso.model.ventas.php');
 require_once('app/fpdf/fpdf.php');
+require ('app/dompdf/autoload.inc.php');
 require_once('app/views/unit/commonts/numbertoletter.php');
+use Dompdf\Dompdf;
+
 
 class ctrl_serv{
 	var $contexto_local = "http://SERVIDOR:8081/pegasoFTC/app/";
@@ -548,5 +551,136 @@ class ctrl_serv{
 	            return array("status"=>'ok', "archivo"=>$nom);
 	}
 
+	function impTick($idt){
+		if($_SESSION['user']){
+			$data = new data_serv;
+			$info = $data->infoTicket($idt);
+			//echo $info->NOMBRE_CLIENTE;
+			$files = $data->archivos($idt);
+			/// inciamos la impresion;
+			$dompdf = new Dompdf();
+        	//$K=html_entity_decode($K, ENT_QUOTES, "UTF-8"); 
+        	//$K = htmlentities($K, ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE );
+	        
+	        $html="<!DOCTYPE html>";
+	        $html.="<html>";
+	        
+	        $html.="<style>";
+	        $html.=".responsive {";
+	        $html.="width: 100%;  ";
+	        $html.="height: auto;";
+	        $html.=" }";
+	        $html.="</style>";
+
+	        $html.="<head>";
+	        $html.="<title>Reporte de Ticket</title>";
+	        $html.="</head>";
+	        $html.="<body>";
+	        $html.="<img src='app/views/images/Logos/LogoFTC.jpg'><br>";
+	        $html.="<ul style='font-family:verdana;font-size:4px'><font size='12pxs'>";
+	        $html.="<br/><font size='12pxs'><b>Sistema de Tickets de servicio ".htmlentities('Versión', ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE).": 2.8</b></font>";
+	        $html.="<br/><font size='12pxs'><b>".htmlentities('Fecha Elaboración:', ENT_QUOTES | ENT_IGNORE, "UTF-8", FALSE)."</b>".$info->FECHA."</font>";
+	        $html.="<br/><font size='12pxs'><b>".htmlentities('Fecha Atención:', ENT_QUOTES | ENT_IGNORE, "UTF-8", FALSE)."</b>".$info->FECHA_REPORTE."</font>";
+	        $html.="<br/><font size='12pxs'><b>".htmlentities('Fecha impresión:', ENT_QUOTES | ENT_IGNORE, "UTF-8", FALSE)."</b>".date("d-m-Y H:i:s")."</font>";
+	        $html.="<br/><font size='12pxs'><b>".htmlentities('Atiende:', ENT_QUOTES | ENT_IGNORE, "UTF-8", FALSE)."</b>".$info->ATIENDE."</font>";
+
+
+	        $html.="<br/>";
+	        $html.="<br/><font size='12pxs'><b>Cliente: ".htmlentities($info->NOMBRE_CLIENTE, ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE).":</b></font>";
+	        
+	        $html.="<br/><font size='12pxs'><b>Usuario que reporta o solicita el servicio: </b>".$info->REPORTA."</font>";    
+	        $html.="<br/><font size='12pxs'><b>Usuario que Recibe el Servicio: </b>".$info->USUARIO."</font>";    
+	        $html.="<br/><font size='12pxs'><b>Forma de Contacto: </b>".$info->MODO."</font>";    
+	        $html.="<br/><font size='12pxs'><b>Correo: </b>".$info->CORREO_USU."</font>";    
+	        $html.="<br/>";
+	        $html.="<br/><font size='12pxs'><b>Equipo Reportado:</b> ".$info->EQUIPO."</font>";    
+	        $html.="<br/><font size='12pxs'><b>Descripcion Cora del servicio o indicente:</b> ".htmlentities($info->CORTA,ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE)."</font>";
+	        $html.="<br/>";
+
+	        $html.="</font></ul><br>";
+	        $html.="<strong><p align='center'><font size='15pxs'>".htmlentities('Descripción Completa de la solicitud o el incidente', ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE)."</font></p></strong><br>";
+	        $html.="<p><font size='12pxs'>".htmlentities($info->COMPLETA, ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE)."</font></p>";
+	        $html.="<br/>";
+	        $html.="<strong><p align='center'><font size='15pxs'>".htmlentities('Solución al indicente', ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE).".</font></p></strong><br>";
+	        $html.="<p><font size='12pxs'>".htmlentities($info->SOLUCION, ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE)."</font></p>";
+
+	        //// Area de imagenes
+	        $html.="<strong><p align='center'><font size='15pxs'>".htmlentities('Imagenes del tikcet', ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE).".</font></p></strong><br>";
+	        
+	        if(count($files)>0){
+		        $archivos = $this->limpiaArchivos($files);
+		        for ($i=0; $i < count($archivos); $i++){
+		        	if($this->esImagen($archivos[$i])){
+			        	$html.="<img src='".$archivos[$i]."' width='500' height='400' class='responsive'><br>";
+			        	$html.="<label>".substr($archivos[$i],16)."</label><br/>";
+		        	} 
+		        }
+	        }
+	        /// Finaliza la Area de imagenes.
+
+	        $html.="<strong><p align='center'><font size='15pxs'>".htmlentities('FIN DEL TICKET'.$idt, ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE).".</font></p></strong><br>";
+	        $html.="";
+	        $html.="</body>";
+	        $html.="</html>";
+	        
+	        $dompdf->loadHtml(utf8_decode($html));   
+	        // (Optional) Setup the paper size and orientation
+	        $dompdf->setPaper('letter', 'portrait');
+	        // Render the HTML as PDF
+	        $dompdf->render();
+	        // Output the generated PDF to Browser
+	        $tipo = '1';
+	        if($tipo == '0'){
+	            //$pdf->Output('Minuta_'.$ida.'.pdf','d');
+	            $dompdf->stream('Ticket_.pdf');
+	            //$dompdf->stream('C:\xampp\htdocs\archivos\Minutas\Minuta_'.$k->USUARIO.'_'.$k->FECHA.'_'.$k->NOMBRE.'.pdf');
+	        }else{
+	            $output=$dompdf->output();
+	            file_put_contents('C:\xampp\htdocs\media\tickets\Ticket '.$idt.'.pdf', $output);
+	            return array("archvio"=>'C:\\xampp\\htdocs\\media\\tickets\\Ticket '.$idt.'.pdf', "status"=>'S');
+	        }
+		}
+	}
+
+	function limpiaArchivos($files){
+		$d=0;
+		foreach ($files as $fl) {
+			$d++;
+			$archivo = $fl->UBICACION.$fl->NOMBRE.'.'.$fl->TIPO_ARCHIVO;
+			if(strtoupper($fl->TIPO_ARCHIVO) == 'ZIP'){
+				file_exists($fl->UBICACION.'\\'.$fl->NOMBRE.'\\')? '':mkdir($fl->UBICACION.'\\'.$fl->NOMBRE.'\\');
+				$path = $fl->UBICACION.'\\'.$fl->NOMBRE.'\\';
+				$zip = new ZipArchive;
+				$origen = $zip->open($archivo);
+				if($origen === TRUE){
+					$zip->extractTo($path);
+					$zip->close();
+					$dc = scandir($path);
+					for ($i=0; $i < count($dc); $i++){ 
+						/*echo '<br/>Archivo: '.$dc[$i].'<br/>';
+						if(strtoupper(substr($dc[$i], strlen($dc[$i])-3)) == 'PDF'){
+							echo '<br/> El Archivo es '.substr($dc[$i], strlen($dc[$i])-3);
+							$imagick = new Imagick();
+							$imagick->readImage($path.'\\'.$dc[$i]);
+							$imagick->writeImages($path.'\\'.'pdf-convetido.jpg', false);
+						}*/
+						$archivos[]=$path.$dc[$i];
+					}
+				}else{
+					echo 'Error al descomprimir el archivo zip '.$archivo;
+				}
+			}
+			$archivos[]=$archivo;
+		}
+		//print_r($archivos);
+		//die();
+		return $archivos; 
+	}
+
+	function esImagen($path){
+            @$imageSizeArray = getimagesize($path);
+            $imageTypeArray = $imageSizeArray[2];
+            return (bool)(in_array($imageTypeArray , array(IMAGETYPE_GIF , IMAGETYPE_JPEG ,IMAGETYPE_PNG , IMAGETYPE_BMP)));
+    }
 }?>
 

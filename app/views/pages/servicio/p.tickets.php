@@ -48,7 +48,8 @@
                                 <th>Estatus</th>
                                 <th>Sistema</th>
                                 <th>Detalle</th>
-                                <th>Archivos<br/> Avidencias</th>   
+                                <th>Archivos<br/> Avidencias</th>
+                                <th>Imprimir</th>   
                             </tr>
                         </thead>
                         <tbody>
@@ -86,6 +87,7 @@
                                     </td>
 
                                 </form>
+                                <td><input type="button" class="btn-sm btn-primary impresion" value="Imprimir" idt="<?php echo $row->ID?>"></td>
                             </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -102,6 +104,23 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(".impresion").click(function(){
+        var idt = $(this).attr('idt');
+        alert('Impresion del ticket ' + idt)
+        $.ajax({
+            url:'index.serv.php',
+            type:'POST',
+            dataType:'json',
+            data:{impTick:1, idt},
+            success:function(data){
+                window.open('..//media//tickets//Ticket '+idt+'.pdf', 'download')
+            },      
+            error:function(){
+                alert('Lo sentimos ocurrio un error, intentelo mas tarde') 
+            }
+        })
+    })
 
     $("#nuevoTicket").click(function(){
         window.open("index.serv.php?action=nuevoTicket", "popup","width=1200,height=900")

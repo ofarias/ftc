@@ -33,6 +33,10 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res=$controller->reporteServ($_POST['periodo'], $_POST['tipo']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['impTick'])) {
+	$res=$controller->impTick($_POST['idt']);
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($_GET['action']){

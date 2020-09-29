@@ -285,4 +285,21 @@ class data_serv extends database {
 			return array('principal'=>$data,'primero'=>$dataPN, 'segundo'=>$dataSN, 'per'=>$per, 'tip'=>$tip);
 		}
 
+		function infoTicket($idt){
+			$this->query="SELECT * FROM TICKET  WHERE ID = $idt";
+			$res = $this->EjecutaQuerySimple();
+			$row = ibase_fetch_object($res);
+			return $row;
+		}
+
+		function archivos($idt){
+			$data = array();
+			$this->query = "SELECT * FROM FTC_SERV_FILES WHERE ID_SERV = $idt";
+			$res=$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)) {
+				$data[]=$tsArray;
+			}
+			return $data;
+		}
+
 }
