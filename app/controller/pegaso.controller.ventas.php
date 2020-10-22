@@ -1978,5 +1978,20 @@ class pegaso_controller_ventas{
         }
     }
 
+    function copiaNV($doc){
+        if($_SESSION['user']){
+            $data = new pegaso_ventas;
+            $exec = $data->copiaNV($doc);
+            return $exec;
+        }
+    }
+
+    function chgEmail($cl, $correo){
+        if($_SESSION['user']){
+            $data = new pegaso_ventas;
+            $exec = $data->chgEmail($cl, $correo);
+            return $exec;
+        }   
+    }
 }
 ?>

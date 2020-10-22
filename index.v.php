@@ -559,6 +559,14 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	$res = $controller_v->factNV($_POST['doc'] , $_POST['mp'], $_POST['fp'], $_POST['uf']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['copiaNV'])) {
+	$res = $controller_v->copiaNV($_POST['doc']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['chgEmail'])) {
+	$res = $controller_v->chgEmail($_POST['cl'], $_POST['correo']);
+	echo json_encode($res);
+	exit();
 }
 else{switch ($_GET['action']){
 		case 'login':

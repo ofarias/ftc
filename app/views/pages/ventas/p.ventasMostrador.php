@@ -179,7 +179,7 @@
                                                <br/>
                                                <textarea id="obs_<?php echo $p->PARTIDA?>" placeholder="<?php echo substr($p->DESCRIPCION, strlen($p->PRODUCTO))?>" class="hidden" sentences autofocus cols='80' rows='5'><?php echo substr($p->DESCRIPCION, strlen($p->PRODUCTO))?></textarea>                                           
                                                <a class="hidden cambiaObs" id ="chg_<?php echo $p->PARTIDA?>" lin="<?php echo $p->PARTIDA?>" doc="<?php echo $doc?>"> <font color="green">Cambiar</font> / </a>  
-                                               <a class="hidden ocultar" id="ocl_<?php echo $p->PARTIDA?>" lin="<?php echo $p->PARTIDA?>" ><font color="blue">Ocualtar</font></a>
+                                               <a class="hidden ocultar" id="ocl_<?php echo $p->PARTIDA?>" lin="<?php echo $p->PARTIDA?>" ><font color="blue">Ocultar</font></a>
                                            </td>
                                            <td width="6%" align="right"><?php echo '$ '.number_format($p->PRECIO,2)?></td>
                                            <td width="6%" align="right"><?php echo number_format($p->DESC1,2).'% <br/> '.$desc?></td>
@@ -222,12 +222,15 @@
                                     </tbody>  
                                 </table>
                                 <input type="button" name="" value="Nueva"  class="btn btn-warning nuevo">
+                                <input type="button" name="" value="Copiar" class="btn btn-primary copiar">
                                 <?php if(!isset($sta) or $sta == 'PENDIENTE'){?>
                                     <input type="button" name="" value="Cancelar" class="btn btn-danger cancelar">
                                     <input type="button" name="" value="Pagar"    class="btn btn-success pagar">
                                     <input type="button" name="" value="Facturar" class="btn btn-info facturar">
+                                <?php }elseif($sta == 'FACTURADA'){?>
+                                    <input type="button" name="" value="Enviar" class="btn btn-success enviar">
                                 <?php }?>
-                                <input type="button" name="" value="Re-Imprimir" class="reimpresion">
+                                <input type="button" name="" value="Re-Imprimir" class="btn btn-warning reimpresion">
                             </div>
                       </div>
             </div>
@@ -244,6 +247,45 @@
 <script type="text/javascript"> 
 
     var doc = <?php echo "'".$doc."'"?>  
+
+    $(".copiar").click(function(){
+        $.confirm({
+            title: 'Copia de Nota de Venta',
+            content: '¿Seguro que deseas copiar la nota de venta '+ doc+ ' ?',
+            buttons: {
+                Si: function () {
+                    $.ajax({
+                        type: "POST",
+                        url: 'index.v.php',
+                        dataType: "json",
+                        data: {copiaNV:1, doc},
+                        beforeSend: function () {
+                            var popup = $('#pop');
+                            popup.css({
+                                'position': 'absolute',
+                                'left': ($(window).width() / 2 - $(popup).width() / 2) + 'px',
+                                'top': ($(window).height() / 2 - $(popup).height() / 2) + 'px'
+                            });
+                            popup.show();
+                        },
+                        success: function (data)
+                        {
+                            $('#pop').hide();
+                            if (data.status == "ok") {
+                                $.alert(data.mensaje)
+                                window.open('index.v.php?action=nv2&doc='+data.NNV+'&idf=0', '_self')
+                            } else {
+                                $.alert('Algo salió mal, favor de verificarlo con el administrador de sistema, código de error: ' + data.response);
+                                console.log("XML:"+data.status);
+                            }
+                        }
+                    });
+                },
+                Cancelar: {
+                }
+            }
+        });
+    })
 
     function chgObs(lin){
         var a = document.getElementById('obs_'+lin)

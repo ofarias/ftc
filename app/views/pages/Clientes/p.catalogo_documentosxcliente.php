@@ -16,11 +16,11 @@
                         <thead>
                             <tr>
                                 <th>Clave</th>
-                                <th>Cliente</th>
+                                <th>Cliente<br/> Correo facturas</th>
                                 <th>Pertenece a:</th>
                                 <th>Requisitos asociados</th>
-                                <th>Cartera Cobranza</th>
-                                <th>Cartera Revision</th>
+                                <!--<th>Cartera Cobranza</th>
+                                <th>Cartera Revision</th>-->
                                 <th>Dias Revision</th>
                                 <th>Dias Pago</th>
                                 <th>Dos Pasos</th>
@@ -38,11 +38,11 @@
                             <?php foreach($exec as $row): ?>
                             <tr>
                                 <td><?php echo $row->CLAVE;?></td>
-                                <td title="De click para ver las facturas del cliente"><a href="index.cobranza.php?action=edoCliente&cliente=<?php echo $row->CLAVE?>&tipo=c&nombre=<?php echo $row->NOMBRE?>" target='popup' onclick='window.open(this.href, this.target, "width=800, height=800"); return false;'><?php echo $row->NOMBRE;?></td>
+                                <td title="De click para ver las facturas del cliente"><a href="index.cobranza.php?action=edoCliente&cliente=<?php echo $row->CLAVE?>&tipo=c&nombre=<?php echo $row->NOMBRE?>" target='popup' onclick='window.open(this.href, this.target, "width=800, height=800"); return false;'><?php echo $row->NOMBRE;?></a><br/> <input class="correo" type="email" placeholder="Correo para envio de documentos" value="<?php echo $row->EMAILPRED?>"  multiple size="60" cl="<?php echo $row->CLAVE ?>"></td>
                                 <td><?php echo $row->MAESTRO;?></td>
                                 <td><?php echo $row->DOCUMENTOS_ASOCIADOS;?></td>
-                                <td><?php echo $row->CARTERA_COBRANZA;?></td>
-                                <td><?php echo $row->CARTERA_REVISION;?></td>
+                                <!--<td><?php echo $row->CARTERA_COBRANZA;?></td>
+                                <td><?php echo $row->CARTERA_REVISION;?></td>-->
                                 <td><?php echo $row->DIAS_REVISION;?></td>
                                 <td><?php echo $row->DIAS_PAGO;?></td>
                                 <td><?php echo $row->REV_DOSPASOS;?></td>
@@ -80,7 +80,28 @@
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
 
-    
+    $(".correo").change(function(){
+        var correo = $(this).val()
+        var cl = $(this).attr('cl')
+        if(correo.indexOf('@',0)> 0){
+            alert("Se cambia el correo")
+            $.ajax({
+                url:'index.v.php',
+                type:'post',
+                dataType:'json',
+                data:{chgEmail:1, cl, correo},
+                success:function(data){
+                    setTimeout(alert('Se ha actualizado el correo electronico.'),4000)
+                    location.reload()
+                },
+                error:function(){
+                }
+            })
+        }else{
+            alert("El correo " + correo + ', no parece ser valido')
+        }
+    })
+
     $("#clienteNuevo").click(function(){ 
            $.confirm({
             columnClass: 'col-md-8',

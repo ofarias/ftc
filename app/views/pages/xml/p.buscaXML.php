@@ -98,11 +98,11 @@
                                             <td><?php echo '$ '.number_format($key->IMPORTE,2);?> </td>
                                             <td><font <?php echo $colorFont ?>><?php echo '$ '.number_format($key->SALDO_FINAL,2)?></font></td>
                                             <td>
-                                                <a href="/Facturas/facturaPegaso/<?php echo $key->SERIE.$key->FOLIO.'.xml'?>" download>  <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>
+                                            <a href="/Facturas/facturaPegaso/<?php echo $key->SERIE.$key->FOLIO.'.xml'?>" download>  <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>
                                             
                                             <a href="index.php?action=imprimeFact&factura=<?php echo $key->SERIE.$key->FOLIO?>" onclick="alert('Se ha descargado tu factura.')"><img border='0' src='app/views/images/pdf.jpg' width='25' height='30'></a>
                                              
-                                            <a href="index.php?action=addenda&docf=<?php echo $key->SERIE.$key->FOLIO?>"  target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;">addenda</a>
+                                            <!--<a href="index.php?action=addenda&docf=<?php echo $key->SERIE.$key->FOLIO?>"  target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;">addenda</a>-->
                                             </td>
                                             <td>  
                                                 <?php 

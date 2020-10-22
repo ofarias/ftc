@@ -6333,7 +6333,7 @@ function ReEnrutar($id_preoc, $pxr, $doco){
         
         function traeClientesParaDocs(){
         	$data=array();
-            $this->query = "SELECT * FROM CATALOGO_CLIENTES_DOCS";
+            $this->query = "SELECT CL.*, (SELECT EMAILPRED FROM CLIE01 C1 WHERE C1.CLAVE = CL.CLAVE) AS EMAILPRED FROM CATALOGO_CLIENTES_DOCS CL";
             $resultado = $this->QueryObtieneDatosN();
             while($tsArray = ibase_fetch_object($resultado)){
                 $data[] = $tsArray;
@@ -28745,5 +28745,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		return array("sta"=>'ok', "mensaje"=>'No se encontraron aplicaciones');
     	}
     }
+
+   
 
 }?>

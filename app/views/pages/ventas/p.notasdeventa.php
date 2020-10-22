@@ -55,7 +55,7 @@
                                        <tr>
                                             <td WIDTH="1"><?php echo $i->SERIE?></td>
                                             <td WIDTH="1"><?php echo $i->FOLIO?></td>
-                                            <td WIDTH="3" class="details-control detalles" ><?php echo $i->DOCUMENTO?> </td>
+                                            <td WIDTH="3" class="details-control detalles" ><?php echo $i->DOCUMENTO?> <br/> <a class="copiar" doc="<?php echo $i->DOCUMENTO?>"><font color="blue">copiar</font></a></td>
                                             <td ><?php echo '('.$i->CLIENTE.') '.$i->NOMBRE?><br/></td>
                                             <td><?php echo $i->FECHA_DOC?><br/><font color="blue"><?php echo $i->FECHAELAB?></font></td>
                                             <td WIDTH="3"><?php echo $i->STATUS?></td>
@@ -68,9 +68,21 @@
                                             <td align="right"><?php echo '$ '.number_format($i->TOTAL,2)?></td>
                                             <td align="right"><?php echo '$ '.number_format($i->SALDO_FINAL,2)?></td>
                                             <td align="center"><?php echo $i->FP?></td>
-                                            <td align="center"><button>Facturar</button></td>
+                                            <td align="center"><?php if(empty($i->METODO_PAGO)){?>
+                                                <button>Facturar</button>
+                                                <?php }else{?>
+                                                    <a href="index.cobranza.php?action=envFac&docf=<?php echo $i->METODO_PAGO?>" onclick="window.open(this.href, this.target, 'width=1000, height=800'); return false;"> <font color="green"><b><?php echo $i->METODO_PAGO?></b></font></a>
+                                                    <br/>
+                                                    <?php if(isset($i->F_UUID)){?>
+                                                        <a href="/Facturas/facturaPegaso/<?php echo $i->METODO_PAGO.'.xml'?>" download>  <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>
+                                                        <a href="index.php?action=imprimeFact&factura=<?php echo $i->METODO_PAGO?>" onclick="alert('Se ha descargado tu factura.')"><img border='0' src='app/views/images/pdf.jpg' width='25' height='30'></a>
+                                                    <?php }else{?>
+                                                        <a onclick="timbrar('<?php echo $i->DOCUMENTO?>')" >Timbrar</a>
+                                                    <?php }?>
+                                                <?php }?>
+                                            </td>
                                             <td><?php echo $i->USUARIO?></td>
-                                            <td><input type="button" name="" value="Reimpresion" class="btn-sm  btn-primary"></td>
+                                            <td><input type="button" name="" value="Impresion" class="btn-sm  btn-primary"></td>
                                         </tr>               
                                         <?php endforeach; ?>
 
@@ -104,6 +116,51 @@
 
     })
 
+    $(".copiar").click(function(){
+        var doc = $(this).attr('doc')
+        $.confirm({
+            title: 'Copia de Nota de Venta',
+            content: '¿Seguro que deseas copiar la nota de venta '+ doc+ ' ?',
+            buttons: {
+                Si: function () {
+                    $.ajax({
+                        type: "POST",
+                        url: 'index.v.php',
+                        dataType: "json",
+                        data: {copiaNV:1, doc},
+                        success: function (data)
+                        {
+                            if (data.status == "ok") {
+                                setTimeout(alert(data.Mensaje),4000)
+                                location.reload(); 
+                            } else {
+                                $.alert('Algo salió mal, favor de verificarlo con el administrador de sistema, código de error: ' + data.response);
+                                console.log("XML:"+data.status);
+                            }
+                        }
+                    });
+                },
+                Cancelar: {
+                }
+            }
+        });
+    })
+
+    function timbrar(doc){
+        $.ajax({
+            url:'index.php',
+            type:'post',
+            dataType:'json',
+            data:{buscaDoc:doc},
+            success:function(data){
+                setTimeout(alert(data.mensaje),4000)
+                location.reload()
+            },
+            error:function(data){
+
+            }
+        })
+    }
     /*
     $(document).ready(function(){
         var table = $('#dataTables-nv')
