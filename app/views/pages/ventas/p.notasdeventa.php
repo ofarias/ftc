@@ -77,7 +77,7 @@
                                                         <a href="/Facturas/facturaPegaso/<?php echo $i->METODO_PAGO.'.xml'?>" download>  <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>
                                                         <a href="index.php?action=imprimeFact&factura=<?php echo $i->METODO_PAGO?>" onclick="alert('Se ha descargado tu factura.')"><img border='0' src='app/views/images/pdf.jpg' width='25' height='30'></a>
                                                     <?php }else{?>
-                                                        <a onclick="timbrar('<?php echo $i->DOCUMENTO?>')" >Timbrar</a>
+                                                        <a onclick="timbrar('<?php echo $i->METODO_PAGO?>')" >Timbrar</a>
                                                     <?php }?>
                                                 <?php }?>
                                             </td>
