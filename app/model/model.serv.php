@@ -7,15 +7,27 @@ class data_serv extends database {
 		function tickets($temp){
 			$data= array();
 			$actual = date("d.m.Y");
+			$hoy = '';
 			if($temp == 's'){
 				$hoy = date("d.m.Y", strtotime($actual."- 7 days"));
 			}elseif($temp == 'q'){
 				$hoy = date("d.m.Y", strtotime($actual."- 15 days"));
+
 			}elseif ($temp == 'm') {
 				$hoy = date("d.m.Y", strtotime($actual."- 31 days"));
 			}elseif ($temp == 't') {
 				$hoy = '01.01.1990';
 			}
+			$param = " FECHA between '$hoy' and current_date + 1";
+			if ($temp == 'mc'){
+				//$hoy = '01.'.date("m").".".date("Y");
+				$param = " extract(month from fecha) = ".date("m");
+			}elseif ($temp == 'ma'){
+				//$hoy = '01.'.(date("m")-1).".".date("Y");
+				$param = "extract(month from fecha) = ".(date("m")-1);
+			}
+
+			//echo $hoy;
 			//die();
 			$this->query = "SELECT FS.*, CL.NOMBRE AS NOMBRE_CLIENTE, FU.NOMBRE||' '||FU.PATERNO AS NOMBRE_USUARIO_REP, 
 							FE.NOMBRE_AD AS DESC_EQUIPO, CASE FS.STATUS WHEN 1 THEN 'Abierto' WHEN 2 then 'Cerrado' when 3 then 'Modificado' end as Nom_status , (SELECT COUNT(*) FROM FTC_SERV_FILES WHERE ID_SERV = FS.ID) AS ARCHIVOS 
@@ -23,7 +35,7 @@ class data_serv extends database {
 								LEFT JOIN CLIE01 CL ON CL.CLAVE_TRIM = FS.CLIENTE
 								LEFT JOIN FTC_SERV_USUARIOS FU ON FU.ID = FS.USUARIO
 								LEFT JOIN FTC_SERV_EQUIPOS FE ON FE.ID = FS.EQUIPO
-							WHERE FECHA between '$hoy' and current_date + 1";
+							WHERE $param";
 			$res=$this->EjecutaQuerySimple();
 			while ($tsArray = ibase_fetch_object($res)) {
 				$data[]=$tsArray;
@@ -249,6 +261,7 @@ class data_serv extends database {
 		function reporteServ($periodo, $tipo){
 			$data= array();
 			// s semana, m mes, q quince dias, t todos. 
+			$hoy = '';
 			if($periodo == 's'){
 				$hoy = date("d.m.Y", strtotime(date("d-m-Y")."- 7 days"));
 			}elseif($periodo == 'q'){
@@ -258,8 +271,16 @@ class data_serv extends database {
 			}elseif ($periodo == 't') {
 				$hoy = '01.01.1990';
 			}
-			$per = 'entre el '.$hoy.' y el '.date("d.m.Y");
 			$t = " and fecha between '".$hoy."' and current_date ";
+			$per = 'entre el '.$hoy.' y el '.date("d.m.Y");
+			if ($periodo == 'mc'){
+				$t = " and extract(month from fecha) = ".date("m");
+				$per = "del mes de ".date("F");
+			}elseif ($periodo == 'ma'){
+				$t = " and extract(month from fecha) = ".(date("m")-1);
+				$per = "del mes de ".date("F"-1);
+			}
+
 			// 1 Usuario, 2 Cliente, 3 Cliente / Usuario, 4 Usuario / Cliente;
 			if($tipo == 1){
 				$tip = 'Usuario';
@@ -282,6 +303,7 @@ class data_serv extends database {
 					}	
 				}
 			}
+
 			return array('principal'=>$data,'primero'=>$dataPN, 'segundo'=>$dataSN, 'per'=>$per, 'tip'=>$tip);
 		}
 

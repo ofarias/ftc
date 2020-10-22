@@ -185,13 +185,12 @@ class CoiDAO extends DataBaseCOI {
 
             foreach ($periodos as $peri) {
                 $eje=substr($peri->EJERCICIO,2);
-                $r=($_SESSION['rfc'] == $rfc_e)? $rfc:$rcf_e; 
+                $r=($_SESSION['rfc'] == $rfc_e)? $rfc:$rfc_e; 
                 $this->query="UPDATE CUENTAS$eje SET RFC='$r' where num_cta = '$cuenta'";
                 $this->queryActualiza();
             }
             
             $partidas=explode("###", $partidas);
-            //var_dump($partidas);
             foreach ($partidas as $key) {
                 $par=explode(":",$key);
                     $partida =$par[0];
@@ -207,7 +206,6 @@ class CoiDAO extends DataBaseCOI {
         }else{
             $this->query="DELETE from FTC_PARAMETROS where id = $num_para";
             $this->grabaBD();
-
             return array("status"=>'no',"mensaje"=>"No se pudo guardar, favor de intentarlo nuevamente");
         }
     }

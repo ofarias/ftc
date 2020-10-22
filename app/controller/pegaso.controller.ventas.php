@@ -50,7 +50,7 @@ class pegaso_controller_ventas{
 	}
 	
 
-      function CerrarVentana(){
+    function CerrarVentana(){
         if (isset($_SESSION['user'])){
             $data = new pegaso;
             $pagina=$this->load_template('Pedidos');
@@ -102,7 +102,6 @@ class pegaso_controller_ventas{
     }
 
     function actualizaCotizacion($folio, $partida, $articulo, $precio, $descuento, $cantidad, $ida){
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $datav = new pegaso_ventas;          
@@ -116,7 +115,6 @@ class pegaso_controller_ventas{
     }
     
     function insertaCotizacion($cliente, $identificadorDocumento){
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $datav = new pegaso_ventas;
@@ -137,7 +135,6 @@ class pegaso_controller_ventas{
     }
     
     function actualizaPedidoCotizacion($folio, $pedido) {
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $datav = new pegaso_ventas;          
@@ -1672,9 +1669,9 @@ class pegaso_controller_ventas{
         return $cliente;
     }
 
-    function docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps, $descf, $doc, $idf){
+    function docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps, $descf, $doc, $idf, $add){
         $datav=new pegaso_ventas;
-        $insPar=$datav->docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps, $descf, $doc, $idf);
+        $insPar=$datav->docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps, $descf, $doc, $idf, $add);
         return $insPar;
     }
 
@@ -1700,10 +1697,10 @@ class pegaso_controller_ventas{
         }
     }
 
-    function pagaNV($tcc,$tcd,$efe,$tef,$val,$cupon,$doc, $cambio){
+    function pagaNV($tcc,$tcd,$efe,$tef,$val,$cupon,$cr,$doc, $cambio){
         if($_SESSION['user']){
             $data = new pegaso_ventas;
-            $paga = $data->pagaNV($tcc,$tcd,$efe,$tef,$val,$cupon,$doc, $cambio);
+            $paga = $data->pagaNV($tcc,$tcd,$efe,$tef,$val,$cupon,$cr,$doc, $cambio);
             $this->impresionTicket($doc, $cambio);
             return $paga;
         }
@@ -1944,5 +1941,42 @@ class pegaso_controller_ventas{
             return $cambio; 
         }
     }
+
+    function verNV($p, $fi, $ff){
+        if($_SESSION['user']){
+            $data = new pegaso_ventas;
+            $pagina=$this->load_template('Pedidos');
+            $html=$this->load_page('app/views/pages/ventas/p.notasdeventa.php');
+            ob_start();
+            $info = $data->verNV($p, $fi, $ff);
+            include 'app/views/pages/ventas/p.notasdeventa.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+            $this->view_page($pagina);
+        }else{
+                $e = "Favor de iniciar Sesión";
+                header('Location: index.php?action=login&e='.urlencode($e)); exit;
+        }    
+    }
+
+    function cambiaObs($lin, $doc, $obs){
+        if($_SESSION['user']){
+            $data = new pegaso_ventas;
+            $res = $data->cambiaObs($lin, $doc, $obs);
+            return $res;
+        }
+    }
+
+    function factNV($doc, $mp, $fp, $uso){
+        if($_SESSION['user']){
+            $data = new pegaso_ventas;
+            $factura = $data->creaFact($doc, $mp, $fp, $uso);
+            $fact = new factura;
+            $timbra = $fact->timbraFact($factura, null);
+            $mueve = $fact->moverNCSUB($factura, $timbra);
+            return array("status"=>'ok',"factura"=>$factura, "mensaje"=>'Se genero la factura');
+        }
+    }
+
 }
 ?>

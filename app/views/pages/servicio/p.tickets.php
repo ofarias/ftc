@@ -8,7 +8,11 @@
             <div class="panel-heading">
                 <center><h1>Registro de Tickets</h1></center>
                 <br/>
-                Ver Todos <input type="radio" name="vista" id="b1" class="vista" value="t" <?php echo $temp == 't'? 'checked':'' ?>> &nbsp;&nbsp;Ver 1 Semana <input type="radio" name="vista" id="b2" class="vista" value="s" <?php echo $temp == 's'? 'checked':'' ?>> &nbsp;&nbsp; Ver 15 dias<input type="radio" name="vista" id="b3" class="vista" value="q" <?php echo $temp == 'q'? 'checked':''?> > &nbsp;&nbsp; Ver 1 Mes <input type="radio" name="vista" id="b4" class="vista" value="m" <?php echo $temp == 'm'? 'checked':''?>>&nbsp;&nbsp;<br/><br/>
+                Ver Todos <input type="radio" name="vista" id="b1" class="vista" value="t" <?php echo $temp == 't'? 'checked':'' ?>> &nbsp;&nbsp;Ver 1 Semana <input type="radio" name="vista" id="b2" class="vista" value="s" <?php echo $temp == 's'? 'checked':'' ?>> &nbsp;&nbsp; Ver 15 dias<input type="radio" name="vista" id="b3" class="vista" value="q" <?php echo $temp == 'q'? 'checked':''?> > &nbsp;&nbsp; 
+                Ver 1 Mes <input type="radio" name="vista" id="b4" class="vista" value="m" <?php echo $temp == 'm'? 'checked':''?>>&nbsp;&nbsp;  
+                Mes Actual <input type="radio" name="vista" id="b5" class="vista" value="mc" <?php echo $temp == 'mc'? 'checked':''?>>&nbsp;&nbsp; 
+                Mes Anterior <input type="radio" name="vista" id="b6" class="vista" value="ma" <?php echo $temp == 'ma'? 'checked':''?>>&nbsp;&nbsp;
+                <br/><br/>
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                         <font color="white"><i class="fa fa-user fa-fw"></i>Reportes </font> <i class="fa fa-caret-down"></i>
@@ -16,19 +20,19 @@
                     <ul class="dropdown-menu dropdown-user">
                         <li class="divider"></li>
                         <li>
-                        <a class="rep" value="1" > Usuario</a>
+                        <a class="rep" value="1" > Usuario </a>
                         </li>
                         <li>
-                        <a class="rep" value="2" > Cliente</a>
+                        <a class="rep" value="2" > Cliente </a>
                         </li>
                         <li>
-                        <a class="rep" value="3"> Cliente / Usuario</a>
+                        <a class="rep" value="3"> Cliente / Usuario </a>
                         </li>
                         <li>
-                        <a class="rep" value="4"> Usuario / Cliente</a>
+                        <a class="rep" value="4"> Usuario / Cliente </a>
                         </li>
                         <li>
-                        <a class="rep" value="5"> Otros</a>
+                        <a class="rep" value="5"> Otros </a>
                         </li>
                     </ul>
                 </li>
@@ -140,7 +144,7 @@
     $(".rep").click(function(){
         var tipo = $(this).attr('value')
         if(confirm('Desea ver el reporte por usuario?')){
-            for (var i = 1; i <= 4; i++) {
+            for (var i = 1; i <= 6; i++) {
                 var bt = document.getElementById('b' + i)
                 if(bt.checked){
                     var periodo = bt.value;

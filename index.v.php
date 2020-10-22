@@ -283,7 +283,7 @@ elseif(isset($_POST['buscaClienteProveedor'])){
 	$aguja=$_POST['aguja'];
 	$controller_v->buscaCliente($ids, $aguja);
 }elseif (isset($_POST['pagaNV'])) {
-	$res=$controller_v->pagaNV($_POST['tcc'],$_POST['tcd'],$_POST['efe'],$_POST['tef'],$_POST['val'],$_POST['cupon'],$_POST['doc'], $_POST['cambio']);
+	$res=$controller_v->pagaNV($_POST['tcc'],$_POST['tcd'],$_POST['efe'],$_POST['tef'],$_POST['val'],$_POST['cupon'],$_POST['cr'],$_POST['doc'], $_POST['cambio']);
 	echo json_encode($res);
 	exit();
 }
@@ -528,7 +528,7 @@ elseif (isset($_POST['proveedorXproducto'])) {
     echo json_encode($producto);
     exit;
 }elseif (isset($_POST['docNV'])) {
-	$partida=$controller_v->docNV($_POST['clie'], $_POST['prod'], $_POST['cant'], $_POST['prec'], $_POST['desc'], $_POST['iva'], $_POST['ieps'], $_POST['descf'], $_POST['doc'], $_POST['idf']);
+	$partida=$controller_v->docNV($_POST['clie'], $_POST['prod'], $_POST['cant'], $_POST['prec'], $_POST['desc'], $_POST['iva'], $_POST['ieps'], $_POST['descf'], $_POST['doc'], $_POST['idf'], $_POST['add']);
 	echo json_encode($partida);
 	exit();
 }elseif (isset($_POST['dropP'])) {
@@ -549,6 +549,14 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	exit();
 }elseif (isset($_POST['chgTipo'])){
 	$res=$controller_v->chgTipo($_POST['tipo'], $_POST['id'], $_POST['nt']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['cambiaObs'])){
+	$res=$controller_v->cambiaObs($_POST['lin'], $_POST['doc'], $_POST['obs']);
+	echo json_encode($res);
+	exit();
+}elseif (isset($_POST['factNV'])) {
+	$res = $controller_v->factNV($_POST['doc'] , $_POST['mp'], $_POST['fp'], $_POST['uf']);
 	echo json_encode($res);
 	exit();
 }
@@ -706,6 +714,12 @@ else{switch ($_GET['action']){
 				break;
 			case 'nv2':
 				$controller_v->ventasMostrador($_GET['doc'], $_GET['idf']);
+				break;
+			case 'verNV':
+				$p = isset($_GET['p'])? $_GET['p']:'s';
+				$fi = isset($_GET['p'])? $_GET['fi']:'a';
+				$ff = isset($_GET['p'])? $_GET['ff']:'a';
+				$controller_v->verNV($p, $fi, $ff);
 				break;
 	default:
 		header('Location: index.v.php?action=login');

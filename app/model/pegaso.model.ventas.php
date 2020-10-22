@@ -2208,13 +2208,13 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return $r;
     }
 
-    function docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps, $descf, $doc, $idf){
+    function docNV($clie, $prod, $cant, $prec, $desc, $iva, $ieps, $descf, $doc, $idf, $add){
         //$folio = $this->creaFolioNV();
         $c=array(); 
         if($doc == 0 and $idf== 0){
             $c = $this->cabeceraNV($clie);
         }
-        $d = $this->partidaNV($prod, $cant, $prec, $desc, $iva, $ieps, $c, $descf, $doc, $idf);
+        $d = $this->partidaNV($prod, $cant, $prec, $desc, $iva, $ieps, $c, $descf, $doc, $idf, $add);
         return array("status"=>'ok',"doc"=>$d['doc'], "idf"=>$d['idf']);
     }
 
@@ -2235,7 +2235,7 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return $row;
     }
 
-    function partidaNV($prod, $cant, $prec, $desc, $iva, $ieps, $c, $descf, $doc, $idf){
+    function partidaNV($prod, $cant, $prec, $desc, $iva, $ieps, $c, $descf, $doc, $idf, $add){
         $usuario=$_SESSION['user']->NOMBRE;
         $st = $prec*$cant;
         $d = $cant*($prec * ($desc/100));
@@ -2245,7 +2245,7 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
             $doc = $c->DOCUMENTO;
         }
         $this->query="INSERT INTO FTC_NV_DETALLE ( IDFP ,IDF ,DOCUMENTO ,PARTIDA ,CANTIDAD ,ARTICULO ,UM ,DESCRIPCION ,IMP1 ,IMP2 ,IMP3 ,IMP4 ,DESC1 ,DESC2 ,DESC3 ,DESCF ,SUBTOTAL ,TOTAL ,CLAVE_SAT ,MEDIDA_SAT ,PEDIMENTOSAT ,LOTE ,USUARIO ,FECHA ,IDPREOC ,IDCAJA ,IDPAQUETE ,PRECIO ,STATUS ,NUEVO_PRECIO ,NUEVA_CANTIDAD ,CAMBIO ) 
-            VALUES (null, $idf, '$doc', (SELECT COALESCE(MAX(PARTIDA),0) + 1 FROM FTC_NV_DETALLE WHERE IDF = $idf), $cant, '$prod', (SELECT FIRST 1 UM FROM producto_ftc WHERE CLAVE_FTC=$prod), (SELECT FIRST 1 NOMBRE FROM producto_ftc WHERE CLAVE_FTC=$prod), $iva, $ieps, 0, 0, $desc, 0, 0, $descf, $st, $t, (SELECT CVE_PRODSERV FROM INVE01 I WHERE I.CVE_art = 'PGS'||$prod), (SELECT CVE_UNIDAD FROM INVE01 I WHERE I.CVE_ART = 'PGS'||$prod), '','','$usuario', current_date, 0, 0, 0, $prec, 0, 0, 0, 0  
+            VALUES (null, $idf, '$doc', (SELECT COALESCE(MAX(PARTIDA),0) + 1 FROM FTC_NV_DETALLE WHERE IDF = $idf), $cant, '$prod', (SELECT FIRST 1 UM FROM producto_ftc WHERE CLAVE_FTC=$prod), (SELECT FIRST 1 NOMBRE FROM producto_ftc WHERE CLAVE_FTC=$prod)|| ' $add', $iva, $ieps, 0, 0, $desc, 0, 0, $descf, $st, $t, (SELECT CVE_PRODSERV FROM INVE01 I WHERE I.CVE_art = 'PGS'||$prod), (SELECT CVE_UNIDAD FROM INVE01 I WHERE I.CVE_ART = 'PGS'||$prod), '','','$usuario', current_date, 0, 0, 0, $prec, 0, 0, 0, 0  
         )";
         $this->grabaBD();
 
@@ -2261,6 +2261,12 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return array("doc"=>$doc, "idf"=>$idf);
     }
 
+    function cambiaObs($lin, $doc, $obs){
+        $this->query="UPDATE FTC_NV_DETALLE NVD SET DESCRIPCION = (SELECT FIRST 1 NOMBRE FROM PRODUCTO_FTC PF WHERE PF.CLAVE_FTC = NVD.ARTICULO AND NVD.PARTIDA = $lin AND NVD.DOCUMENTO = '$doc') || '$obs' where NVD.PARTIDA = $lin AND NVD.DOCUMENTO = '$doc'";
+        $this->queryActualiza();
+        return array("status"=>'ok', "info"=>$obs);
+    }
+
 
     function nvCabecera($docf){
         $data=array();
@@ -2274,13 +2280,15 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
 
     function nvPartidas($docf){
         $data=array();
-        $this->query="SELECT F.*,(SELECT SUM(RESTANTE) FROM ingresobodega I WHERE I.PRODUCTO='PGS'||F.ARTICULO) AS EXISTENCIA, (SELECT SKU FROM FTC_Articulos A WHERE A.ID = F.ARTICULO) FROM FTC_NV_DETALLE F WHERE IDF=(select idf from ftc_nv where documento='$docf')and Documento = '$docf'";
+        $this->query="SELECT F.*,(SELECT SUM(RESTANTE) FROM ingresobodega I WHERE I.PRODUCTO='PGS'||F.ARTICULO) AS EXISTENCIA, (SELECT SKU FROM FTC_Articulos A WHERE A.ID = F.ARTICULO), (SELECT FIRST 1 NOMBRE FROM producto_ftc WHERE CLAVE_FTC= F.articulo) AS PRODUCTO FROM FTC_NV_DETALLE F WHERE IDF=(select idf from ftc_nv where documento='$docf')and Documento = '$docf'";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
         }
         return $data;
     }
+
+
 
     function traeAplicaciones($doc, $cambio){
         $data = array();
@@ -2292,7 +2300,7 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return $data;
     }
 
-    function pagaNV($tcc,$tcd,$efe,$tef,$val,$cupon,$doc,$cambio){
+    function pagaNV($tcc,$tcd,$efe,$tef,$val,$cupon,$cr,$doc,$cambio){
         $pagos = array($tcc,$tcd,$efe,$tef,$val,$cupon);
         $usuario = $_SESSION['user']->NOMBRE;
         for ($i=0; $i < count($pagos); $i++){ 
@@ -2314,6 +2322,9 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
                     break;
                 case 5:
                     $tipo = 'CUPON';
+                    break;
+                case 6:
+                    $tipo = 'Cr';
                     break;
                 default:
                     break;
@@ -2449,4 +2460,36 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return $r=array("status"=>'ok', "mensaje"=>$m);
     }
 
+    function verNV($p, $fi, $ff){
+        $data=array();
+        $param = '';
+        if($p=='s') {
+            $param=' where extract(WEEK from f.FECHAELAB)='.date("W"). ' and extract(year from f.FECHAELAB) = '.date("Y");  
+        }elseif($p=='m'){
+            $param=' where extract(MONTH from f.FECHAELAB)='.date("m"). ' and extract(year from f.FECHAELAB) = '.date("Y");  
+        }elseif($p=='a'){
+            $param=' where extract(YEAR from f.FECHAELAB)='.date("Y");  
+        }elseif($p=='t'){
+            $param = '';
+        }elseif($p =='p'){
+            $param = " where FECHAELAB BETWEEN '".$fi."' and '".$ff."' ";
+        }
+        
+        $this->query="SELECT f.*, (SELECT NOMBRE FROM CLIE01 C where C.clave = f.cliente) as nombre, (SELECT COUNT(*) FROM FTC_NV_DETALLE fd WHERE fd.documento = f.documento) as prod, (SELECT sum(CANTIDAD) FROM FTC_NV_DETALLE fd WHERE fd.documento = f.documento) as piezas, CAST((SELECT LIST(FORMA_PAGO) FROM APLICACIONES a WHERE a.DOCUMENTO = f.DOCUMENTO) AS VARCHAR(100)) as fp FROM FTC_NV f $param ORDER BY f.Serie asc, f.folio asc";
+        //echo $this->query;
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        return $data;
+    }   
+
+    function creaFact($doc, $mp, $fp, $uso){
+        $usuario = $_SESSION['user']->NOMBRE;
+        $this->query="EXECUTE PROCEDURE SP_FACTURA_NV('$uso', '$mp', '$doc', '$fp', '$usuario')";
+        $res=$this->EjecutaQuerySimple();
+        $row = ibase_fetch_object($res);
+        $factura = $row->FACTURA;
+        return $factura;
+    }
 }?>

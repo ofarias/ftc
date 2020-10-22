@@ -1028,7 +1028,18 @@ class factura extends database {
 										"rfc"=>"$cl->RFC",
 										"correo"=>"ofarias@ftcenlinea.com"
 										);
-					$df =array( "conceptos"=>$conceptos,
+					/*$df =array( "conceptos"=>$conceptos,
+								"datos_factura"=>$datos_factura,
+								"method"=>'nueva_factura', 
+								"cliente"=>$json_cliente
+								);
+					*/
+					$df =array( "id_transaccion"=>0,
+					  			"cuenta"=>strtolower($rowDF->RFC),
+					  			"user"=>'administrador',
+					  			"password"=>$rowDF->CONTRASENIA,
+					  			"getPdf"=>true,
+					  			"conceptos"=>$conceptos,
 								"datos_factura"=>$datos_factura,
 								"method"=>'nueva_factura', 
 								"cliente"=>$json_cliente
@@ -1526,7 +1537,6 @@ class factura extends database {
     }
 
     function moverNCSUB($nc, $rfc){
-
     	$data = new pegaso;
     	$mensaje ='';
 		$espera= 3;

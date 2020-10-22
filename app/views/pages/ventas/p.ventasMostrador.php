@@ -38,20 +38,54 @@
             <option value="nv">Nota de Venta</option>
             <option value="fac">Factura</option>    
         </select>
-        <input type="text" placeholder="Traer NV" id="traeNV" oninput="this.value = this.value.toUpperCase()">
+        <input type="text" placeholder="Traer NV" id="traeNV" oninput="this.value = this.value.toUpperCase()" autofocus>
     </p>
     <?php }else{?>
-        <p><font color="red" size="5pxs">Documento: <?php echo $doc?> --> Estado: <?php echo $sta?> </font></p>
+        <p><font color="red" size="5pxs">Documento: <?php echo $doc?> --> Estado: <?php echo $sta.' ('.$cbc->METODO_PAGO.')'?> </font></p>
         <input type="text" placeholder="Traer NV" id="traeNV" oninput="this.value = this.value.toUpperCase()">
     <?php }?>
-    <br/><br/>
+        <input type="button" name="nv" value="Notas de Venta" class="btn-sm btn-info verNV">
+    <br/>
+    <br/>
          
     <p><b>Cliente:</b><input type="text" name="doc" placeholder="Nombre, Clave, RFC o Telefono" size="100" class="clinv" id="clie" value = "<?php echo (!empty($cliente))? $cliente:''?>" <?php echo (!empty($cliente) and $sta == 'PENDIENTE')? 'onchange="revisarCambio()"':''?>></p>
     <p><b>Direccion: </b><input type="text" name="doc" placeholder="Calle y Numero" size="40" class="bf" tipo="A" value="<?php echo (!empty($dir)? $dir:'')?>" readonly>&nbsp;&nbsp;&nbsp;Interior:&nbsp;&nbsp;<input type="" name="" placeholder="Interior" value="<?php echo (!empty($int))? $int:''?>" readonly></p>
     <p>Colonia: <input type="text" name="" value="<?php echo !empty($colonia)? $colonia:'' ?>" size="80" readonly>&nbsp;&nbsp; Delegacion\Municipio:&nbsp;&nbsp; <input type="" name="" placeholder="Delegacion o Municipio" value="<?php echo !empty($delegacion)? $delegacion:''?>" readonly>&nbsp;&nbsp;C.P.<input type="" name="" placeholder="Codigo Postal" value="<?php echo !empty($cp)? $cp:''?>" readonly></p>
     <p>Estado:&nbsp;&nbsp;<input type="" name="" placeholder="Estado" value="<?php echo !empty($estado)? $estado:''?>" readonly>&nbsp;&nbsp;&nbsp;Pais:&nbsp;&nbsp;<input type="" name="" placeholder="Pais" value="<?php echo !empty($pais)? $pais:''?>" readonly>&nbsp;&nbsp; Descuento Global: <input type="number" value="0" id="descf" min="0" max="100" step="any">
+    &nbsp;&nbsp;<font color="black" style="background-color:yellow"><b> Factura Fiscal</b> </font>
+    &nbsp;&nbsp; Uso CFDI: <select id="UF">
+                <option value="">"Uso CFDI"</option>
+                <option value="G01">"G01 Adquisición de mercancias"</option>
+                <option value="G02">"G02 Devoluciones, descuentos o bonificaciones"</option>
+                <option value="G03">"G03 Gastos en general"</option>
+                <option value="I01">"I01 Construcciones"</option>
+                <option value="I02">"I02Mobilario y equipo de oficina por inversiones"</option>
+                <option value="I03">"I03Equipo de transporte"</option>
+                <option value="I04">"I04Equipo de computo y accesorios"</option>
+                <option value="I05">"I05Dados, troqueles, moldes, matrices y herramental"</option>
+                <option value="I06">"I06Comunicaciones telefónicas"</option>
+                <option value="I07">"I07Comunicaciones satelitales"</option>
+                <option value="I08">"I08Otra maquinaria y equipo"</option>
+                <option value="P01">"P01 Por definir"</option>
+            </select> 
+    &nbsp;&nbsp; Forma de Pago: <select id="MP">
+                <option value="">"Forma de Pago"</option>
+                <option value="03">"03 Transferencia Electronica de Fondos"</option>
+                <option value="01">"01 Efectivo"</option>
+                <option value="02">"02 Cheque Nominativo"</option>
+                <option value="04">"04 Tarjeta de Credito"</option>
+                <option value="05">"05 Monedero Electronico"</option>
+                <option value="15">"15 Condonacion"</option>
+                <option value="17">"17 Compensacion"</option>
+                <option value="30">"30 Aplicacion de Anticipos"</option>
+                <option value="99">"99 Por Definir"</option>
+            </select>
+    &nbsp;&nbsp; Metodo de Pago: <select id="FP">
+                <option value="">"Metodo de Pago"</option>
+                <option value="PUE">"PUE Pago en una sola exhibición"</option>
+                <option value="PPD">"PPD Pago en parcialidades o diferido"</option>
+            </select>
     </p>
-
     <!-- Finaliza el area del cliente -->
 <?php if(!isset($sta) or $sta == 'PENDIENTE'){ ?>
 </div>
@@ -66,8 +100,8 @@
                                     <thead>
                                         <tr>
                                             <th>Producto</th>
-                                            <th>Cantidad</th>
-                                            <th>Descripcion<br/><font color="blue"><b>Existencia</b></font></th>
+                                            <th>Cantidad<br/><font color="blue"><b>Existencia</b></font></th>
+                                            <th>Descripcion</th>
                                             <th>Precio</th>
                                             <th>Descuento %</th>
                                             <th>IVA %</th>
@@ -79,16 +113,16 @@
                                     </thead>                                   
                                   <tbody>
                                         <tr class="odd gradeX" >
-                                           <td><input type="text" size="8" placeholder="Producto" id="bprod"></td>
-                                           <td><input type="number" step="any" placeholder="Canitdad"id="cant" class="calc"></td>
-                                           <td id="desc"></td>
-                                           <td id="prc"></td>
-                                           <td id="des"><br/> </td>
-                                           <td id="iv"><br/> </td>
-                                           <td id="iep"><br/> </td>
-                                           <td id="ST"></td>
-                                           <td id="T"></td>
-                                           <td><input type="button" value="Agregar" class="add"><br/><input type="button" value="Cancelar" class="act"></td>
+                                           <td WIDTH="5%"><input type="text" size="8" placeholder="Producto" id="bprod"></td>
+                                           <td WIDTH="5%"><input type="number" step="any" placeholder="Canitdad"id="cant" class="calc"><br/><label id="ext"></label></td>
+                                           <td id="desc" WIDTH="41%"></td>
+                                           <td id="prc" WIDTH="7%"></td>
+                                           <td id="des" WIDTH="7%"><br/> </td>
+                                           <td id="iv" WIDTH="7%"><br/> </td>
+                                           <td id="iep" WIDTH="7%"><br/> </td>
+                                           <td id="ST" WIDTH="7%"></td>
+                                           <td id="T" WIDTH="7%"></td>
+                                           <td><input type="button" value="Agregar" class="add" WIDTH="7%"><br/><input type="button" value="Cancelar" class="act"></td>
                                         </tr>
                                     </tbody>  
                                 </table>
@@ -137,17 +171,23 @@
                                             $tt= $subtotal - $tdesc + $tiva + $tieps; 
                                         ?>
                                         <tr class="odd gradeX" >
-                                           <td><?php echo $p->PARTIDA?></td>
-                                           <td><?php echo $p->ARTICULO?></td>
-                                           <td><?php echo $p->CANTIDAD.'<br/><font color="blue">'.$p->EXISTENCIA.'</font>'?></td>
-                                           <td><?php echo $p->DESCRIPCION.'<br/><font color="red">'.$p->CLAVE_SAT.' - '.$p->MEDIDA_SAT.'</font>'?></td>
-                                           <td align="right"><?php echo '$ '.number_format($p->PRECIO,2)?></td>
-                                           <td align="right"><?php echo number_format($p->DESC1,2).'% <br/> '.$desc?></td>
-                                           <td align="right"><?php echo number_format($p->IMP1,2).'% <br/> '.$iva?></td>
-                                           <td align="right"><?php echo number_format($p->IMP2,2).'%  <br/>'.$ieps?></td>
-                                           <td align="right"><?php echo '$ '.number_format($p->SUBTOTAL,2)?></td>
-                                           <td align="right"><?php echo '$ '.number_format($p->TOTAL,2)?></td>
-                                           <td><input type="button" value="quitar" p="<?php echo $p->PARTIDA?>" class="drop"></td>
+                                           <td width="3%"><?php echo $p->PARTIDA?></td>
+                                           <td width="5%"><?php echo $p->ARTICULO?></td>
+                                           <td width="5%"><?php echo $p->CANTIDAD.'<br/><font color="blue">'.$p->EXISTENCIA.'</font>'?></td>
+                                           <td width="41%"><?php echo $p->DESCRIPCION.'<br/><font color="red">'.$p->CLAVE_SAT.' - '.$p->MEDIDA_SAT.'</font>'?>
+                                               <a onclick="chgObs(<?php echo $p->PARTIDA?>)" >cambiar obs</a>
+                                               <br/>
+                                               <textarea id="obs_<?php echo $p->PARTIDA?>" placeholder="<?php echo substr($p->DESCRIPCION, strlen($p->PRODUCTO))?>" class="hidden" sentences autofocus cols='80' rows='5'><?php echo substr($p->DESCRIPCION, strlen($p->PRODUCTO))?></textarea>                                           
+                                               <a class="hidden cambiaObs" id ="chg_<?php echo $p->PARTIDA?>" lin="<?php echo $p->PARTIDA?>" doc="<?php echo $doc?>"> <font color="green">Cambiar</font> / </a>  
+                                               <a class="hidden ocultar" id="ocl_<?php echo $p->PARTIDA?>" lin="<?php echo $p->PARTIDA?>" ><font color="blue">Ocualtar</font></a>
+                                           </td>
+                                           <td width="6%" align="right"><?php echo '$ '.number_format($p->PRECIO,2)?></td>
+                                           <td width="6%" align="right"><?php echo number_format($p->DESC1,2).'% <br/> '.$desc?></td>
+                                           <td width="6%" align="right"><?php echo number_format($p->IMP1,2).'% <br/> '.$iva?></td>
+                                           <td width="7%" align="right"><?php echo number_format($p->IMP2,2).'%  <br/>'.$ieps?></td>
+                                           <td width="7%" align="right"><?php echo '$ '.number_format($p->SUBTOTAL,2)?></td>
+                                           <td width="7%" align="right"><?php echo '$ '.number_format($p->TOTAL,2)?></td>
+                                           <td width="7%"><input type="button" value="quitar" p="<?php echo $p->PARTIDA?>" class="drop"></td>
                                         </tr>
                                         <?php endforeach ?>
                                         <tr>
@@ -185,7 +225,7 @@
                                 <?php if(!isset($sta) or $sta == 'PENDIENTE'){?>
                                     <input type="button" name="" value="Cancelar" class="btn btn-danger cancelar">
                                     <input type="button" name="" value="Pagar"    class="btn btn-success pagar">
-                                    <input type="button" name="" value="Facturar" class="btn btn-info demo">
+                                    <input type="button" name="" value="Facturar" class="btn btn-info facturar">
                                 <?php }?>
                                 <input type="button" name="" value="Re-Imprimir" class="reimpresion">
                             </div>
@@ -201,7 +241,47 @@
 <link rel="stylesheet" href="/resources/demos/style.css">
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
-<script type="text/javascript">   
+<script type="text/javascript"> 
+
+    var doc = <?php echo "'".$doc."'"?>  
+
+    function chgObs(lin){
+        var a = document.getElementById('obs_'+lin)
+        var b = document.getElementById('chg_'+lin)
+        var c = document.getElementById('ocl_'+lin)
+        a.classList.remove("hidden")
+        b.classList.remove("hidden")
+        c.classList.remove("hidden")
+    }
+
+    $(".cambiaObs").click(function(){
+        var lin = $(this).attr('lin')
+        var obs = document.getElementById('obs_'+lin).value
+        var doc = $(this).attr('doc')
+        //alert('Acualizamos con Ajax el cambio de la descripcion : '+ obs)
+        $.ajax({
+            url:'index.v.php',
+            type:'post',
+            dataType:'json',
+            data:{cambiaObs:1, lin, doc, obs},
+            success:function(data){
+                location.reload(true)
+            },
+            error:function(data){
+
+            }
+        })
+    })
+
+    $(".ocultar").click(function(){
+        var lin = $(this).attr('lin')
+        var a = document.getElementById('obs_'+lin)
+        var b = document.getElementById('chg_'+lin)
+        var c = document.getElementById('ocl_'+lin)
+        a.classList.add("hidden")
+        b.classList.add("hidden")   
+        c.classList.add("hidden")
+    })
 
     $(".act").click(function(){
         location.reload(true)
@@ -215,8 +295,9 @@
         var efe = parseFloat(document.getElementById("efe").value)
         var tef = parseFloat(document.getElementById("tef").value)
         var val = parseFloat(document.getElementById("val").value)
+        var cr = parseFloat(document.getElementById("cr").value)
         var cupon = parseFloat(document.getElementById("cupon").value)
-        var pago = tcc + tcd + efe + tef + cupon
+        var pago = tcc + tcd + efe + tef + cupon + cr
         var cambio = pago - importe
         document.getElementById('pagado').innerHTML= '$ ' + pago 
         document.getElementById('cambio').innerHTML = '$ ' + cambio
@@ -242,9 +323,10 @@
             'Tarjeta de Credito: <input type="number" step="any" class="tccre form-control" required value="0" onchange="pago()" id ="tcc" name="tcc"/><br/>' +
             'Tarjeta de Debito: <input type="number" step="any" class="tcdeb form-control" required value="0" id="tcd" onchange="pago()" name="tcd"/>'+
             'Efectivo: <input type="number" step="any" class="efe form-control" required value="0" id="efe" onchange="pago()" name="efe"/>'+
-            'Deposito: <input type="number" step="any" class="tef form-control" required value="0" id="tef" onchange="pago()" name="tef"/>'+
+            'Depósito: <input type="number" step="any" class="tef form-control" required value="0" id="tef" onchange="pago()" name="tef"/>'+
             'Vales: <input type="number" step="any" class="val form-control" required value="0" id="val" onchange="pago()" name="val"/>'+
-            'Cupon / Otros: <input type="number" step="any" class="cupon form-control" required value="0" id="cupon" onchange="pago()" name="cupon"/>'+
+            'Crédito: <input type="number" step="any" class="cr form-control" required value="0" id="cr" onchange="pago()" name="cr"/>'+
+            'Cupón / Otros: <input type="number" step="any" class="cupon form-control" required value="0" id="cupon" onchange="pago()" name="cupon"/>'+
             '</div>' +
             '</form>',
             buttons: {
@@ -254,13 +336,14 @@
                     action: function () {
                         var name = this.$content.find('.tccre').val();
                         var cambio = parseFloat(this.$content.find('.cambio').val());
-                        if(cambio < 0  || cambio==""){
-                            $.alert('Debe de saldar la nota para poder proceder');
-                            return false;   
-                        }else if(cambio > 0){
+                        alert(cambio - 1)
+                        if(cambio >= 0 && cambio != ""){
                             $.alert('Recuerda entregar el cambio al momento...');
                             var form = this.$content.find('form')
                             form.submit()
+                        }else if(cambio < 0.0  || cambio==""){
+                            $.alert('Debe de saldar la nota para poder proceder');
+                            return false;   
                         }
                     }
                 },
@@ -297,7 +380,7 @@
                 dataType:'json',
                 data:{cancelaNV:doc},
                 succcess:function(data){                    
-                    alert(data.mensaje)
+                    alert(data.status)
                 },
                 error:function(){
 
@@ -360,8 +443,26 @@
         }
     })
 
-    $(".demo").click(function(){
-        $.alert("Sistema Demo...")
+    $(".facturar").click(function(){
+        var uf = document.getElementById('UF').value
+        var mp = document.getElementById('MP').value
+        var fp = document.getElementById('FP').value
+        if(uf == '' || fp == '' || mp == ''){
+            alert('Favor de colocar los datos Fiscales')
+            document.getElementById('UF').focus()
+            return false;
+        }
+        $.ajax({
+            url:'index.v.php',
+            type:'post',
+            dataType:'json',
+            data:{factNV:1, doc, uf, mp, fp},
+            success:function(data){
+                alert('Revisar la facturacion y el timbrado')
+            },
+            error:function(){
+            }
+        })
     })
 
     $(".add").click(function(){
@@ -375,12 +476,13 @@
         var descf = parseFloat(document.getElementById("descf").value)
         var doc   = document.getElementById("doc").value
         var idf   = document.getElementById("idf").value
+        var add = document.getElementById("desAdd").value
         if(confirm("Desea Agrear la Partida?")){
             $.ajax({
                 url:"index.v.php",
                 type:"post",
                 dataType:"json",
-                data:{docNV:1, clie, prod,cant, prec, iva, desc, ieps, descf, doc, idf},
+                data:{docNV:1, clie, prod,cant, prec, iva, desc, ieps, descf, doc, idf, add},
                 success:function(data){
                     if(data.status=='ok'){
                         $.alert("Se trae el producto " + data.desc)
@@ -444,7 +546,8 @@
     $("#bprod").change(function(){
         var p = $(this)
         var prod = p.val().split(":")
-        document.getElementById("desc").innerHTML=prod[1]+"<br/><font color='blue'><b>"+prod[6]+"</b></font>"
+        document.getElementById("ext").innerHTML="<font color='blue'><b>"+prod[6]+"</b></font>"
+        document.getElementById("desc").innerHTML=prod[1] + "<br/><textarea name='descAdd' sentences autofocus cols='80' rows='5' placeholder = 'Descripcion Adicional del producto' id='desAdd'></textarea>"
         document.getElementById("prc").innerHTML='<input type="number" step="any" value="'+prod[2]+'" id="precio" class="calc" onchange="calculo()"> <br/><label id="bprc"></label>'  
         document.getElementById("des").innerHTML='<input type="number" step="any" value="0" id="descuento" class="calc" onchange="calculo()"> <br/><label id="bdes"></label>'
         document.getElementById("iv").innerHTML='<input type="number" step="any" id="iva" class="calc" onchange="calculo()" value="'+prod[5]+'" readonly> <br/><label id="biv"></label>'
@@ -548,5 +651,9 @@
             location.reload(true)
         }
     }
+
+    $(".verNV").click(function(){
+        window.open('index.v.php?action=verNV', '_blank')
+    })
 
 </script>

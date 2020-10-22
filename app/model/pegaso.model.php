@@ -25432,7 +25432,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	      	}
 
     	}else{  /// cuando es un documento recibido.
-
     		$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfce' and tipo = 'Proveedor'";
 	    	$this->queryActualiza();	
 	    	foreach ($partidas as $key){ /// guarda el general en todos los xml.
@@ -25471,7 +25470,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		";
 	    		$this->queryActualiza();
 	      	}
-
     	}
     }
 
