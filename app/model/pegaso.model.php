@@ -24882,7 +24882,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     			}
     			foreach ($dimp as $k){
     				if($k->VAL > 1){
-    					echo '<br/>Revision de los impuestos del UUID: '.$uid.'<br/>';
+    					//echo '<br/>Revision de los impuestos del UUID: '.$uid.'<br/>';
     					$this->query ="UPDATE XML_IMPUESTOS SET STATUS = 9 WHERE UUID= '$uid' and partida = $i and monto = 0 and status = 0";
     					$res=$this->queryActualiza();
     					if(@$res!=1){
@@ -24897,7 +24897,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		echo '<br/>Error en la limpieza de Impuestos: '.$this->query;
     	}
     	#### Finaliza la limpieza de impuestos#######
-
     	$this->query="SELECT  *  FROM XML_DATA  WHERE STATUS = 'S' $uuid  ";
     	$rs=$this->EjecutaQuerySimple();
     	while ($tsArray=ibase_fetch_object($rs)){
