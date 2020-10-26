@@ -1974,7 +1974,7 @@ class pegaso_controller_ventas{
             $fact = new factura;
             $timbra = $fact->timbraFact($factura, null);
             $mueve = $fact->moverNCSUB($factura, $timbra);
-            return array("status"=>'ok',"factura"=>$factura, "mensaje"=>'Se genero la factura');
+            return array("status"=>'ok',"factura"=>$factura, "mensaje"=>'Se genero la factura: '.$factura);
         }
     }
 

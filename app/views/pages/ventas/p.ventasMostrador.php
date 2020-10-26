@@ -502,7 +502,8 @@
             dataType:'json',
             data:{factNV:1, doc, uf, mp, fp},
             success:function(data){
-                alert('Revisar la facturacion y el timbrado')
+                setTimeout(alert(data.mensaje),4000)
+                location.reload(true)
             },
             error:function(){
             }

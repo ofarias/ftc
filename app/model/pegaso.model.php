@@ -23729,8 +23729,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     }
        
     function insertarArchivoXMLCargado($archivo, $tipo, $a){
-    	echo ('Archivo'.$archivo.' Tipo '.$tipo.' $a '.$a);
-        $TIME = time();
+    	$TIME = time();
         $HOY = date("Y-m-d H:i:s", $TIME);
         $usuario = $_SESSION['user']->USER_LOGIN;
         $file=substr($archivo, 37,200);
@@ -23739,15 +23738,12 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
         $tcf=$a['tcf'];
         $this->query="INSERT INTO XML_DATA_FILES (ID,NOMBRE,ARCHIVO,FECHA,USUARIO,TIPO, UUID, TIPO_FISCAL)VALUES(NULL,'$archivo','$file','$HOY','$usuario', '$tipo', '$uuid','$tcf')";
         $respuesta = $this->grabaBD();
-        
         $this->insertaXMLData($archivo, $tipo, $uuid);
         $this->actParametros($uuid, $tipo);
-        /// Manejo de XML 3.2
         $this->query="UPDATE xml_data set tipo = 'I' where tipo = 'ingreso'";
         $this->queryActualiza();
 		$this->query="UPDATE xml_data set tipo = 'E' where tipo = 'egreso'";
 		$this->queryActualiza();
-
         return $respuesta;
     }
 
