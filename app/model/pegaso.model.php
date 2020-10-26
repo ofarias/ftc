@@ -24419,7 +24419,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            }
 
 			    ////Manejo de impuestos cuando es XML 3.2 (Ya que no se desglozan por partida, entonces todo el impuesto se coloca en la partida 1 )
-			            if($version = '3.2'){
+			            if($version == '3.2'){
 			            	if($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos')){
 			            		if($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Traslados')){
 			            			foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Impuestos//cfdi:Traslados//cfdi:Traslado') as $impTr32){
