@@ -1549,7 +1549,8 @@ class factura extends database {
 					sleep(2);
 					copy("C:\\xampp\\htdocs\\Facturas\\FacturasJson\\".str_replace(" ","",trim($rfc))."(".$nc.")".$fecha.".xml", "C:\\xampp\\htdocs\\Facturas\\facturaPegaso\\".$nc.".xml");
 					$nc= "C:\\xampp\\htdocs\\Facturas\\FacturasJson\\".str_replace(" ","",trim($rfc))."(".$nc.")".$fecha.".xml";
-					$exe = $data->insertarArchivoXMLCargado($archivo=$nc, $tipo='F');
+					$a = $data->leeXML($archivo=$nc);;
+					$exe = $data->insertarArchivoXMLCargado($archivo=$nc, $tipo='F', $a);
 					$espera = 15;
 					$mensaje=array("rfc"=>$rfc,"fecha"=>$fecha,"factura"=>$docn);
 				}elseif(file_exists("C:\\xampp\\htdocs\\Facturas\\ErroresJson\\".$nc.".json")){

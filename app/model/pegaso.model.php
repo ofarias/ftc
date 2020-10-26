@@ -23729,6 +23729,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     }
        
     function insertarArchivoXMLCargado($archivo, $tipo, $a){
+    	echo ('Archivo'.$archivo.' Tipo '.$tipo.' $a '.$a);
         $TIME = time();
         $HOY = date("Y-m-d H:i:s", $TIME);
         $usuario = $_SESSION['user']->USER_LOGIN;
