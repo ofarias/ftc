@@ -44,7 +44,7 @@
                                             <th> Forma de Pago </th>
                                             <th> Factura </th>
                                             <th> Vendedor </th><
-                                            <th> Reimpresion </th>
+                                            <th> Impresion </th>
 
                                         </tr>
                                     </thead>
@@ -69,7 +69,7 @@
                                             <td align="right"><?php echo '$ '.number_format($i->SALDO_FINAL,2)?></td>
                                             <td align="center"><?php echo $i->FP?></td>
                                             <td align="center"><?php if(empty($i->METODO_PAGO)){?>
-                                                <button>Facturar</button>
+                                                
                                                 <?php }else{?>
                                                     <a href="index.cobranza.php?action=envFac&docf=<?php echo $i->METODO_PAGO?>" onclick="window.open(this.href, this.target, 'width=1000, height=800'); return false;"> <font color="green"><b><?php echo $i->METODO_PAGO?></b></font></a>
                                                     <br/>
@@ -82,7 +82,7 @@
                                                 <?php }?>
                                             </td>
                                             <td><?php echo $i->USUARIO?></td>
-                                            <td><input type="button" name="" value="Impresion" class="btn-sm  btn-primary"></td>
+                                            <td><input type="button" name="" value="Imprimir N.V." class="btn-sm  btn-primary"></td>
                                         </tr>               
                                         <?php endforeach; ?>
 

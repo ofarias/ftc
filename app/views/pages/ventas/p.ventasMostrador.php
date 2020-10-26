@@ -175,11 +175,13 @@
                                            <td width="5%"><?php echo $p->ARTICULO?></td>
                                            <td width="5%"><?php echo $p->CANTIDAD.'<br/><font color="blue">'.$p->EXISTENCIA.'</font>'?></td>
                                            <td width="41%"><?php echo $p->DESCRIPCION.'<br/><font color="red">'.$p->CLAVE_SAT.' - '.$p->MEDIDA_SAT.'</font>'?>
+                                               <?php if($sta !='FACTURADA'){?> 
                                                <a onclick="chgObs(<?php echo $p->PARTIDA?>)" >cambiar obs</a>
                                                <br/>
                                                <textarea id="obs_<?php echo $p->PARTIDA?>" placeholder="<?php echo substr($p->DESCRIPCION, strlen($p->PRODUCTO))?>" class="hidden" sentences autofocus cols='80' rows='5'><?php echo substr($p->DESCRIPCION, strlen($p->PRODUCTO))?></textarea>                                           
                                                <a class="hidden cambiaObs" id ="chg_<?php echo $p->PARTIDA?>" lin="<?php echo $p->PARTIDA?>" doc="<?php echo $doc?>"> <font color="green">Cambiar</font> / </a>  
                                                <a class="hidden ocultar" id="ocl_<?php echo $p->PARTIDA?>" lin="<?php echo $p->PARTIDA?>" ><font color="blue">Ocultar</font></a>
+                                               <?php }?>
                                            </td>
                                            <td width="6%" align="right"><?php echo '$ '.number_format($p->PRECIO,2)?></td>
                                            <td width="6%" align="right"><?php echo number_format($p->DESC1,2).'% <br/> '.$desc?></td>
