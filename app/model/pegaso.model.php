@@ -10741,7 +10741,7 @@ function Pagos() {
     		$data[]=$tsArray;
     	}
     	
-    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort,  TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, TIPO_PAGO as tp_tes, REFERENCIA as obs, NUM_PAR as duplicados
+    	$this->query="SELECT  4 as s, iif(fecha_EDO_CTA is null, fecha_doc, fecha_EDO_CTA) as sort,  TIPO, pg.IDGASTO AS CONSECUTIVO, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta) AS FECHAMOV, 0 AS ABONO, g.MONTO_PAGO AS CARGO, SALDO, pg.CUENTA_BANCARIA AS BANCO, pg.USUARIO_REGISTRA AS USUARIO, pg.FOLIO_PAGO as TP, ('GTR'||g.id) as identificador, '' as registro, '' as FA, iif(g.fecha_edo_cta is null, iif(fecha_edo_cta is null, FECHA_DOC, fecha_edo_cta), g.fecha_edo_cta) as fe, FECHA_EDO_CTA_OK as comprobado, contabilizado , SELECCIONADO, TIPO_PAGO as tp_tes, REFERENCIA as obs, DUPLICADO as duplicados
     			FROM GASTOS g
     			left join pago_gasto pg on pg.idgasto = g.id
     			WHERE pg.CUENTA_BANCARIA = ('$banco'||' - '||'$cuenta') 
@@ -15489,8 +15489,11 @@ function Pagos() {
     }
 
     function creaProductoFTC($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $clave, $costo_t, $costo_oc, $iva_v, $ieps_v, $precio_v){
-    	$this->query="INSERT INTO FTC_ARTICULOS VALUES (
-    			NULL,'$linea','$categoria','$generico','$sinonimos','$calificativo','$medidas','$clave','$marca','$unidadmedida',$empaque,'$prov1','$codigo_prov1','','$sku',$costo_total,$costo_prov1,0,'A','DIRECTO COMPRAS',0, $desc1,$desc2,$desc3,$desc4,$desc5,'$descripcion','$iva',current_date,$impuesto,$costo_t,$costo_oc,0,NULL, NULL,'', $iva_v, $ieps_v, $precio_v) RETURNING ID";
+    	$generico = utf8_encode($generico);
+    	$sinonimos = utf8_encode($sinonimos);
+    	$calificativo = utf8_encode($calificativo);
+    	$medidas = utf8_encode($medidas);
+    	$this->query="INSERT INTO FTC_ARTICULOS VALUES (NULL,'$linea','$categoria','$generico','$sinonimos','$calificativo','$medidas','$clave','$marca','$unidadmedida',$empaque,'$prov1','$codigo_prov1','','$sku',$costo_total,$costo_prov1,0,'A','DIRECTO COMPRAS',0, $desc1,$desc2,$desc3,$desc4,$desc5,'$descripcion','$iva',current_date,$impuesto,$costo_t,$costo_oc,0,NULL, NULL,'', $iva_v, $ieps_v, $precio_v) RETURNING ID";
     	$a=$this->query;
     	$rs=$this->grabaBD();
     	$row= ibase_fetch_object($rs);
@@ -27202,7 +27205,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $row;
 	}
 
-	 function facturasMaestro($pago, $opc){
+	function facturasMaestro($pago, $opc){
     	$data=array();
 	 	foreach ($pago as $k) {
     		$maestro = $k->CLAVE_MAESTRO;
@@ -27553,16 +27556,39 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $data;
 	}
 
-	function revisaXLSX($target_file, $datos){
+	function tipoLayout($target_file){
+		if($xlsx = SimpleXLSX::parse($target_file)){
+			foreach ($xlsx->rows() as $key) {
+				$A1 = $key[0];
+				if(strpos($A1, 'Cuenta:') === false){/// Validacion de BBVA si la columna A1 contiene la palabra cuenta, si es correcto analiza el numero de cuenta, si esta esta dada de alta en el Banco, procede a la carga, si no, arroja un mensaje con la leyenda que no existe.
+					return array("tipo"=>'sat2app', "cuenta"=>'predeterminada');
+				}else{
+					$a=explode(":", $A1);
+					$cuenta = $a[1];
+					$v=$this->revisaCuenta($cuenta);
+					if(isset($v)){
+						echo 'La cuenta '.$v[1].' existe!!!!';
+						return array("tipo"=>'Bancomer', "cuenta"=>$cuenta);
+					}else{
+						echo 'La cuenta '.$cuenta.' NO existe!!!!';
+						die(); // Por que es de Bancomer, pero no existe;
+					}
+				}
+			}
+		}
+	}
+
+	function revisaCuenta($cuenta){
+		$this->query="SELECT * FROM PG_BANCOS WHERE NUM_CUENTA = trim('$cuenta')";
+		$res=$this->EjecutaQuerySimple();
+		return $row = ibase_fetch_row($res);
+	}
+
+	function revisaXLSX_BBVA($target_file, $datos){
 		$data=array();
 		if($_SESSION['rfc']=='IMI161007SY7'){
-			//$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Abril\\';
-			//$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Mayo\\';
-			//$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Junio\\';
 			$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Julio\\';
-			
     		$files = array_diff(scandir($path), array('.', '..'));
-    		//print_r($files);
     		foreach($files as $file){
 		    	$data = explode(".", $file);
 		    	$fileName = $data[0];
@@ -27577,10 +27603,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					$e=0;
 					foreach ($xlsx->rows() as $key) {
 						$i++;
-						///strlen()==13 or strlen()==8
 						if($key[0]!='' and (strlen($key[0])==13 or strlen($key[0])==8) and $key[0]!='RECEPTOR' and $key[0]!='NO. PROVEEDOR'){
 							echo 'Valor de la celda A'.$i.': '.$key[2].' del archivo. '.$fileName.' partida con valor'.$l.'<br/>';
-							//$archivo = substr($target_file, strlen($target_file)-11,6);
 							$archivo = substr($fileName,13,6);
 							@$a=$key[0];
 							@$b=$key[1];
@@ -27602,51 +27626,145 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					}
 				}    	
 			}
-			/*
-			if($xlsx = SimpleXLSX::parse($target_file)){
-				echo "<h2>$target_file</h2>";
-				echo '<pre>';
-				//print_r( $xlsx->rows() );
-				echo '</pre>';
-				$i=0;
-				$l=0;
-				$e=0;
-				foreach ($xlsx->rows() as $key) {
-					$i++;
-					if($key[0]!=''){
-						echo 'Valor de la celda A'.$i.': '.$key[2].' del archivo. '.substr($target_file, strlen($target_file)-11, 6).' partida con valor'.$l.'<br/>';
-						$archivo = substr($target_file, strlen($target_file)-11,6);
-						@$a=$key[0];
-						@$b=$key[1];
-						@$c=$key[2];
-						@$d=$key[3];
-						@$e=$key[4];
-						@$f=$key[5];
-						@$g=$key[6];
-						@$h=$key[7];
-						@$i=$key[8];
-						@$j=$key[9];
-						if($c!=''){
-							$l++;
-						}
-						$this->query="INSERT INTO FTC_XLS (ID, ARCHIVO, PARTIDA, A, B, C, D, E, F, G, H, I, J) 
-									VALUES (NULL,'$archivo', $l,'$a','$b','$c','$d','$e','$f','$g','$h','$i','$j')";
-						$this->grabaBD();
-					}		
-				}
-			}
-			*/
 		return;
 		}else{
 			if($xlsx = SimpleXLSX::parse($target_file)){
 				echo "<h2>$target_file</h2>";
 				echo '<pre>';
-				//print_r( $xlsx->rows() );
 				echo '</pre>';
 				$i=0;
 				$l=1;
 				$e=0;
-				foreach ($xlsx->rows() as $key) {
+				foreach ($xlsx->rows() as $key){
+					if($i > 3 ){
+						if(empty($key[0])){break;}
+						$clave = $i;//$clave = $key[0];
+						$fecha = $key[0];
+						$desc = $key[1];
+						$abono = empty($key[3])? 0:(str_replace(",", "", $key[3])*1);
+						$cargo = empty($key[2])? 0:(str_replace(',', "",$key[2]) *-1);
+						$tipo = @$key[5];
+						$uuid = @$key[6];
+						$obs = substr(utf8_encode(@$key[7]),0,255);
+						if($cargo <> 0 and $abono <> 0 ){
+							$e++;
+							echo $clave.' <font color="red">No Inserta la linea por que el valor cargo y valor de abono son mayores a 0.00 .</font><br/>';
+						}else{
+							if((gettype($abono) == 'integer' or gettype($abono) =='double') and (gettype($cargo) == 'integer' or gettype($cargo)=='double')){
+								if(($abono + $cargo) > 0 ){
+									$ca = ($abono>0)? 'a':'c';
+									$monto = ($abono>0)? $abono:$cargo;
+								}else{
+									$e++;
+									echo ($i+1)." <font color='red'>No Inserta la linea por que no tiene Valor o no contiene tipo valido.</font><br/>".$tipo;
+								}
+							}else{
+								$e++;
+								echo $clave.' <font color="red">error valor de abono '.gettype($abono).'='.$abono.' Valor de Cargo '.gettype($cargo).'</font><br/>';
+							}
+						}
+
+						if(!empty($fecha) and $fecha != 'Fecha inválida'){
+							echo 'Inicia a validad la fecha: '.$fecha;
+							$fecha = substr(trim($fecha),0,10);						
+							if(strpos($fecha, "-")){
+								$val= explode('-', $fecha);
+							}else{
+								$val= explode('/', $fecha);	
+							} 
+							if(checkdate($val[1], $val[2],$val[0])){
+								echo '<br/>Anio '.$val[0];
+								echo ' mes '.$val[1];
+								echo ' dia '.$val[2].'<br/>';
+							}elseif (checkdate($val[1], $val[0], $val[2])){
+								$fecha = date("Y-m-d", strtotime($val[2]."/".$val[1]."/".$val[0]));
+								echo '<br/>Anio '.$val[2];
+								echo ' mes '.$val[1];
+								echo ' dia '.$val[0].'<br/>';
+							}else{	
+								$e++;
+								echo $clave.'<br/>No se encontro una fecha valida en '.$fecha.', la celda B2 debe de tener el formato de fecha dd/mm/yyyy';
+							}
+						}else{
+							if($fecha == 'Fecha inválida'){
+							}else{
+								$e++;
+							}
+						}
+						if($e == 0 and $fecha!='Fecha inválida'){
+							$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid, "obs"=>$obs);
+						}
+					}		
+					$i++;
+					$l++;
+				}
+			} else {
+				echo SimpleXLSX::parseError();
+			}
+		}
+		if($e >0 ){
+			die();
+			return array("status"=>'No');
+		}else{
+			return array("status"=>'ok', "data"=>$data);
+		}
+	}
+
+	function revisaXLSX($target_file, $datos){
+		$data=array();
+		if($_SESSION['rfc']=='IMI161007SY7'){
+			$path='C:\\xampp\\htdocs\\uploads\\ExcelMizco\\Julio\\';
+    		$files = array_diff(scandir($path), array('.', '..'));
+    		foreach($files as $file){
+		    	$data = explode(".", $file);
+		    	$fileName = $data[0];
+		    	$fileExtension = $data[1];
+			    if($xlsx = SimpleXLSX::parse($path.$file)){
+					echo "<h2>$file</h2>";
+					echo '<pre>';
+					//print_r( $xlsx->rows() );
+					echo '</pre>';
+					$i=0;
+					$l=0;
+					$e=0;
+					foreach ($xlsx->rows() as $key) {
+						$i++;
+						if($key[0]!='' and (strlen($key[0])==13 or strlen($key[0])==8) and $key[0]!='RECEPTOR' and $key[0]!='NO. PROVEEDOR'){
+							echo 'Valor de la celda A'.$i.': '.$key[2].' del archivo. '.$fileName.' partida con valor'.$l.'<br/>';
+							$archivo = substr($fileName,13,6);
+							@$a=$key[0];
+							@$b=$key[1];
+							@$c=$key[2];
+							@$d=$key[3];
+							@$e=$key[4];
+							@$f=$key[5];
+							@$g=$key[6];
+							@$h=$key[7];
+							@$i=$key[8];
+							@$j=$key[9];
+							if($c!=''){
+								$l++;
+							}
+							$this->query="INSERT INTO FTC_XLS (ID, ARCHIVO, PARTIDA, A, B, C, D, E, F, G, H, I, J) 
+										VALUES (NULL,'$archivo', $l,'$a','$b','$c','$d','$e','$f','$g','$h','$i','$j')";
+							$this->grabaBD();
+						}		
+					}
+				}    	
+			}
+		return;
+		}else{
+			if($xlsx = SimpleXLSX::parse($target_file)){
+				echo "<h2>$target_file</h2>";
+				echo '<pre>';
+				echo '</pre>';
+				$i=0;
+				$l=1;
+				$e=0;
+				foreach ($xlsx->rows() as $key){
+					if(empty($key[0])){
+						break;
+					}
 					if($i > 0 ){
 						$clave = $key[0];
 						$fecha = $key[1];
@@ -27661,13 +27779,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							echo $clave.' <font color="red">No Inserta la linea por que el valor cargo y valor de abono son mayores a 0.00 .</font><br/>';
 						}else{
 							if((gettype($abono) == 'integer' or gettype($abono) =='double') and (gettype($cargo) == 'integer' or gettype($cargo)=='double')){
-								//echo '<br/>'.$e.' Abono: '.$abono.'-->'.$tipo;
-								//echo '<br/>Cargo: '.$cargo;
-								//echo '<br/>Monto de la transaccion: '.($abono + $cargo);
 								if(($abono + $cargo) > 0 and !empty($tipo) and ($tipo == 'EFE' or $tipo == 'CHQ' or $tipo =='TNS' or $tipo == 'TDC' or $tipo == 'TDD' or $tipo == 'OTROS')){
 									$ca = ($abono>0)? 'a':'c';
 									$monto = ($abono>0)? $abono:$cargo;
-									//echo $clave.' <b>Inserta el '.$ca.' con la informacion</b> de tipo : '.$tipo.'<br/>';
 								}else{
 									$e++;
 									echo ($i+1)." <font color='red'>No Inserta la linea por que no tiene Valor o no contiene tipo valido.</font><br/>".$tipo;
@@ -27685,14 +27799,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 								$val= explode('/', $fecha);	
 
 							} 
-							
 							if(checkdate($val[1], $val[2],$val[0])){
-								/// formato fecha excel
 								echo '<br/>Anio '.$val[0];
 								echo ' mes '.$val[1];
 								echo ' dia '.$val[2].'<br/>';
 							}elseif (checkdate($val[1], $val[0], $val[2])){
-								/// Formato Texto excel 
 								$fecha = date("Y-m-d", strtotime($val[2]."/".$val[1]."/".$val[0]));
 								echo '<br/>Anio '.$val[2];
 								echo ' mes '.$val[1];
@@ -27705,7 +27816,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						}else{
 							$e++;
 						}
-						//echo '<br/>'.print_r($val).' --'.count($val);
 						if($e == 0){
 							$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid, "obs"=>$obs);
 						}
@@ -27740,31 +27850,29 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				//echo '<br/>Consulta Carga Pagos: <br/>'.$this->query.'<br/>';
 				$this->grabaBD();
 			}elseif($key['ca']=='c'){
+				$tipo= 'TNS';
 				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo, NUM_PAR) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto', $reg) RETURNING ID";
-				//echo '<br/>Consulta Gastos: <br/>'.$this->query.'<br/>';
-				$foliog=$this->grabaBD();
-				$row=ibase_fetch_object($foliog);
 				switch ($tipo) {
 				 	case 'TNS':
 				 		$tipo = 'TR';
 				 		break;
 					default:
-						$tipo = $tipo;
+						$tipo = 'TR';
 				 		break;
-				 }
+				}
+				//echo '<br/>Consulta Gastos: <br/>'.$this->query.'<br/>';
+				$foliog=$this->grabaBD();
+				$row=ibase_fetch_object($foliog);
 				$tipo = substr($tipo,0,2);
-				//exit($tipo.$row->ID);
 				$folio=$this->generaFolio($tipo);
 				$folio=$folio[0]->FOLIO;
 				$this->query="INSERT INTO PAGO_GASTO (ID, IDGASTO, CUENTA_BANCARIA, MONTO, FECHA_REGISTRO, USUARIO_REGISTRA, FECHA_PAGO, CONCILIADO, FOLIO_PAGO) VALUES ((select coalesce(max(ID),0)+1 FROM PAGO_GASTO), '$row->ID','$banco'||' - '||'$cuenta', $monto, current_timestamp, '$usuario', '$fecha', 0, '$folio')";
-				//echo 'Consulta Pago Gastos: <br/>'.$this->query;
 				$this->grabaBD();
 				$this->revisaGasto($row->ID);
 				$this->verCargas($banco, $cuenta, $t=9);
 			}
 		}
-		$dup=$this->revisaDuplicado(); /// Revisa los gastos vs cr_directos y actualiza ambos si encuentra un registro con la misma informacion de Fecha / Importe / Banco / Tipo.
-		return;
+		$dup=$this->revisaDuplicado(); 
 	}
 
 	function revisaDuplicado(){
@@ -27782,7 +27890,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$this->queryActualiza();
 			}
 		}
-
 		### Revisa los Cargos ###
 		$this->query= "SELECT COUNT(*) AS CANTIDAD_FILAS, G.FECHA_EDO_CTA, G.TOTAL, PG.CUENTA_BANCARIA, G.TIPO, G.TIPO_PAGO FROM GASTOS G LEFT JOIN PAGO_GASTO PG ON PG.idgasto = G.ID GROUP BY G.FECHA_EDO_CTA, G.TOTAL, G.TIPO, PG.CUENTA_BANCARIA, G.TIPO_PAGO HAVING COUNT(*) >=2";
 		$res=$this->EjecutaQuerySimple();
@@ -27791,12 +27898,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		}
 		if(count($data2)>0){
 			foreach ($data2 as $key2) {
-				$this->query="UPDATE GASTOS G SET num_par = $key2->CANTIDAD_FILAS WHERE FECHA_EDO_CTA = '$key2->FECHA_EDO_CTA' AND TOTAL = $key2->TOTAL and ( SELECT PG.CUENTA_BANCARIA FROM PAGA_GASTO PG WHERE G.ID = PG.IDGASTO) = '$key2->CUENTA_BANCARIA' and TIPO_PAGO = '$key2->TIPO_PAGO'";
+				$this->query="UPDATE GASTOS G SET DUPLICADO = $key2->CANTIDAD_FILAS WHERE FECHA_EDO_CTA = '$key2->FECHA_EDO_CTA' AND TOTAL = $key2->TOTAL and ( SELECT PG.CUENTA_BANCARIA FROM PAGO_GASTO PG WHERE G.ID = PG.IDGASTO) = '$key2->CUENTA_BANCARIA' and TIPO_PAGO = '$key2->TIPO_PAGO'";
 				//echo $this->query;
 				$this->queryActualiza();
 			}	
 		}
-
 		return;
 	}
 
@@ -28716,7 +28822,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$this->queryActualiza();
     		$this->query="DELETE FROM CARGA_PAGOS WHERE REGISTRO = $idc";
     		$this->grabaBD();
-    		$this->query="DELETE FROM PAGA_GASTO PG WHERE PG.ID_GASTO IN (SELECT ID FROM GASTOS G WHERE G.NUM_PAR = $idc)";
+    		$this->query="DELETE FROM PAGO_GASTO PG WHERE PG.ID_GASTO IN (SELECT ID FROM GASTOS G WHERE G.NUM_PAR = $idc)";
     		$this->grabaBD();
     		$this->query="DELETE FROM GASTOS WHERE NUM_PAR = $idc";
     		$this->grabaBD();
@@ -28742,6 +28848,18 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	}
     }
 
-   
+    function fObtenerMime($ide){
+        $this->query ="SELECT * FROM FTC_EMPRESAS WHERE ID = 1";
+        $res = $this->EjecutaQuerySimple();
+        $row = ibase_fetch_object($res);
+        $fsExtension = $row->EXTENSION;  
+        if  ($fsExtension =='bmp'){ $mime = 'image/bmp'; }
+        if  ($fsExtension =='gif' ){ $mime ='image/gif' ; }
+        if  ($fsExtension =='jpe' ){ $mime ='image/jpeg' ; }
+        if  ($fsExtension =='jpeg'){ $mime = 'image/jpeg' ; }
+        if  ($fsExtension =='jpg' ){ $mime ='image/jpeg'; }
+        if  ($fsExtension =='png' ){ $mime = 'image/png'; } 
+        return array("mime"=>$mime, "contenido"=>$row->LOGO_FILE);
+    } 
 
 }?>

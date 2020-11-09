@@ -3471,7 +3471,8 @@ else{
         	$banco =$_GET['banco'];
         	$anio = $_GET['anio'];
         	$nvaFechComp=$_GET['nvaFechComp'];
-        	$controller->estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $nvaFechComp, $_GET['f']);
+        	$idfl= 0;
+        	$controller->estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $nvaFechComp, $_GET['f'], $idfl);
         	break;
         case 'ValidaRecepcionConFolio';
         	$docr = $_GET['docr'];

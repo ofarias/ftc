@@ -48,7 +48,8 @@
     <br/>
     <br/>
          
-    <p><b>Cliente:</b><input type="text" name="doc" placeholder="Nombre, Clave, RFC o Telefono" size="100" class="clinv" id="clie" value = "<?php echo (!empty($cliente))? $cliente:''?>" <?php echo (!empty($cliente) and $sta == 'PENDIENTE')? 'onchange="revisarCambio()"':''?>></p>
+    <p><b>Cliente:</b><input type="text" name="doc" placeholder="Nombre, Clave, RFC o Telefono" size="100" class="clinv" id="clie" value = "<?php echo (!empty($cliente))? $cliente:''?>" <?php echo (!empty($cliente) and $sta == 'PENDIENTE')? 'onchange="revisarCambio()"':'onchange="nuevoCliente(this.value)"'?>></p>
+
     <p><b>Direccion: </b><input type="text" name="doc" placeholder="Calle y Numero" size="40" class="bf" tipo="A" value="<?php echo (!empty($dir)? $dir:'')?>" readonly>&nbsp;&nbsp;&nbsp;Interior:&nbsp;&nbsp;<input type="" name="" placeholder="Interior" value="<?php echo (!empty($int))? $int:''?>" readonly></p>
     <p>Colonia: <input type="text" name="" value="<?php echo !empty($colonia)? $colonia:'' ?>" size="80" readonly>&nbsp;&nbsp; Delegacion\Municipio:&nbsp;&nbsp; <input type="" name="" placeholder="Delegacion o Municipio" value="<?php echo !empty($delegacion)? $delegacion:''?>" readonly>&nbsp;&nbsp;C.P.<input type="" name="" placeholder="Codigo Postal" value="<?php echo !empty($cp)? $cp:''?>" readonly></p>
     <p>Estado:&nbsp;&nbsp;<input type="" name="" placeholder="Estado" value="<?php echo !empty($estado)? $estado:''?>" readonly>&nbsp;&nbsp;&nbsp;Pais:&nbsp;&nbsp;<input type="" name="" placeholder="Pais" value="<?php echo !empty($pais)? $pais:''?>" readonly>&nbsp;&nbsp; Descuento Global: <input type="number" value="0" id="descf" min="0" max="100" step="any">
@@ -700,5 +701,39 @@
     $(".verNV").click(function(){
         window.open('index.v.php?action=verNV', '_blank')
     })
+    
+    function nuevoCliente(clie){
+        revisaCliente(clie)    
+            
+    }
+
+    function revisaCliente(clie){
+        var v = 'A';
+        cl = clie.substring(0,10)
+        $.ajax({
+            url:'index.v.php',
+            type:'post',
+            dataType:'json',
+            data:{nvcl:cl},
+            success:function(data){
+              },
+            error:function(){
+                v = 'N'
+            }
+        }).done(function(data) {
+          console.log('se mando');
+          console.log(data.n)
+            v = data.n
+            if(v == 'N' || v === null){
+                $.confirm('El cliente : <b>' + clie + '</b> ,no existe, desea darlo de alta?')
+
+            }else{
+               // alert('El cliente es: ' + v)
+            }
+            //read(0);
+            //reload(); //En este punto se llama
+        })
+        return v
+    }
 
 </script>

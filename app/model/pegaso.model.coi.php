@@ -998,7 +998,7 @@ class CoiDAO extends DataBaseCOI {
                             //die;
                             //exit();
                             $this->query = "INSERT INTO CUENTAS$eje (NUM_CTA, STATUS, TIPO, NOMBRE, DEPTSINO, BANDMULTI, BANDAJT, CTA_PAPA, CTA_RAIZ, NIVEL, CTA_COMP, NATURALEZA, RFC, CODAGRUP, CAPTURACHEQUE, CAPTURAUUID, BANCO, CTABANCARIA, CAPCHEQTIPOMOV, NOINCLUIRXML, IDFISCAL, ESFLUJODEEFECTIVO, BANCOEXTRANJERO, RFCFLUJO) 
-                            VALUES ('$cuentaNueva', 'A', 'D', substring('$nombre' from 1 for 40), 'N', 1,'N','$papa', '$ctaRaiz', $nh, '', 1, '$rfc', '$idF', 0,0, 0, '','N', 0, '', 0,'', '')";
+                            VALUES ('$cuentaNueva', 'A', 'D', substring('$nombre' from 1 for 40), 'N', 1,'N','$papa', '$ctaRaiz', $nh, '', 1, '$rfc', '$idF', 0, 1, 0, '','N', 0, '', 0,'', '')";
                             $rs= $this->grabaBD();
                             $this->query = "INSERT INTO SALDOS$eje (num_cta, Ejercicio) VALUES ('$cuentaNueva', $p->EJERCICIO)";
                             $rs = $this->grabaBD();
@@ -1761,9 +1761,6 @@ class CoiDAO extends DataBaseCOI {
         return;
     } 
 
-
-
-
     function sadPol($uuid, $tipo){
         $this->query="SELECT * FROM POLIZAS19 WHERE UUID ='$uuid' and origen containing('PHP')";
         $res=$this->EjecutaQuerySimple();
@@ -1949,7 +1946,12 @@ class CoiDAO extends DataBaseCOI {
                 //echo $this->query; 
             ### Inclusion de Impuestos por Partida ###
                 /// Traemos el arreglo con los impuestos.
-                /// 
+                ///
+            //echo 'Tipo: '.$tipo.' UUID: '.$aux->UUID.' Folio: '.$folio.' Ejercicio: '.$ejercicio.' Periodo: '.$periodo.'<br/>';
+            //print_r($pol);
+            if(!empty($aux->UUID)){
+                $this->insertaUUID($tipo, $aux->UUID, $pol, $folio, $ejercicio, $periodo);
+            }
         }
 
         $a=1;
@@ -1970,52 +1972,12 @@ class CoiDAO extends DataBaseCOI {
             $this->EjecutaQuerySimple();   
             $a++; 
         }
-        /* Se reemplaza por el sistema de Impuestos de forma individual.
-        $par=count($detalle)+$a;
-        if(count($impuestos2) > 0){
-            /// 2.- Busca los parametros en la table de los parametros de impuestos FTC_param_coi
-                foreach ($impuestos2 as $impt) {
-                    //print_r($impt);
-                    $tipoXML='Recibido';
-                    $tasa=(empty($impt->TASA))? 0:$impt->TASA;  
-                    $this->query="SELECT * FROM FTC_PARAM_COI WHERE IMPUESTO = '$impt->IMPUESTO' AND round(TASA,3) = round($tasa,3) AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = '$subTipo' and tipo_xml='$tipoXML'";
-                    $rs=$this->EjecutaQuerySimple();
-                    //echo $this->query;
-                    $rimp = ibase_fetch_object($rs);
-                    if(!empty($rimp->CUENTA_CONTABLE )){ /// Si existe informacion de la cuenta de este impuesto, entonces insertamos la partida 2 partidas la contraparte de diario y la efectiva de Eg/Ig. 
-                         /// IVA Acreditable pagado 1180-001-000 Debe
-                        $ctaIVAap =$rimp->CUENTA_CONTABLE;
-                        $par++;
-                        $conceptoIA = $pol->DOC.' '.$rimp->NOMBRE;
-                        $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
-                                    VALUES ('$subTipo', '$folio', $par, $periodo, $ejercicio, '$ctaIVAap', '$fecha', '$conceptoIA', '$dhimppc', $impt->MONTO, 0, 1, 0, $par, 0,0, null , null)";
-                        //echo $this->query;
-                        //$this->grabaBD();
-                        /// Buscamos la cuenta de Dr para la contrapartida.
-                        $this->query="SELECT * FROM FTC_PARAM_COI WHERE IMPUESTO = '$impt->IMPUESTO' AND round(TASA,3) = round($impt->TASA,3) AND FACTOR = '$impt->TIPOFACTOR' AND TIPO = '$impt->TIPO' AND POLIZA  = 'Dr' and tipo_xml='$tipoXML'";
-                        $rs=$this->EjecutaQuerySimple();
-                        $rimpCP = ibase_fetch_object($rs);
-
-                        //// IVA pendiente de pago  1190-001-000 haber 
-                        $ctaIVApp =$rimpCP->CUENTA_CONTABLE;//'119000100000000000002';
-                        $par++;
-                        $conceptoIP=$pol->DOC.' '.$rimpCP->NOMBRE;
-                        $this->query="INSERT INTO AUXILIAR$eje (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
-                        VALUES ('$subTipo', '$folio', $par, $periodo, $ejercicio, '$ctaIVApp', '$fecha', '$conceptoIP', '$dhimppe', $impt->MONTO, 0, 1, 0, $par, 0,0, null , null)";
-                        //$this->grabaBD();
-                    }else{ // Si no, no hacemos nada.
-                    }
-                }
-            }else{
-            // Si no hay impuestos, no hace nada. 
-            }
-        */
-        // Pendiente $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo);
+        
         //exit();
         return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Eg'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
     }
 
-     function creaPolizaFred($cabecera, $detalle, $tipo, $impuestos2, $z, $anio, $mes){
+    function creaPolizaFred($cabecera, $detalle, $tipo, $impuestos2, $z, $anio, $mes){
         /// Calcula Folio /// 
         $saldo = 0;
         foreach ($detalle as $dts) {
@@ -2567,7 +2529,7 @@ class CoiDAO extends DataBaseCOI {
         foreach ($detalle as $idet){
             $seried = explode("-", $idet->DOCUMENTO);
             $rfce=$_SESSION['rfc'];
-            $pol=array("SERIE"=>$seried[0] , "FOLIO"=>$seried[1], "CLIENTE"=>$idet->RFC, "IMPORTE"=>$idet->MONTO_APLICADO, "TIPOCAMBIO"=>1, "MONEDA"=>'MNX', "RFCE"=>$rfce, "FECHA"=>$idet->FECHA, "CC"=>$idet->CUENTA_CONTABLE);
+            $pol=array("SERIE"=>$seried[0] , "FOLIO"=>@$seried[1], "CLIENTE"=>$idet->RFC, "IMPORTE"=>$idet->MONTO_APLICADO, "TIPOCAMBIO"=>1, "MONEDA"=>'MNX', "RFCE"=>$rfce, "FECHA"=>$idet->FECHA, "CC"=>$idet->CUENTA_CONTABLE);
             $this->insertaUUIDFinalIg('Ig', $idet->OBSERVACIONES, $pol, $folio, $ejercicio, $periodo, false );
             unset($pol);
         }
@@ -2581,7 +2543,7 @@ class CoiDAO extends DataBaseCOI {
         //print_r($pol);
         $folio= str_pad(trim($folio),5," ",STR_PAD_LEFT);
         $cc= $pol['CC'];
-        $this->query="SELECT * FROM AUXILIAR$eje a left join cuentas$eje c on c.num_cta = a.num_cta where c.capturauuid = 1 and a.NUM_POLIZ='$folio' and a.periodo = $periodo and ejercicio = $ejercicio and TIPO_POLI = '$tipo' AND a.num_cta= '$cc'"; /// Anexar al ultima condicion.
+        $this->query="SELECT * FROM AUXILIAR$eje a left join cuentas$eje c on c.num_cta = a.num_cta where c.capturauuid = 1 and a.NUM_POLIZ='$folio' and a.periodo = $periodo and ejercicio = $ejercicio and TIPO_POLI = '$tipo' AND a.num_cta= '$cc' and a.IDUUID is null"; /// Anexar al ultima condicion.
         $res=$this->EjecutaQuerySimple();
         //echo $this->query.'<br/>';
         while ($tsArray=ibase_fetch_object($res)) {

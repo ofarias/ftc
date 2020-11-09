@@ -33,7 +33,9 @@
                                         <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                         <?php if(empty($key->POLIZA_INGRESO)){?>
                                             <a class="btn btn-info conta" tipo="total" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a>
-                                            <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br/>
+                                            <?php if($key->SALDO > 0.2){?>
+                                                <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br/>
+                                            <?php }?>
                                             <br/>
                                             Observaciones: &nbsp;&nbsp;<input type="text" id="obs" value="<?php echo $key->OBS?>"><br/>
                                         <?php }else{?>
@@ -755,7 +757,7 @@ var a = document.getElementById('anio').value
         var obs = document.getElementById("obs").value
         var saldo =parseFloat(document.getElementById("sdo").value)
         //$.alert('Contabilizar el pago' + idp + " tipo " + tipo)
-        if(saldo > 0.1 && y == ""){
+        if(saldo > 0.2 && y == ""){
             alert("Seleccione una cuenta para la monto del pago por favor....")
             return
         }
@@ -772,7 +774,6 @@ var a = document.getElementById('anio').value
                         data:{contabilizaIg:1, idp, tipo, y, obs},
                         success:function(data){
                             location.reload(true)
-
                         },
                         error:function(){
                             location.reload(true)

@@ -20679,7 +20679,13 @@ function ImpSolicitud2($idsol){
         	$html = $this->load_page('app/views/pages/Contabilidad/p.EstadoDeCuenta.php');
         	$reg = $data->regfile($target_file, $fileType, $datos, $banco, $cuenta, $nombre, $target_dir);
         	if(strtoupper($fileType) != 'PDF'){
-        		$res= $data->revisaXLSX($target_file, $datos);
+        		$lo = $data->tipoLayout($target_file); //revisamos el Layout.
+        		if($lo['tipo']=='Bancomer'){
+        			$res = $data->revisaXLSX_BBVA($target_file, $datos);
+        			$cuenta = str_replace(" ", "", $lo['cuenta']);
+        		}else{	
+	        		$res= $data->revisaXLSX($target_file, $datos);
+        		}
 				if($res['status']== 'ok'){
 					$carga=$data->cargaXLSX($datos, $res['data'], $banco, $cuenta, $reg);
 				}	

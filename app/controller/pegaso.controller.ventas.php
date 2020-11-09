@@ -430,7 +430,6 @@ class pegaso_controller_ventas{
     }
     
     function consultarClientes($clave, $cliente) {
-        //session_cache_limiter('private_no_expire');
         if (isset($_SESSION['user'])) {
             $data = new pegaso;
             $datav = new pegaso_ventas;
@@ -1992,6 +1991,14 @@ class pegaso_controller_ventas{
             $exec = $data->chgEmail($cl, $correo);
             return $exec;
         }   
+    }
+
+    function nvcl($cl){
+        if($_SESSION['user']){
+            $data = new pegaso_ventas;
+            $exec = $data->nvcl($cl);
+            return $exec;
+        }
     }
 }
 ?>

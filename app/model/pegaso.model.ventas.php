@@ -2505,4 +2505,11 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return array("status"=>'ok');
     }
 
+    function nvcl($cl){
+        $this->query="SELECT * FROM CLIE01 WHERE trim(CLAVE) = trim('$cl')";
+        $res=$this->EjecutaQuerySimple();
+        $row = ibase_fetch_row($res);
+        return array("n"=>$row[2]);
+    }
+
 }?>

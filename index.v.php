@@ -567,6 +567,10 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	$res = $controller_v->chgEmail($_POST['cl'], $_POST['correo']);
 	echo json_encode($res);
 	exit();
+}elseif (isset($_POST['nvcl'])) {
+	$res = $controller_v->nvcl($_POST['nvcl']);
+	echo json_encode($res);
+	exit();
 }
 else{switch ($_GET['action']){
 		case 'login':
