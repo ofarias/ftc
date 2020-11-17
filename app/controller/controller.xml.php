@@ -552,6 +552,7 @@ class controller_xml{
 	        		$proveedor='';
 	        		$cliente='';
 	        	}
+	        	
 	            if($l_g < strlen($cliente) ){
 	            	$l_g = strlen($cliente);
 	            }
