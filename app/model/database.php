@@ -93,9 +93,7 @@
 			while($row = ibase_fetch_object($rs)){
 				$precioNeto = 0;
 				$iva = empty($row->IVA_V)? 0:$row->IVA_V;
-				//echo $row->PRECIO_V * ($iva / 100);
 				$precioNeto = ($iva==0)? $row->PRECIO_V:$row->PRECIO_V + ($row->PRECIO_V * ($iva/100) );
-
 				$row_set[] = utf8_encode($row->ID)." : ".utf8_encode($row->GENERICO.' '.$row->SINONIMO.' '.$row->CALIFICATIVO).":".$row->PRECIO_V.":".$row->DESC1.":".$row->DESC2.":".$iva.":".$row->EXISTENCIA.":".$row->SKU.":".$row->CLAVE_PROD.": $ ".number_format($precioNeto,2);
 			}
 			return $row_set;

@@ -15461,8 +15461,7 @@ function Pagos() {
     				FROM FTC_Articulos fart
     				left join producto_ftc pftc on pftc.clave_ftc = fart.id
     				left join CATEGORIAS ct ON  ct.nombre_categoria = fart.categoria
-    				where  pftc.nombre containing('$descripcion') or clave_pegaso containing ('$descripcion') ";
-    			//echo $this->query;	
+    				where  (pftc.nombre||' '||pftc.clave||' '||pftc.sku) containing ('$descripcion') ";
     		}else{
     			$a= explode(':',$descripcion);    
                             $descripcion = $a[0];
@@ -15471,7 +15470,6 @@ function Pagos() {
     						left join producto_ftc pftc on pftc.clave_ftc = fart.id
     						left join CATEGORIAS ct ON  ct.nombre_categoria = fart.categoria
     						where   upper(pftc.clave)= upper('$descripcion')";
-    						///echo $this->query;
     		}
     	}else{
     			$this->query="SELECT first 100 fart.*, ct.id as idc , (select cve_prodserv from inve01 where cve_art = fart.clave_pegaso) as cve_prodserv, (select cve_unidad from inve01 where cve_art = fart.clave_pegaso ) as cve_unidad, (SELECT id FROM FTC_Articulos_N ftn WHERE fart.id = ftn.referencia) as artn
@@ -15479,9 +15477,7 @@ function Pagos() {
     			left join CATEGORIAS ct ON  ct.nombre_categoria = fart.categoria
     			where fart.status = 'A' or fart.status= 'B' or fart.status = 'M' ";
 		}    		
-    	
     		$rs=$this->QueryObtieneDatosN();
-    	//echo $this->query;
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}

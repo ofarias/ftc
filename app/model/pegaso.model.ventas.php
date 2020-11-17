@@ -2197,7 +2197,7 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
     } 
 
     function prodVM($b){
-        $this->query="SELECT A.*, (SELECT coalesce(SUM(b.RESTANTE), 0) FROM ingresobodega b where b.producto = 'PGS'||A.ID ) as Existencia  FROM FTC_Articulos A WHERE (A.GENERICO||' '||A.SINONIMO||' '|| A.CALIFICATIVO||' '||A.CLAVE_PROD||' '||A.SKU) CONTAINING('$b')";
+        $this->query="SELECT A.*, (SELECT coalesce(SUM(b.RESTANTE), 0) FROM ingresobodega b where b.producto = 'PGS'||A.ID ) as Existencia  FROM FTC_Articulos A WHERE (A.GENERICO||' '||A.SINONIMO||' '|| A.CALIFICATIVO||' '||A.CLAVE_PROD||' '||A.SKU||' '||A.CLAVE_PEGASO) CONTAINING('$b')";
         $r=$this->QueryDevuelveAutocompleteProd();
         return $r;
     }
