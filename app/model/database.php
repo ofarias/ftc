@@ -37,6 +37,14 @@
 			return $rows;
 		}
 
+		protected function queryActualiza2(){
+			$this->AbreCnx();
+			$rs=ibase_query($this->cnx, $this->query);
+			ibase_commit();
+			unset($rs);
+			$this->CierraCnx();
+		}
+
 		#Obtiene la cantidad de filas afectadas en BD
 		function NumRows($result){
 		if(!is_resource($result)) return false;

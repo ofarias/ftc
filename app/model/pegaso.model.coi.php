@@ -2674,7 +2674,7 @@ class CoiDAO extends DataBaseCOI {
     }
 
     function upl_param($file, $x, $eje){
-        $d = new pegaso;
+        $d=new pegaso;
         $inputFileType=PHPExcel_IOFactory::identify($file);
         $objReader=PHPExcel_IOFactory::createReader($inputFileType);
         $objPHPExcel=$objReader->load($file);
@@ -2698,21 +2698,22 @@ class CoiDAO extends DataBaseCOI {
                 $lin=ibase_fetch_object($res);
                 if($lin){
                     if($i == 0){
-                        $cuentaPartida=$lin->CUENTA_COI;                
-                        $a=$d->actCtaPar($cuentaPartida, $uuid, $par, $x);
+                        $cuentaPartida=$lin->CUENTA_COI;
+                        $arrayActCtaPar[]=array("cta"=>$cuentaPartida, "uuid"=>$uuid, "par"=>$par);                
                         $acp++;
                     }elseif($i == 1){
                         $cuentaCabecera=$lin->CUENTA_COI;
-                        $b=$d->actCtacab($cuentaCabecera, $uuid, $par, $x);
+                        $arrayActCtaCab[]=array("cta"=>$cuentaCabecera, "uuid"=>$uuid, "par"=>$par);
                         $acc++;
                     }
                 }else{
                     $na++;
                     echo '<br/>La linea: '.$row.', con la cuenta '.$cta.', no es valida<br/>';
                 }
-                unset($lin);
             }
         }
+        $d->actCtaPar($arrayActCtaPar, $x);
+        $d->actCtacab($arrayActCtaCab, $x);
         return array("m"=>'Se actualizaron '.$acp.' partidas y '.$acc.' proveedores, sin informacion o con informacion no valida '.$na);
     }
 
