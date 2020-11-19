@@ -2710,6 +2710,7 @@ class CoiDAO extends DataBaseCOI {
                     $na++;
                     echo '<br/>La linea: '.$row.', con la cuenta '.$cta.', no es valida<br/>';
                 }
+                unset($lin);
             }
         }
         return array("m"=>'Se actualizaron '.$acp.' partidas y '.$acc.' proveedores, sin informacion o con informacion no valida '.$na);
