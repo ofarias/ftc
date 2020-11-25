@@ -172,7 +172,7 @@ else{
 			$controller_cxc->envFac($_GET['docf']);
 			break;
 	case 'edoCliente':
-		$controller_cxc->edoCliente($_GET['cliente'], $_GET['tipo'],$_GET['nombre']);
+		$controller_cxc->edoCliente($_GET['cliente'], $_GET['tipo'],$_GET['nombre'], $_GET['maestro']);
 		break;
    default:
 		header('Location: index.php?action=login');

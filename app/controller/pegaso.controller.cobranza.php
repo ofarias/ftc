@@ -1156,7 +1156,7 @@ class pegaso_controller_cobranza{
         }
     }
 
-    function edoCliente($cliente, $tipo, $nombre ){
+    function edoCliente($cliente, $tipo, $nombre, $maestro ){
         if (isset($_SESSION['user'])){
         $data = new pegasoCobranza;
         $pagina=$this->load_template_popup('Pedidos');

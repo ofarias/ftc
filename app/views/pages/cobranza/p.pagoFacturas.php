@@ -34,6 +34,8 @@
                                             <a class="btn btn-info conta" tipo="total" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a>
                                             <?php if($key->SALDO > 0.2){?>
                                                 <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br/>
+                                            <?php }else{?>
+                                                <input type="hidden" value="" id="z"><br/>
                                             <?php }?>
                                             <br/>
                                             Observaciones: &nbsp;&nbsp;<input type="text" id="obs" value="<?php echo $key->OBS?>"><br/>
@@ -756,7 +758,7 @@ var a = document.getElementById('anio').value
         var obs = document.getElementById("obs").value
         var saldo =parseFloat(document.getElementById("sdo").value)
         //$.alert('Contabilizar el pago' + idp + " tipo " + tipo)
-        alert("y:" + y)
+        //alert("y:" + y)
         if(saldo > 0.2 && y == ""){
             alert("Seleccione una cuenta para la monto del pago por favor....")
             return

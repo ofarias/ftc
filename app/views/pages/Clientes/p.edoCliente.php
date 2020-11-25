@@ -172,9 +172,9 @@
             total= String(total).split(".");
             total = format(total);
             factura = factura.slice(0,-1);     
-            document.getElementById("algo").innerHTML='Documentos a pagar: ' + factura;
-            document.getElementById("algo2").innerHTML='Por un monto de: <font color="blue"> ' + total + '</font>';
-            document.getElementById("boton").innerHTML="<input type='button' value='Pagar' class='btn btn-success' onclick='aplicarPago()'>";
+            //document.getElementById("algo").innerHTML='Documentos a pagar: ' + factura;
+            //document.getElementById("algo2").innerHTML='Por un monto de: <font color="blue"> ' + total + '</font>';
+            //document.getElementById("boton").innerHTML="<input type='button' value='Pagar' class='btn btn-success' onclick='aplicarPago()'>";
             var maestro = document.getElementById('cve_maestro').value;
 
         $("input:checkbox.facturas").change(function(){

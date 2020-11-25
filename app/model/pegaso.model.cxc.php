@@ -923,15 +923,17 @@ class pegasoCobranza extends database {
     function traeDocumentos($sel, $maestro){
         $data = array();
         if($sel == 'Si'){
-            $this->query="SELECT rc.*, f.*, (select nombre from maestros where id = $maestro) as nombre_maestro 
+            $this->query="SELECT rc.*, f.*, (select nombre from maestros where clave = '$maestro') as nombre_maestro 
                                 FROM FTC_REGISTRO_COBRANZA RC 
                                 LEFT JOIN FACTURAS F ON F.CVE_DOC = RC.DOCUMENTO
                                 WHERE clave_MAESTRO = '$maestro' and rc.MARCA= 'S' and f.cve_doc is not null";
+            echo $this->query;
+            die();
             $res=$this->EjecutaQuerySimple();
             while ($tsArray= ibase_fetch_object($res)) {
                 $data[]=$tsArray;
             }
-            $this->query="SELECT rc.*, fp.*, (select nombre from maestros where id = $maestro) as nombre_maestro
+            $this->query="SELECT rc.*, fp.*, (select nombre from maestros where clave = '$maestro') as nombre_maestro
                                 FROM FTC_REGISTRO_COBRANZA RC 
                                 LEFT JOIN FACTURAS_FP FP ON FP.CVE_DOC = RC.DOCUMENTO
                                 WHERE MAESTRO = '$maestro' and rc.MARCA= 'S' and fp.cve_doc is not null";
@@ -941,7 +943,7 @@ class pegasoCobranza extends database {
             }
             /// Obtenermos los documentos solo los seleccionados;
         }elseif($sel == 'No'){
-            $this->query="SELECT * FROM MAESTROS WHERE ID = $maestro";
+            $this->query="SELECT * FROM MAESTROS WHERE clave = '$maestro'";
             $res=$this->EjecutaQuerySimple();
             $row=ibase_fetch_object($res);
             $cve_maestro= $row->CLAVE;
