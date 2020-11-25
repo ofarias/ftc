@@ -20833,5 +20833,13 @@ function ImpSolicitud2($idsol){
     		return $res;
     	}
     }
+
+    function unMillon(){
+    	if($_SESSION['user']){
+    		$data= new pegaso;
+    		$exec=$data->unMillon();
+    		return;
+    	}
+    }
 }?>
 

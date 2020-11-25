@@ -28866,4 +28866,50 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
         return array("mime"=>$mime, "contenido"=>$row->LOGO_FILE);
     } 
 
+    function unMillon(){
+    	$inicio = date("G:i:s:u");
+    	$this->query="SELECT * FROM nombre_base where tipo = 'N'";
+    	$r=$this->EjecutaQuerySimple();
+    	while ($tsArray2 = ibase_fetch_object($r)) {
+    		$gen[]=$tsArray2;
+    	}
+    	$this->query="SELECT * FROM nombre_base"; //obtenemos todos las variantes tipificadas.
+    	$res=$this->EjecutaQuerySimple();
+    	while ($tsArray=ibase_fetch_object($res)){
+    		$nom[]=$tsArray;/// Las almacenamos en el objeto $nom.
+    	}
+    	$i = 0;
+    	$nombres= 0;
+    	//print_r($nom);
+    	foreach ($gen as $n) {/// iniciamos el recorrido del objeto $nom.
+    		/// obetenemos el tipo de datos que vamos a recorrer, como simpre tenemos que construir un registro con NOMBRE PATERNO MATERNO, entonces, seleccionamos unicamente los que son de tipo nombre;
+    		//echo '<br/>Tipo:'.$n->TIPO;
+    		$nom++;
+    		if($n->TIPO=='N'){
+    			//echo '<br/> Entro al tipo ';
+    			foreach ($nom as $nn){
+    				//echo '<br/>Valor N: '.$n->VALOR.' Valor NN: '.$nn->VALOR.' tipo n :'.$n->TIPO.' tipo nn: '.$nn->TIPO;
+    				if( ($nn->VALOR != $n->VALOR) and $nn->TIPO == 'N' and ($nn->SUBTIPO == $n->SUBTIPO)){
+    					//echo '<br/>Paso la validacion';
+		    			foreach ($nom as $a){
+		    				//echo '<br/>Tipo en Apellido'.$a->TIPO;
+		    				if($a->TIPO == 'A'){
+		    					//echo '<br/> El Primer nombre es: '.$n->VALOR.' el segundo nombre es: '.$nn->VALOR.' el primer apellido es: '.$a->VALOR.'<br/>';
+		    					foreach ($nom as $aa){
+		    						if($aa->TIPO == 'A'){
+		    							//$i++; echo '<br/>'.$i;
+		    							$this->query="INSERT INTO NOMBRES (ID, NOMBRE, SEGUNDO, PATERNO, MATERNO) values (null, '$n->VALOR', '$nn->VALOR', '$a->VALOR', '$aa->VALOR')";
+		    							$this->EjecutaQuerySimple();
+		    							//echo '<br/>'.$this->query;
+		    						}
+		    					}
+		    				}
+		    			}
+    				}
+    			}
+    		} 
+    	}/// Finaliza la insercion de nombres.
+    	echo 'Inicio :'.$inicio.' - Finzaliza: '.date("G:i:s:u").' Tiempo por: '.date_diff($inicio, date("G:i:s:u")).'--> Numero de nombres realizados:'.$nombres;
+    }
+
 }?>

@@ -4346,6 +4346,9 @@ else{
 		case 'verCargas':
 			$controller->verCargas($_GET['b'], $_GET['c']);
 			break;
+		case 'millon':
+			$controller->unMillon();
+			break;
 		default: 
 			$controller->login();
 			break;

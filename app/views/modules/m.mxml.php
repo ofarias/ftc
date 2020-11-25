@@ -171,6 +171,7 @@
                 <p><a href="index.xml.php?action=calculaSaldo">Calcula Saldos Mizco</p>
                 <p><a class="btn-sm btn-success cargaEFOS" >Carga EFOs</a></p>
                 <p><a class="btn-sm btn-primary sincronizar">Sincronizar Datos</a></p>
+                <p><a href="index.php?action=millon" class="btn-sm btn-primary unmillon">Un Millon de Nombres</a></p>
                 </div>
                 </div>
             </div>
@@ -208,7 +209,6 @@
                 }
             })
         })
-        
 
         $(".ci").click(function(){
             var mes = document.getElementById('impMes').value

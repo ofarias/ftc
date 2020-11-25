@@ -20,7 +20,6 @@
                                         $folio = $key->ID;
                                         $cep = $key->CEP;
                                 ?>
-                                    <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br>
                                     <form action="index.php" method="post">
                                         <label> <?php echo $key->BANCO?> </label><br>
                                         <label> El monto del pago es de: $ <?php echo number_format($key->MONTO,2)?> </label><br>
@@ -757,6 +756,7 @@ var a = document.getElementById('anio').value
         var obs = document.getElementById("obs").value
         var saldo =parseFloat(document.getElementById("sdo").value)
         //$.alert('Contabilizar el pago' + idp + " tipo " + tipo)
+        alert("y:" + y)
         if(saldo > 0.2 && y == ""){
             alert("Seleccione una cuenta para la monto del pago por favor....")
             return
