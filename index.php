@@ -2586,7 +2586,7 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	$ciudad =$_POST['ciudad'];
 	$rfc = $_POST['rfc'];
 	$motivo =$_POST['motivo'];
-	$controller->crearCliente($nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo);
+	$controller->crearCliente($nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo, $_POST['cp'],$_POST['mail'],$_POST['mailc']);
 	exit();
 }elseif (isset($_POST['verFactura'])) {
 	$docf = $_POST['verFactura'];

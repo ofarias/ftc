@@ -1,6 +1,5 @@
 <br /><br />
 <button id="clienteNuevo" class="btn btn-info">Crear Cliente nuevo</button>
-<button id="" class="btn btn-info">Crear Cliente nuevo</button>
 
 <br/><br/>
 <div class="row">
@@ -114,7 +113,10 @@
             'Direccion No Exterior:<br/><input name="direccionE" type="text" placeholder="Numero exterior" size="15" class="dirE"> <br/>'+
             'Colonia: <br/> <input name="colonia" type="text" placeholder="Colonia" size="50" class="col"> <br/>'+
             'Ciudad: <br/> <input name="ciudad" type="text" placeholder="Ciudad" size="50" class="ciu"> <br/>'+
-            'RFC: <br/> <input name="rfc" type="text" placeholder="RFC sin espacion ni guiones" size="15" class="rfc" onchange="valida(this.value)"> <br/>'+
+            'RFC: <br/> <input name="rfc" type="text" placeholder="RFC sin espacion ni guiones" size="35" maxlength="13" class="rfc" onchange="valida(this.value)"> <br/>'+
+            'Codigo Postal: <br/> <input name="cp" type="text" placeholder="Codigo Postal" size="10" class="cp" > <br/>'+
+            'Correo envio de Facturas: <br/> <input name="correo" type="email" placeholder="Correo de envio Facturas" size="100" class="mailfact" multiple> <br/>'+
+            'Correo Cobranza: <br/> <input name="emailCob" type="email" placeholder="Correo Cobranza" size="100" class="mailCob" multiple> <br/>'+
             'Motivo: <br/><input name="motivo" type="text" placeholder="Motivo de Alta" size ="100" class="mot"> <br/>' +
             '</div><br/><br/>'+
             '</form>',
@@ -130,7 +132,9 @@
                     var ciudad =this.$content.find('.ciu').val();
                     var rfc = this.$content.find('.rfc').val();
                     var motivo = this.$content.find('.mot').val(); 
-                    //var maestr = this.$content.find('mae').val(); 
+                    var cp = this.$content.find('.cp').val();
+                    var mail = this.$content.find('.mailfact').val();
+                    var mailc = this.$content.find('.mailCob').val();
                     if(cliente==''){
                         $.alert('Debe de colocar el nombre del cliente...');
                         return false;
@@ -146,19 +150,16 @@
                     }else if(rfc == '' || rfc.length < 12){
                         $.alert('Favor de revisar el RFC del cliente...');
                         return false;   
-                    }else if(motivo == ''){
-                        $.alert('Dede de colocar el motivo de la Solicitud...');
-                        return false;
-                    }else if(maestro = ''){
-                        $.alert('Es necesario un maestro...');
+                    }else if(cp == ''){
+                        $.alert('Es necesario el codigo postal ...');
                         return false;      
                     }else{
-                        $.alert('Se creara la Solicitud de alta del cliente ' + cliente + ', ' + direccionC  + ', '+ direccionE +','+colonia);
+                        $.alert('Se dara de alta el cliente: ' + cliente + ', ' + direccionC  + ', '+ direccionE +','+colonia);
                         $.ajax({
                             url:'index.php',
                             type:'post',
                             dataType:'json',
-                            data:{crearCliente:1, cliente, direccionC,direccionE, colonia, ciudad, rfc, motivo},
+                            data:{crearCliente:1, cliente, direccionC, direccionE, colonia, ciudad, rfc, motivo, cp, mail, mailc},
                             success:function(data){
                                 alert('Se intenta Crear el cliente');
                             }

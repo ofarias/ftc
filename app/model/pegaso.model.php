@@ -26807,7 +26807,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return $mensaje;
 	}
 
-	function crearCliente($nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo){
+	function crearCliente($nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo, $cp, $mail, $mailc){
 		$this->query="SELECT * FROM TBLCONTROL01 where ID_TABLA = 0";
 		$res=$this->EjecutaQuerySimple();
 		$row=ibase_fetch_object($res);
@@ -26816,8 +26816,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$this->query="UPDATE TBLCONTROL01 SET ULT_CVE = $clave where ID_TABLA = 0";
 		$this->grabaBD();
 		
-		$this->query="INSERT INTO CLIE01 (CLAVE, NOMBRE, STATUS, RFC, CALLE, NUMEXT, COLONIA, ESTADO, CLAVE_TRIM, MODELO) 
-					VALUES (LPAD('$clave',10), '$nombre', 'A', '$rfc', '$direccionC', '$direccionE', '$colonia', '$ciudad', '$clave','$motivo') ";
+		$this->query="INSERT INTO CLIE01 (CLAVE, NOMBRE, STATUS, RFC, CALLE, NUMEXT, COLONIA, ESTADO, CLAVE_TRIM, MODELO, CODIGO, EMAILPRED, NAMESPACE ) 
+					VALUES (LPAD('$clave',10), '$nombre', 'A', '$rfc', '$direccionC', '$direccionE', '$colonia', '$ciudad', '$clave','$motivo', '$cp', '$mail', '$mailc') ";
 		$this->EjecutaQuerySimple();
 		return;
 	}

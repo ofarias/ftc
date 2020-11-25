@@ -20542,9 +20542,9 @@ function ImpSolicitud2($idsol){
     	}
     }
 
-    function crearCliente($nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo){
+    function crearCliente($nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo, $cp, $mail, $mailc){
     	$data = new pegaso;
-    	$guarda = $data->crearCliente($nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo);
+    	$guarda = $data->crearCliente($nombre, $direccionC, $direccionE, $colonia, $ciudad, $rfc, $motivo, $cp, $mail, $mailc);
     }
 
     function verFactura($docf){
