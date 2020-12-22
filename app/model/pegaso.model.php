@@ -27981,6 +27981,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$op = ' AND extract(month from x.fecha) between '.$mi.' and '.$mf.' and extract(year from x.fecha) = '.$anio. ' order by x.fecha asc' ;
 		}elseif($opc == 't'){
 			$fi = $_SESSION['empresa']['fecha_inicio'];
+			$fi = '01.01.1999';
 			$op = " and x.fecha >= '".$fi."'";
 		}elseif($opc == 'm1'){
 			$m = date("m", strtotime($f)); $mi=$m-1; $mf=$m; $anio=date("Y", strtotime($f));
