@@ -98,12 +98,12 @@ class ctrl_serv{
 		}
 	}
 	
-	function tickets($temp){
+	function tickets($t){
 		if($_SESSION['user']){
 			$data = new data_serv;
 			$pagina =$this->load_template('Tickets');
 			$html=$this->load_page('app/views/pages/servicio/p.tickets.php');
-			$tcks = $data->tickets($temp);
+			$tcks = $data->tickets($t);
    			ob_start();
    			include 'app/views/pages/servicio/p.tickets.php';
    			$table = ob_get_clean();
@@ -348,8 +348,8 @@ class ctrl_serv{
 		if($_SESSION['user']){
 			$data = new data_serv;
 			$info = $data->reporteServ($periodo, $tipo);
-			$this->generaReporteExcel($info['principal'], $info['primero'], $info['segundo'], $info['per'],$info['tip']);
-			return $info;
+			$a=$this->generaReporteExcel($info['principal'], $info['primero'], $info['segundo'], $info['per'],$info['tip']);
+			return $a;
 		}
 	}
 
@@ -537,7 +537,7 @@ class ctrl_serv{
 	            if(!file_exists($ruta='C:\\xampp\\htdocs\\media\\reportes\\')){
 	            	mkdir($ruta);
 				}
-	            $nom='Reporte de Servicio por atencion'.'.xlsx';
+	            $nom='Reporte de Servicio por '.$tip.' de '.$per.'_'.date("d-m-Y \Thms").'.xlsx';
 	            //header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 	            //header("Content-Disposition: attachment;filename=01simple.xlsx");
 	            //header('Cache-Control: max-age=0');

@@ -31,7 +31,17 @@
                                         <input type="hidden" id="sdo" value="<?php echo $key->SALDO?>">
                                         <label> El total de monto aplicado es: $ <?php echo number_format($total,2)?></label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                         <?php if(empty($key->POLIZA_INGRESO)){?>
-                                            <a class="btn btn-info conta" tipo="total" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a>
+                                            <a class="btn btn-info conta" tipo="total" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a> 
+                                        &nbsp;&nbsp;&nbsp; Tipo de Poliza:   
+                                        <select name="tpol" id="tp">
+                                            <option value="Ig">Ingresos (Ig)</option>
+                                            <?php foreach ($tpol as $tp): ?>
+                                                <?php if($tp->CLASSAT == 1){?>
+                                                    <option value="<?php echo $tp->TIPO?>"><?php echo $tp->DESCRIP.' ('.$tp->TIPO.')'?></option>
+                                                <?php }?>
+                                            <?php endforeach ?>
+                                        </select>
+                                        <br/>
                                             <?php if($key->SALDO > 0.2){?>
                                                 <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br/>
                                             <?php }else{?>
@@ -167,9 +177,18 @@
                                     <?php if(empty($key->POLIZA_INGRESO)){?>
 
                                     <a class="btn-sm btn-info conta" tipo="parcial" idp="<?php echo $idp?>" info="<?php echo $key->BANCO.' monto '.number_format($key->MONTO,2)?>">Contabilizar</a>
-                                    
-                                    <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z"><br/>
-
+                                    &nbsp;&nbsp;&nbsp;
+                                    <input type="text" class="cuencont" placeholder="Cuenta Saldo" size="35" id="z">
+                                    &nbsp;&nbsp;&nbsp; Tipo de Poliza:   
+                                    <select name="tpol" id="tp">
+                                        <option value="Ig">Ingresos (Ig)</option>
+                                        <?php foreach ($tpol as $tp): ?>
+                                            <?php if($tp->CLASSAT == 1){?>
+                                                <option value="<?php echo $tp->TIPO?>"><?php echo $tp->DESCRIP.' ('.$tp->TIPO.')'?></option>
+                                            <?php }?>
+                                        <?php endforeach ?>
+                                    </select>
+                                    <br/>
                                     Observaciones: &nbsp;&nbsp;<input type="text" id="obs" value="<?php echo $key->OBS?>"><br/>
                                     
                                     <?php }else{?>
@@ -757,13 +776,13 @@ var a = document.getElementById('anio').value
         var y = document.getElementById('z').value
         var obs = document.getElementById("obs").value
         var saldo =parseFloat(document.getElementById("sdo").value)
+        var tp = document.getElementById('tp').value
         //$.alert('Contabilizar el pago' + idp + " tipo " + tipo)
         //alert("y:" + y)
         if(saldo > 0.2 && y == ""){
             alert("Seleccione una cuenta para la monto del pago por favor....")
             return
         }
-
         $.confirm({
             title: 'Creacion de poliza de Ingreso',
             content: 'Desea crear la poliza de Ingreso ' + info, 
@@ -773,7 +792,7 @@ var a = document.getElementById('anio').value
                         url:'index.coi.php',
                         type:'post',
                         dataType:'json',
-                        data:{contabilizaIg:1, idp, tipo, y, obs},
+                        data:{contabilizaIg:1, idp, tipo, y, obs, tp},
                         success:function(data){
                             location.reload(true)
                         },

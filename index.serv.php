@@ -50,8 +50,8 @@ else{
 		$controller->mServ();
 		break;
 	case 'tickets':
-		$temp = isset($_GET['temp'])? $_GET['temp']:0;
-		$controller->tickets($temp);
+		$t = isset($_GET['t'])? $_GET['t']:'mc';
+		$controller->tickets($t);
 		break;
 	case 'nuevoTicket':
 		$clie = isset($_GET['cli'])? $_GET['cli']:'';

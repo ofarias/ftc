@@ -1776,9 +1776,10 @@ class CoiDAO extends DataBaseCOI {
         } 
     }
 
-    function creaPolizaGasto($cabecera, $detalle, $tipo, $impuestos2, $z){
-        /// Calcula Folio /// 
+    function creaPolizaGasto($cabecera, $detalle, $tipo, $impuestos2, $z, $tp){
+        $cfp=2;//La clase fiscal de polizas 2 equivale a Egresos;
         $tipo = $tipo == 'gasto'? 'Eg':'Ig';
+        $tipo = $tp;
         $usuario=$_SESSION['user']->USER_LOGIN;
         $i=0;
         foreach($cabecera as $cb){
@@ -1796,7 +1797,6 @@ class CoiDAO extends DataBaseCOI {
             $ie=$tipo;  
         }
         $this->calculaFolio($periodo, $ejercicio, $tipo);
-        
         foreach($detalle as $dc){
             $rfcf= '';
             $proveedorf='';
@@ -1818,7 +1818,6 @@ class CoiDAO extends DataBaseCOI {
             }
             $i++;
         }
-
         $rfcf=($rfcf=='')? $rfce:$rfcf;
         $proveedorf=($proveedorf=='')? $proveedor:$proveedorf;
         ///creamos el nuevo folio de la poliza y actualizamos para apartarlo
@@ -1827,15 +1826,13 @@ class CoiDAO extends DataBaseCOI {
         $row= ibase_fetch_object($res);
         $folion = $row->$campo + 1; 
         $folio =str_pad($folion, 5, ' ', STR_PAD_LEFT);
-
         $this->query="UPDATE FOLIOS SET $campo = $folion where tippol='$tipo' and Ejercicio=$ejercicio";
         $this->queryActualiza();
-
         foreach($cabecera as $pol){
             $con='Egreso '.$pol->CUENTA_BANCARIA;
             $concepto = substr($con.', '.$proveedorf.' -- '.$pol->REFERENCIA.', pago factura '.$pol->FACTURA, 0, 110);
             $cuenta = $pol->CTA_BANCO;
-            if($tipo=='Eg'){
+            if($cfp==2){
                 $nat0 = 'H';
             }else{
                 $nat0 = 'D';
@@ -1852,7 +1849,7 @@ class CoiDAO extends DataBaseCOI {
             /// Validacion para la insercion de UUID.
         }
         $partida = 1;
-        if($tipo == 'Eg'){
+        if($cfp==2){
             $subTipo = 'Eg';
             $dhc = 'D';
             $dhb = 'H';
@@ -2281,7 +2278,7 @@ class CoiDAO extends DataBaseCOI {
                                 values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$cabecera->FECHA_RECEP', '$concepto', '$nat0' , $cabecera->MONTO, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
             $this->grabaBD();  
         $partida = 1;
-        if($tipo == 'Ig'){
+        if($tipo == 'Ig' ){
             $subTipo = 'Ig';
             $dhc = 'H';
             $dhb = 'D';
@@ -2373,8 +2370,9 @@ class CoiDAO extends DataBaseCOI {
     }
 
 
-    function creaPolizaIgDetImp($cabecera, $detalle, $tipo, $impuestos, $z){
-        $tipo='Ig';
+    function creaPolizaIgDetImp($cabecera, $detalle, $tipo, $impuestos, $z, $tp){
+        $cfp =1; /// Clase de poliza fiscal equivale a 1 que es Ingresos
+        $tipo=$tp;
         $usuario=$_SESSION['user']->USER_LOGIN;
         $i=0;
         $fecha = strtotime($cabecera->FECHA_RECEP);
@@ -2443,7 +2441,7 @@ class CoiDAO extends DataBaseCOI {
                                 values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$cabecera->FECHA_RECEP', '$concepto', '$nat0' , $cabecera->MONTO, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
             $this->grabaBD();  
         $partida = 1;
-        if($tipo == 'Ig'){
+        if($cfp == 1){
             $subTipo = 'Ig';
             $dhc = 'H';
             $dhb = 'D';
@@ -2719,6 +2717,15 @@ class CoiDAO extends DataBaseCOI {
 
     function traeinfo($pol, $e, $per, $cta){
         
+    }
+
+    function tipoPoliza(){
+        $this->query="SELECT * FROM TIPOSPOL";
+        $rs=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($rs)){
+            $data[]=$tsArray;
+        }
+        return $data;
     }
 }      
 ?>

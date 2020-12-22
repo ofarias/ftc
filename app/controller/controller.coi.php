@@ -267,14 +267,14 @@ class controller_coi{
 		}
 	}
 
-	function contabiliza($tipo , $idp, $z, $obs){
+	function contabiliza($tipo , $idp, $z, $obs, $tp){
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$data_coi = new CoiDAO;
 			$cabecera = $data->detalleGasto($idp, $tip='z', $obs);
 			$detalle = $data->aplicacionesGasto($idp, $t='c');
 			$impuestos2=$data->impuestosPolizaFinalDetImp($uuid=$detalle['uuid'], $por=$detalle['por']); // $impuestos= $data2->impuestosPolizaFinalDetImp($uuid, $por);
-			$crear = $data_coi->creaPolizaGasto($cabecera , $detalle=$detalle['datos'], $tipo, $impuestos2, $z);
+			$crear = $data_coi->creaPolizaGasto($cabecera , $detalle=$detalle['datos'], $tipo, $impuestos2, $z, $tp);
 			if($crear['status'] == 'ok' ){
 				$act=$data->actGasto($crear, $detalle, $idp);
 			}
@@ -313,7 +313,7 @@ class controller_coi{
 		}
 	}
 
-	function contabilizaIg($idp, $y, $tipo, $obs){
+	function contabilizaIg($idp, $y, $tipo, $obs, $tp){
 		if($_SESSION['user']){
 			$data= new pegasoCobranza;
 			$data2 = new pegaso;
@@ -332,7 +332,7 @@ class controller_coi{
 				//$impuestos= $data2->impuestosPolizaFinal($uuid);
 				$impuestos= $data2->impuestosPolizaFinalDetImp($uuid, $por);
 				//$creaPoliza=$data_coi->creaPolizaIg($pago, $detalle, $tipo = 'Ingreso', $impuestos, $y);
-				$creaPoliza=$data_coi->creaPolizaIgDetImp($pago, $detalle, $tipo = 'Ingreso', $impuestos, $y);
+				$creaPoliza=$data_coi->creaPolizaIgDetImp($pago, $detalle, $tipo = 'Ingreso', $impuestos, $y, $tp);
 				if($creaPoliza['status']=='ok'){
 					$actualiza=$data2->actXmlMtl($uuid, $tipo, $creaPoliza, $idp);
 				}		
@@ -562,6 +562,21 @@ class controller_coi{
 
 		}
 
+	}
+
+	function tipoPoliza(){
+		if($_SESSION['user']){
+			$data_coi = new CoiDAO;
+			$pagina = $this->load_template();
+			$html=$this->load_page('app/views/pages/Contabilidad/p.tipoPoliza.php');
+  			ob_start();
+  			$info=$data_coi->tipoPoliza();
+			$user=$_SESSION['user']->NOMBRE;
+  			include 'app/views/pages/Contabilidad/p.tipoPoliza.php';
+  			$table = ob_get_clean();
+  			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
+  			$this->view_page($pagina);		
+		}
 	}
 }?>
 

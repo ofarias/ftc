@@ -60,7 +60,7 @@ if (isset($_POST['usuario'])){
 	echo json_encode($res);
 	exit();
 }elseif (isset($_POST['contabiliza'])) {
-	$res=$controller_coi->contabiliza($_POST['tipo'], $_POST['idp'], $_POST['a'], $_POST['obs']);
+	$res=$controller_coi->contabiliza($_POST['tipo'], $_POST['idp'], $_POST['a'], $_POST['obs'], $_POST['tp']);
 	echo json_encode($res);
 	exit();
 }elseif(isset($_POST['borraCuenta'])){
@@ -70,7 +70,7 @@ if (isset($_POST['usuario'])){
 }elseif (isset($_POST['grabaImp'])) {
 	$res=$controller_coi->grabaImp($_POST['imp'],$_POST['cccoi'],$_POST['tipo'],$_POST['tasa'],$_POST['uso'], $_POST['nombre'], $_POST['factor'], $_POST['aplica'], $_POST['status']);
 }elseif(isset($_POST['contabilizaIg'])){
-	$res=$controller_coi->contabilizaIg($_POST['idp'],$_POST['y'],$_POST['tipo'], $_POST['obs']);
+	$res=$controller_coi->contabilizaIg($_POST['idp'],$_POST['y'],$_POST['tipo'], $_POST['obs'], $_POST['tp']);
 	echo json_encode($res);
 	exit();
 }elseif (isset($_POST['acmd'])) {
@@ -115,6 +115,9 @@ else{switch ($_GET['action']){
 		break;
 	case 'cuentasImp':
 		$controller_coi->cuentasImp();
+		break;
+	case 'tipoPoliza':
+		$controller_coi->tipoPoliza();
 		break;
 	default: 
 		header('Location: index.php?action=login');

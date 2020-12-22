@@ -164,6 +164,16 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-2">    
+            <div class="panel panel-default cu-panel-clie">
+                <div class="panel-heading">
+                  <center><a class="icoPre" title="Tipo Polizas"  target="_blank"><img src="app/views/images/cuestion.png" alt="TiposPolizas" width="30" height="30"></a><h4>Tipos Polizas</h4></center>
+                </div>
+            <div class="panel-body">
+                  <center><a href="index.coi.php?action=tipoPoliza" class="btn btn-default"><img class="img-ico" src="app/views/images/Contabilidad/Bancos.png" width="50" height="70"></a></center>
+            </div>
+            </div>
+        </div>
 <form action="index.php" method="post" id="migrar">
     <input type="hidden" name="docf" id="doc" value="<?php echo $docf?>">
     <input type="hidden" name="refacturarFecha" value="">

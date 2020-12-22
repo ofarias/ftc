@@ -1,34 +1,29 @@
 <?php
 require_once 'app/model/database.php';
-require_once('app/views/unit/commonts/numbertoletter.php');
+require_once ('app/views/unit/commonts/numbertoletter.php');
+
 
 class data_serv extends database {
 
-		function tickets($temp){
+		function tickets($t){
 			$data= array();
 			$actual = date("d.m.Y");
 			$hoy = '';
-			if($temp == 's'){
+			if($t == 's'){
 				$hoy = date("d.m.Y", strtotime($actual."- 7 days"));
-			}elseif($temp == 'q'){
+			}elseif($t == 'q'){
 				$hoy = date("d.m.Y", strtotime($actual."- 15 days"));
-
-			}elseif ($temp == 'm') {
+			}elseif ($t == 'm') {
 				$hoy = date("d.m.Y", strtotime($actual."- 31 days"));
-			}elseif ($temp == 't') {
+			}elseif ($t == 't') {
 				$hoy = '01.01.1990';
 			}
 			$param = " FECHA between '$hoy' and current_date + 1";
-			if ($temp == 'mc'){
-				//$hoy = '01.'.date("m").".".date("Y");
+			if ($t == 'mc'){
 				$param = " extract(month from fecha) = ".date("m");
-			}elseif ($temp == 'ma'){
-				//$hoy = '01.'.(date("m")-1).".".date("Y");
+			}elseif ($t == 'ma'){
 				$param = "extract(month from fecha) = ".(date("m")-1);
 			}
-
-			//echo $hoy;
-			//die();
 			$this->query = "SELECT FS.*, CL.NOMBRE AS NOMBRE_CLIENTE, FU.NOMBRE||' '||FU.PATERNO AS NOMBRE_USUARIO_REP, 
 							FE.NOMBRE_AD AS DESC_EQUIPO, CASE FS.STATUS WHEN 1 THEN 'Abierto' WHEN 2 then 'Cerrado' when 3 then 'Modificado' end as Nom_status , (SELECT COUNT(*) FROM FTC_SERV_FILES WHERE ID_SERV = FS.ID) AS ARCHIVOS 
 							FROM FTC_SERVICIOS FS
@@ -259,9 +254,9 @@ class data_serv extends database {
 		}
 
 		function reporteServ($periodo, $tipo){
+			$dm= new pegaso;
 			$data= array();
-			// s semana, m mes, q quince dias, t todos. 
-			$hoy = '';
+			$hoy = '';// s semana, m mes, q quince dias, t todos. 
 			if($periodo == 's'){
 				$hoy = date("d.m.Y", strtotime(date("d-m-Y")."- 7 days"));
 			}elseif($periodo == 'q'){
@@ -275,12 +270,16 @@ class data_serv extends database {
 			$per = 'entre el '.$hoy.' y el '.date("d.m.Y");
 			if ($periodo == 'mc'){
 				$t = " and extract(month from fecha) = ".date("m");
-				$per = "del mes de ".date("F");
+				$nomMes= $dm->traeNombreMes(date("m"));
+				foreach ($nomMes as $ky){}
+				$per = "del mes de ".$ky->NOMBRE;
 			}elseif ($periodo == 'ma'){
 				$t = " and extract(month from fecha) = ".(date("m")-1);
-				$per = "del mes de ".date("F"-1);
+				$nomMes= $dm->traeNombreMes(date("m")-1);
+				foreach ($nomMes as $ky){}
+				$per = "del mes de ".$ky->NOMBRE;
 			}
-
+			
 			// 1 Usuario, 2 Cliente, 3 Cliente / Usuario, 4 Usuario / Cliente;
 			if($tipo == 1){
 				$tip = 'Usuario';

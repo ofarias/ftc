@@ -10995,13 +10995,12 @@ function Pagos() {
     }
 
     function traeNombreMes($mes){
-    	$this->query="SELECT NOMBRE, NUMERO FROM PERIODOS_2016 where numero = $mes";
+    	$this->query="SELECT first 1 NOMBRE, NUMERO FROM PERIODOS_2016 where numero = $mes";
     	$rs=$this->QueryObtieneDatosN();
     	while ($tsArray = ibase_fetch_object($rs)){
     		$data[]=$tsArray;
     	}
     	return $data;
-
     }
 
     function traeMes($mes, $anio){
@@ -27850,7 +27849,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				//echo '<br/>Consulta Carga Pagos: <br/>'.$this->query.'<br/>';
 				$this->grabaBD();
 			}elseif($key['ca']=='c'){
-				$tipo= 'TNS';
 				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo, NUM_PAR) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto', $reg) RETURNING ID";
 				switch ($tipo) {
 				 	case 'TNS':

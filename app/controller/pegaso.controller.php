@@ -13402,7 +13402,8 @@ function ImpSolicitud2($idsol){
 	            if($x > $total){
 	       			$facturasP=$data->facturasMaestro($pago, $opc);
 	       		}
-
+	       		$data_coi = new CoiDAO;
+	       		$tpol=$data_coi->tipoPoliza(); 
 	            $bancos = $data->traeBancosSAT();
 	            include 'app/views/pages/cobranza/p.pagoFacturas.php';
 	            $table = ob_get_clean();
@@ -20701,6 +20702,7 @@ function ImpSolicitud2($idsol){
 	function detalleGasto($idg, $opc){
 		if($_SESSION['user']){
 			$data= new pegaso;
+			$data_coi = new CoiDAO;
 			$datos = $data->detalleGasto($idg, $tipo=false, $obs=false);
 			foreach ($datos as $i){
 				$a = $i->FECHA_EDO_CTA;
@@ -20708,6 +20710,7 @@ function ImpSolicitud2($idsol){
 			$a=date("y", strtotime($a));
 			$aplicaciones =$data->aplicacionesGasto($idg, $tipo=false);
 			$facturas = $data->facturasProvPendientes($uuid = false, $opc, $i->FECHA_EDO_CTA);
+			$tpol=$data_coi->tipoPoliza();
 			$pagina = $this->load_template_popup();
   			$html=$this->load_page('app/views/pages/Contabilidad/p.detalleGasto.php');
   			ob_start();

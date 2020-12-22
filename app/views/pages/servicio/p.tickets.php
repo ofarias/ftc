@@ -7,11 +7,12 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 <center><h1>Registro de Tickets</h1></center>
-                <br/>
-                Ver Todos <input type="radio" name="vista" id="b1" class="vista" value="t" <?php echo $temp == 't'? 'checked':'' ?>> &nbsp;&nbsp;Ver 1 Semana <input type="radio" name="vista" id="b2" class="vista" value="s" <?php echo $temp == 's'? 'checked':'' ?>> &nbsp;&nbsp; Ver 15 dias<input type="radio" name="vista" id="b3" class="vista" value="q" <?php echo $temp == 'q'? 'checked':''?> > &nbsp;&nbsp; 
-                Ver 1 Mes <input type="radio" name="vista" id="b4" class="vista" value="m" <?php echo $temp == 'm'? 'checked':''?>>&nbsp;&nbsp;  
-                Mes Actual <input type="radio" name="vista" id="b5" class="vista" value="mc" <?php echo $temp == 'mc'? 'checked':''?>>&nbsp;&nbsp; 
-                Mes Anterior <input type="radio" name="vista" id="b6" class="vista" value="ma" <?php echo $temp == 'ma'? 'checked':''?>>&nbsp;&nbsp;
+                Ver Todos <input type="radio" name="vista" id="b1" class="vista" value="t" <?php echo ($t=='t')? 'checked':'' ?> > &nbsp;&nbsp;
+                Ver 1 Semana <input type="radio" name="vista" id="b2" class="vista" value="s" <?php echo $t == 's'? 'checked':'' ?> > &nbsp;&nbsp; 
+                Ver 15 dias<input type="radio" name="vista" id="b3" class="vista" value="q" <?php echo $t == 'q'? 'checked':''?> > &nbsp;&nbsp; 
+                Ver 1 Mes <input type="radio" name="vista" id="b4" class="vista" value="m" <?php echo  $t == 'm'? 'checked':''?>>&nbsp;&nbsp;  
+                Mes Actual <input type="radio" name="vista" id="b5" class="vista" value="mc" <?php echo ($t == 'mc')? 'checked':''?>>&nbsp;&nbsp; 
+                Mes Anterior <input type="radio" name="vista" id="b6" class="vista" value="ma" <?php echo $t == 'ma'? 'checked':''?>>&nbsp;&nbsp;
                 <br/><br/>
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -130,11 +131,11 @@
         window.open("index.serv.php?action=nuevoTicket", "popup","width=1200,height=900")
     })
 
-    var temp = <?php echo "'".$temp."'"?> 
+    var temp = <?php echo "'".$t."'"?> 
 
     $(".vista").click(function(){
         var temp = $(this).val()
-        window.open("index.serv.php?action=tickets&temp=" + temp, "_self")
+        window.open("index.serv.php?action=tickets&t=" + temp, "_self")
     })
 
     $("#generaRep").click(function(){
@@ -157,7 +158,8 @@
                 dataType:'json', 
                 data:{reporteServ:1, periodo, tipo}, 
                 success:function(data){
-                 //   alert('Se ejecuto correctamente el proceso')
+                  window.open('../../media/reportes/' + data.archivo, 'download')
+                  alert('Puedes ver tu archivo en la carpeta de descargas.')
                 }, 
                 error:function(){
                   //  alert('Ocurrio un error, favor de revisar la informacion.')

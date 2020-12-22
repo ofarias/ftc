@@ -1,4 +1,11 @@
 <br/>
+<?php foreach($tpol as $tp1){
+    $cheque='no';
+    if($tp1->TIPO == 'Ch'){
+        $cheque = 'si';
+        break;
+    }
+}?>
 <input type="hidden" value="<?php echo $a?>" id="anio" >
 <div class="row">
                 <div class="col-lg-12">
@@ -11,7 +18,7 @@
                                 <table class="table table-striped table-bordered table-hover" >
                                     <thead>
                                         <tr>
-                                            <th>Pago</th>
+                                            <th>Pago<br/>Tipo</th>
                                             <th>Fecha Creacion</th>
                                             <th><font color="blue">Referencia</font> <br/><font color ="red">Observacion</font></th>
                                             <th>Fecha Edo Cta</th>
@@ -32,7 +39,7 @@
                                         ?>
                                         <tr class="odd gradeX" <?php echo $color ?> >
                                             <input type="hidden" name="saldoPago" value="<?php echo $key->SALDO?>" id="sp">
-                                            <td> <?php echo $key->ID ?> </td>
+                                            <td> <?php echo $key->ID.'<br/>'.$key->TIPO_PAGO?> </td>
                                             <td><?php echo $key->FECHA_CREACION?></td>
                                             <td><?php echo '<font color="blue">'.$key->REFERENCIA.'</font>'?>
                                             <br/><font color="red"><input type="text" id="obs" value="<?php echo $key->DOC?>"></font></td>
@@ -43,8 +50,20 @@
                                             <td><?php echo '$ '.number_format($key->APLICADO,2);?> </td>
                                             <td><?php echo '$ '.number_format($key->SALDO,2);?></td>
                                             <td>
-                                                <?php if(empty($key->CONTABILIZADO)){?>
-                                                <input type="button" class="btn btn-success conta" value="Contabilizar" idp = "<?php echo $key->ID?>" val="<?php echo $key->SALDO?>"><br/><br/>
+                                            <?php if(empty($key->CONTABILIZADO)){?>
+                                                <input type="button" class="btn btn-success conta" value="Contabilizar" idp = "<?php echo $key->ID?>" val="<?php echo $key->SALDO?>"> 
+                                                <select name="tpol" id="tp">
+                                                    <?php echo $cheque?>
+                                                    <option value="<?php echo ($key->TIPO_PAGO=='CHQ' and $cheque=='si')? 'CH':'Eg'?>"><?php echo ($key->TIPO_PAGO=='CHQ' and $cheque=='si')? 'Egresos (Ch)':'Egresos (Eg)' ?></option>
+                                                    
+                                                    <?php foreach ($tpol as $tp): ?>
+                                                        <?php if($tp->CLASSAT == 2){?>
+                                                            <option value="<?php echo $tp->TIPO?>"><?php echo $tp->DESCRIP.' ('.$tp->TIPO.')'?></option>
+                                                        <?php }?>
+                                                    <?php endforeach ?>
+                                                </select>
+                                                <br/><br/>
+
                                             <?php }else{?>
                                                <b><?php echo $key->CONTABILIZADO?></b>
                                             <?php }?>
@@ -136,7 +155,6 @@
         <button name="FORM_ACTION_PAGO_FACTURAS_NUEVO" type="submit" value="enviar" class = "btn btn-info"> Buscar </button>    
     </form>
 </div>
-
 <div class="row">
                 <div class="col-lg-12">
                     <div class="panel panel-default">
@@ -317,6 +335,8 @@
         var idp =  $(this).attr('idp')
         var a = ''
         var obs = document.getElementById('obs').value
+        var tp = document.getElementById('tp').value 
+        
         if(saldo>0.001){
             a = document.getElementById("cuens").value
             if(a.length==0){
@@ -333,7 +353,7 @@
                     url:'index.coi.php',
                     type:'post', 
                     dataType:'json', 
-                    data:{contabiliza:1, tipo, idp, a, obs}
+                    data:{contabiliza:1, tipo, idp, a, obs, tp}
                 }).done(function(response){
                     self.setContentAppend('<div>Contabilizacion en COI.</div>')
                 }).fail(function(){
@@ -358,8 +378,5 @@
         select: function(event, ui){
         }
     });
-   
-
-
 </script>
 
