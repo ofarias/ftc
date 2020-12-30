@@ -27234,7 +27234,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	}
 		if(empty($maestro)){
 			$rfc = $_SESSION['rfc'];
-			$this->query="SELECT X.*, IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.DOCUMENTO = X.DOCUMENTO and A.status!='C'),0) as saldofinal, x.documento as cve_doc, x.fecha as fechaelab, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE X.CLIENTE = XC.RFC AND XC.TIPO = 'Cliente') AS NOMBRE  FROM XML_DATA X WHERE TIPO = 'I' AND (IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.DOCUMENTO = X.DOCUMENTO and A.status!='C'),0) )> 1 AND RFCE ='$rfc' $o ";
+			$this->query="SELECT X.*, IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.OBSERVACIONES = X.UUID and A.status!='C'),0) as saldofinal, x.documento as cve_doc, x.fecha as fechaelab, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE X.CLIENTE = XC.RFC AND XC.TIPO = 'Cliente') AS NOMBRE  FROM XML_DATA X WHERE TIPO = 'I' AND (IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.OBSERVACIONES = X.UUID and A.status!='C'),0) )> 1 AND RFCE ='$rfc' $o ";
 			$res=$this->EjecutaQuerySimple();
 			while ($tsArray=ibase_fetch_object($res)){
 				$data[]=$tsArray;
