@@ -22,7 +22,13 @@ class data_serv extends database {
 			if ($t == 'mc'){
 				$param = " extract(month from fecha) = ".date("m");
 			}elseif ($t == 'ma'){
-				$param = "extract(month from fecha) = ".(date("m")-1);
+				$mes = date("n");
+				$anio = date("Y");
+				if(date("n") == 1){
+					$param = "extract(month from fecha) = 12 and extract(year from fecha)= ".($anio-1);
+				}else{
+					$param = "extract(month from fecha) = ".(date("m")-1).' and extract(year from fecha)='.$anio;
+				}
 			}
 			$this->query = "SELECT FS.*, CL.NOMBRE AS NOMBRE_CLIENTE, FU.NOMBRE||' '||FU.PATERNO AS NOMBRE_USUARIO_REP, 
 							FE.NOMBRE_AD AS DESC_EQUIPO, CASE FS.STATUS WHEN 1 THEN 'Abierto' WHEN 2 then 'Cerrado' when 3 then 'Modificado' end as Nom_status , (SELECT COUNT(*) FROM FTC_SERV_FILES WHERE ID_SERV = FS.ID) AS ARCHIVOS 
@@ -274,12 +280,18 @@ class data_serv extends database {
 				foreach ($nomMes as $ky){}
 				$per = "del mes de ".$ky->NOMBRE;
 			}elseif ($periodo == 'ma'){
-				$t = " and extract(month from fecha) = ".(date("m")-1);
-				$nomMes= $dm->traeNombreMes(date("m")-1);
+				$mes=date("n");
+				$anio = date("Y");
+				if($mes == 1){
+					$t=" and extract(month from fecha) = 12 and extract(year from fecha)= ".($anio-1);
+					$mes= 12;
+				}else{
+					$t=" and extract(month from fecha) = ".(date("m")-1).' and extract(year from fecha)='.$anio;
+				}
+				$nomMes= $dm->traeNombreMes($mes);
 				foreach ($nomMes as $ky){}
 				$per = "del mes de ".$ky->NOMBRE;
 			}
-			
 			// 1 Usuario, 2 Cliente, 3 Cliente / Usuario, 4 Usuario / Cliente;
 			if($tipo == 1){
 				$tip = 'Usuario';
@@ -288,7 +300,6 @@ class data_serv extends database {
 				while ($tsArray=ibase_fetch_object($res)) {
 					$data[]=$tsArray;
 				}
-
 				if(count($data)>0 ){
 					$this->query="SELECT T1.ATIENDE, T1.NOMBRE_CLIENTE, COUNT(*) AS SERVICIOS FROM ticket T1 where T1.id > 0 $t GROUP BY T1.ATIENDE, T1.NOMBRE_CLIENTE ORDER BY (select count(*) from ticket T2 where T2.atiende = T1.ATIENDE) DESC, count(*) desc";
 					$res=$this->EjecutaQuerySimple();

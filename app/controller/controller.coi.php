@@ -571,6 +571,7 @@ class controller_coi{
 			$html=$this->load_page('app/views/pages/Contabilidad/p.tipoPoliza.php');
   			ob_start();
   			$info=$data_coi->tipoPoliza();
+  			$admper=$data_coi->admPer($info);
 			$user=$_SESSION['user']->NOMBRE;
   			include 'app/views/pages/Contabilidad/p.tipoPoliza.php';
   			$table = ob_get_clean();

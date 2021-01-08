@@ -1054,6 +1054,8 @@ $("#dataTables-RutasActivas").DataTable({
         }               
     });
 
+   
+
     $('#dataTables-oc1').DataTable({
                 responsive: true,
         lengthMenu: [[500,-1], [500,"Todo"]],
@@ -1384,7 +1386,7 @@ $('#dataTables-ocf').DataTable({
 
 /* datatables tablita 3*/       //14062016
         $('#dataTables-table-3').DataTable({
-                responsive: true,
+        responsive: true,
         lengthMenu: [[500,-1], [500,"Todo"]],
         columnDefs:[
           {
@@ -1405,6 +1407,31 @@ $('#dataTables-ocf').DataTable({
                   "sPrevious": "Anterior"
                 }
         }
+        });
+
+        $("#dataTables-folios_pol").DataTable({
+            paging: true,
+            responsive: true,
+            lengthMenu: [[100,-1], [100,"Todo"]],
+            columnDefs:[
+              {
+                targets: [0,1],
+                searchable: true
+              }
+            ],        
+            language: {
+                lengthMenu: "Mostrando _MENU_ por pagina",
+                zeroRecords: "No hay dato para mostrar",
+                info: "Mostrando página _PAGE_ de _PAGES_",
+                sSearch: "Filtrar: ",
+                sInfoFiltered:   "(Filtrado de un total de _MAX_ registros)",                   
+                oPaginate: {
+                        "sFirst":    "Primero",
+                        "sLast":     "Último",
+                        "sNext":     "Siguiente",
+                        "sPrevious": "Anterior"
+                }
+            }               
         });
 /* datatables tablita 3 fin*/
     $('#dataTables-table-4').DataTable({

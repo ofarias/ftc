@@ -397,48 +397,56 @@ class ctrl_serv{
 	        }
 
 	        $ln++;
-	        $xls->getActiveSheet()
-	        	->setCellValue('A'.$ln,'Ticket')
-	        	->setCellValue('B'.$ln,'Modo de reporte')
-	        	->setCellValue('C'.$ln,'Persona que Reporta')
-	        	->setCellValue('D'.$ln,'Usuario del incidente')
-	        	->setCellValue('E'.$ln,'Fecha')
-	        	->setCellValue('F'.$ln,'Fecha del reporte')
-	        	->setCellValue('G'.$ln,'Equipo')
-	        	->setCellValue('H'.$ln,'Descripcion corta')
-	        	->setCellValue('I'.$ln,'Descripcion completa')
-	        	->setCellValue('J'.$ln,'Solucion o trabajo realizado')
-	        	->setCellValue('K'.$ln,'Estado del ticket')
-	        	->setCellValue('L'.$ln,'Fecha de Cierre')
-	        	->setCellValue('M'.$ln,'Sistema afectado')
-	        	->setCellValue('N'.$ln,'Tipo de Servicio')
-	        	->setCellValue('O'.$ln,'Correo Reporta')
-	        	->setCellValue('P'.$ln,'Correo Usuario')
-	        	->setCellValue('Q'.$ln,'Nombre del Cliente')
-	        	->setCellValue('R'.$ln,'Atiende')
-	        ;
-
+	        for ($i=0; $i < 19; $i++) { 
+	        	$Col= 'A';
+	        	$xls->getActiveSheet()
+		        	->setCellValue($Col++.$ln,'Ticket')
+		        	->setCellValue($Col++.$ln,'Modo de reporte')
+		        	->setCellValue($Col++.$ln,'Persona que Reporta')
+		        	->setCellValue($Col++.$ln,'Usuario del incidente')
+		        	->setCellValue($Col++.$ln,'Mes')
+		        	->setCellValue($Col++.$ln,'Año')
+		        	->setCellValue($Col++.$ln,'Fecha')
+		        	->setCellValue($Col++.$ln,'Fecha del reporte')
+		        	->setCellValue($Col++.$ln,'Equipo')
+		        	->setCellValue($Col++.$ln,'Descripcion corta')
+		        	->setCellValue($Col++.$ln,'Descripcion completa')
+		        	->setCellValue($Col++.$ln,'Solucion o trabajo realizado')
+		        	->setCellValue($Col++.$ln,'Estado del ticket')
+		        	->setCellValue($Col++.$ln,'Fecha de Cierre')
+		        	->setCellValue($Col++.$ln,'Sistema afectado')
+		        	->setCellValue($Col++.$ln,'Tipo de Servicio')
+		        	->setCellValue($Col++.$ln,'Correo Reporta')
+		        	->setCellValue($Col++.$ln,'Correo Usuario')
+		        	->setCellValue($Col++.$ln,'Nombre del Cliente')
+		        	->setCellValue($Col++.$ln,'Atiende')
+		        ;
+	        }
+	        
 	        foreach ($segundo as $det) {
+	        	$Col= 'A';
 	        	$ln++;
 	        	$xls->getActiveSheet()
-	        		->setCellValue('A'.$ln,	$det->ID)
-	        		->setCellValue('B'.$ln, $det->MODO)
-	        		->setCellValue('C'.$ln, $det->REPORTA)
-	        		->setCellValue('D'.$ln, $det->USUARIO)
-	        		->setCellValue('E'.$ln, $det->FECHA)
-	        		->setCellValue('F'.$ln, $det->FECHA_REPORTE)
-	        		->setCellValue('G'.$ln, $det->EQUIPO)
-	        		->setCellValue('H'.$ln, $det->CORTA)
-	        		->setCellValue('I'.$ln, $det->COMPLETA)
-	        		->setCellValue('J'.$ln, $det->SOLUCION)
-	        		->setCellValue('K'.$ln, $det->STATUS)
-	        		->setCellValue('L'.$ln, $det->CIERRE)
-	        		->setCellValue('M'.$ln, $det->SISTEMA)
-	        		->setCellValue('N'.$ln, $det->TIPO)
-	        		->setCellValue('O'.$ln, $det->CORREO_REP)
-	        		->setCellValue('P'.$ln, $det->CORREO_USU)
-	        		->setCellValue('Q'.$ln, $det->NOMBRE_CLIENTE)
-	        		->setCellValue('R'.$ln, $det->ATIENDE)
+	        		->setCellValue($Col++.$ln,	$det->ID)
+	        		->setCellValue($Col++.$ln, $det->MODO)
+	        		->setCellValue($Col++.$ln, $det->REPORTA)
+	        		->setCellValue($Col++.$ln, $det->USUARIO)
+	        		->setCellValue($Col++.$ln, date("n", strtotime($det->FECHA)))
+	        		->setCellValue($Col++.$ln, date("Y", strtotime($det->FECHA)))
+	        		->setCellValue($Col++.$ln, $det->FECHA)
+	        		->setCellValue($Col++.$ln, $det->FECHA_REPORTE)
+	        		->setCellValue($Col++.$ln, $det->EQUIPO)
+	        		->setCellValue($Col++.$ln, $det->CORTA)
+	        		->setCellValue($Col++.$ln, $det->COMPLETA)
+	        		->setCellValue($Col++.$ln, $det->SOLUCION)
+	        		->setCellValue($Col++.$ln, $det->STATUS)
+	        		->setCellValue($Col++.$ln, $det->CIERRE)
+	        		->setCellValue($Col++.$ln, $det->SISTEMA)
+	        		->setCellValue($Col++.$ln, $det->TIPO)
+	        		->setCellValue($Col++.$ln, $det->CORREO_REP)
+	        		->setCellValue($Col++.$ln, $det->CORREO_USU)
+	        		->setCellValue($Col++.$ln, $det->NOMBRE_CLIENTE)
+	        		->setCellValue($Col++.$ln, $det->ATIENDE)
 	        	;
 	        }
 	        $ln++;
@@ -475,7 +483,7 @@ class ctrl_serv{
 	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(80);
 	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(50);
 	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(30);
-
+	        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(5);
 
 	        // Hacer las cabeceras de las lineas;
 	        //->setCellValue('9','')
