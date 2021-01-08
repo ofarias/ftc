@@ -10698,6 +10698,8 @@ function Pagos() {
 	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $f, $idfl){
 	   	$pr=array();
 		$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
+		//var_dump($fe);
+		//die;
 		$fechaIni=$fe['fi'];$fechafin=$fe['ff'];
 		$param2 = "and (fecha_recep between '".$fechaIni."' and '".$fechafin."')";
 	   	$param3 = " and ( fecha_edo_cta between '".$fechaIni."' and '".$fechafin."' or g.fecha_doc between '".$fechaIni."' and '".$fechafin."') ";	   
@@ -13382,7 +13384,7 @@ function Pagos() {
     			$ff = $ld.'.'.$mes.'.'.$anio;
     		}else{
     			$fi= '1.'.$mes.'.'.$anio;
-    			$ff = $ld.'.1.'.$anio;
+    			$ff = $ld.'.'.$mes.'.'.$anio;
     		}
     	}	
     	return array("fi"=>$fi, "ff"=>$ff, "mi"=>date("n", strtotime($fi)), "mf"=>date("n", strtotime($fi)));
