@@ -54,7 +54,7 @@
                                                 <input type="button" class="btn btn-success conta" value="Contabilizar" idp = "<?php echo $key->ID?>" val="<?php echo $key->SALDO?>"> 
                                                 <select name="tpol" id="tp">
                                                     <?php echo $cheque?>
-                                                    <option value="<?php echo ($key->TIPO_PAGO=='CHQ' and $cheque=='si')? 'CH':'Eg'?>"><?php echo ($key->TIPO_PAGO=='CHQ' and $cheque=='si')? 'Egresos (Ch)':'Egresos (Eg)' ?></option>
+                                                    <option value="<?php echo ($key->TIPO_PAGO=='CHQ' and $cheque=='si')? 'Ch':'Eg'?>"><?php echo ($key->TIPO_PAGO=='CHQ' and $cheque=='si')? 'Egresos (Ch)':'Egresos (Eg)' ?></option>
                                                     
                                                     <?php foreach ($tpol as $tp): ?>
                                                         <?php if($tp->CLASSAT == 2){?>
