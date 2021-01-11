@@ -28269,8 +28269,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return;
 	}
 
-	function actGasto($info, $detalle, $idp){
-		print_r($info);
+	function actGasto($info, $detalle, $idp, $tp){
+		//print_r($info);
 		$usuario=$_SESSION['user']->NOMBRE;
 		$status=$info['status'];
 		$poliza=$info['poliza'];
@@ -28279,9 +28279,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$periodo=$info['periodo'];
 		foreach ($detalle as $k) {
 			$this->query="INSERT INTO XML_POLIZAS (ID, UUID, STATUS, POLIZA, TIPO, PERIODO, EJERCICIO, USUARIO, FECHA) 
-							VALUES (NULL,'$k->UUID', 'A', '$numero','Eg',$periodo, $ejercicio, '$usuario', current_timestamp)";
+							VALUES (NULL,'$k->UUID', 'A', '$numero', '$tp' ,$periodo, $ejercicio, '$usuario', current_timestamp)";
 			$this->grabaBD();
-
 			$this->query="UPDATE XML_DATA SET STATUS = 'E' WHERE UUID = '$k->UUID'";
 			$this->queryActualiza();
 		}

@@ -276,7 +276,7 @@ class controller_coi{
 			$impuestos2=$data->impuestosPolizaFinalDetImp($uuid=$detalle['uuid'], $por=$detalle['por']); // $impuestos= $data2->impuestosPolizaFinalDetImp($uuid, $por);
 			$crear = $data_coi->creaPolizaGasto($cabecera , $detalle=$detalle['datos'], $tipo, $impuestos2, $z, $tp);
 			if($crear['status'] == 'ok' ){
-				$act=$data->actGasto($crear, $detalle, $idp);
+				$act=$data->actGasto($crear, $detalle, $idp, $tp);
 			}
 		}
 	}

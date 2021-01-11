@@ -1971,7 +1971,7 @@ class CoiDAO extends DataBaseCOI {
         }
         
         //exit();
-        return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Eg'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
+        return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>$tipo.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
     }
 
     function creaPolizaFred($cabecera, $detalle, $tipo, $impuestos2, $z, $anio, $mes){
