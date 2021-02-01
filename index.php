@@ -3622,15 +3622,8 @@ else{
        		if(!empty($_GET['unidadmedida'])){
        			$unidadmedida=$_GET['unidadmedida'];	
        		}
-       		//$categoria=$_GET['categoria'];
-       		//$desc1=$_GET['desc1'];
-       		//$generico=$_GET['generico'];
-       		//$um=$_GET['unidadmedida'];
-       		//$prov1=$_GET['prov1'];
-       		//$desc2=$_GET['desc2'];
        		echo 'Valor de la Marca : '.$marca.'<p>';
        		echo 'Valor prov1: '.$prov1.'<p>';
-       		
        		$controller->catalogoProductosFTC($marca, $categoria, $desc1, $generico, $unidadmedida, $prov1, $desc2, $descripcion);
        		break;
        	case 'altaProductoFTC':

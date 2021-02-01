@@ -11664,16 +11664,20 @@ function Pagos() {
     $this->query="UPDATE APLICACIONES SET STATUS = 'I' WHERE ID = $ida";
     $rs=$this->EjecutaQuerySimple();
 
-
-   	$this->query="SELECT a.*,f.cve_clpv as clave,  c.nombre as cliente, f.importe
+	$this->query="SELECT a.*,f.cve_clpv as clave,  c.nombre as cliente, f.importe
    						FROM APLICACIONES a
-   						left join factf01 f on a.documento = f.cve_doc
+   						left join xml_data f on a.observaciones = f.uuid
    						left join clie01 c on f.cve_clpv = c.clave
    						where  ID = $ida";
    	$rs=$this->QueryObtieneDatosN();
-   	while ($tsArray=ibase_fetch_object($rs)){
+
+	while ($tsArray=ibase_fetch_object($rs)){
    		$data[]=$tsArray;
    	}
+
+   	
+
+   	
    	return @$data;
    }
 
@@ -15473,7 +15477,7 @@ function Pagos() {
     						where   upper(pftc.clave)= upper('$descripcion')";
     		}
     	}else{
-    			$this->query="SELECT first 100 fart.*, ct.id as idc , (select cve_prodserv from inve01 where cve_art = fart.clave_pegaso) as cve_prodserv, (select cve_unidad from inve01 where cve_art = fart.clave_pegaso ) as cve_unidad, (SELECT id FROM FTC_Articulos_N ftn WHERE fart.id = ftn.referencia) as artn
+    			$this->query="SELECT first 500 fart.*, ct.id as idc , (select cve_prodserv from inve01 where cve_art = fart.clave_pegaso) as cve_prodserv, (select cve_unidad from inve01 where cve_art = fart.clave_pegaso ) as cve_unidad, (SELECT id FROM FTC_Articulos_N ftn WHERE fart.id = ftn.referencia) as artn
     			FROM FTC_Articulos fart
     			left join CATEGORIAS ct ON  ct.nombre_categoria = fart.categoria
     			where fart.status = 'A' or fart.status= 'B' or fart.status = 'M' ";

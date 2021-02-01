@@ -21,7 +21,7 @@ if ($_FILES["fileToUpload"]["size"] > ((1024*1024)*20)) {
     echo "El archivo dede medir menos de 20 MB.";
     $uploadOk = 0;
 }else{
-    if( strtoupper($extension) != ("PDF") and strtoupper($extension) != ("XLS")  and strtoupper($extension) != ("DOC")  and strtoupper($extension) != ("XLSX")  and strtoupper($extension) != ("DOCX")  and strtoupper($extension) != ("TXT")  and strtoupper($extension) != ("CSV")  and exif_imagetype($target_file)  and strtoupper($extension) != ("RAR")  and strtoupper($extension) != ("ZIP")
+    if( strtoupper($extension) != ("PDF") and strtoupper($extension) != ("XLS")  and strtoupper($extension) != ("DOC")  and strtoupper($extension) != ("XLSX")  and strtoupper($extension) != ("DOCX")  and strtoupper($extension) != ("TXT")  and strtoupper($extension) != ("CSV")  and exif_imagetype($target_file) and strtoupper($extension) != ("RAR")  and strtoupper($extension) != ("ZIP") and strtoupper($extension) != 'JPG' and strtoupper($extension) != 'BMP' and strtoupper($extension) != 'PNG' and strtoupper($extension) != 'JPEG' and strtoupper($extension) != 'MOV' and strtoupper($extension) != 'MP4' 
         ){
         echo "El Archivo que intenta cargarno es valido, solo se permiten XLS, XLSX, DOC, DOCX, PDF, TXT, CSV e imagenes<p>";
         echo "favor de revisar que el archivo sea de este tipo: .<p>".strtoupper($extension);

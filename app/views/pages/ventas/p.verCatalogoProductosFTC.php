@@ -7,7 +7,9 @@
  <label>Nuevo Producto</label>
   <a href="index.php?action=altaProductoFTC&marca=<?php echo $marca?>&prov1=<?php echo $prov1?>&desc1=<?php echo $desc1?>&desc2=<?php echo $desc2?>&categoria=<?php echo $categoria?>&generico=<?php echo $generico?>&unidadmedida=<?php echo $unidadmedida?>" class="btn btn-success">Nuevo</a> &nbsp;&nbsp; &nbsp;&nbsp;  <input type="text" name='descripcion' id='descripcion' value='' class="text" maxlength="40" style="width: 50%" />  <button  name="buscarArticuloCatalogo" class="btn btn-info" >Buscar Articulo</button>
 </form>
-<!--<input type="text" class="form-control" id="prov1" name="prov1" placeholder ="Codigo proveedor1" value="<?php echo $data->CLAVE_DISTRIBUIDOR?>"/><br> -->
+</div>
+<div>
+    <input type="button" value="Mas Vendidos" class="btn-sm btn-info">
 </div>
 <br/>
 <div class="row" >
@@ -67,7 +69,9 @@
                                         <?php }?>
                                             </td>
                                             <td><?php echo $data->MARCA;?></td>
-                                            <td><?php echo $data->GENERICO;?> <?php echo ($data->CALIFICATIVO == '')? '':', '.$data->CALIFICATIVO?> <?php echo ($data->SINONIMO == '')? '':', '.$data->SINONIMO?></td>
+
+                                            <td><a href="index.v.php?action=histProd&id=<?php echo $data->ID?>&per=t&fi=&ff=" onclick="window.open(this.href, this.target, 'width=1200,height=600'); return false;" ><?php echo $data->GENERICO;?> <?php echo ($data->CALIFICATIVO == '')? '':', '.$data->CALIFICATIVO?> <?php echo ($data->SINONIMO == '')? '':', '.$data->SINONIMO?></a></td>
+
                                             <td><?php echo $data->CLAVE_PROD?> <br/>
                                             <?php echo $data->MEDIDAS.' '.$data->UM?>  </td>
                                             <td><?php echo $data->CLAVE_DISTRIBUIDOR?> <br/><p style="font-weight: bold; background-color: red"> <?php echo $data->CLAVE_FABRICANTE.' Precio Lista $ '.$data->PRECIO?> <p><p style="font-weight: bold; background-color: yellow">Costo Neto $ <?php echo $data->COSTO?> </p> </td>

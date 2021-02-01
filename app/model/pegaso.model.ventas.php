@@ -2512,4 +2512,33 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return array("n"=>$row[2]);
     }
 
+    function histProd($id, $per, $fi , $ff ){
+        $data =array();
+        switch ($per) {
+            case 't':
+                $t = '';
+                break;
+            case 'a':
+                $t = ' and f.anio = '.date("Y");
+                break;
+            case 's':
+                $t = '';
+                break;
+            case 'p':
+                $t = " and f.fecha_doc >= '".$fi."' and f.fecha_doc <='".$ff."'";
+                break;    
+            default:
+                break;
+        }
+        $this->query="SELECT 'Venta' as tipo, fd.*, p.*, f.*, f.nombre||'('||f.rfc||')' as cliente FROM FTC_FACTURAS_DETALLE fd
+                            left join producto_ftc p on p.clave = fd.articulo
+                            left join facturas_fp f on fd.documento = f.cve_doc
+                            WHERE p.clave_ftc = '$id' $t";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
 }?>

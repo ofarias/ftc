@@ -733,6 +733,9 @@ else{switch ($_GET['action']){
 				$ff = isset($_GET['p'])? $_GET['ff']:'a';
 				$controller_v->verNV($p, $fi, $ff);
 				break;
+			case 'histProd':
+				$controller_v->histProd($_GET['id'],$_GET['per'],$_GET['fi'],$_GET['ff']);
+				break;
 	default:
 		header('Location: index.v.php?action=login');
 		break;

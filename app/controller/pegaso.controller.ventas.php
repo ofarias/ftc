@@ -2000,5 +2000,22 @@ class pegaso_controller_ventas{
             return $exec;
         }
     }
+
+    function histProd($id, $per, $fi, $ff){
+        if($_SESSION['user']){
+            $data = new pegaso_ventas;
+            $pagina=$this->load_template('Historia Producto');
+            $html=$this->load_page('app/views/pages/ventas/p.histProd.php');
+            ob_start();
+            $info = $data->histProd($id, $per, $fi, $ff);
+            include 'app/views/pages/ventas/p.histProd.php';
+            $table = ob_get_clean();
+            $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+            $this->view_page($pagina);
+        }else{
+                $e = "Favor de iniciar Sesión";
+                header('Location: index.php?action=login&e='.urlencode($e)); exit;
+        }    
+    }
 }
 ?>
