@@ -23,6 +23,7 @@
                             <font color="#1a8cff"><input type="button"  value="Carga Parametros" onclick="cargaParam()"></font>
                             <font color="red"><input type="button" value="Diot Batch" onclick="cargaBatch(<?php echo $mes ?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>')"> </font>
                             <font color="purple"><input type="button" value="Ver Provision" class="verProv" anio="<?php echo $anio?>" mes="<?php echo $mes?>" ide="<?php echo $ide?>" doc="<?php echo $doc?>"></font>
+                            <font color="dark blue"><input type="button" value="Relacionar Facturas" class="rfg" anio="<?php echo $anio?>" mes="<?php echo $mes?>" ide="<?php echo $ide?>" doc="<?php echo $doc?>" title="Relaciona facturas de gastos del mes seleccionado a facturas de Ventas para un calculo de Utilidades"></font>
                             <br/><br/>
                             <!--
                             <font>Filtro XML:&nbsp; Todas <input type="radio" name="verXML" class="ver" value="x" checked> &nbsp;Pendientes:&nbsp;  <input type="radio" name="verXML" class="ver" value="pend"> &nbsp;Provision: &nbsp; <input type="radio" name="verXML" class="ver" value="d"> &nbsp;Eg: &nbsp; <input type="radio" name="verXML" class="ver" value="ie"> </font>
@@ -544,6 +545,11 @@
     function info(){
         $.alert('No se encontro la conexion a la BD de COI, favor de comunicarse con Soporte Tecnico al 55-5055-3392')
     }
+
+    $(".rfg").click(function(){
+        alert("Relaciona las facturas de gastos a facturas de ventas para un calculo de utilidad")
+        window.open('index.xml.php?action=gxf&m='+$(this).attr('mes')+'&a='+$(this).attr('anio')+'&i='+$(this).attr('ide')+'&d='+$(this).attr('doc') , "_blank")
+    })
 
 
 

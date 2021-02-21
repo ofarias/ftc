@@ -1737,6 +1737,31 @@ $('#dataTables-ocf').DataTable({
                 }
         });
 
+        $('#dataTables-gxf').DataTable({
+                responsive: true,
+                lengthMenu: [[1000,-1], [1000,"Todo"]],
+                "order": [[0,"asc"]],
+                columnDefs:[
+                    {
+                        targets: [5,6],
+                        searchable: false
+                    }
+                ],
+                language: {
+                    lengthMenu: "Mostrando _MENU_ por pagina",
+                    zeroRecords: "No hay dato para mostrar",
+                    info: "Mostrando página _PAGE_ de _PAGES_",
+                    sSearch: "Filtrar: ",
+                    sInfoFiltered:   "(Filtrado de un total de _MAX_ registros)",                   
+                    oPaginate: {
+                                    "sFirst":    "Primero",
+                                    "sLast":     "Último",
+                                    "sNext":     "Siguiente",
+                                    "sPrevious": "Anterior"
+                                }
+                }
+        });
+
     </script>  
 <!--
     <script type="text/javascript">

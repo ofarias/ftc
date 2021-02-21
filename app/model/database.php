@@ -180,6 +180,19 @@
 			return $row_set;
 			unset($this->query);	
 			$this->CierraCnx();
+		}
+
+		protected function QueryDevuelveAutocompletePro(){
+			$this->AbreCnx();
+			$rs = ibase_query($this->cnx, $this->query);
+			while($row = ibase_fetch_object($rs)){
+				$row->DOCUMENTO = htmlentities(stripcslashes($row->DOCUMENTO));
+				$row->DESCRIPCION = htmlentities(stripcslashes(utf8_decode($row->DESCRIPCION)));
+				$row_set[] = $row->TIPO." : ".$row->DOCUMENTO." : ".$row->DESCRIPCION." : ".$row->FI." : ".$row->FF." : ".$row->PRESUPUESTO." : ".$row->VALOR;
+			}
+			return $row_set;
+			unset($this->query);	
+			$this->CierraCnx();
 		}		
 	
 		#Regresa arreglo de datos asociativo, para mejor manejo de la informacion

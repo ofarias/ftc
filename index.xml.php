@@ -61,6 +61,10 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res=$controller->setTD($_POST['rfc'], $_POST['t'],$_POST['t2'], $_POST['t3']);
 	echo json_encode($res);
 	exit();
+}elseif(isset($_GET['term']) && isset($_GET['doc'])){
+	$res=$controller->getDoc($_GET['term']);
+	echo json_encode($res);
+	exit();
 }
 else{
 	switch ($_GET['action']){
@@ -130,6 +134,12 @@ else{
 		break;
 	case 'infoProv':
 		$controller->infoProv($_GET['rfc'], $_GET['tipo']);
+		break;
+	case 'gxf':
+		$controller->gxf($_GET['a'], $_GET['m'],$_GET['i'], $_GET['d']);
+		break;
+	case 'rgxf':
+		$controller->rgxf($_GET['u']);
 		break;
 	default: 
 		header('Location: index.php?action=login');

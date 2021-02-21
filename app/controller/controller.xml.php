@@ -1801,5 +1801,46 @@ class controller_xml{
 			return $res;
 		}
 	}
+
+	function gxf($a, $m, $i, $d){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$info = $data->gxf($a, $m, $i, $d );
+			$pagina=$this->load_template();
+			$html=$this->load_page('app/views/pages/xml/p.gxf.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.gxf.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;	
+		}
+	}
+
+	function rgxf($u){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$info = $data->rgxf($u);
+			$pagina = $this->load_template();
+			$html = $this->load_page('app/views/pages/xml/p.rgxf.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.rgxf.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;	
+		}	
+	}
+
+	function getDoc($doc){
+		$data= new cargaXML;
+		$exec=$data->getDoc($doc);
+		return $exec;
+	}
+
 }?>
 

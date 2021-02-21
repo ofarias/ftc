@@ -1348,4 +1348,28 @@ class cargaXML extends database {
 		return array("mensaje"=>'Se Actualizaron '.$res.' facturas.', "mensaje2"=>'Se actualizo el'.$p);
 	}
 
+	function gxf($a, $m, $i, $d){
+		$this->query = "SELECT * FROM XML_docs WHERE RFC != (SELECT E.RFC FROM FTC_EMPRESAS E WHERE E.ID = 1) and mes = $m and anio = $a";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function rgxf($u){
+		$this->query="SELECT * FROM XML_DOCS WHERE UUID = '$u'";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function getDoc($doc){
+		$this->query="SELECT tipo, DOCUMENTO, CAST(DESCRIPCION AS VARCHAR(2000)) AS DESCRIPCION, CLIENTE, FI, FF, USUARIO, PRESUPUESTO, VALOR FROM XML_GET_DOCS WHERE DESCRIPCION CONTAINING('$doc') or documento containing ('$doc') or tipo containing ('$doc')";
+		$rs=$this->QueryDevuelveAutocompletePro();
+		return @$rs;
+	}
+
 }
