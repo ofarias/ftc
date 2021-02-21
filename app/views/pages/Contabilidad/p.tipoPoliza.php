@@ -91,7 +91,21 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
     $(".acomodar").click(function(){
         alert('Acomodo de Folios de Polizas')
+        $.ajax({
+            url:'index.coi.php',
+            type:'post',
+            dataType:'json',
+            data:{ctrlFol:1},
+            success:function(data){
+                alert('Se han actualizado todos los folios')
+            },
+            error:function(){
+                alert('Favor de revisar en COI')
+            }
+        })
     })
+    
 </script>

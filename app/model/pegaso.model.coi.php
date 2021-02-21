@@ -2753,5 +2753,31 @@ class CoiDAO extends DataBaseCOI {
         }
         return $data2;
     }
+
+    function ctrlFol(){
+        $this->query="SELECT EJERCICIO FROM ADMPER group by Ejercicio";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        $tipos = $this->tipoPoliza();
+        foreach ($data as $k){
+            $eje = $k->EJERCICIO;
+            $e = substr($eje, 2);
+            foreach ($tipos as $t) {
+                $tipo = $t->TIPO;
+                for ($i=1; $i < 13 ; $i++) {
+                    $this->query="SELECT coalesce(MAX(NUM_POLIZ),0) as folio FROM polizas$e where tipo_poli = '$tipo' and periodo = $i";
+                    $result=$this->EjecutaQuerySimple();
+                    $row=ibase_fetch_object($result);
+                    $fol = $row->FOLIO;
+                    $campo = "FOLIO".str_pad($i,2,0, STR_PAD_LEFT);
+                    $this->query="UPDATE FOLIOS SET $campo = $fol where tippol = '$tipo' and ejercicio = $eje";
+                    $this->queryActualiza();
+                }
+            }
+        }
+        return array("Mensaje"=>'Listo');
+    }
 }      
 ?>

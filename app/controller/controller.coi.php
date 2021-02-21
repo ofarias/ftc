@@ -579,5 +579,13 @@ class controller_coi{
   			$this->view_page($pagina);		
 		}
 	}
+
+	function ctrlFol(){
+		if($_SESSION['user']){
+			$data_coi = new CoiDAO;
+			$exec = $data_coi->ctrlFol();
+			return $exec;
+		}
+	}
 }?>
 

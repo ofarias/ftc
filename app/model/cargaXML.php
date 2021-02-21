@@ -1350,6 +1350,7 @@ class cargaXML extends database {
 
 	function gxf($a, $m, $i, $d){
 		$this->query = "SELECT * FROM XML_docs WHERE RFC != (SELECT E.RFC FROM FTC_EMPRESAS E WHERE E.ID = 1) and mes = $m and anio = $a";
+		echo $this->query;
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
