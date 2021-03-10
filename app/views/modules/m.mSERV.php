@@ -20,7 +20,7 @@
                     </div>
                 </div>
                 </div>
-
+                <?php if($_SESSION['user']->LETRA_NUEVA != 'S'){?>
                 <div class="col-md-3">
                     <div class="panel panel-default">
                         <div class="panel-heading">
@@ -32,7 +32,6 @@
                     </div>
                 </div>
                 </div>
-                
                 <div class="col-md-3">
                     <div class="panel panel-default">
                         <div class="panel-heading">
@@ -44,6 +43,8 @@
                     </div>
                 </div>
                 </div>
+                <?php } ?>
+
                 <?php if($_SESSION['user']->USER_LOGIN == 'ofarias'){?>
                     <div class="col-md-3">
                         <div class="panel panel-default">
