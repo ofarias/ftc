@@ -8,7 +8,8 @@ class data_serv extends database {
 		function tickets($t){
 			$data= array();
 			$actual = date("d.m.Y");
-			$hoy = '';
+			$hoy = ''; $a='';
+			$usuario = $_SESSION['user']->NOMBRE;
 			if($t == 's'){
 				$hoy = date("d.m.Y", strtotime($actual."- 7 days"));
 			}elseif($t == 'q'){
@@ -20,7 +21,7 @@ class data_serv extends database {
 			}
 			$param = " FECHA between '$hoy' and current_date + 1";
 			if ($t == 'mc'){
-				$param = " extract(month from fecha) = ".date("m");
+				$param = " extract(month from fecha) = ".date("m")." and extract(year from fecha) = ".date("Y"). " ";
 			}elseif ($t == 'ma'){
 				$mes = date("n");
 				$anio = date("Y");
@@ -30,13 +31,17 @@ class data_serv extends database {
 					$param = "extract(month from fecha) = ".(date("m")-1).' and extract(year from fecha)='.$anio;
 				}
 			}
+			if($_SESSION['user']->POLIZA_TIPO != 'G' or $_SESSION['user']->POLIZA_TIPO == null){
+				$a = "and USUARIO_REGISTRA = '$usuario'";
+			} 
 			$this->query = "SELECT FS.*, CL.NOMBRE AS NOMBRE_CLIENTE, FU.NOMBRE||' '||FU.PATERNO AS NOMBRE_USUARIO_REP, 
 							FE.NOMBRE_AD AS DESC_EQUIPO, CASE FS.STATUS WHEN 1 THEN 'Abierto' WHEN 2 then 'Cerrado' when 3 then 'Modificado' end as Nom_status , (SELECT COUNT(*) FROM FTC_SERV_FILES WHERE ID_SERV = FS.ID) AS ARCHIVOS 
 							FROM FTC_SERVICIOS FS
 								LEFT JOIN CLIE01 CL ON CL.CLAVE_TRIM = FS.CLIENTE
 								LEFT JOIN FTC_SERV_USUARIOS FU ON FU.ID = FS.USUARIO
 								LEFT JOIN FTC_SERV_EQUIPOS FE ON FE.ID = FS.EQUIPO
-							WHERE $param";
+							WHERE $param $a";
+			//echo $this->query;
 			$res=$this->EjecutaQuerySimple();
 			while ($tsArray = ibase_fetch_object($res)) {
 				$data[]=$tsArray;
