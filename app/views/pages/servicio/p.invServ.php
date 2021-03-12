@@ -5,7 +5,6 @@
         $nom=$c->NOMBRE;
     }
 }?>
-<?php echo $file?>
 <a href="index.serv.php?action=altaEquipo" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;" class="btn btn-success">Alta de Equipos</a>
 <br/>
 <br/>
@@ -142,8 +141,7 @@
 <script type="text/javascript">
 
     var cl = <?php echo "'".$clie."'"?>;
-    var fl = <?php echo "'".$file."'"?>;
-
+    
     $(".filtro").click(function(){
         var emp = $(".empresas").val()
         window.open("index.serv.php?action=invServ&clie="+emp+"&t=f" , "_self" )
@@ -156,7 +154,7 @@
             url:'index.serv.php',
             data:"action=invServ&clie="+emp+"&t=x",
             success:function(data){
-                window.open("..//media/reportes/Reporte de Inventario de equipos 12-03-2021 T110358.xlsx", "download")
+                window.open("..//media//reportes//inventarios", "download")
             }
         })
         //window.open("index.serv.php?action=invServ&clie="+emp+"&t=x", "download")

@@ -540,7 +540,7 @@ class ctrl_serv{
 	            //$xls->createSheet();
 	        /// Crear una nueva hoja llamada Mis Datos
 	        /// Descargar
-	            if(!file_exists($ruta='C:\\xampp\\htdocs\\media\\reportes\\')){
+	            if(!file_exists($ruta='C:\\xampp\\htdocs\\media\\reportes\\inventarios\\')){
 	            	mkdir($ruta);
 				}
 	            $nom='Reporte de Inventario de equipos '.date("d-m-Y \Thms").'.xlsx';
