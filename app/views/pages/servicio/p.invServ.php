@@ -1,7 +1,25 @@
-<meta http-equiv="Refresh" content="240">
+<!--<meta http-equiv="Refresh" content="240">-->
 <br/>
-
+<?php $nmc=''; foreach ($cli as $c){
+    if($c->CLAVE_TRIM == $clie){
+        $nom=$c->NOMBRE;
+    }
+}?>
+<?php echo $file?>
 <a href="index.serv.php?action=altaEquipo" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;" class="btn btn-success">Alta de Equipos</a>
+<br/>
+<br/>
+<SELECT name="cliente" class="empresas">
+    <?php if($clie== ''){?>
+        <option>Seleccione una empresa</option>
+    <?php }else{?>
+        <option value="<?php echo $clie?>"><?php echo $nom?></option>
+    <?php }?>
+    <?php foreach($cli as $cl):?>
+        <option value="<?php echo $cl->CLAVE_TRIM?>"><?php echo $cl->NOMBRE?></option>
+    <?php endforeach;?>
+</SELECT>
+<input type="button" name="f" value="Filtrar" class="btn-sm btn-info filtro"> &nbsp;&nbsp;&nbsp; <input type="button" name="xls" value="XLS" class="btn-sm btn-success xls">
 	<br/><br/>
     	<div class="row">
                 <div class="col-lg-12">
@@ -14,6 +32,7 @@
                                 <table class="table table-striped table-bordered table-hover" id="dataTables-example">
                                     <thead>
                                         <tr>
+                                            <th>Ln</th>
                                             <th>Id</th>
                                             <th>Cliente</th>
 											<th>Usuario</th>
@@ -35,10 +54,11 @@
                                         </tr>
                                     </thead>                                   
                                   <tbody>
-                                    	<?php
+                                    	<?php $i=0;
                                     	foreach ($eq as $data): 
                                             $tipo_hdd = '';
                                             $tipo_memoria = '';
+                                            $i++;
                                             switch ($data->TIPO_HDD) {
                                                 case 'm_sata':
                                                     $tipo_hdd = 'HDD (Mecanico interfaz SATA)';
@@ -59,7 +79,6 @@
                                                     $tipo_hdd = 'HDD (Mecanico interfaz IDE)';
                                                     break;
                                                 default:
-                                                    # code...
                                                     break;
                                             }
 
@@ -85,6 +104,7 @@
                                             }
                                         ?>                 
                                         <tr>
+                                            <td><?php echo $i ?></td>
                                             <td><?php echo $data->ID?></td>
                                             <td><?php echo $data->NOMBRE_CLIENTE ?></td>
                                             <td><?php echo $data->NOMBRE_USUARIO ?></td>
@@ -114,3 +134,31 @@
 			</div>
 		</div>
 </div>
+<script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="http://bootboxjs.com/bootbox.js"></script>
+<script type="text/javascript">
+
+    var cl = <?php echo "'".$clie."'"?>;
+    var fl = <?php echo "'".$file."'"?>;
+
+    $(".filtro").click(function(){
+        var emp = $(".empresas").val()
+        window.open("index.serv.php?action=invServ&clie="+emp+"&t=f" , "_self" )
+    })
+
+    $(".xls").click(function(){
+        var emp = $(".empresas").val()
+        $.ajax({
+            type:'get',
+            url:'index.serv.php',
+            data:"action=invServ&clie="+emp+"&t=x",
+            success:function(data){
+                window.open("..//media/reportes/Reporte de Inventario de equipos 12-03-2021 T110358.xlsx", "download")
+            }
+        })
+        //window.open("index.serv.php?action=invServ&clie="+emp+"&t=x", "download")
+    })
+</script>

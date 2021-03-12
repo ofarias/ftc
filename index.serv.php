@@ -65,7 +65,9 @@ else{
 		$controller->altaUsuario($clie);
 		break;
 	case 'invServ':
-		$controller->invServ();
+		$clie = isset($_GET['clie'])? $_GET['clie']:'';
+		$t = isset($_GET['clie'])? $_GET['t']:'f';
+		$controller->invServ($clie, $t);
 		break;
 	case 'altaEquipo':
 		$clie= isset($_GET['cliente'])? $_GET['cliente']:'';

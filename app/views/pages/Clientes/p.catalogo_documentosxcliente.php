@@ -14,7 +14,7 @@
                     <table class="table table-striped table-bordered table-hover" id="dataTables-table-3">
                         <thead>
                             <tr>
-                                <th>Clave</th>
+                                <th>Clave<br/>Serv</th>
                                 <th>Cliente<br/> Correo facturas</th>
                                 <th>Pertenece a:</th>
                                 <th>Requisitos asociados</th>
@@ -36,7 +36,7 @@
                         <tbody>
                             <?php foreach($exec as $row): ?>
                             <tr>
-                                <td><?php echo $row->CLAVE;?></td>
+                                <td><?php echo $row->CLAVE;?><br/><input type="checkbox" name="serv" checked="checked" class="servicio"></td>
                                 <td title="De click para ver las facturas del cliente"><a href="index.cobranza.php?action=edoCliente&cliente=<?php echo $row->CLAVE?>&tipo=c&nombre=<?php echo $row->NOMBRE?>&maestro=<?php echo $row->CVE_MAESTRO?>" target='popup' onclick='window.open(this.href, this.target, "width=1200, height=800"); return false;'><?php echo $row->NOMBRE;?></a><br/> <input class="correo" type="email" placeholder="Correo para envio de documentos" value="<?php echo $row->EMAILPRED?>"  multiple size="60" cl="<?php echo $row->CLAVE ?>"></td>
                                 <td><?php echo $row->MAESTRO;?></td>
                                 <td><?php echo $row->DOCUMENTOS_ASOCIADOS;?></td>
@@ -199,5 +199,10 @@
             }
         });
     }
+
+    $(".servicio").change(function(){
+        /// obtener el nuevo status y mandar la funcion correcta.
+        alert('Cambio')
+    })
 
 </script>

@@ -139,13 +139,16 @@ class ctrl_serv{
 		}	
 	}
 
-	function invServ(){
+	function invServ($clie, $t){
 		if($_SESSION['user']){
 			$data = new data_serv;
 			$pagina =$this->load_template('Tickets');
 			$html=$this->load_page('app/views/pages/servicio/p.invServ.php');
-			$clie = '';
-			$eq = $data->traeEquipos($clie);
+			$cli=$data->traeClientes();
+			$eq=$data->traeEquipos($clie);
+			if($t == 'x'){
+				$xls=$this->generaXLS($clie, $t, $c, $eq, $cli);
+			}
 			ob_start();
    			include 'app/views/pages/servicio/p.invServ.php';
    			$table = ob_get_clean();
@@ -351,6 +354,207 @@ class ctrl_serv{
 			$a=$this->generaReporteExcel($info['principal'], $info['primero'], $info['segundo'], $info['per'],$info['tip']);
 			return $a;
 		}
+	}
+
+	function generaXLS($clie, $t, $c, $data, $data1){
+		$xls = new PHPExcel();
+		$usuario = $_SESSION['user']->NOMBRE; 
+		$fecha = date('d-m-Y h:i:s');
+		$ln = 10;
+
+			//$xls->getActiveSheet()
+	        //    ->setCellValue('A9','Atiende')
+	        //    ->setCellValue('B9','No de Servicios')
+	        //;
+
+	        //foreach ($principal as $key) {
+	        //    $rel = '';
+	        //    $xls->setActiveSheetIndex()
+	        //        ->setCellValue('A'.$ln,$key->ATIENDE)
+	        //        ->setCellValue('B'.$ln,$key->SERVICIOS)
+	        //    ;
+	        //    $ln++;
+	        //}
+	        $ln++;
+	        //$xls->getActiveSheet()
+	        //    ->setCellValue('A'.$ln,'Atiende')
+	        //    ->setCellValue('B'.$ln,'Cliente')
+	        //    ->setCellValue('C'.$ln,'Servicios')
+	        //;
+	        /*
+	        $a='';
+	        foreach ($primero as $pr) {
+	        	$ln++;  		
+	        		$b=$pr->ATIENDE; 
+	        		if($a != $b){
+			       		$xls->setActiveSheetIndex()
+		        			->setCellValue('A'.$ln, $pr->ATIENDE)
+		        		;
+	        		}
+	        		$xls->setActiveSheetIndex()
+	        			->setCellValue('B'.$ln, $pr->NOMBRE_CLIENTE)
+	        			->setCellValue('C'.$ln, $pr->SERVICIOS)
+	        		;
+	        		$a = $pr->ATIENDE;
+	        }
+			*/
+	        $ln++;
+	        for ($i=0; $i < 19; $i++) { 
+	        	$Col= 'A';
+	        	$xls->getActiveSheet()
+		        	->setCellValue($Col++.$ln,'Ln')
+		        	->setCellValue($Col++.$ln,'Id')
+		        	->setCellValue($Col++.$ln,'Cliente')
+		        	->setCellValue($Col++.$ln,'Usuario')
+		        	->setCellValue($Col++.$ln,'Tipo')
+		        	->setCellValue($Col++.$ln,'Marca')
+		        	->setCellValue($Col++.$ln,'Modelo')
+		        	->setCellValue($Col++.$ln,'Sistema Operativo')
+		        	->setCellValue($Col++.$ln,'HDD')
+		        	->setCellValue($Col++.$ln,'Tipo de HDD')
+		        	->setCellValue($Col++.$ln,'Memoria')
+		        	->setCellValue($Col++.$ln,'Numero de Serie')
+		        	->setCellValue($Col++.$ln,'Teamviewer')
+		        	->setCellValue($Col++.$ln,'Año')
+		        	->setCellValue($Col++.$ln,'Fecha Modelo')
+		        	->setCellValue($Col++.$ln,'Observaciones')
+		        	->setCellValue($Col++.$ln,'Cuenta Correo')
+		        	->setCellValue($Col++.$ln,'Licencias')
+		        	->setCellValue($Col++.$ln,'Adicionales')
+		        ;
+	        }
+	        
+	        foreach ($data as $d) {
+	        	$Col= 'A';
+	        	$ln++;
+	        	$xls->getActiveSheet()
+	        		->setCellValue($Col++.$ln, $ln)
+	        		->setCellValue($Col++.$ln, $d->ID)
+	        		->setCellValue($Col++.$ln, $d->NOMBRE_CLIENTE)
+	        		->setCellValue($Col++.$ln, $d->NOMBRE_USUARIO)
+	        		->setCellValue($Col++.$ln, $d->TIPO)
+	        		->setCellValue($Col++.$ln, $d->NOMBRE_MARCA)
+	        		->setCellValue($Col++.$ln, $d->MODELO)
+	        		->setCellValue($Col++.$ln, $d->NOMBRE_SO)
+	        		->setCellValue($Col++.$ln, $d->HDD_CAPACIDAD)
+	        		->setCellValue($Col++.$ln, $d->TIPO_HDD)
+	        		->setCellValue($Col++.$ln, $d->MEMORIA_C_I)
+	        		->setCellValue($Col++.$ln, $d->NS)
+	        		->setCellValue($Col++.$ln, $d->TEAMVIEWER)
+	        		->setCellValue($Col++.$ln, $d->ANIO)
+	        		->setCellValue($Col++.$ln, $d->FECHA_MODELO)
+	        		->setCellValue($Col++.$ln, $d->OBSERVACIONES)
+	        		->setCellValue($Col++.$ln, $d->CUENTA_CORREO)
+	        	;
+	        }
+	        $ln++;
+	        $xls->setActiveSheetIndex()
+	                ->setCellValue('A'.$ln,'-----');
+	                //->setCellValue('B'.$ln,'')
+	                //->setCellValue('C'.$ln,'$ '.number_format($key->SALDOFINAL-$key->IMP_TOT4,2))
+	                //->setCellValue('D'.$ln,'$ '.number_format($key->IMP_TOT4,2))
+	                //->setCellValue('E'.$ln,'$ '.number_format($key->IMPORTE,2))
+	                //->setCellValue('F'.$ln,'$ '.number_format($key->SALDO,2))
+	                //->setCellValue('G'.$ln,$key->FECHA_INI_COB)
+	                //->setCellValue('H'.$ln,$key->CVE_PEDI)
+	                //->setCellValue('I'.$ln,$key->OC);
+	        /// 
+	        //    $xls->getActiveSheet()
+	        //        ->setCellValue('A1',$df->RAZON_SOCIAL);
+	        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+
+	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(35);
+	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(35);
+	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth(25);
+	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(25);
+	        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(18);
+	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(35);
+	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(50);
+	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(30);
+	        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(50);
+
+	        // Hacer las cabeceras de las lineas;
+	        //->setCellValue('9','')
+	       
+	        //$nom_mes = $this->nombreMes($mes);
+
+	        $xls->getActiveSheet()
+	            ->setCellValue('A3','Inventario de Equipos ')
+	            ->setCellValue('A4','Fecha de Emision del Reporte: '.date('d-m-Y H:i:s'))
+	            ->setCellValue('A5','Total de Equipos: '.count($data))
+	            //->setCellValue('A6','Importe Total de los Documentos: ')
+	            ->setCellValue('A6','Usuario Elabora: '.$usuario)
+	            ->setCellValue('A7','Reporte de Inventario por Empresa')
+	            ;
+	        $xls->getActiveSheet()
+	            ->setCellValue('D3','')
+	            ->setCellValue('D4','')
+	            ->setCellValue('D5','')
+	            ->setCellValue('D6','')
+	            ->setCellValue('D7','')
+	            ->setCellValue('D8','')
+	            ;
+	        /// Unir celdas
+	        //$xls->getActiveSheet()->mergeCells('A1:O1');
+	        // Alineando
+	        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+	        /// Estilando
+	        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>20,
+	                )
+	            )
+	        );
+	        $xls->getActiveSheet()->getStyle('I10:I102')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+	        $xls->getActiveSheet()->mergeCells('A3:F3');
+	        $xls->getActiveSheet()->getStyle('D3')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>15,
+	                )
+	            )
+	        );
+
+	        $xls->getActiveSheet()->getStyle('A3:D3')->applyFromArray(
+	            array(
+	                'font'=> array(
+	                    'bold'=>true
+	                ),
+	                'borders'=>array(
+	                    'allborders'=>array(
+	                        'style'=>PHPExcel_Style_Border::BORDER_THIN
+	                    )
+	                )
+	            )
+	        );
+	        //// Crear una nueva hoja 
+	            //$xls->createSheet();
+	        /// Crear una nueva hoja llamada Mis Datos
+	        /// Descargar
+	            if(!file_exists($ruta='C:\\xampp\\htdocs\\media\\reportes\\')){
+	            	mkdir($ruta);
+				}
+	            $nom='Reporte de Inventario de equipos '.date("d-m-Y \Thms").'.xlsx';
+	            //header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+	            //header("Content-Disposition: attachment;filename=01simple.xlsx");
+	            //header('Cache-Control: max-age=0');
+	        /// escribimos el resultado en el archivo;
+	            $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+	        /// salida a descargar
+	            $x->save($ruta.$nom);
+	            ob_end_clean();
+	           // $x->save('php://output');
+	        /// salida a ruta :
+	            return array("status"=>'ok', "archivo"=>$nom);
 	}
 
 	function generaReporteExcel($principal, $primero, $segundo, $per, $tip){
