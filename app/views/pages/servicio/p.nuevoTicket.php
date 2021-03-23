@@ -80,6 +80,7 @@
                             </div>
                     </div>
                     
+
                     <div class="form-group">
                         <label for="requerido" class="col-lg-2 control-label">Fecha de Reporte: </label>
                             <div class="col-lg-8">
@@ -94,10 +95,28 @@
                                 <br/><label class="comentario">Fecha en la que se reporto en problema o incidente.</label>
                             </div>
                     </div>
+
+                    <div class="form-group">
+                        <label for="requerido" class="col-lg-2 control-label">Fecha y Hora de Inicio: </label>
+                            <div class="col-lg-8">
+                                Fecha de atención: 
+                                <input type="date" name="fatencion" value=""> 
+                                Hora Inicio:
+                                <input type="time" name="hinicial" value=""> 
+                                &nbsp;&nbsp;&nbsp;
+                                Hora Final:  
+                                <input type="time" name="hfinal" value="">
+                                &nbsp;&nbsp;&nbsp;
+                                Duración: 
+                                <input type="time" name="duracion" value="">
+                                <br/><label class="comentario">Hora en la que se atendio el incidente o tarea.</label>
+                            </div>
+                    </div>
+
                     <div class="form-group">
                         <label for="copias" class="col-lg-2 control-label">Tipo: </label>
                             <div class="col-lg-8">
-                                <select name="tipo" required>
+                                <select name="tipo" required class="osrv">
                                     <option value="">Seleccione el tipo de servicio</option>
                                     <option value="0">NO APLICA </option>
                                     <?php foreach ($tp as $tip): ?>
@@ -105,14 +124,14 @@
                                         <?php echo $tip->NOMBRE_TIPO?> 
                                         </option>    
                                     <?php endforeach ?>
-                                </select>    
-                                
+                                    <option value="otro">Otro</option>
+                                </select> <input type="text" size="50" name="otro_serv" id="oserv" class="hidden" placeholder="Describa">
                             </div>
                     </div>
                     <div class="form-group">
                         <label for="copias" class="col-lg-2 control-label">Sistema: </label>
                             <div class="col-lg-8">
-                                <select name="sistema" required>
+                                <select name="sistema" required class="osis">
                                     <option value="">Seleccione un sistema</option>
                                     <option value="0">NO APLICA </option>
                                     <?php foreach ($so as $sis): ?>
@@ -120,7 +139,8 @@
                                         <?php echo $sis->NOMBRE_COMERCIAL?> 
                                         </option>    
                                     <?php endforeach ?>
-                                </select>    
+                                    <option value="otro">Otro</option>
+                                </select> <input type="text" size="50" name="otro_sis" id="o_sis" class="hidden" placeholder="Especifique">
                                 <br/><label class="comentario">Seleecione No Aplica en el caso de algundispositivo de red o que notenga un sistema operativo</label>
                             </div>
                     </div>
@@ -177,6 +197,32 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+    
+    $(".osrv").change(function(){
+        var val = $(this).val()
+        var osrv=document.getElementById("oserv")
+        if(val == 'otro'){
+            alert("Se activo otro")
+            osrv.classList.remove("hidden")
+            $("#oserv").prop("required", true);
+        }else{
+            osrv.classList.add("hidden")
+            $("#oserv").prop("required", false);
+        }
+    })
+
+    $(".osis").change(function(){
+        var val = $(this ).val()
+        var osis=document.getElementById("o_sis")
+        if(val == 'otro'){
+            alert("Especifique Sistema")
+            $("#o_sis").prop("required", true);
+            osis.classList.remove("hidden")
+        }else{
+            $("#o_sis").prop("required", false);
+            osis.classList.add("hidden")
+        }
+    })
     
     $("#t").change(function(){
         var cl = $(this).val()
