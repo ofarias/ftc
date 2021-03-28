@@ -1504,9 +1504,9 @@ class CoiDAO extends DataBaseCOI {
                         $this->EjecutaQuerySimple();   
                     }   
                 }
+        $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo, $partAux);
         }
 
-        $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo);
         #### Revisa Cuadre de la poliza ####
         $this->revisaCuadre($pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol);
         return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Dr'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
