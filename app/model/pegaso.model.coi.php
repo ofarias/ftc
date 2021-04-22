@@ -1537,7 +1537,7 @@ class CoiDAO extends DataBaseCOI {
                     $r=$this->grabaBD();
                     }
                 //}
-                if($r == 1 ){
+                if(@$r == 1 ){
                     $this->query="UPDATE CONTROL SET CTUUIDCOMP = CTUUIDCOMP + 1";
                     $this->queryActualiza();
                     $this->query="UPDATE AUXILIAR$eje a set a.IDUUID = (SELECT CTUUIDCOMP FROM CONTROL) where a.NUM_POLIZ='$folio' and a.periodo = $periodo and a.ejercicio = $ejercicio and a.NUM_PART = $a->NUM_PART";
@@ -1980,7 +1980,9 @@ class CoiDAO extends DataBaseCOI {
         $periodo= $mes;
         $ejercicio=$anio;
         $eje=substr($ejercicio,2);
-        $fecha='30'.'.'.$mes.'.'.$anio; 
+        $lday= date("d", mktime(0,0,0, $mes+1,0,$anio));
+        $fecha=$lday.'.'.$mes.'.'.$anio; 
+        
         $proveedor=$z;
         //echo 'Periodo '.$periodo.' Ejercicio: '.$ejercicio.' Eje '.$eje. ' tipo: '.$tipo;
         //$saldo = $cb->SALDO;
