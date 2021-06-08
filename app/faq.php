@@ -7,7 +7,6 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 
-
 Crear una lista desplegable.
 
  <li class="dropdown">
@@ -935,3 +934,35 @@ function formatCurrency(input, blur) {
 
 setTimeout(alert("4 seconds"),4000)
 ////
+
+
+//// implementacion del Dialog
+En HTML:
+
+<div id="dialog" title="Dialogo básico">
+<p>Diálogo básico modal con botón de cerrado. Puede ser movido y redimensionado.</p>
+    Nombre:<input type="text" id="el_nombre" value="" class="chgProd" />
+</div>
+<button id="abrir">Abrir diálogo</button>
+
+
+En JS: 
+<script type="text/javascript">
+$(function () {
+        $("#dialog").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    buttons: {
+                        "Cerrar": function () {
+                                $(this).dialog("close");
+                        }
+                    } 
+        });
+        $("#abrir").button().click(function () {
+            $("#dialog").dialog("option", "width", 600);
+            $("#dialog").dialog("option", "height", 300);
+            $("#dialog").dialog("option", "resizable", false);
+            $("#dialog").dialog("open");
+        });
+    });
+</script>
