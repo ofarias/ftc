@@ -1550,7 +1550,34 @@ class CoiDAO extends DataBaseCOI {
 
     function revisaCuadre($pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x, $tbPol){
         if($x=='I'){
-            $this->query="UPDATE $tbPol P SET  P.NUMPARCUA = 1 WHERE (select SUM(CASE WHEN A.DEBE_HABER = 'H' THEN A.MONTOMOV ELSE 0 END) - SUM(CASE WHEN A.DEBE_HABER = 'D' THEN A.MONTOMOV ELSE 0 END) FROM $tbAux A WHERE A.NUM_POLIZ = P.NUM_POLIZ AND A.PERIODO = P.PERIODO AND A.ejercicio = P.EJERCICIO AND A.tipo_poli = P.tipo_poli)  <> 0  
+            $this->query="SELECT SUM(CASE WHEN A.DEBE_HABER = 'H' THEN A.MONTOMOV ELSE 0 END) as H, SUM(CASE WHEN A.DEBE_HABER = 'D' THEN A.MONTOMOV ELSE 0 END) as D, count(num_part) as partidas FROM $tbAux A where 
+                A.TIPO_POLI = '$tipo'
+                and A.NUM_POLIZ = '$folio'
+                and A.EJERCICIO = $ejercicio
+                and A.periodo = $periodo";
+            $res=$this->EjecutaQuerySimple();
+            $row=ibase_fetch_object($res);
+            $h=$row->H;$d=$row->D;$part=$row->PARTIDAS-1;
+            $dif=$h-$d;
+            if($dif > 0 and $dif <= 0.009){/// marcamos un limite de cienmilesimos.
+                if($h>$d){ ///// el haber es mayor que el debe.
+                    $this->query="UPDATE $tbAux A SET MONTOMOV = MONTOMOV-$dif where 
+                    A.TIPO_POLI = '$tipo'
+                and A.NUM_POLIZ = '$folio'
+                and A.EJERCICIO = $ejercicio
+                and A.periodo = $periodo 
+                and A.num_part = $part";
+                }else{ /// el debe es mayor, siempre se afecta a la ultima cuenta, aveces.
+                    $this->query="UPDATE $tbAux A SET MONTOMOV = MONTOMOV+$dif where 
+                    A.TIPO_POLI = '$tipo'
+                and A.NUM_POLIZ = '$folio'
+                and A.EJERCICIO = $ejercicio
+                and A.periodo = $periodo 
+                and A.num_part = $part";
+                }
+
+            }
+            $this->query="UPDATE $tbPol P SET  P.NUMPARCUA = 1 WHERE (select SUM(CASE WHEN A.DEBE_HABER = 'H' THEN A.MONTOMOV ELSE 0 END) - SUM(CASE WHEN A.DEBE_HABER = 'D' THEN A.MONTOMOV ELSE 0 END) FROM $tbAux A WHERE A.NUM_POLIZ = P.NUM_POLIZ AND A.PERIODO = P.PERIODO AND A.ejercicio = P.EJERCICIO AND A.tipo_poli = P.tipo_poli)  > 0.0009  
                 and P.TIPO_POLI = '$tipo'
                 and P.NUM_POLIZ = '$folio'
                 and P.EJERCICIO = $ejercicio

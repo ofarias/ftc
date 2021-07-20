@@ -536,11 +536,8 @@
 
     function grabaParam(ide){
         var part=document.getElementById("partidas").value;
-        //alert('Total de Partidas' + part);
         var partidas = '';
         for (var i = part; i >= 1; i--) {
-            //alert('Partida: '+ i);
-            //var valPar = document.getElementById("cP_"+i).value;
             var valPar = ''
             Par = document.getElementById("cPP_"+i).getAttribute('valor');
             x = document.getElementById("cPP_"+i).getAttribute('x')
@@ -554,7 +551,6 @@
                 var t = cuentaNueva.split(":")
                 cuenta = t[7]
                 valPar = x+cuenta+rfc
-                //alert('entro al cambio')
             }else if(Par != ''){
                 valPar = Par
             }
@@ -567,7 +563,6 @@
             }
         }
         partidas = partidas.substring(3);
-        //alert(partidas)
         var cclie = document.getElementById("cClie").value;
         if(cclie == ''){
             alert ('El proveedor debe de tener un valor en el catalogo de cuentas, favor de revisar la informacion.');
@@ -592,16 +587,16 @@
     }
 
     function impFact(factura){
-            $.ajax({
-                url:'index.php',
-                type:'post',
-                dataType:'json',
-                data:{imprimeFact:1, factura:factura},
-                success:function(data){
-                }
-            })
-        return;     
-        }
+        $.ajax({
+            url:'index.php',
+            type:'post',
+            dataType:'json',
+            data:{imprimeFact:1, factura:factura},
+            success:function(data){
+            }
+        })
+    return;     
+    }
 
     function crearPolizas(ide){
         var ent= document.getElementById('uuid');

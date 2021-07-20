@@ -92,17 +92,11 @@ class controller_coi{
 		$data_coi = new CoiDAO;
 		$data = new pegaso;
 		if($_SESSION['user']){
-			//$pagina =$this->load_template2('Pedidos');
 			$crea=$data_coi->creaParam($cliente, $partidas);
 			if($crea['status'] == 'ok'){
 				$actualiza = $data->actualizaCuentaCliente($cliente, $partidas, $ide);	
 			}
- 			//$html=$this->load_page('app/views/modules/Logistica/m.IndexRec.php');
-   			ob_start();
-   			//include 'app/views/modules/Logistica/m.IndexRec.php';
-   			//$table = ob_get_clean();
-   			//$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
-   			//$this->view_page($pagina);
+ 			//ob_start();
    			return $crea;
 		}
 	}

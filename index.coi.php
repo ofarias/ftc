@@ -21,12 +21,9 @@ if (isset($_POST['usuario'])){
 }elseif (isset($_POST['creaParam'])){
 	$cliente=$_POST['cliente'];
 	$partidas = $_POST['partidas'];
-	$response=$controller_coi->creaParam($cliente, $partidas, $_POST['ide']);
-	echo json_encode($response);
-	exit();
+	$response=$controller_coi->creaParam($cliente, $partidas, $_POST['ide']); echo json_encode($response);exit();
 }elseif(isset($_POST['creaPoliza'])){
-	$tipo = $_POST['creaPoliza'];
-	$uuid = $_POST['uuid'];
+	$tipo = $_POST['creaPoliza'];$uuid = $_POST['uuid'];
 	$response = $controller_coi->creaPoliza($tipo, $uuid, $_POST['ide']);
 	echo json_encode($response);
 	exit();

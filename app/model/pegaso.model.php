@@ -25417,7 +25417,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	//print_r($cliente);
     	//die();
     	if($ide == 'Emitidos'){
-			$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfcr' and tipo = 'Cliente'";
+				$this->query="UPDATE XML_CLIENTES SET CUENTA_CONTABLE ='$cc' where rfc = '$rfcr' and tipo = 'Cliente'";
 	    	$this->queryActualiza();
 	    	foreach ($partidas as $key){
 	    		$key=explode(":", $key);
@@ -25449,9 +25449,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    				and xp.UNIDAD_SAT = '$uni_sat'
 	    		and 
 	    		( 
-	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'P' 
+	    			(select x.status from xml_data x where x.uuid = '$uuid') = 'P' 
 	    		or  
-	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
+	    			(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
+	    		or 
+	    			(select coalesce(count(*),0) from XML_POLIZAS xp where xp.uuid = '$uuid' and Status = 'A' and Tipo = 'Dr') = 0
 	    		)
 	    		";
 	    		$this->queryActualiza();
