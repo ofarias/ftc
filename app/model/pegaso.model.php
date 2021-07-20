@@ -25427,9 +25427,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$ccp = $key[3];
 	    		$this->query="UPDATE XML_PARTIDAS SET CUENTA_CONTABLE = '$ccp' where rfc = '$rfcr' and  CLAVE_SAT = '$cve_sat' and UNIDAD_SAT = '$uni_sat' and 
 	    		( 
-	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'P' 
-	    		or  
-	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
+	    			(select x.status from xml_data x where x.uuid = '$uuid') = 'P' 
+	    			or  
+	    			(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
+	    			or 
+	    			(select coalesce(count(*),0) from XML_POLIZAS xp where xp.uuid = '$uuid' and Status = 'A' and Tipo = 'Dr') = 0
 	    		)";
 	    		///and PARTIDA = $par
 	    		$this->queryActualiza();
@@ -25469,10 +25471,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    				and xp.UNIDAD_SAT = '$uni_sat'
 	    		and 
 	    		( 
-	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'P' 
-	    		or  
-	    		(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
-	    		) and xp.partida = $par and xp.uuid = '$uuid'
+	    			(select x.status from xml_data x where x.uuid = '$uuid') = 'P' 
+	    			or  
+	    			(select x.status from xml_data x where x.uuid = '$uuid') = 'S'
+	    			or 
+	    			(select coalesce(count(*),0) from XML_POLIZAS xp where xp.uuid = '$uuid' and Status = 'A' and Tipo = 'Dr') = 0
+	    		)
+	    		 and xp.partida = $par and xp.uuid = '$uuid'
 	    		";
 	    		$this->queryActualiza();
 	      	}
