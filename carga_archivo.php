@@ -17,7 +17,7 @@ $obs = isset($_POST['obs'])? $_POST['obs']:'';
 $emp = isset($_POST['emp'])? $_POST['emp']:0;
 $tipo_Doc = isset($_POST['tipoArchivo'])? $_POST['tipoArchivo']:'';
 
-if ($_FILES["fileToUpload"]["size"] > ((1024*1024)*20)) {
+if ($_FILES["fileToUpload"]["size"] > ((1024*1024)*50)) {
     echo "El archivo dede medir menos de 20 MB.";
     $uploadOk = 0;
 }else{
