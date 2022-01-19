@@ -98,11 +98,10 @@ class statics_c{
 		}
 	}
 
-	function verPro($id){
+	function verProy($id){
 		if($_SESSION['user']){
 			$data = new statics;
 			$crea = $data->traePro($id);
-			
 			$pagina =$this->load_template('Ver presupuesto');
 			$html=$this->load_page('app/views/pages/gastos/p.proyeccionMensual.php');
 	   		ob_start();

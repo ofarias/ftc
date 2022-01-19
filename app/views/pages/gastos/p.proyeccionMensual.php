@@ -44,7 +44,7 @@
                                 <td align="center"><?php echo $row->MES;?></td>
                                 <td align="center"><?php echo $row->EJERCICIO;?></td>
                                 <td align="right"><?php echo '$ '.number_format($row->MONTO_INI_V,2);?></td>
-                                <td align="right"><?php echo '$ '.number_format($row->MONTO_INI_G,2);?></td>
+                                <td align="right"><?php echo '$ '.number_format($row->MONTO_FIN_V,2);?></td>
                                 <td align="right"><?php echo '$ '.number_format($utilidad,2)?></td>
                                 <td align="right"><?php echo '$ '.number_format($row->MONTO_FIN_V,2);?></td>
                                 <td align="right"><?php echo '$ '.number_format($row->MONTO_FIN_G,2);?></td>
@@ -84,7 +84,7 @@
     </div>
 </div>
 <br/><br/>
-<div class="row <?php echo $id>0? '':'hidden'?>" >
+<div class="detalle row <?php echo $id>0? '':'hidden'?>" >
     <div class="col-lg-12">
         <div class="panel panel-default">
             <div class="panel-heading">

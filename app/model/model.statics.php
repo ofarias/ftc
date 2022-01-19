@@ -289,7 +289,6 @@ class statics extends database {
       if($id > 0){
         $a = ' where id = '.$id;
       }
-
       $this->query="SELECT fp.*, case (fp.STATUS) WHEN 'N' THEN 'Nuevo' when 'A' then 'Activo' when 'F' then 'Finalizado' when 'U' then 'Auditado' when 'C' then 'Cancelado' else 'Nuevo' end as Estado ,
                       (select first 1 p.nombre from PERIODOS_2016 p where p.numero = fp.periodo) as mes 
                      FROM FTC_PROYECCION fp ";

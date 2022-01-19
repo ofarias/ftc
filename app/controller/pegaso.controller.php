@@ -20811,6 +20811,7 @@ function ImpSolicitud2($idsol){
     	}
     }
 
+
     function verCargas($b, $c){
     	if($_SESSION['user']){
     		$data = new pegaso;

@@ -28714,8 +28714,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
     function creaProy($mes, $anio, $tipo){
     	$x=''; $data=array();
-    	if($mes == '' or $anio == ''){
-    		$mes = date('m'); $anio = date('Y');$usuario=$_SESSION['user']->NOMBRE;
+    	$usuario=$_SESSION['user']->NOMBRE;
+		if($mes == '' or $anio == ''){
+    		$mes = date('m'); $anio = date('Y');
     	}
     	if($tipo != ''){
     		$x = " where id in (".$tipo."";

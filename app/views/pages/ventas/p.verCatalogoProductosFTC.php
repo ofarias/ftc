@@ -31,7 +31,8 @@
                                             <th>Empaque</th>
                                             <th>Clave Fabricante</th>
                                             <th>STATUS</th>
-                                            <th>Seleccionar</th>
+                                            <th>Tipo</th>
+                                            <th>Editar</th>
                                             <th>Datos Fiscales</th>
                                             <?php if($user=='gcompras'){?>
                                                 <th>Dar de Baja</th>
@@ -78,6 +79,10 @@
                                             <td><?php echo $data->EMPAQUE?></td>
                                             <td><?php echo $data->SKU?></td>
                                             <td><?php echo $status?></td>
+                                            <td><?php echo empty($data->TIPO)? 'No Definido':$data->TIPO?>
+                                
+                                            </td>
+
                                             <td><input type="button" class="btn btn-info editar" valor="<?php echo $data->ID?>" value="Editar"> </td>
                                             <td>
                                                 <input type="text" name="cvesat" maxlength="20" placeholder="<?php echo empty($data->CVE_PRODSERV)? 'CLAVE SAT':$data->CVE_PRODSERV;?>" value="<?php echo $data->CVE_PRODSERV;?>" class="cvesat1" prod="<?php echo $data->CLAVE_PEGASO?>" idp="<?php echo $data->ID?>" orig="<?php echo $data->CVE_PRODSERV?>" id="ln_<?php echo $data->ID?>" <?php echo empty($data->CVE_PRODSERV)? '':''?>> 
