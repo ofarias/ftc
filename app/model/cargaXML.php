@@ -116,6 +116,7 @@ class cargaXML extends database {
 
 	function insertarMetaDatos($archivo){
 		//echo $archivo;
+		$cancelados[]=array();
 		$usuario = $_SESSION['user']->NOMBRE;
 		$fp=fopen($archivo,'r');
 		$l=0;
@@ -149,6 +150,7 @@ class cargaXML extends database {
 						if(strlen($d[11]) > 2){
 							$this->query="UPDATE XML_DATA SET STATUS = 'C' WHERE UPPER(UUID) = UPPER('$d[0]')";
 							$r=$this->queryActualiza();
+							$cancelados[]=strtoupper($d[0]);
 							if($r==1){
 								$this->query="UPDATE FTC_META_DATOS SET PROCESADO = 1 WHERE UPPER(UUID) = UPPER('$d[0]') AND FECHA_CANCELACION IS NOT NULL";
 								$this->queryActualiza();
@@ -1371,6 +1373,16 @@ class cargaXML extends database {
 		$this->query="SELECT tipo, DOCUMENTO, CAST(DESCRIPCION AS VARCHAR(2000)) AS DESCRIPCION, CLIENTE, FI, FF, USUARIO, PRESUPUESTO, VALOR FROM XML_GET_DOCS WHERE DESCRIPCION CONTAINING('$doc') or documento containing ('$doc') or tipo containing ('$doc')";
 		$rs=$this->QueryDevuelveAutocompletePro();
 		return @$rs;
+	}
+	
+	function cancelados($opc){
+		$data=array();
+		$this->query="SELECT * FROM FTC_META_DATOS where fecha_cancelacion is not null and rfce = (SELECT RFC FROM FTC_EMPRESAS WHERE ID = 1)";
+		$res=$this->EjecutaQuerySimple();
+		while($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		return $data;
 	}
 
 }

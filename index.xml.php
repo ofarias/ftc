@@ -62,9 +62,9 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	echo json_encode($res);
 	exit();
 }elseif(isset($_GET['term']) && isset($_GET['doc'])){
-	$res=$controller->getDoc($_GET['term']);
-	echo json_encode($res);
-	exit();
+	$res=$controller->getDoc($_GET['term']); echo json_encode($res); exit();
+}elseif(isset($_GET['buscaPol'])){
+	$res=$controller->buscaPol($_GET['buscaPol']); echo json_encode($res); exit();
 }
 else{
 	switch ($_GET['action']){
@@ -140,6 +140,9 @@ else{
 		break;
 	case 'rgxf':
 		$controller->rgxf($_GET['u']);
+		break;
+	case 'cancelados':
+		$controller->cancelados($_GET['opc']);
 		break;
 	default: 
 		header('Location: index.php?action=login');

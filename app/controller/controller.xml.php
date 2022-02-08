@@ -1850,5 +1850,22 @@ class controller_xml{
 		return $exec;
 	}
 
+	function cancelados($opc){
+		if($_SESSION['user']){
+			$data = new cargaXML;
+			$info = $data->cancelados($opc);
+			$pagina = $this->load_template();
+			$html = $this->load_page('app/views/pages/xml/p.cancelados.php');
+   			ob_start();
+   			include 'app/views/pages/xml/p.cancelados.php';   			
+   			$table = ob_get_clean();
+   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
+   			$this->view_page($pagina);	
+		}else{
+			$e = "Favor de Revisar sus datos";
+			header('Location: index.php?action=login&e='.urlencode($e)); exit;	
+		}	
+	}
+
 }?>
 
