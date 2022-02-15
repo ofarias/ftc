@@ -23688,7 +23688,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				}
 				if($version == '3.2'){
 					$tipo = $cfdiComprobante['tipoDeComprobante'];
-				}elseif($version == '3.3'){
+				}elseif($version == '3.3' or $version == '4.0'){
 					$tipo = $cfdiComprobante['TipoDeComprobante'];
 				}
 				foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
@@ -23699,7 +23699,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					}elseif($version == '3.3'){
 						$rfc= $Receptor['Rfc'];
 						$nombre_recep=utf8_encode($Receptor['Nombre']);
+						$usoCFDI =$Receptor['UsoCFDI'];;
+					 }elseif($version == '4.0'){
+						$rfc= $Receptor['Rfc'];
+						$nombre_recep=utf8_encode($Receptor['Nombre']);
 						$usoCFDI =$Receptor['UsoCFDI'];
+						$domFisc = $Receptor['DomicilioFiscalReceptor'];// nuevo para la version 4.0 
+						$regFisc = $Receptor['RegimenFiscalReceptor'];// nuevo para la version 4.0
 					 }
 				}
 				foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $Emisor){
@@ -23707,7 +23713,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						$rfce = $Emisor['rfc'];
 						$nombreE = '';
 						$regimen = '';	
-					}elseif($version == '3.3'){
+					}elseif($version == '3.3' or $version == '4.0'){
 						$rfce = $Emisor['Rfc'];
 						$nombreE = utf8_encode($Emisor['Nombre']);
 						$regimen = $Emisor['RegimenFiscal'];
@@ -23866,14 +23872,14 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					  $LugarExpedicion = substr($cfdiComprobante['LugarExpedicion'],0,149);
 					  $MetodoPago = $cfdiComprobante['metodoDePago'];
 					  
-				  }elseif($version == '3.3'){
-				      $serie = $cfdiComprobante['Serie'];                  
-	                  $folio = $cfdiComprobante['Folio'];
+				  }elseif($version == '3.3' or $version == '4.0'){
+				      $serie = isset($cfdiComprobante['Serie'])? $cfdiComprobante['Serie']:'';                  
+	                  $folio = isset($cfdiComprobante['Folio'])? $cfdiComprobante['Folio']:'';
 	                  $total = $cfdiComprobante['Total'];
 	                  $subtotal = $cfdiComprobante['SubTotal'];
 					  $descuento = $cfdiComprobante['Descuento'];
 					  $tipo = $cfdiComprobante['TipoDeComprobante'];
-					  $condicion = $cfdiComprobante['CondicionesDePago'];
+					  $condicion = isset($cfdiComprobante['CondicionesDePago'])? $cfdiComprobante['CondicionesDePago']:'';
 					  $metodo = $cfdiComprobante['MetodoPago'];
 					  $moneda = $cfdiComprobante['Moneda'];
 					  $lugar = substr($cfdiComprobante['LugarExpedicion'],0,149);
@@ -23884,6 +23890,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					  $formaPago = $cfdiComprobante['FormaPago'];
 					  $LugarExpedicion = substr($cfdiComprobante['LugarExpedicion'],0,149);
 					  $MetodoPago = $cfdiComprobante['MetodoPago'];
+					  $export = $cfdiComprobante['Exportacion'] /// Nuevo campo en cfdi 4.0
 				  }
 				  	if(strpos($tc, ',')){
 						$tc=str_replace(",", ".", $tc);
@@ -23915,7 +23922,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		$rfc= $Receptor['Rfc'];
 			            		$nombre_recep=str_replace("'", "", $Receptor['Nombre']);
 			            		$usoCFDI =$Receptor['UsoCFDI'];
-			            	 }
+			            	 }elseif($version == '4.0'){
+								$rfc= $Receptor['Rfc'];
+			            		$nombre_recep=str_replace("'", "", $Receptor['Nombre']);
+			            		$usoCFDI =$Receptor['UsoCFDI'];
+								$domFisc = $Receptor['DomicilioFiscalReceptor'];
+								$regFisc = $Receptor['RegimenFiscalReceptor'];
+							 }
 			            }
 			            foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $Emisor){
 			            	if($version == '3.2'){
@@ -23956,7 +23969,16 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$recep_estado='';
 				            	$recep_pais='';
 				            	$recep_cp='';
-			            	}
+			            	}elseif($version == '4.0'){
+								$recep_calle='';
+				            	$recep_noExterior='';
+				            	$recep_noInterior='';
+				            	$recep_colonia='';
+				            	$recep_municipio='';
+				            	$recep_estado='';
+				            	$recep_pais='';
+				            	$recep_cp='';
+							}
 			            }
 			            /// debemos traer el RFC de la empresa que se esta trabajando.
 			            $rfcEmpresa = $_SESSION['rfc'];
@@ -24007,7 +24029,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$claveSat='';
 				            	$claveUni='';
 				            	$partida[] =array($unidad, $importe, $cantidad, $descripcion, $valor,$claveSat, $claveUni); 
-			            	}elseif($version =='3.3'){
+			            	}elseif($version =='3.3'or $version == '4.0'){
 			            		$unidad = $Concepto['Unidad'];
 				            	$importe = $Concepto['Importe'];
 				            	$cantidad = $Concepto['Cantidad'];
@@ -24030,7 +24052,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							            	$parTasaCuota='';
 							            	$parImpImporte='';
 							           		$partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte); 
-						            	}elseif($version =='3.3'){
+						            	}elseif($version =='3.3' or $version == '4.0'){
 						            		$base = $TrasladoPartida['Base'];
 							            	$parImpuesto= $TrasladoPartida['Impuesto'];
 							            	$parTipoFact = $TrasladoPartida['TipoFactor'];
@@ -24054,7 +24076,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							            	$parTasaCuota='';
 							            	$parImpImporte='';
 							           		$partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte); 
-						            	}elseif($version =='3.3'){
+						            	}elseif($version =='3.3' or $version == '4.0'){
 						            		$base = $RetencionPartida['Base'];
 							            	$parImpuesto= $RetencionPartida['Impuesto'];
 							            	$parTipoFact = $RetencionPartida['TipoFactor'];
@@ -24079,7 +24101,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			          					$fechaPed = isset($infoAdu['fechaPedimento'])? $infoAdu['fechaPedimento']:'01.01.1909';
 			          					$cantiPed = isset($infoAdu['cantidad'])? $infoAdu['cantidad']:$cantidad; 
 			          					$parInfoAduana[]=array($numPed, $parIT, $fechaPed, $cantiPed, $descripcion);
-			          				}elseif($version == '3.3'){
+			          				}elseif($version == '3.3' or $version == '4.0'){
 			          					$numPed = $infoAdu['NumeroPedimento'];
 			          					$fechaPed = isset($infoAdu['fechaPedimento'])? $infoAdu['fechaPedimento']:'01.01.1909';
 			          					$cantiPed = isset($infoAdu['cantidad'])? $infoAdu['cantidad']:$cantidad; 
@@ -24098,7 +24120,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            			$parte_claveSat='';
 				            			$parte_claveUni='';
 				            			$parte_partida[] =array($parte_unidad, $parte_importe, $parte_cantidad, $parte_descripcion, $parte_valor,$parte_claveSat, $parte_claveUni, $parIT);
-			          				}elseif($version == '3.3'){
+			          				}elseif($version == '3.3' or $version == '4.0'){
 			          					$parte_unidad = $Concepto['Unidad'];
 				            			$parte_importe = $Concepto['Importe'];
 				            			$parte_cantidad = $Concepto['Cantidad'];
@@ -24150,7 +24172,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            	if($version == '3.2'){
 				            	$titra=0.00;
 					            $tiret=0.00;
-				            }elseif($version == '3.3'){
+				            }elseif($version == '3.3' or $version == '4.0'){
 				            	$titra= isset($Timp['TotalImpuestosTrasladados'])? $Timp['TotalImpuestosTrasladados']:0;
 					            $tiret= isset($Timp['TotalImpuestosRetenidos'])? $Timp['TotalImpuestosRetenidos']:0;
 				            }
@@ -24316,7 +24338,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$i=$i+1;
 			            	}
 
-			            if($version == '3.3'){ 
+			            if($version == '3.3' or $version == '4.0'){ 
 			            	if(count($parte_partida) > 0){
 			            		foreach ($parte_partida as $pp ){
 			            			$parte_unidad = $pp[0];

@@ -1385,4 +1385,14 @@ class cargaXML extends database {
 		return $data;
 	}
 
+	function buscaPol($uuid){
+		$data=array();
+		$this->query="SELECT * FROM XML_POLIZAS WHERE UPPER(UUID) = UPPER('$uuid')";
+		$res=$this->EjecutaQuerySimple();
+		while($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
 }

@@ -1867,5 +1867,11 @@ class controller_xml{
 		}	
 	}
 
+	function buscaPol($uuid){
+		$data = new cargaXML;
+		$res = $data->buscaPol($uuid);
+		return $res;
+	}
+
 }?>
 

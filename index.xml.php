@@ -63,8 +63,8 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	exit();
 }elseif(isset($_GET['term']) && isset($_GET['doc'])){
 	$res=$controller->getDoc($_GET['term']); echo json_encode($res); exit();
-}elseif(isset($_GET['buscaPol'])){
-	$res=$controller->buscaPol($_GET['buscaPol']); echo json_encode($res); exit();
+}elseif(isset($_POST['buscaPol'])){
+	$res=$controller->buscaPol($_POST['buscaPol']); echo json_encode($res); exit();
 }
 else{
 	switch ($_GET['action']){
