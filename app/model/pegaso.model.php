@@ -23853,6 +23853,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				  if($version == ''){
 				  	$version = $cfdiComprobante['Version'];
 				  }
+				  $export='';
 				  if($version == '3.2'){
 				      $serie = $cfdiComprobante['serie'];                  
 	                  $folio = $cfdiComprobante['folio'];
@@ -23912,7 +23913,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             	//echo 'Entro a la carga: '.$serie.' <br/> Archivo: '.$archivo.' <br/> tipo: '.$tipo.'<br/> ';
             			$this->query="UPDATE XML_DATA_FILES SET TIPO = upper(substring('$tipo' from 1 for 1)) WHERE NOMBRE='$archivo'";
             			$this->EjecutaQuerySimple();
-
+							$usoCFDI = '';
+							$domFisc = '';
+							$regFisc = '';
 			        	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
 			            	if($version == '3.2'){
 			            		$rfc= $Receptor['rfc'];
@@ -24182,6 +24185,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 			            //HASTA AQUI TODA LA INFORMACION ES LEIDA E IMPRESA CORRECTAMENTE
 			            //ESTA ULTIMA PARTE ES LA QUE GENERA ERROR, AL PARECER NO ENCUENTRA EL NODO
+						$verCfdi = $version; /// Cambios en CFDI 4
 			            foreach ($xml->xpath('//t:TimbreFiscalDigital') as $tfd) {
 			               if($version == '3.2'){
 			               		$fecha = $tfd['FechaTimbrado']; 
@@ -24191,7 +24195,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			               		$RfcProvCertif=$tfd['RfcProvCertif'];
 			               		$SelloCFD=$tfd['selloCFD'];
 			               		$SelloSAT=$tfd['selloSAT'];
-			               		$version = $tfd['version'];
+			               		$versat = $tfd['version'];
 			               		$rfcprov = empty($tfd['RfcProvCertif'])? '':$tfd['RfcProvCertif'];
 			               }else{
 			               		$fecha = $tfd['FechaTimbrado']; 
@@ -24201,7 +24205,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			               		$RfcProvCertif=$tfd['RfcProvCertif'];
 			               		$SelloCFD=$tfd['SelloCFD'];
 			               		$SelloSAT=$tfd['SelloSAT'];
-			               		$version = $tfd['Version'];
+			               		$versat = $tfd['Version'];
 			               		$rfcprov = $tfd['RfcProvCertif'];
 			               }
 			            }
@@ -24224,8 +24228,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            ///}
 			            if($tipo2 == 'F'){
 			            	//echo '<br/> Tipo de cambio: '.$tc.'<br/>';
-			            	$this->query = "INSERT INTO XML_DATA (UUID, CLIENTE, SUBTOTAL, IMPORTE, FOLIO, SERIE, FECHA, RFCE, DESCUENTO, STATUS, TIPO, NOCERTIFICADOSAT, SELLOCFD, SELLOSAT, FECHATIMBRADO, CERTIFICADO, SELLO, versionSAT, no_cert_contr, rfcprov,formaPago, LugarExpedicion, metodoPago, moneda, TipoCambio, FILE, USO, RELACION, ID_RELACION)";
-				            $this->query.= "VALUES ('$uuid', '$rfc', '$subtotal', '$total', '$folio', '$serie', '$fecha', '$rfce', $descuento, 'S', '$tipo', '$noNoCertificadoSAT', '$SelloCFD', '$SelloSAT', '$fecha','$Certificado', '$Sello', '$version', '$noCert', '$rfcprov', '$formaPago', '$LugarExpedicion', '$MetodoPago', '$moneda', $tc, '$archivo','$usoCFDI', '',null )";
+			            	$this->query = "INSERT INTO XML_DATA (UUID, CLIENTE, SUBTOTAL, IMPORTE, FOLIO, SERIE, FECHA, RFCE, DESCUENTO, STATUS, TIPO, NOCERTIFICADOSAT, SELLOCFD, SELLOSAT, FECHATIMBRADO, CERTIFICADO, SELLO, versionSAT, no_cert_contr, rfcprov,formaPago, LugarExpedicion, metodoPago, moneda, TipoCambio, FILE, USO, RELACION, ID_RELACION, VERSION_CFDI, DOM_FISC_RECEP, REG_FISC_RECEP, EXPORTACION)";
+				            $this->query.= "VALUES ('$uuid', '$rfc', '$subtotal', '$total', '$folio', '$serie', '$fecha', '$rfce', $descuento, 'S', '$tipo', '$noNoCertificadoSAT', '$SelloCFD', '$SelloSAT', '$fecha','$Certificado', '$Sello', '$versat', '$noCert', '$rfcprov', '$formaPago', '$LugarExpedicion', '$MetodoPago', '$moneda', $tc, '$archivo','$usoCFDI', '',null, '$verCfdi', '$domFisc ', '$regFisc', '$export' )";
 				            //echo "<p>query: ".$this->query."</p>";
 							//$respuesta = $this->grabaDB();
 							if($respuesta = @$this->grabaBD() === false){
