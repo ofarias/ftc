@@ -23890,7 +23890,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					  $formaPago = $cfdiComprobante['FormaPago'];
 					  $LugarExpedicion = substr($cfdiComprobante['LugarExpedicion'],0,149);
 					  $MetodoPago = $cfdiComprobante['MetodoPago'];
-					  $export = $cfdiComprobante['Exportacion'] /// Nuevo campo en cfdi 4.0
+					  $export = $cfdiComprobante['Exportacion']; /// Nuevo campo en cfdi 4.0
 				  }
 				  	if(strpos($tc, ',')){
 						$tc=str_replace(",", ".", $tc);
