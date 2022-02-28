@@ -1873,5 +1873,134 @@ class controller_xml{
 		return $res;
 	}
 
+	function repRet($fi, $ff){
+		$data = new cargaXML;
+		$data2 = new pegaso;
+		$datos = $data->repRet($fi, $ff);
+		$xls = new PHPExcel();
+		$usuario=$_SESSION['user']->NOMBRE;
+		$ln = 10;
+		$df = $data2->traeDF($ide = 1);
+		
+		$col = 'A';
+		$xls->getActiveSheet()
+		        ->setCellValue('A1','Reporte de Retenciones en Excel');
+	        /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+	        $xls->getActiveSheet()->getColumnDimension($col)->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(5);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(40);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(30);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(55);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension(++$col)->setWidth(15);
+
+	        
+
+	        
+	        // Hacer las cabeceras de las lineas;
+	        //->setCellValue('9','')
+	    $col = 'A';
+	        $xls->getActiveSheet()
+	            ->setCellValue($col.$ln,'Año')
+	            ->setCellValue(++$col.$ln,'Mes')
+	            ->setCellValue(++$col.$ln,'Nombre Impuesto')
+	            ->setCellValue(++$col.$ln,'Impuesto ')
+	            ->setCellValue(++$col.$ln,'Tasa')
+	            ->setCellValue(++$col.$ln,'Monto')
+	            ->setCellValue(++$col.$ln,'Partida')
+	            ->setCellValue(++$col.$ln,'UUID')
+	            ->setCellValue(++$col.$ln,'Factura')
+	            ->setCellValue(++$col.$ln,'Tipo Factor')
+	            ->setCellValue(++$col.$ln,'Base')
+	            ->setCellValue(++$col.$ln,'Tipo')
+	            ->setCellValue(++$col.$ln,'Status')
+	            ->setCellValue(++$col.$ln,'RFCE')
+	            ->setCellValue(++$col.$ln,'Nombre')
+	            ->setCellValue(++$col.$ln,'Cliente')
+	            ->setCellValue(++$col.$ln,'Documento')
+	            ->setCellValue(++$col.$ln,'Fecha')
+	            ->setCellValue(++$col.$ln,'Subtotal')
+	            ->setCellValue(++$col.$ln,'Importe')
+	        ;
+
+	        $ln = 11;
+	        foreach($datos as $row){
+	        	$col='A';
+	        	$xls->getActiveSheet()
+	            	->setCellValue($col.$ln,$row->ANIO)
+	            	->setCellValue(++$col.$ln, $row->MES)
+	            	->setCellValue(++$col.$ln, $row->NOMBRE_IMPUESTO)
+	            	->setCellValue(++$col.$ln, $row->IMPUESTO)
+	            	->setCellValue(++$col.$ln, $row->TASA)
+	            	->setCellValue(++$col.$ln, $row->MONTO)
+	            	->setCellValue(++$col.$ln, $row->PARTIDA)
+	            	->setCellValue(++$col.$ln, $row->UUID)
+	            	->setCellValue(++$col.$ln, $row->FACTURA)
+	            	->setCellValue(++$col.$ln, $row->TIPOFACTOR)
+	            	->setCellValue(++$col.$ln, $row->BASE)
+	            	->setCellValue(++$col.$ln, $row->TIPO)
+	            	->setCellValue(++$col.$ln, $row->STATUS)
+	            	->setCellValue(++$col.$ln, $row->RFCE)
+	            	->setCellValue(++$col.$ln, $row->NOMBRE)
+	            	->setCellValue(++$col.$ln, $row->CLIENTE)
+	            	->setCellValue(++$col.$ln, $row->DOCUMENTO)
+	            	->setCellValue(++$col.$ln, $row->FECHA)
+	            	->setCellValue(++$col.$ln, $row->SUBTOTAL)
+	            	->setCellValue(++$col.$ln, $row->IMPORTE)
+	            ;
+	            $ln++;
+	        }
+
+	        $xls->getActiveSheet()
+	            ->setCellValue('A3','Reporte de Retenciones:')
+	            ->setCellValue('A4','Fecha de Emision del Reporte: ')
+	            ->setCellValue('A5','Total de Movimientos: ')
+	            ->setCellValue('A6','')
+	            ->setCellValue('A7','Usuario Elabora')
+	            ->setCellValue('A8','')
+	            ;
+	        $xls->getActiveSheet()
+	            ->setCellValue('E3','')
+	            ->setCellValue('E4',date('d-m-Y H:i:s'))
+	            ->setCellValue('E5',count($datos))
+	            ->setCellValue('E6','')
+	            ->setCellValue('E7',$usuario)
+	            ->setCellValue('E8','')
+	            ;
+	        /// Unir celdas
+	        $xls->getActiveSheet()->mergeCells('A1:L1');
+	        // Alineando
+	        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+	        /// Estilando
+	        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+	            array('font' => array(
+	                    'size'=>20,
+	                )
+	            )
+	        );
+	        
+		$ruta='C:\\xampp\\htdocs\\EdoCtaXLS\\';
+	    $nom='Reporte retenciones '.$fi.' al '.$ff.' '.date("s").'.xlsx';
+	    //$nom='repRet.xlsx';
+	    $x=PHPExcel_IOFactory::createWriter($xls,'Excel2007');
+		$x->save($ruta.$nom);
+	    ob_end_clean();
+	    $htmlPath= "..//EdoCtaXLS//".$nom;
+	    return array("status"=>'ok',"archivo"=>$ruta.$nom, "htmlPath"=>$htmlPath);
+	}
+
 }?>
 

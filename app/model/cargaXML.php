@@ -1395,4 +1395,42 @@ class cargaXML extends database {
 		return $data;
 	}
 
+	function repRet($fi, $ff){
+		$data=array();
+		$this->query="SELECT  extract(year from x.fecha) as anio,
+            extract(month from x.fecha) as mes,
+            case i.impuesto
+                when '001' then 'ISR'
+                when '002' then 'IVA'
+                when '003' then 'IEPS'
+                end as nombre_impuesto,
+            I.IMPUESTO,
+            I.TASA,
+            I.MONTO,
+            I.PARTIDA,
+            X.UUID,
+            I.factura,
+            i.tipofactor,
+            I.BASE,
+            I.TIPO,
+            X.STATUS,
+            X.RFCE,
+            (SELECT FIRST 1 NOMBRE FROM XML_CLIENTES C WHERE C.RFC = X.RFCE) AS NOMBRE,
+            X.cliente,
+            X.DOCUMENTO,
+            X.FECHA,
+            X.subtotal,
+            X.IMPORTE
+        FROM XML_IMPUESTOS I LEFT JOIN XML_DATA X ON X.UUID = I.UUID
+    WHERE I.UUID IN (SELECT D.UUID from xml_data D where
+    fecha >= '$fi' and fecha <= '$ff' and X.CLIENTE = 'BIO870307QD0')
+    order by  x.fecha asc";
+    //echo $this->query;
+		$res=$this->EjecutaQuerySimple();
+		while($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
 }
