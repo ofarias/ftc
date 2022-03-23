@@ -593,7 +593,7 @@
         var p = $(this)
         var prod = p.val().split(":")
         document.getElementById("ext").innerHTML="<font color='blue'><b>"+prod[6]+"</b></font>"
-        document.getElementById("desc").innerHTML=prod[1] + "<br/><textarea name='descAdd' sentences autofocus cols='80' rows='5' placeholder = 'Descripcion Adicional del producto' id='desAdd'></textarea>"
+        document.getElementById("desc").innerHTML= prod[1] + "<br/><textarea name='descAdd' sentences autofocus cols='80' rows='5' placeholder = 'Descripcion Adicional del producto' id='desAdd'></textarea>"
         document.getElementById("prc").innerHTML='<input type="number" step="any" value="'+prod[2]+'" id="precio" class="calc" onchange="calculo()"> <br/><label id="bprc"></label>'  
         document.getElementById("des").innerHTML='<input type="number" step="any" value="0" id="descuento" class="calc" onchange="calculo()"> <br/><label id="bdes"></label>'
         document.getElementById("iv").innerHTML='<input type="number" step="any" id="iva" class="calc" onchange="calculo()" value="'+prod[5]+'" readonly> <br/><label id="biv"></label>'
@@ -704,7 +704,6 @@
     
     function nuevoCliente(clie){
         revisaCliente(clie)    
-            
     }
 
     function revisaCliente(clie){

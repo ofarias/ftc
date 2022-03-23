@@ -20845,5 +20845,28 @@ function ImpSolicitud2($idsol){
     		return;
     	}
     }
+
+    function insertaCuentasContables($datos){
+    	//print_r($datos);
+    	$data = new pegaso;
+    	$res=$data->insertaCC($datos);
+    	return;
+    }
+
+    function idPol(){
+    	$data = new pegaso;
+    	$res=$data->idPol();
+  		return $res;
+    }
+
+    function insertaPoliza($cabecera,$partidas){
+    	echo '<br/>Numero de cabeceras: '.count($cabecera);
+    	echo '<br/>Numero de partidas: '.count($partidas);
+    	$data = new pegaso;
+    	$res=$data->polLondinense($cabecera, $partidas);
+
+
+    	die();
+    }
 }?>
 
