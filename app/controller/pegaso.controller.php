@@ -19175,7 +19175,7 @@ function ImpSolicitud2($idsol){
         $pdf->SetFont('Arial', 'B', 7);
   		$pdf->Write(6,'Usuario Imprime: '.$usuario);
   		$pdf->Ln(4);
-  		$pdf->Write(6,'Cliente : ('.$data->CLAVE.')'.$data->NOMBRE.' RFC: '.$data->RFC);
+  		$pdf->Write(6,'Cliente : ('.$data->CLAVE.')'.utf8_decode($data->NOMBRE).' RFC: '.$data->RFC);
   		$pdf->Ln(4);
   		$pdf->Write(6,'Direccion: Calle :'.$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F);
   		$pdf->Ln(4);
@@ -19252,7 +19252,7 @@ function ImpSolicitud2($idsol){
 		    $centavos=substr($M1,-2);
 		   	$m5= $M4.'00';
 		   	$res=$letras->to_word($m5);   
-		    $descr=strlen($row->DESCRIPCION); 
+		    $descr=strlen(utf8_decode($row->DESCRIPCION)); 
             
 		        if ($centavos == 00){
 		        	$leyenda = 'PESOS CON 00/100 MN';
@@ -19263,7 +19263,7 @@ function ImpSolicitud2($idsol){
             $pdf->Cell(13,6,(substr($row->ARTICULO,0,8)),'L,T,R');
             $pdf->Cell(13,6,($row->CLAVE_SAT),'L,T,R');
            	$pdf->Cell(13,6,($row->MEDIDA_SAT),'L,T,R',0, 'C');
-            $pdf->Cell(60,6,substr($row->DESCRIPCION, 0,45), 'L,T,R');
+            $pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 0,45), 'L,T,R');
             $pdf->Cell(8,6,number_format($row->CANTIDAD,2),'L,T,R');
             $pdf->Cell(10,6,$row->UM,'L,T,R',0, 'C');
             $pdf->Cell(13,6,'$ '.number_format($row->PRECIO,2),'L,T,R',0, 'R');
@@ -19280,8 +19280,8 @@ function ImpSolicitud2($idsol){
 	            $pdf->Cell(13,6,"",'R');
 	            $pdf->SetFont('Arial', 'I', 6);
 	            $pdf->Cell(13,6,substr($row->DESCUNI,0),'L,R');
-            	$pdf->Cell(60,6,substr($row->DESCRIPCION, 45,55),'L,R');
-	            $pdf->Cell(8,6,strlen($row->DESCRIPCION),'L,R');
+            	$pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 45,55),'L,R');
+	            $pdf->Cell(8,6,strlen(utf8_decode($row->DESCRIPCION)),'L,R');
 	            $pdf->Cell(10,6,"",'L,R');
 	            $pdf->Cell(13,6,"",'L,R');
 	            $pdf->Cell(13,6,'$ '.number_format(($descuni),2),'L,R',0, 'R');
@@ -19296,7 +19296,7 @@ function ImpSolicitud2($idsol){
 	            $pdf->Cell(13,6,"",'B,R');
 	            $pdf->SetFont('Arial', 'I', 6);
 	            $pdf->Cell(13,6,substr($row->DESCUNI,0),'L,B,R');
-            	$pdf->Cell(60,6,substr($row->DESCRIPCION, 45,55),'L,R,B');
+            	$pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 45,55),'L,R,B');
 	            $pdf->Cell(8,6,"",'L,B,R');
 	            $pdf->Cell(10,6,"",'L,B,R');
 	            $pdf->Cell(13,6,"",'L,B,R');
@@ -19318,7 +19318,7 @@ function ImpSolicitud2($idsol){
             			$pdf->Cell(13,6,"",'L,R');
             			$pdf->SetFont('Arial', 'I', 6);
             			$pdf->Cell(13,6,"",'L,R');
-                   		$pdf->Cell(60,6,substr($row->DESCRIPCION, $di,55),'L,R');
+                   		$pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), $di,55),'L,R');
                    		$pdf->Cell(8,6,"",'L,R');
             			$pdf->Cell(10,6,"",'L,R');
             			$pdf->Cell(13,6,"",'L,R');
@@ -19334,7 +19334,7 @@ function ImpSolicitud2($idsol){
             			$pdf->Cell(13,6,"",'L,B,R');
             			$pdf->SetFont('Arial', 'I', 6);
             			$pdf->Cell(13,6,"",'L,B,R');
-                   		$pdf->Cell(60,6,substr($row->DESCRIPCION, $di,55),'L,B,R');
+                   		$pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), $di,55),'L,B,R');
             			$pdf->Cell(8,6,"" ,'L,B,R');
             			$pdf->Cell(10,6,"",'L,B,R');
             			$pdf->Cell(13,6,"",'L,B,R');
@@ -19412,7 +19412,7 @@ function ImpSolicitud2($idsol){
   			$pdf->Ln(6);
   			$pdf->Write(4,'Nombre _______________________________________  Cargo: _______________________________________  Firma: ______________________________'); 
   			$pdf->Ln(6);
-  			$pdf->Write(4,'Los datos personales obtenidos en este documento tienen por finalidad dar cumplimiento a las disposiciones establecidas por la Ley Federal de Protección de Datos Personales en Posesión de los Particulares');
+  			$pdf->Write(4,utf8_decode('Los datos personales obtenidos en este documento tienen por finalidad dar cumplimiento a las disposiciones establecidas por la Ley Federal de Protección de Datos Personales en Posesión de los Particulares'));
   			$pdf->Ln(6);
   			$pdf->SetFont('Arial','',5);
   			$pdf->Write(6,'Este documento es una representacion impresa de un CFDI');

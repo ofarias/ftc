@@ -19,13 +19,13 @@
                             <label for="descripcion" class="col-lg-2 control-label"></label>
                                 <div class="col-lg-8">
                                     <?php echo '<b>Documento:</b> '.$fact->CVE_DOC.' <b>Cliente: </b>'.$fact->NOMBRE?><br/>
-                                    <?php echo !empty($fact->CORREO)? 'Correo Predeterminado'.$fact->CORREO:''?>
+                                    <?php echo !empty($fact->CORREO)? 'Correo Predeterminado: <font color="blue">'. $fact->CORREO.'</font>':''?>
                                 </div>
                         </div>
                         <div class="form-group">
                             <label for="descripcion" class="col-lg-2 control-label">Mensaje: </label>
                                 <div class="col-lg-8">
-                                    <textarea  class="form-control" name="mensaje" placeholder="Escriba aqui el mensaje." required cols="100" rows="5"></textarea><br>
+                                    <textarea  class="form-control" name="mensaje" placeholder="Escriba aqui el mensaje." cols="100" rows="5"></textarea><br>
                                 </div>
                         </div>
                     <input type="hidden" name="docf" value="<?php echo $fact->CVE_DOC?>">

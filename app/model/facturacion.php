@@ -293,7 +293,8 @@ class factura extends database {
 						$datos_factura["CfdiRelacionados"]=$cfdiRelacionados;
 					}
 
-					$nombre=utf8_encode($cl->NOMBRE);
+					//$nombre=utf8_encode($cl->NOMBRE);
+					$nombre=utf8_decode($cl->NOMBRE);
 					$json_cliente=array(
 										"id"=>"$cl->CLAVE",
 										"UsoCFDI"=>"$uso",
@@ -771,7 +772,7 @@ class factura extends database {
 			return array("status"=>'detallista', "archivo"=>$descarga);
 	}
 
-    function timbraFact($docf, $idc){
+  function timbraFact($docf, $idc){
     	$usuario = $_SESSION['user']->NOMBRE;
 		############### Traemos los datos Fiscales para la factura.##############
     	//$docu=$nfact['folioNC'];
@@ -1020,7 +1021,8 @@ class factura extends database {
 										);					
 						}
 					}
-					$nombre=utf8_encode($cl->NOMBRE);
+					//$nombre=utf8_encode($cl->NOMBRE);
+					$nombre=utf8_decode($cl->NOMBRE);
 					$json_cliente=array(
 										"id"=>"$cl->CLAVE",
 										"UsoCFDI"=>"$uso",
@@ -1316,7 +1318,8 @@ class factura extends database {
 								);
 						}					
 					}
-					$nombre=utf8_encode($cl->NOMBRE);
+					//$nombre=utf8_encode($cl->NOMBRE);
+					$nombre=utf8_decode($cl->NOMBRE);
 					$json_cliente=array(
 										"id"=>"$cl->CLAVE",
 										"UsoCFDI"=>"$uso",
@@ -1431,7 +1434,8 @@ class factura extends database {
 										    "CfdiRelacionados"=>$cfdiRelacionados,
 										    "Impuestos"=>$imp
 										);
-					$nombre=utf8_encode($cl->NOMBRE);
+					//$nombre=utf8_encode($cl->NOMBRE);
+					$nombre=utf8_decode($cl->NOMBRE);
 					$json_cliente=array(
 										"id"=>"$cl->CLAVE",
 										"UsoCFDI"=>"G02",
@@ -1936,7 +1940,8 @@ class factura extends database {
 										);					
 						}
 					}
-					$nombre=utf8_encode($cl->NOMBRE);
+					//$nombre=utf8_encode($cl->NOMBRE);
+					$nombre=utf8_decode($cl->NOMBRE);
 					$json_cliente=array(
 										"id"=>"$cl->CLAVE",
 										"UsoCFDI"=>"$uso",
@@ -2230,7 +2235,8 @@ class factura extends database {
 										);					
 						}
 					}
-					$nombre=utf8_encode($cl->NOMBRE);
+					//$nombre=utf8_encode($cl->NOMBRE);
+					$nombre=utf8_decode($cl->NOMBRE);
 					$json_cliente=array(
 										"id"=>"$cl->CLAVE",
 										"UsoCFDI"=>"G02",
