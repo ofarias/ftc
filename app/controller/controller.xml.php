@@ -2006,11 +2006,9 @@ class controller_xml{
 	function acomodoXml(){
 		if($_SESSION['user']){
 			$data = new acomodoXML;
-			//$path = "C:\\elcfdi\\DescargaMasiva\\Emitidos";
 			$path = "\\\\DORIS\\Emitidos";
 			$info = $data->acomodo($path);
 			return;
-			/// 61e3 68 00:16:44:67:61:e3    192.168.100.38
 		}
 	}
 
