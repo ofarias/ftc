@@ -28952,4 +28952,53 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	echo 'Inicio :'.$inicio.' - Finzaliza: '.date("G:i:s:u").' Tiempo por: '.date_diff($inicio, date("G:i:s:u")).'--> Numero de nombres realizados:'.$nombres;
     }
 
+    function insertaCC($datos){
+    	for($i = 0; $i <count($datos); $i++){
+    		$cuenta=$datos[$i][0];
+    		$nombre=$datos[$i][1];
+    		$sat=   $datos[$i][2];
+    		$this->query="INSERT INTO FTC_CUENTAS_CONT (ID_CC, NUM_CTA, NOMBRE, CLAVE_SAT, STATUS) VALUES (NULL, '$cuenta', '$nombre', '$sat', 'I') ";
+    		$rs=$this->grabaBD();
+    		if($rs == 0 or $rs == False){
+    			echo 'Fallo al insertar: '.$this->query;
+    		}
+    	}
+    }
+
+    function polLondinense($cabecera, $partidas){
+    	//print_r($cabecera);
+    	for($i=0; $i<count($cabecera); $i++){
+    		$id= $cabecera[$i]['id'];
+    		$num = $cabecera[$i]['numero'];
+    		$tipo = $cabecera[$i]['tipo'];
+    		$fecha = $cabecera[$i]['fecha'];
+    		$periodo = $cabecera[$i]['periodo'];
+    		$eje = $cabecera[$i]['eje'];
+    		$concepto = $cabecera[$i]['concepto'];
+    		$this->query="INSERT INTO FTC_POLIZAS (ID_POL, NUMERO, TIPO, FECHA, PARTIDAS, MONTO, CONCEPTO, EJERCICIO, PERIODO, CREACION, ORIGEN, STATUS) VALUES ($id, $num, '$tipo', '$fecha',0, 0, '$concepto', $eje, $periodo, current_timestamp, 'Contpaq', 'I' )";
+    		$this->grabaBD();
+    	}
+
+    	for($a=0; $a<count($partidas); $a++){
+    		$id= $partidas[$a]['idpol'];
+    		$par = $partidas[$a]['par'];
+    		$cuenta = $partidas[$a]['cuenta'];
+    		$cargo = isset($partidas[$a]['cargo'])? $partidas[$a]['cargo']:0;
+    		$abono = isset($partidas[$a]['abono'])? $partidas[$a]['abono']:0;
+    		$referencia = $partidas[$a]['ref'];
+    		$concepto = $partidas[$a]['concepto'];
+    		$this->query="INSERT INTO FTC_POLIZAS_PAR (ID_PP, ID_POL, PAR, CUENTA, CONCEPTO, REFERENCIA, CARGO, ABONO, UUID, CEP) VALUES (NULL, $id, $par, '$cuenta', '$concepto', '$referencia', $cargo, $abono, '', '' )";
+    		$this->grabaBD();
+    	}
+
+    	return;
+    }
+
+    function idPol(){
+    	$this->query="SELECT COALESCE(max(ID_POL), 0) as idpol FROM FTC_POLIZAS";
+    	$res=$this->EjecutaQuerySimple();
+    	$row = ibase_fetch_row($res);
+    	return $row[0];
+    }
+
 }?>
