@@ -172,6 +172,8 @@
                 <p><a class="btn-sm btn-success cargaEFOS" >Carga EFOs</a></p>
                 <p><a class="btn-sm btn-primary sincronizar">Sincronizar Datos</a></p>
                 <p><a href="index.php?action=millon" class="btn-sm btn-primary unmillon">Un Millon de Nombres</a></p>
+               <!-- <p><input type="file" webkitdirectory mozdirectory msdirectory odirectory directory  id="folder"></p>-->
+                <p><input type="button" class="dir" value="acomodar"></p>
                 </div>
                 </div>
             </div>
@@ -207,6 +209,22 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+
+        $(".dir").click(function(){
+            $.ajax({
+                url:'index.xml.php',
+                type:'get',
+                dataType:'json',
+                data:{action:'acomoda'},
+                success:function(data){
+                    alert("Se acomodaron: " + data.archivos)
+                },
+                error:function(){
+
+                }
+            })
+        })
 
 
         $(".ret").click(function(){

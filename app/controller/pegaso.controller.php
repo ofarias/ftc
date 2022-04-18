@@ -19064,6 +19064,8 @@ function ImpSolicitud2($idsol){
   	}
 
 	function ImprimeFacturaPegaso($factura, $destino){
+		//$this->impFact($factura, $destino);
+		//die;
   		$data= new pegaso;
 		$qr= new qrpegaso;	
 		$letras=new NumberToLetterConverter;
@@ -19115,7 +19117,7 @@ function ImpSolicitud2($idsol){
   		$pdf->SetXY(75, 13);
   		$pdf->Write(10, $DF->DELEGACION.', '.$DF->ESTADO);
         $pdf->SetXY(75, 17);
-  		$pdf->Write(10,'RFC:'.$DF->RFC.'Regimen Fiscal:'.$DF->REGIMEN_FISCAL);
+  		$pdf->Write(10,'RFC:'.$DF->RFC.utf8_decode('Regimen Fiscal:').$DF->REGIMEN_FISCAL);
         $pdf->SetXY(75, 21);
         $pdf->Write(10,'LUGAR DE EXPEDICION: '.$lugar);
         $pdf->SetXY(140, 1);
@@ -19175,7 +19177,7 @@ function ImpSolicitud2($idsol){
         $pdf->SetFont('Arial', 'B', 7);
   		$pdf->Write(6,'Usuario Imprime: '.$usuario);
   		$pdf->Ln(4);
-  		$pdf->Write(6,'Cliente : ('.$data->CLAVE.')'.$data->NOMBRE.' RFC: '.$data->RFC);
+  		$pdf->Write(6,'Cliente : ('.$data->CLAVE.')'.utf8_decode($data->NOMBRE).' RFC: '.$data->RFC);
   		$pdf->Ln(4);
   		$pdf->Write(6,'Direccion: Calle :'.$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F);
   		$pdf->Ln(4);
@@ -19263,7 +19265,7 @@ function ImpSolicitud2($idsol){
             $pdf->Cell(13,6,(substr($row->ARTICULO,0,8)),'L,T,R');
             $pdf->Cell(13,6,($row->CLAVE_SAT),'L,T,R');
            	$pdf->Cell(13,6,($row->MEDIDA_SAT),'L,T,R',0, 'C');
-            $pdf->Cell(60,6,substr($row->DESCRIPCION, 0,45), 'L,T,R');
+            $pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 0,45), 'L,T,R');
             $pdf->Cell(8,6,number_format($row->CANTIDAD,2),'L,T,R');
             $pdf->Cell(10,6,$row->UM,'L,T,R',0, 'C');
             $pdf->Cell(13,6,'$ '.number_format($row->PRECIO,2),'L,T,R',0, 'R');
@@ -19280,7 +19282,7 @@ function ImpSolicitud2($idsol){
 	            $pdf->Cell(13,6,"",'R');
 	            $pdf->SetFont('Arial', 'I', 6);
 	            $pdf->Cell(13,6,substr($row->DESCUNI,0),'L,R');
-            	$pdf->Cell(60,6,substr($row->DESCRIPCION, 45,55),'L,R');
+            	$pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 45,55),'L,R');
 	            $pdf->Cell(8,6,strlen($row->DESCRIPCION),'L,R');
 	            $pdf->Cell(10,6,"",'L,R');
 	            $pdf->Cell(13,6,"",'L,R');
@@ -19412,7 +19414,7 @@ function ImpSolicitud2($idsol){
   			$pdf->Ln(6);
   			$pdf->Write(4,'Nombre _______________________________________  Cargo: _______________________________________  Firma: ______________________________'); 
   			$pdf->Ln(6);
-  			$pdf->Write(4,'Los datos personales obtenidos en este documento tienen por finalidad dar cumplimiento a las disposiciones establecidas por la Ley Federal de Protección de Datos Personales en Posesión de los Particulares');
+  			$pdf->Write(4,utf8_decode('Los datos personales obtenidos en este documento tienen por finalidad dar cumplimiento a las disposiciones establecidas por la Ley Federal de Protección de Datos Personales en Posesión de los Particulares'));
   			$pdf->Ln(6);
   			$pdf->SetFont('Arial','',5);
   			$pdf->Write(6,'Este documento es una representacion impresa de un CFDI');

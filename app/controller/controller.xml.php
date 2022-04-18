@@ -8,6 +8,7 @@ require_once('app/model/database.xmlTools.php');
 require_once('app/model/db.contabilidad.php');
 require_once('app/model/cargaXML.php');
 require_once('app/controller/controller.xml.php');
+require_once('app/model/acomodoXML.php');
 
 class controller_xml{
 	var $contexto_local = "http://SERVIDOR:8081/pegasoFTC/app/";
@@ -2000,6 +2001,17 @@ class controller_xml{
 	    ob_end_clean();
 	    $htmlPath= "..//EdoCtaXLS//".$nom;
 	    return array("status"=>'ok',"archivo"=>$ruta.$nom, "htmlPath"=>$htmlPath);
+	}
+
+	function acomodoXml(){
+		if($_SESSION['user']){
+			$data = new acomodoXML;
+			//$path = "C:\\elcfdi\\DescargaMasiva\\Emitidos";
+			$path = "\\\\DORIS\\Emitidos";
+			$info = $data->acomodo($path);
+			return;
+			/// 61e3 68 00:16:44:67:61:e3    192.168.100.38
+		}
 	}
 
 }?>
