@@ -330,12 +330,14 @@ class controller_xml{
 	        $l_h = 0;
 	        foreach ($res as $key) {
 	            $i++;
-	            if($l_g < strlen('('.$key->CLIENTE.')'.utf8_encode($key->NOMBRE)) ){
+	            /*
+				if($l_g < strlen('('.$key->CLIENTE.')'.utf8_encode($key->NOMBRE)) ){
 	            	$l_g = strlen('('.$key->CLIENTE.')'.utf8_encode($key->NOMBRE));
 	            }
 	            if($l_h < strlen('('.$key->RFCE.')'.$key->EMISOR)){
 	            	$l_h = strlen('('.$key->RFCE.')'.$key->EMISOR);
 	            }
+				*/
 	            $rel = '';
 	            if($doc == 'Pago'){
 	            	$rel = $key->CEPA;
@@ -350,6 +352,9 @@ class controller_xml{
 	                ->setCellValue($Columna.$ln,$i)
 	                ->setCellValue(++$Columna.$ln,$key->POLIZA)
 	                ->setCellValue(++$Columna.$ln,$key->UUID)
+	                ->setCellValue(++$Columna.$ln,$key->VERSION_CFDI)
+	                ->setCellValue(++$Columna.$ln,$key->REG_FISC_RECEP)
+	                ->setCellValue(++$Columna.$ln,$key->DOM_FISC_RECEP)
 					->setCellValue(++$Columna.$ln,$key->CEPA)
 					->setCellValue(++$Columna.$ln,$key->USO)
 	                ->setCellValue(++$Columna.$ln,$rel)
@@ -398,32 +403,35 @@ class controller_xml{
 	        $xls->getActiveSheet()->getColumnDimension($Columna)->setWidth(5);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(20);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(45);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(8);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(10);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(45);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(7);
 			$xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(10);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(25);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(17);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(15);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(20);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(19);
-			$xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth($l_h);
-			$xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth($l_g);
+			$xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(17);
+			$xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(35);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(17);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(35);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(17);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(10);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(10);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(20);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(25);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(20);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(20);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
 	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(5);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(5);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(13);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(7);
+	        $xls->getActiveSheet()->getColumnDimension(++$Columna)->setWidth(7);
 
 	        // Hacer las cabeceras de las lineas;
 	        //->setCellValue('9','')
@@ -432,6 +440,9 @@ class controller_xml{
 	            ->setCellValue($Columna.'9','Ln')
 	            ->setCellValue(++$Columna.'9','Sta')
 	            ->setCellValue(++$Columna.'9','UUID')
+	            ->setCellValue(++$Columna.'9','Version')
+	            ->setCellValue(++$Columna.'9','Regimen Receptor')
+	            ->setCellValue(++$Columna.'9','Ubicacion Receptor')
 				->setCellValue(++$Columna.'9','COMPROBANTES DE PAGO')
 				->setCellValue(++$Columna.'9','USO')
 	            ->setCellValue(++$Columna.'9','UUID RELACIONADOS')

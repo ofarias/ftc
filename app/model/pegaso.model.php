@@ -25074,7 +25074,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	}elseif($ide == 'Recibidos'){
     		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente = '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
     	}
-    	if($ide== 'Emitidos'){
+    	if($ide== 'Emitidos' && ($doc =='I' or $doc == 'E')){
 					$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
     					CASE x.cliente
@@ -25088,13 +25088,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					, fecha_recep as fecha_edo_cta
     					,COALESCE( 
     						CAST(
-    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID or CPD.UUID_PAGO = X.UUID) 
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = UPPER(X.UUID) or CPD.UUID_PAGO = UPPER(X.UUID)) 
     						AS VARCHAR(2000)) , '') AS CEPA
     					
     					,COALESCE(
     						CAST(
     							substring(
-    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID )
+    							(SELECT LIST(R.UUID||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE||'|'||x2.FORMAPAGO) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID )
     							 from 1 for 1499)
     							 AS VARCHAR(1500)
     						), ''
@@ -25103,7 +25103,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					(SELECT DESCRIPCION FROM XML_TIPO_DOC XT WHERE XT.ID_TIPO = X.ID_RELACION) AS TIPO_DOC,
     					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A' and tipo='Dr') AS VARCHAR(2000)),'') as provi
 						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F' or x.status = 'C') $uuid";
-		}else{
+		}elseif($ide == 'Recibidos' && ($doc == 'I' || $doc == 'E')){
     				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
     					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
@@ -25117,7 +25117,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					,COALESCE(
     						CAST(
     						substring( 
-    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) from 1 for 1499)
+    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE||'|'||x2.FORMAPAGO) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) from 1 for 1499)
     							AS VARCHAR(1500)
     						), ''
     						) AS RELACIONES, 
@@ -25127,7 +25127,24 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
 						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
 						
-    	}
+    	}elseif($ide == 'Emitidos' && $doc=='P'){
+			/// en emitidos traemos cuando el rfce es igual al rfc de la empresa que estamos analizando
+			$rfc= $_SESSION['rfc'];
+			$this->query="SELECT X.*, x.importe as importexml ,
+							(SELECT MONTO FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO, 
+							(SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = X.CLIENTE ) AS EMISOR, 
+							(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.RFCE ) AS RECEPTOR
+							FROM XML_DATA X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
+			//die('Estos son los pagos');
+		}elseif($ide == 'Recibidos' && $doc == 'P'){
+			$this->query="SELECT X.*, x.importe as importexml ,
+							(SELECT MONTO FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO,
+							(SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = X.RFCE ) AS RECEPTOR, 
+							(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.CLIENTE ) AS EMISOR
+							FROM XML_DATA X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
+			//die('Estos son los pagos');
+		}
+		//echo $this->query;
     	$res=$this->EjecutaQuerySimple();
     	while($tsArray = ibase_fetch_object($res)){
     		$data[]=$tsArray;
@@ -25231,11 +25248,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					, fecha_recep as fecha_edo_cta
     					,COALESCE( 
     						CAST(
-    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID or CPD.UUID_PAGO = X.UUID) 
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = UPPER(X.UUID) or CPD.UUID_PAGO = UPPER(X.UUID)) 
     						AS VARCHAR(2500)) , '') AS CEPA
     					,COALESCE(
     						CAST(
-    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID ) AS VARCHAR(2000)
+    							(SELECT LIST(R.UUID||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE||'x2.FORMAPAGO') FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID and x2.status !='C' WHERE UPPER(R.UUID) = UPPER(X.UUID) OR UPPER(R.UUID_DOC_REL) = UPPER(X.UUID) ) AS VARCHAR(2000)
     						), ''
     						) AS RELACIONES,
     					X.importe - coalesce((SELECT sum(monto_Aplicado) from aplicaciones ap where ap.observaciones = x.uuid AND STATUS != 'C'), 0) as saldo_xml, 
@@ -25256,12 +25273,12 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					COALESCE(CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(1000)),'') as poliza
     					, COALESCE( 
     						CAST(
-    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID or CPD.UUID_PAGO = X.UUID) 
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = UPPER(X.UUID) or CPD.UUID_PAGO = UPPER(X.UUID)) 
     						AS VARCHAR(1500)) , '') AS CEPA
     					
     					,COALESCE(
     						CAST( 
-    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) AS VARCHAR(1000)
+    							(SELECT LIST(R.UUID||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE||'x2.FORMAPAGO') FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID and x2.status !='C' WHERE UPPER(R.UUID) = UPPER(X.UUID) OR UPPER(R.UUID_DOC_REL) = UPPER(X.UUID)) AS VARCHAR(2000)
     						), ''
     						) AS RELACIONES,
 

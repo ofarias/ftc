@@ -20178,15 +20178,23 @@ function ImpSolicitud2($idsol){
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$pagina = $this->load_template();
-  			$html=$this->load_page('app/views/pages/xml/p.verXMLSP.php');
+			if($doc == 'I' || $doc == 'E'){
+				$html=$this->load_page('app/views/pages/xml/p.verXMLSP.php');
+			}elseif($doc == 'P'){
+				$html=$this->load_page('app/views/pages/xml/p.verXMLSPP.php');
+			}
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
   			$cnxcoi=$_SESSION['cnxcoi'];
   			$uuid =false;
     		$info=$data->verXMLSP($mes, $anio, $ide, $uuid, $doc);
     		$tipoDOC = $data->traeTipo();
-    		include 'app/views/pages/xml/p.verXMLSP.php';
-  			$table = ob_get_clean();
+			if($doc == 'I' || $doc == 'E'){
+				include 'app/views/pages/xml/p.verXMLSP.php';
+			}else{
+				include 'app/views/pages/xml/p.verXMLSPP.php';
+			}
+			$table = ob_get_clean();
   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
   			$this->view_page($pagina);
     	}

@@ -42,25 +42,17 @@
                                     <thead>
                                         <tr>
                                             <th>Ln</th>
-                                            <th>Sta</th>
+                                            <!--<th>Sta</th>-->
                                             <th>UUID</th>
                                             <th>TIPO</th>
-                                            <th>FOLIO<br/>Version</th>
+                                            <th>FOLIO</th>
                                             <th>FECHA</th>
-                                            <th>RFC RECEPTOR</th>
-                                            <th class="impDet">RFC EMISOR</th>
-                                            <th>SUBTOTAL</th>
-                                            <th class="impDet">IVA</th>
-                                            <th class="impDet">RETENCION <br/>IVA</th>
-                                            <th class="impDet">IEPS</th>
-                                            <th class="impDet">RETENCION <br/>IEPS</th>
-                                            <th class="impDet">RETENCION ISR</th>
-                                            <th>DESCUENTO</th>
-                                            <th>TOTAL <br/> <font color="blue">SALDO</font></th>
+                                            <th class="impDet">EMISOR</th>
+                                            <th>RECEPTOR</th>
                                             <th>MON</th>
                                             <th>TC</th>
-                                            <th>CLASIFICAR</th>
-                                            <th>DESCARGA</th>                                            
+                                            <th>MONTO PAGO</th>
+                                            <th>DETALLE PAGO</th>                                            
                                        </tr>
                                     </thead>                                   
                                   <tbody>
@@ -117,121 +109,24 @@
                                         <tr class="<?php echo $test?> odd gradeX " <?php echo $color ?> title="<?php echo $descSta?>" id="ln_<?php echo $ln?>" >
 
                                             <td><?php echo $ln?></td>
-                                            <td><?php echo $test.'<br/><font color="blue">'.$key->POLIZA.'</font>'?></td>
-                                            <td <?php echo ($key->CEPA!='')? 'title="Ver el CEP"':'' ?>>
-                                                <a href="index.coi.php?action=verPolizas&uuid=<?php echo $key->UUID ?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=1320'); return false"> <?php echo $key->UUID ?></a> <br/> <font color="purple" face="verdana"><b>
-                                                    <?php if(strpos($key->CEPA,",")){
-                                                        $val = explode(",", $key->CEPA);
-                                                        for ($i=0; $i <count($val) ; $i++) { 
-                                                            $cep = explode("|",$val[$i]);
-                                                            echo '<a href="index.xml.php?action=verCEP&cep='.$val[$i].'" target="_blank">'.$cep[0].' <font color="red"> $ '.number_format($cep[1],2).'</font></a><br/>';
-                                                        }
-                                                    }else{
-                                                        if(!empty($key->CEPA)){
-                                                        $cep = explode("|",$key->CEPA);
-                                                        echo '<a href="index.xml.php?action=verCEP&cep='.$key->CEPA.'" target="_blank">'.$cep[0].' <font color="red"> $ '.number_format($cep[1],2).'</font></a><br/>';
-                                                        }
-                                                    }
-                                                    ?>
-                                                </b></font> </td>
-                                            <td><?php echo $tipo?><br/><font color='blue'><?php echo $key->METODOPAGO.'<br/>'.$key->FORMAPAGO.'<br/>'.$key->USO.'<br/>'.$key->REG_FISC_RECEP.'<br/>'.$key->DOM_FISC_RECEP?></font></td>
-                                            
-                                            <td title="01--> Nota de crédito de los documentos relacionados&#10;02 --> Nota de débito de los documentos relacionados&#10;03 --> Devolución de mercancía sobre facturas o traslados previos&#10;04 --> Sustitución de los CFDI previos&#10;05 --> Traslados de mercancias facturados previamente&#10;06 --> Factura generada por los traslados previos&#10;07 --> CFDI por aplicación de anticipo ">
-                                                <?php echo $key->SERIE.$key->FOLIO.'<font color="blue"><br/> Version: '.$key->VERSION_CFDI.'</font>'?><br/>
-                                                <?php if(!empty($key->RELACIONES)){?>
-                                                <a href="index.xml.php?action=verRelacion&uuid=<?php echo $key->UUID?>" target="_blank"><font color="blue">
-                                                <b><?php
-                                                        $rel=explode(",",$key->RELACIONES);
-                                                        //echo '<br/> Valor de rel: '.count($rel).'<br/>'; 
-                                                        for($i=0; $i < count($rel); $i++){
-                                                            //echo '<br/>'.var_dump($rel).'<br/>';
-                                                            //echo $i.'<br/>'; 
-                                                            $rl=explode("|", $rel[$i]);
-                                                            //echo '<br/>'.var_dump($rl);
-                                                            echo '<br/>'.$rl[1].'-->'.$rl[2].'<font color="red"> $ '.number_format($rl[3],2).'</font>';
-                                                        }
-                                                    ?>   
-                                                </b>
-                                                </font>
-                                                </a>
-                                               <?php } ?>
-                                            </td>
+                                            <!--<td><?php echo $test.'<br/><font color="blue">'.$key->POLIZA.'</font>'?></td>-->
+                                            <td><?php echo $key->UUID?></td>
+                                            <td><font color='blue'><?php echo $tipo?><br/><?php echo $key->METODOPAGO.'<br/>'.$key->FORMAPAGO.'<br/>'.$key->USO?></font></td>
+                                            <td><?php echo $key->DOCUMENTO?></td>
+
                                             <td><?php echo $key->FECHA;?> </td>
 
-                                            <td><a href="index.xml.php?action=infoProv&rfc=<?php echo $key->CLIENTE?>&tipo=<?php echo $ide?>" target="_blank" > <?php echo '('.$key->CLIENTE.')  <br/><b>'.($key->NOMBRE).'<b/>';?></a></td>
+                                            <td><?php echo $key->RFCE.'<br/><b>'.$key->RECEPTOR.'<b/>'?></td>
 
-                                            <td class="impDet"><a href="index.xml.php?action=infoProv&rfc=<?php echo $key->RFCE?>&tipo=<?php echo $ide?>" target="_blank"><?php echo '('.$key->RFCE.')  <br/><b>'.$key->EMISOR.'<b/>'?></a></td>
+                                            <td><?php echo $key->CLIENTE.'<br/><b>'.$key->EMISOR.'<b/>'?></td>
 
 
-                                            <td><?php echo '$ '.number_format($key->SUBTOTAL,2);?></td>
-                                            <td class="impDet"><?php echo '$ '.number_format($key->IVA,2);?></td>
-                                            <td class="impDet"><?php echo '$ '.number_format($key->IVA_RET,2);?></td>
-                                            <td class="impDet"><?php echo '$ '.number_format($key->IEPS,2);?></td>
-                                            <td class="impDet"><?php echo '$ '.number_format($key->IEPS_RET,2);?></td>
-                                            <td class="impDet"><?php echo '$ '.number_format($key->ISR_RET,2);?></td>
-                                            <td><?php echo '$ '.number_format($key->DESCUENTO,2);?></td>
-                                            
-                                            <td title="Informacion del pago" id="tip_<?php echo $ln?>">
-                                                <?php echo '$ '.number_format($key->IMPORTEXML,2);?> <br/>
-                                            <font color="blue"><label class="infoPago" ln="<?php echo $ln?>" uuid="<?php echo $key->UUID?>"><?php echo '$ '.number_format($key->SALDO_XML,2)?></label></font> </td>
-
-                                            <td><?php echo '<b>'.$key->MONEDA.'<b/>';?> </td>
-                                            <td><?php echo '$ '.number_format($key->TIPOCAMBIO,2);?> </td>
-                                            <td align="center" title="" id="ia_<?php echo $ln?>" class="infoAdicional" >
-                                                <a href="index.php?action=verXML&uuid=<?php echo $key->UUID?>&ide=<?php echo $ide?>&anio=<?php echo substr($anio,2)?>" class="btn btn-info" target="popup" onclick="marcar(<?php echo $ln?>, 'c'); window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar </a>
-                                                <center><input type="checkbox" name="revision" id="<?php echo $ln?>" value="<?php echo $ln?>" color="<?php echo $color2?>" onclick="marcar(this.value, 'cb')" ></center>
-                                                <br/>
-                                                <?php if($ide == 'Recibidos'){?>
-                                                    <select name="tipo" class="tipoDoc" uuid="<?php echo $key->UUID?>" >
-                                                        <?php if($key->ID_RELACION > 0){?>
-                                                            <option value="<?php echo $key->ID_RELACION?>"><?php echo $key->TIPO_DOC?></option>
-                                                        <?php }else{?>
-                                                            <option value="">¿Tipo?</option>
-                                                        <?php }?>
-                                                        <?php foreach($tipoDOC as $tdoc ):?>
-                                                            <?php if($tdoc->ID_TIPO >= 2000 AND $tdoc->ID_TIPO< 3000 ){ ?>
-                                                            <option value="<?php echo $tdoc->ID_TIPO?>"><?php echo $tdoc->DESCRIPCION?></option>
-                                                            <?php }?>   
-                                                        <?php endforeach;?>
-                                                    </select>
-                                                <?php }else{?>
-                                                    <select name="tipo" class="tipoDoc" uuid="<?php echo $key->UUID?>">
-                                                        <?php if($key->ID_RELACION > 0){?>
-                                                            <option value="<?php echo $key->ID_RELACION?>"><?php echo $key->TIPO_DOC?></option>
-                                                        <?php }else{?>
-                                                            <option value="">¿Tipo?</option>
-                                                        <?php }?>
-                                                        <?php foreach($tipoDOC as $tdoc ):?>
-                                                            <?php if($tdoc->ID_TIPO >= 0 AND $tdoc->ID_TIPO < 2000 ){?>
-                                                                <option value="<?php echo $tdoc->ID_TIPO?>"><?php echo $tdoc->DESCRIPCION?></option>
-                                                            <?php }?>   
-                                                        <?php endforeach;?>
-                                                    </select>
-                                                <?php }?>
-                                            </td>
-                                            <form action="index.php" method="POST">
-                                                    <input type="hidden" name="factura" value="<?php echo $key->SERIE.$key->FOLIO?>">
-                                                <td>
-                                                    <?php if($ide == 'Recibidos'){?>
-                                                        <a href="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->RFCE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" 
-                                                        download="<?php echo $key->RFCE.'-'.substr($key->FECHA, 0, 10).'-'.number_format($key->IMPORTE,2).'-'.$key->UUID.'.xml'?>">  
-                                                        <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>
-
-                                                    <?php }else{?>
-                                                        <a href="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->CLIENTE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" 
-                                                            download="<?php echo $key->RFCE.'-'.substr($key->FECHA, 0, 10).'-'.number_format($key->IMPORTE,2).'-'.$key->UUID.'.xml'?>">  
-                                                        <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>
-                                                    <?php }?>
-                                                    &nbsp;&nbsp;
-                                                    <a href="index.php?action=imprimeUUID&uuid=<?php echo $key->UUID?>" onclick="alert('Se ha descargar tu factura, revisa en tu directorio de descargas')"><img border='0' src='app/views/images/pdf.jpg' width='25' height='30'></a>
-                                                
-                                                <?php if($_SESSION['rfc']== 'IMI161007SY7'){?>
-                                                    <input type="button" value="" class="btn-sm btn-info cargaSAE" doc="<?php echo $key->SERIE.$key->FOLIO?>" ruta="/uploads/xml/<?php echo $rfcEmpresa.'/'.$ide.'/'.$key->CLIENTE.'/'.$key->RFCE.'-'.$key->SERIE.$key->FOLIO.'-'.$key->UUID.'.xml'?>" serie="<?php echo $key->SERIE?>" folio ="<?php echo $key->FOLIO?>" uuid="<?php echo $key->UUID?>" rfcr="<?php echo $key->CLIENTE?>" ln="<?php echo $ln?>" tipo="<?php echo $doc?>">
-                                                <?php }?>
-                                                </td>
-                                            </form>
+                                            <td><?php echo $key->MONEDA;?> </td>
+                                    
+                                            <td align='right'><?php echo '$ '.number_format($key->TIPOCAMBIO,2);?></td>
+                                            <td align='right'><?php echo '$ '.number_format($key->MONTO_PAGO,2);?></td>
+                                            <td><label id="<?php echo $key->UUID?>" uuid="<?php echo $key->UUID?>" class="pagodet" ></label></td>
                                         </tr>
-                                        </form>
                                         <?php endforeach; ?>
                                  </tbody>
                                 </table>
@@ -247,6 +142,59 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $(document).ready(function(){
+        detallePago();
+    })                                            
+
+        function detallePago(){
+            $(".pagodet").each(function(){
+                var uuid = $(this).attr("uuid")
+                //alert("Traemos el pago del documento "  + uuid)
+                var pos=document.getElementById(uuid)
+                var doc = 0
+                $.ajax({
+                    url:'index.pago.php',
+                    type:'post', 
+                    dataType:'json', 
+                    data:{detallePago:uuid},
+                    success:function(data){
+                        if(data.status=='ok'){
+                            //pos.innerHTML = "Traemos la informacion"
+                            if(data.datos.length > 0){
+                                for(const [key, value] of Object.entries(data.datos)){                                 
+                                    doc++
+                                    for(const [k,val] of Object.entries(value)){
+                                        if(k=='SERIE'){var serie=val}
+                                        if(k=='FOLIO'){var folio=val}
+                                        if(k=='SALDO'){ var saldo=val}    
+                                        if(k=='PAGO'){ var pago=val}   
+                                        if(k=='SALDO_INSOLUTO'){ var saldo_ins=val}   
+                                        if(k=='METODO_PAGO'){ var mp=val}
+                                        if(k=='ID_DOCUMENTO'){ var uuid_doc=val}   
+                                    }
+                                    saldo = saldo.toLocaleString(undefined, { minimumFractionDigits: 2,maximumFractionDigits: 2})
+                                    pago = pago.toLocaleString(undefined, { minimumFractionDigits: 2,maximumFractionDigits: 2})
+                                    saldo_ins = saldo_ins.toLocaleString(undefined, { minimumFractionDigits: 2,maximumFractionDigits: 2})
+                                    pos.innerHTML+="<b> "+ doc +" </b> <br/>"
+                                    pos.innerHTML+="<b> UUID :</b>"+ uuid_doc +"  <br/>"
+                                    pos.innerHTML+="<b>Documento:</b> " + serie + folio + ' Metodo de Pago: '+ mp + '<br/>'
+                                    pos.innerHTML+="<b> Saldo: </b> <font color='green'>" + saldo + '</font><br/>'
+                                    pos.innerHTML+="<b> Pago : </b> <font color='blue'>" + pago + '</font><br/>'
+                                    pos.innerHTML+="<b> Saldo Insoluto: </b> <font color='red'>" + saldo_ins + '</font><br/>'
+                                    pos.innerHTML+="<b> ______________________________ </b> <br/>"
+                                }
+                            }
+                        }else{
+                            pos.innerHTML = "No se encontro informacion del pago..."
+                        }
+                    },
+                    error:function(){
+                        pos.innerHTML = "No se encontro informacion del pago..."
+                    }
+                })
+            })
+        }
 
     $(".infoPago").mouseover(function(){
         var text = 'Nuevo Texto'
