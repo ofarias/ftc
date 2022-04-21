@@ -12,9 +12,8 @@
                         <?php }else{?>
                             <p><?php echo 'Se muestran los XML '.$ide." del mes ".$mes." del ".$anio?></p>
                         <?php }?>
-                        <p>Ver impuestos &nbsp;&nbsp;Si: <input type="radio" name="verImp" id="verImp" class="imp" value="si"> &nbsp;&nbsp;No: <input type="radio" name="verImp" id="NoverImp" class="imp" value="no">&nbsp;&nbsp;&nbsp;&nbsp; 
                             <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descargar a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','x')"></font>
-                            <font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descarga Partidas a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','xp')"></font>
+                            <!--<font color="blue"><input type="button" ide="<?php echo $ide?>" value="Descarga Partidas a Excel" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>','xp')"></font>-->
                             <?php if($cnxcoi=='si'){?>
                             <font color="black"><input type="button" value="Consolidar Polizas" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'c')"></font>
                             <font color="red"><input type="button"  value="Revision Contabilizacion" onclick="excel(<?php echo $mes?>, <?php echo $anio?>, '<?php echo $ide?>', '<?php echo $doc?>', 'z')"></font>
@@ -146,55 +145,56 @@
     $(document).ready(function(){
         detallePago();
     })                                            
-
-        function detallePago(){
-            $(".pagodet").each(function(){
-                var uuid = $(this).attr("uuid")
-                //alert("Traemos el pago del documento "  + uuid)
-                var pos=document.getElementById(uuid)
-                var doc = 0
-                $.ajax({
-                    url:'index.pago.php',
-                    type:'post', 
-                    dataType:'json', 
-                    data:{detallePago:uuid},
-                    success:function(data){
-                        if(data.status=='ok'){
-                            //pos.innerHTML = "Traemos la informacion"
-                            if(data.datos.length > 0){
-                                for(const [key, value] of Object.entries(data.datos)){                                 
-                                    doc++
-                                    for(const [k,val] of Object.entries(value)){
-                                        if(k=='SERIE'){var serie=val}
-                                        if(k=='FOLIO'){var folio=val}
-                                        if(k=='SALDO'){ var saldo=val}    
-                                        if(k=='PAGO'){ var pago=val}   
-                                        if(k=='SALDO_INSOLUTO'){ var saldo_ins=val}   
-                                        if(k=='METODO_PAGO'){ var mp=val}
-                                        if(k=='ID_DOCUMENTO'){ var uuid_doc=val}   
-                                    }
-                                    saldo = saldo.toLocaleString(undefined, { minimumFractionDigits: 2,maximumFractionDigits: 2})
-                                    pago = pago.toLocaleString(undefined, { minimumFractionDigits: 2,maximumFractionDigits: 2})
-                                    saldo_ins = saldo_ins.toLocaleString(undefined, { minimumFractionDigits: 2,maximumFractionDigits: 2})
-                                    pos.innerHTML+="<b> "+ doc +" </b> <br/>"
-                                    pos.innerHTML+="<b> UUID :</b>"+ uuid_doc +"  <br/>"
-                                    pos.innerHTML+="<b>Documento:</b> " + serie + folio + ' Metodo de Pago: '+ mp + '<br/>'
-                                    pos.innerHTML+="<b> Saldo: </b> <font color='green'>" + saldo + '</font><br/>'
-                                    pos.innerHTML+="<b> Pago : </b> <font color='blue'>" + pago + '</font><br/>'
-                                    pos.innerHTML+="<b> Saldo Insoluto: </b> <font color='red'>" + saldo_ins + '</font><br/>'
-                                    pos.innerHTML+="<b> ______________________________ </b> <br/>"
+    function detallePago(){
+        $(".pagodet").each(function(){
+            var uuid = $(this).attr("uuid")
+            //alert("Traemos el pago del documento "  + uuid)
+            var pos=document.getElementById(uuid)
+            var doc = 0
+            $.ajax({
+                url:'index.pago.php',
+                type:'post', 
+                dataType:'json', 
+                data:{detallePago:uuid},
+                success:function(data){
+                    if(data.status=='ok'){
+                        //pos.innerHTML = "Traemos la informacion"
+                        if(data.datos.length > 0){
+                            for(const [key, value] of Object.entries(data.datos)){                                 
+                                doc++
+                                for(const [k,val] of Object.entries(value)){
+                                    if(k=='SERIE'){var serie=val}
+                                    if(k=='FOLIO'){var folio=val}
+                                    if(k=='SALDO'){ var saldo=val}    
+                                    if(k=='PAGO'){ var pago=val}   
+                                    if(k=='SALDO_INSOLUTO'){ var saldo_ins=val}   
+                                    if(k=='METODO_PAGO'){ var mp=val}
+                                    if(k=='ID_DOCUMENTO'){ var uuid_doc=val}   
+                                    if(k=='TIPO_CAMBIO'){ var tc=val}   
                                 }
+                                saldo = saldo.toLocaleString(undefined, { minimumFractionDigits: 2,maximumFractionDigits: 2})
+                                pago = pago.toLocaleString(undefined, { minimumFractionDigits: 2,maximumFractionDigits: 2})
+                                saldo_ins = saldo_ins.toLocaleString(undefined, { minimumFractionDigits: 2,maximumFractionDigits: 2})
+                                tc = tc.toLocaleString(undefined, { minimumFractionDigits:2, maximumFractionDigits:2})
+                                pos.innerHTML+="<b> "+ doc +" </b> <br/>"
+                                pos.innerHTML+="<b> UUID :</b>"+ uuid_doc +"  <br/>"
+                                pos.innerHTML+="<b>Documento:</b> " + serie + folio + ' Metodo de Pago: '+ mp + '<br/>'
+                                pos.innerHTML+="<b> Saldo: </b> <font color='green'>" + saldo + '</font><br/>'
+                                pos.innerHTML+="<b> Pago : </b> <font color='blue'>" + pago + "</font> TC: <font color='blue'>"+ tc + "</font><br/>"
+                                pos.innerHTML+="<b> Saldo Insoluto: </b> <font color='red'>" + saldo_ins + '</font><br/>'
+                                pos.innerHTML+="<b> ______________________________ </b> <br/>"
                             }
-                        }else{
-                            pos.innerHTML = "No se encontro informacion del pago..."
                         }
-                    },
-                    error:function(){
+                    }else{
                         pos.innerHTML = "No se encontro informacion del pago..."
                     }
-                })
+                },
+                error:function(){
+                    pos.innerHTML = "No se encontro informacion del pago..."
+                }
             })
-        }
+        })
+    }
 
     $(".infoPago").mouseover(function(){
         var text = 'Nuevo Texto'
@@ -378,7 +378,7 @@
                 var self = this;
                 self.setContent(con);
                 return  $.ajax({
-                            url:'index.xml.php',
+                            url:'index.pago.php',
                             type:'post',
                             dataType:'json',
                             data:{xmlExcel:1, mes, anio, ide, doc, t}

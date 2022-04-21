@@ -298,7 +298,7 @@ class controller_xml{
 				$res=$this->xmlExcelPar($mes, $anio, $ide, $doc, $t);
 				return $res;
 			}
-
+			
 			$data = new pegaso();
 			$res=$data->verXMLSP_xls($mes, $anio, $ide, $uuid=false, $doc);
 			$xls= new PHPExcel();

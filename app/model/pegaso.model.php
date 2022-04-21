@@ -24165,8 +24165,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			          				$numParcialidad =isset($pgdet['NumParcialidad'])? $pgdet['NumParcialidad']:1; 
 			          				$impSaldoAnt =isset($pgdet['ImpSaldoAnt'])? $pgdet['ImpSaldoAnt']:0; 
 			          				$impPago =isset($pgdet['ImpPagado'])? $pgdet['ImpPagado']:0; 
-			          				$impSaldoIns =isset($pgdet['ImpSaldoInsoluto'])? $pgdet['ImpSaldoInsoluto']:0; 
-			          				$pagoDetalle[]=array('idDocumento'=>$idDocumento,'serie'=>$serie,'folio'=>$folio,'monedaDr'=>$monedaDr,'metodoPago'=>$metodoPago,'numParcialidad'=>$numParcialidad,'impSaldoAnt'=>$impSaldoAnt,'impPago'=>$impPago,'impSaldoIns'=>$impSaldoIns);
+			          				$impSaldoIns =isset($pgdet['ImpSaldoInsoluto'])? $pgdet['ImpSaldoInsoluto']:0;
+									$tc =isset($pgdet['TipoCambioDR'])? $pgdet['TipoCambioDR']:1; 
+			          				$pagoDetalle[]=array('idDocumento'=>$idDocumento,'serie'=>$serie,'folio'=>$folio,'monedaDr'=>$monedaDr,'metodoPago'=>$metodoPago,'numParcialidad'=>$numParcialidad,'impSaldoAnt'=>$impSaldoAnt,'impPago'=>$impPago,'impSaldoIns'=>$impSaldoIns, 'tc'=>$tc);
 			          			}
 			          		}
 			          	}
@@ -24416,10 +24417,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 									$impSaldoAnt = $keyPD['impSaldoAnt'];
 									$impPago = $keyPD['impPago'];
 									$impSaldoIns = $keyPD['impSaldoIns'];
-			            			$this->query="INSERT INTO XML_COMPROBANTE_PAGO_DETALLE (ID, ID_DOCUMENTO,SERIE,FOLIO,	MONEDA,METODO_PAGO,NUM_PARCIALIDAD,SALDO,PAGO,SALDO_INSOLUTO,STATUS, UUID_PAGO) VALUES ( null, '$idDocumento', '$serie', '$folio', '$monedaDr', '$metodoPago', $numParcialidad, $impSaldoAnt, $impPago, $impSaldoIns, 'P', '$uuid')";
+									$tc = $keyPD['tc'];
+			            			$this->query="INSERT INTO XML_COMPROBANTE_PAGO_DETALLE (ID, ID_DOCUMENTO,SERIE,FOLIO,	MONEDA,METODO_PAGO,NUM_PARCIALIDAD,SALDO,PAGO,SALDO_INSOLUTO,STATUS, UUID_PAGO, TIPO_CAMBIO) VALUES ( null, '$idDocumento', '$serie', '$folio', '$monedaDr', '$metodoPago', $numParcialidad, $impSaldoAnt, $impPago, $impSaldoIns, 'P', '$uuid', $tc)";
 			            			$this->grabaBD();
 			            		}
-								
 			            	}
 
 							if($xml->xpath('//cfdi:CfdiRelacionados')){
@@ -25131,15 +25132,15 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			/// en emitidos traemos cuando el rfce es igual al rfc de la empresa que estamos analizando
 			$rfc= $_SESSION['rfc'];
 			$this->query="SELECT X.*, x.importe as importexml ,
-							(SELECT MONTO FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO, 
-							(SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = X.CLIENTE ) AS EMISOR, 
+							(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO, 
+							(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.CLIENTE and tipo = 'Cliente') AS EMISOR, 
 							(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.RFCE ) AS RECEPTOR
 							FROM XML_DATA X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
 			//die('Estos son los pagos');
 		}elseif($ide == 'Recibidos' && $doc == 'P'){
 			$this->query="SELECT X.*, x.importe as importexml ,
-							(SELECT MONTO FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO,
-							(SELECT NOMBRE FROM XML_CLIENTES WHERE RFC = X.RFCE ) AS RECEPTOR, 
+							(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO,
+							(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.RFCE and tipo = 'Proveedor') AS RECEPTOR, 
 							(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.CLIENTE ) AS EMISOR
 							FROM XML_DATA X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
 			//die('Estos son los pagos');
