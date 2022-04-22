@@ -19503,6 +19503,7 @@ function ImpSolicitud2($idsol){
         	$lugar = $dataF->LUGAREXPEDICION;
         	$cadenaSat = '||'.$version.'|'.$uuid.'|'.$fechaTimbre.'|'.$rfcProv.'|'.$selloSAT.'|'.$NoCertiSat;
         	$usocfdi = $dataF->USO;
+
         }
 
         $pdf->SetFont('Arial', 'B', 6);
@@ -19517,8 +19518,8 @@ function ImpSolicitud2($idsol){
         $pdf->Cell(100,6,'Receptor',1,0,'C', True);
         $pdf->Ln(6);
         $pdf->SetFont('Arial', 'I', 6);
-        $pdf->Cell(100,6,$c->NOMBRE_EMISOR,1,0,'C');
-        $pdf->Cell(100,6,$c->NOMBRE_RECEPTOR,1,0,'C');
+        $pdf->Cell(100,6,utf8_decode($c->NOMBRE_EMISOR),1,0,'C');
+        $pdf->Cell(100,6,utf8_decode($c->NOMBRE_RECEPTOR),1,0,'C');
         $pdf->Ln(6);
         $pdf->Cell(100,6,$c->RFCE,1,0,'C');
         $pdf->Cell(100,6,$c->CLIENTE,1,0,'C');
@@ -19535,7 +19536,7 @@ function ImpSolicitud2($idsol){
 		$pdf->Cell(100,6,'Serie: '.$c->SERIE,1,0,'C');
         $pdf->Cell(100,6,'Folio: '.$c->FOLIO,1,0,'C');
 		$pdf->Ln(6);
-		$pdf->Cell(100,6,'Monto: '.number_format($c->IMPORTE,2),1,0,'C');
+		$pdf->Cell(100,6,utf8_decode('Versión: ').$c->VERSION_CFDI,1,0,'C');
         $pdf->Cell(100,6,'Uso: '.$c->USO,1,0,'C');
 		$pdf->Ln(6);
 		$pdf->Cell(100,6,'Moneda: '.$c->MONEDA,1,0,'C');
@@ -19546,6 +19547,12 @@ function ImpSolicitud2($idsol){
         $pdf->Ln(6);
 		$pdf->Cell(100,6,'Lugar de Expedicion: '.$c->LUGAREXPEDICION,1,0,'C');
         $pdf->Cell(100,6,'Fecha de Timbrado: '.$c->FECHATIMBRADO,1,0,'C');
+		$pdf->Ln(6);
+		$pdf->Cell(100,6,'Importe Documento: '.number_format($c->IMPORTE,2),1,0,'C');
+        $pdf->Cell(100,6,'Importe Impuestos: IVA 16% '.number_format($c->IVA160,3),1,0,'C');
+		$pdf->Ln(6);
+		$pdf->Cell(100,6,'Retencion de IVA: '.number_format($c->IVA_RET,3),1,0,'C');
+        $pdf->Cell(100,6,'Retencion ISR '.number_format($c->ISR_RET,3),1,0,'C');
 		$pdf->Ln(6);
         $pdf->Ln(6);
         $pdf->SetFont('Arial', 'B', 7);
@@ -19580,7 +19587,7 @@ function ImpSolicitud2($idsol){
 		$pdf->SetFont('Arial', 'I', 6);
         $pdf->Ln(6);
         $pdf->Cell(5,6,'Ln',1,0,'C');	
-        $pdf->Cell(125,6,'Descripcion',1,0,'C');	
+        $pdf->Cell(125,6,utf8_decode('Descripción'),1,0,'C');	
         $pdf->Cell(15,6,'Clave',1,0,'C');	
         $pdf->Cell(10,6,'Unidad',1,0,'C');	
         $pdf->Cell(15,6,'Cantidad',1,0,'C');	
@@ -19589,7 +19596,7 @@ function ImpSolicitud2($idsol){
         $pdf->Ln(6);
         foreach ($partidas as $par) {
         	$pdf->Cell(5,6,$par->PARTIDA,1,0,'C');
-    	    $pdf->Cell(125,6,substr($par->DESCRIPCION,0,100),1,0,'L');
+    	    $pdf->Cell(125,6,utf8_decode(substr($par->DESCRIPCION,0,100)),1,0,'L');
         	$pdf->Cell(15,6,$par->CLAVE_SAT,1,0,'C');
 	        $pdf->Cell(10,6,$par->UNIDAD_SAT,1,0,'C');
 	        $pdf->Cell(15,6,$par->CANTIDAD,1,0,'C');

@@ -38,7 +38,7 @@ class pagos extends database {
 
     function infoPagosDetalle($uuid){
         $data=array();
-        $this->query="SELECT xcpd.*, x.fecha AS FECHA_DOC, x.serie as ser, x.folio as fol 
+        $this->query="SELECT xcpd.*, x.fecha AS FECHA_DOC, x.serie as ser, x.folio as fol, (SELECT FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = xcpd.UUID_PAGO) AS FECHA_PAGO 
                 FROM XML_COMPROBANTE_PAGO_DETALLE xcpd left join xml_data_upper x on x.uuid = xcpd.id_documento or x.uuid_upper = xcpd.id_documento WHERE xcpd.UUID_PAGO = '$uuid'";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){

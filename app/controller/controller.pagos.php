@@ -195,7 +195,7 @@ class ctrl_pago{
 							->setCellValue(++$Columna.$ln,$detalle->ID_DOCUMENTO)
 							->setCellValue(++$Columna.$ln,$detalle->TIPO_CAMBIO)
 							->setCellValue(++$Columna.$ln,$detalle->FECHA_DOC)
-							->setCellValue(++$Columna.$ln,$pago->FECHA)
+							->setCellValue(++$Columna.$ln,$detalle->FECHA_PAGO)
 						;
 						$ln++;
 						$xls->getActiveSheet()->getStyle("C".($ln-1).':'.$Columna.($ln-1))->applyFromArray(

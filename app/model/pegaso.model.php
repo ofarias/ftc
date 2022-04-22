@@ -25138,15 +25138,17 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$this->query="SELECT X.*, x.importe as importexml ,
 							(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO, 
 							(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.CLIENTE and tipo = 'Cliente') AS EMISOR, 
-							(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.RFCE ) AS RECEPTOR
-							FROM XML_DATA X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
+							(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.RFCE ) AS RECEPTOR,
+							(SELECT FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
+							FROM XML_DATA_UPPER X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
 			//die('Estos son los pagos');
 		}elseif($ide == 'Recibidos' && $doc == 'P'){
 			$this->query="SELECT X.*, x.importe as importexml ,
 							(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO,
 							(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.RFCE and tipo = 'Proveedor') AS RECEPTOR, 
-							(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.CLIENTE ) AS EMISOR
-							FROM XML_DATA X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
+							(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.CLIENTE ) AS EMISOR,
+							(SELECT FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
+							FROM XML_DATA_UPPER X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
 			//die('Estos son los pagos');
 		}else{
 			$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
@@ -27460,7 +27462,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function cabeceraUUID($uuid){
 		$data = array();
-		$this->query="SELECT X.*, COALESCE((SELECT FIRST 1 NOMBRE FROM XML_CLIENTES WHERE RFC = RFCE ), (SELECT F.RAZON_SOCIAL FROM FTC_EMPRESAS F WHERE F.RFC = X.RFCE)) AS NOMBRE_EMISOR, coalesce((SELECT FIRST 1 NOMBRE FROM XML_CLIENTES WHERE RFC=CLIENTE), (SELECT F.RAZON_SOCIAL FROM FTC_EMPRESAS F WHERE F.RFC = X.CLIENTE)) AS NOMBRE_RECEPTOR FROM XML_DATA X WHERE upper(UUID) =upper('$uuid')";
+		$this->query="SELECT X.*, COALESCE((SELECT FIRST 1 NOMBRE FROM XML_CLIENTES WHERE RFC = RFCE ), (SELECT F.RAZON_SOCIAL FROM FTC_EMPRESAS F WHERE F.RFC = X.RFCE)) AS NOMBRE_EMISOR, coalesce((SELECT FIRST 1 NOMBRE FROM XML_CLIENTES WHERE RFC=CLIENTE), (SELECT F.RAZON_SOCIAL FROM FTC_EMPRESAS F WHERE F.RFC = X.CLIENTE)) AS NOMBRE_RECEPTOR FROM XML_DATA_UPPER X WHERE UUID ='$uuid' OR UUID_UPPER ='$uuid'";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;

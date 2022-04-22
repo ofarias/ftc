@@ -45,6 +45,7 @@
                                             <th>UUID</th>
                                             <th>TIPO</th>
                                             <th>FOLIO</th>
+                                            <th>FECHA PAGO</th>
                                             <th>FECHA</th>
                                             <th class="impDet">EMISOR</th>
                                             <th>RECEPTOR</th>
@@ -112,6 +113,8 @@
                                             <td><?php echo $key->UUID?></td>
                                             <td><font color='blue'><?php echo $tipo?><br/><?php echo $key->METODOPAGO.'<br/>'.$key->FORMAPAGO.'<br/>'.$key->USO?></font></td>
                                             <td><?php echo $key->DOCUMENTO?></td>
+
+                                            <td><b><?php echo $key->FECHA_PAGO;?> </b></td>
 
                                             <td><?php echo $key->FECHA;?> </td>
 

@@ -52,8 +52,8 @@
                                             <th>SUBTOTAL</th>
                                             <th class="impDet">IVA</th>
                                             <th class="impDet">RETENCION <br/>IVA</th>
-                                            <th class="impDet">IEPS</th>
-                                            <th class="impDet">RETENCION <br/>IEPS</th>
+                                            <!--<th class="impDet">IEPS</th>-->
+                                            <!--<th class="impDet">RETENCION <br/>IEPS</th>-->
                                             <th class="impDet">RETENCION ISR</th>
                                             <th>DESCUENTO</th>
                                             <th>TOTAL <br/> <font color="blue">SALDO</font></th>
@@ -164,10 +164,10 @@
 
 
                                             <td><?php echo '$ '.number_format($key->SUBTOTAL,2);?></td>
-                                            <td class="impDet"><?php echo '$ '.number_format($key->IVA,2);?></td>
+                                            <td class="impDet"><?php echo '$ '.number_format($key->IVA160,2);?></td>
                                             <td class="impDet"><?php echo '$ '.number_format($key->IVA_RET,2);?></td>
-                                            <td class="impDet"><?php echo '$ '.number_format($key->IEPS,2);?></td>
-                                            <td class="impDet"><?php echo '$ '.number_format($key->IEPS_RET,2);?></td>
+                                            <!--<td class="impDet"><?php echo '$ '.number_format($key->IEPS,2);?></td>-->
+                                            <!--<td class="impDet"><?php echo '$ '.number_format($key->IEPS_RET,2);?></td>-->
                                             <td class="impDet"><?php echo '$ '.number_format($key->ISR_RET,2);?></td>
                                             <td><?php echo '$ '.number_format($key->DESCUENTO,2);?></td>
                                             
