@@ -23942,6 +23942,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		$rfce = $Emisor['Rfc'];
 			            		$nombreE = str_replace("'", "", $Emisor['Nombre']);
 			            		$regimen = $Emisor['RegimenFiscal'];
+			            	}elseif($version == '4.0'){
+			            		$rfce = $Emisor['Rfc'];
+			            		$nombreE = str_replace("'", "", $Emisor['Nombre']);
+			            		$regimen = $Emisor['RegimenFiscal'];
 			            	}
 			            }
 			            		$recep_calle='';
@@ -23973,7 +23977,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$recep_pais='';
 				            	$recep_cp='';
 			            	}elseif($version == '4.0'){
-								$recep_calle='';
+											$recep_calle='';
 				            	$recep_noExterior='';
 				            	$recep_noInterior='';
 				            	$recep_colonia='';
@@ -23981,7 +23985,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$recep_estado='';
 				            	$recep_pais='';
 				            	$recep_cp='';
-							}
+										}
 			            }
 			            /// debemos traer el RFC de la empresa que se esta trabajando.
 			            $rfcEmpresa = $_SESSION['rfc'];
@@ -27931,7 +27935,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			if($key['ca']=='a'){
 				$folio=$this->folioBanco($banco, $cuenta);
 				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS, REGISTRO) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs', $reg) ";
-				//echo '<br/>Consulta Carga Pagos: <br/>'.$this->query.'<br/>';
 				$this->grabaBD();
 			}elseif($key['ca']=='c'){
 				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo, NUM_PAR) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto', $reg) RETURNING ID";
@@ -27943,7 +27946,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						$tipo = 'TR';
 				 		break;
 				}
-				//echo '<br/>Consulta Gastos: <br/>'.$this->query.'<br/>';
 				$foliog=$this->grabaBD();
 				$row=ibase_fetch_object($foliog);
 				$tipo = substr($tipo,0,2);
@@ -27956,6 +27958,14 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			}
 		}
 		$dup=$this->revisaDuplicado(); 
+		/// Aplicacion de los pagos y gastos 
+		### 1 Creamos un array con las nuevas aplicaciones con el ID y el UUID, 
+		### 2 Buscamos la informaicon del UUID en XML_DATA , si existe y el monto aplicado es menor o igual al saldo del documento, entonces creamos la aplicacion.
+		### 3 Creamos un array de las aplicaciones para posteriormente hacer la poliza de Ig.
+		### 4 creacion de reporte con el resultado para medir la eficiencia. 
+		### 
+
+		/// creacion de las polizas de Gastos y Pagos
 	}
 
 	function revisaDuplicado(){
