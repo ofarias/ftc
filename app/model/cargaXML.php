@@ -144,7 +144,6 @@ class cargaXML extends database {
 					$this->query="INSERT INTO FTC_META_DATOS (IDMD, UUID, RFCE, NOMBRE_EMISOR, RFCR, NOMBRE_RECEPTOR, RFCPAC, FECHA_EMISION, FECHA_CERTIFICACION, MONTO, EFECTO_COMPROBANTE, STATUS, FECHA_CANCELACION, ARCHIVO, FECHA_CARGA, USUARIO, PROCESADO, UUID_ORIGINAL) 
 									VALUES (NULL, '$d[0]', '$d[1]', '$nombre_e', '$d[3]', '$nombre_r', '$d[5]', '$d[6]','$d[7]', $d[8], '$d[9]', $d[10], ".$fc.", '$archivo', current_timestamp, '$usuario', 0, (SELECT UUID FROM XML_DATA X WHERE X.UUID CONTAINING('$d[0]')))";
 					$res=$this->grabaBD();
-					
 					if($res==1){
 						$r+=$res;
 						if(strlen($d[11]) > 2){
@@ -179,6 +178,24 @@ class cargaXML extends database {
 		}
 		*/
 		return array("status"=>'ok', "data"=>'0');
+	}
+
+	function cancelaciones($anio, $mes, $tipo){
+		$data=array();
+		$this->query="SELECT * FROM FTC_META_DATOS WHERE FECHA_CANCELACION IS NOT NULL AND EXTRACT(month from FECHA_EMISION) = $mes AND extract(YEAR FROM FECHA_EMISION) = $anio";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		if(count($data) > 0){
+			$i=0;
+			foreach ($data as $dt) {
+				$uuid=$dt->UUID_ORIGINAL; $i++;
+				$this->query="UPDATE XML_DATA SET STATUS='C' WHERE UUID = $uuid";
+				$this->queryActualiza();
+			}	
+		}
+		return $i;
 	}
 
 	function nomMeta(){
