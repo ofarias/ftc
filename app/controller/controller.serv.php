@@ -790,9 +790,13 @@ class ctrl_serv{
 	        $html.="<body>";
 	        $html.="<img src='app/views/images/Logos/LogoFTC.jpg'><br>";
 	        $html.="<ul style='font-family:verdana;font-size:4px'><font size='12pxs'>";
+
 	        $html.="<br/><font size='12pxs'><b>Sistema de Tickets de servicio ".htmlentities('Versión', ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE).": 2.8</b></font>";
 	        $html.="<br/><font size='12pxs'><b>".htmlentities('Fecha Elaboración:', ENT_QUOTES | ENT_IGNORE, "UTF-8", FALSE)."</b>".$info->FECHA."</font>";
 	        $html.="<br/><font size='12pxs'><b>".htmlentities('Fecha Atención:', ENT_QUOTES | ENT_IGNORE, "UTF-8", FALSE)."</b>".$info->FECHA_REPORTE."</font>";
+	        $html.="<br/><font size='12pxs'><b>".htmlentities('Duración del Evento:', ENT_QUOTES | ENT_IGNORE, "UTF-8", FALSE)."</b>1 hora</font>";
+	        //$html.="<br/><font size='12pxs'><b>".htmlentities('Hora de inicio: 11:20 am Hora de Finalización 12:10', ENT_QUOTES | ENT_IGNORE, "UTF-8", FALSE)."</b></font>";	      
+	        //$html.="<br/><font size='12pxs'><b>".htmlentities('Costo del Servicio $ 550.00 ', ENT_QUOTES | ENT_IGNORE, "UTF-8", FALSE)."</b></font>";	      
 	        $html.="<br/><font size='12pxs'><b>".htmlentities('Fecha impresión:', ENT_QUOTES | ENT_IGNORE, "UTF-8", FALSE)."</b>".date("d-m-Y H:i:s")."</font>";
 	        $html.="<br/><font size='12pxs'><b>".htmlentities('Atiende:', ENT_QUOTES | ENT_IGNORE, "UTF-8", FALSE)."</b>".$info->ATIENDE."</font>";
 
@@ -806,7 +810,7 @@ class ctrl_serv{
 	        $html.="<br/><font size='12pxs'><b>Correo: </b>".$info->CORREO_USU."</font>";    
 	        $html.="<br/>";
 	        $html.="<br/><font size='12pxs'><b>Equipo Reportado:</b> ".$info->EQUIPO."</font>";    
-	        $html.="<br/><font size='12pxs'><b>Descripcion Cora del servicio o indicente:</b> ".htmlentities($info->CORTA,ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE)."</font>";
+	        $html.="<br/><font size='12pxs'><b>Descripcion Corta del servicio o indicente:</b> ".htmlentities($info->CORTA,ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE)."</font>";
 	        $html.="<br/>";
 
 	        $html.="</font></ul><br>";
@@ -831,7 +835,12 @@ class ctrl_serv{
 	        /// Finaliza la Area de imagenes.
 
 	        $html.="<strong><p align='center'><font size='15pxs'>".htmlentities('FIN DEL TICKET'.$idt, ENT_QUOTES | ENT_IGNORE,"UTF-8", FALSE).".</font></p></strong><br>";
-	        $html.="";
+	        $html.="<ul style='font-family:verdana;font-size:4px'><font size='12pxs'>";
+	        $html.="<br/>Para cualquier aclaracion o duda, ponemos a su disposicion los siguientes medios:";
+	        $html.="<br/>Cel: 55-5055-3392";
+	        $html.="<br/>Correo Electronico: ofarias@ftcenlinea.com";
+	        $html.="<br/>Recuerde que pude consultar sus tickets en nuestro sitio http://ofa.dyndns.org/ftc";
+			$html.="</ul>";
 	        $html.="</body>";
 	        $html.="</html>";
 	        

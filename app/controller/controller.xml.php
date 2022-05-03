@@ -2018,6 +2018,8 @@ class controller_xml{
 		if($_SESSION['user']){
 			$data = new acomodoXML;
 			$path = "\\\\DORIS\\Emitidos";
+			//$path = 'C:\\elcfdi\\DescargaMasiva\\Emitidos\\';
+			$path = $data->mapeo();
 			$info = $data->acomodo($path);
 			return;
 		}

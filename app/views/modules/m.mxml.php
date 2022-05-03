@@ -221,7 +221,6 @@
                     alert("Se acomodaron: " + data.archivos)
                 },
                 error:function(){
-
                 }
             })
         })
