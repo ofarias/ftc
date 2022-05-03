@@ -20707,6 +20707,7 @@ function ImpSolicitud2($idsol){
 					$carga=$data->cargaXLSX($datos, $res['data'], $banco, $cuenta, $reg);
 				}	
         	}
+			die();
 			$html = $this->load_page('app/views/pages/p.redirectform.php');
 			$redireccionar="estado_de_cuenta&banco={$banco}&cuenta={$cuenta}";
 			$pagina=$this->load_template('Pedidos');

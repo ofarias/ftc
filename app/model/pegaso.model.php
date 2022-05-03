@@ -8,6 +8,7 @@ require_once 'app/views/unit/commonts/numbertoletter.php';
 require_once 'app/model/facturacion.php';
 require_once 'app/controller/controller.coi.php';
 require_once 'app/simplexlsx-master/src/SimpleXLSX.php';
+require_once 'app/model/pegaso.model.cxc.php';
 
 class pegaso extends database{
 	/*Comprueba datos de login*/
@@ -27924,7 +27925,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	}
 
 	function cargaXLSX($datos, $data, $banco, $cuenta, $reg){
-		$usuario = $_SESSION['user']->NOMBRE;
+		$usuario = $_SESSION['user']->NOMBRE; $abonos=array(); $cargos=array();
 		foreach ($data as $key) {
 			$monto = $key['monto'];
 			$fecha = $key['fecha'];
@@ -27934,11 +27935,19 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$obs=$key['obs'];	
 			if($key['ca']=='a'){
 				$folio=$this->folioBanco($banco, $cuenta);
-				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS, REGISTRO) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs', $reg) ";
-				$this->grabaBD();
+				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS, REGISTRO) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs', $reg) RETURNING ID";
+				$fol_cp=$this->grabaBD();
+				$rowp=ibase_fetch_object($fol_cp);
+				if(!empty($uuid)){
+					$uuid = explode(",",$uuid);
+					for($i=0;$i<count($uuid); $i++){
+						$abonos[$rowp->ID] = $uuid[$i];
+					}
+				}
 			}elseif($key['ca']=='c'){
 				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo, NUM_PAR) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto', $reg) RETURNING ID";
 				switch ($tipo) {
+
 				 	case 'TNS':
 				 		$tipo = 'TR';
 				 		break;
@@ -27955,8 +27964,15 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$this->grabaBD();
 				$this->revisaGasto($row->ID);
 				$this->verCargas($banco, $cuenta, $t=9);
+				if(!empty($uuid)){
+					$uuid = explode(",",$uuid);
+					for($i=0;$i<count($uuid); $i++){
+						$cargos[$row->ID] = $uuid[$i];
+					}
+				}
 			}
 		}
+
 		$dup=$this->revisaDuplicado(); 
 		/// Aplicacion de los pagos y gastos 
 		### 1 Creamos un array con las nuevas aplicaciones con el ID y el UUID, 
@@ -27964,8 +27980,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		### 3 Creamos un array de las aplicaciones para posteriormente hacer la poliza de Ig.
 		### 4 creacion de reporte con el resultado para medir la eficiencia. 
 		### 
-
 		/// creacion de las polizas de Gastos y Pagos
+		if(count($abonos) > 0 or count($cargos) > 0){
+			$this->datosAplicacion($abonos, $cargos);
+		}
 	}
 
 	function revisaDuplicado(){
@@ -28019,6 +28037,51 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$this->queryActualiza();
 		}
 		return;
+	}
+
+	function datosAplicacion($abonos, $cargos){
+		//print_r($abonos);
+		//$a=0;$c=0;
+		foreach($abonos as $key => $value){
+				$this->query="SELECT 
+						IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.OBSERVACIONES = X.UUID and A.status!='C'),0) as saldofinal
+					FROM XML_DATA X
+					WHERE x.uuid= '$value'";
+				$res=$this->EjecutaQuerySimple();
+				$row = ibase_fetch_object($res);
+				$monto = $row->SALDOFINAL;
+				//echo $a++.' ID_CP: '.$key.' UUID '.$value.' monto '.$monto.'<br/>';
+				$aplica = new pegasoCobranza;
+				$result = $aplica->aplicaInd($idp=$key, $monto, $uuid=$value);
+				echo "Abonos: Estatus de la operación ".$result["status"]." mensaje ".$result['mensaje']." SaldoDoc: ".$result['SaldoDoc']." SaldoPago: ".$result['SaldoPago']."<br/>";
+		}
+		foreach ($cargos as $key => $value) {
+			//echo $c++.' Folio: '.$key.' UUID '.$value.'<br/>';
+			$this->query="SELECT IMPORTE,
+							(SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO,
+			 				IMPORTE - (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS SALDODOC
+							FROM XML_DATA X
+							WHERE UUID = '$value'
+							and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0)";
+			$res=$this->EjecutaQuerySimple();
+			$row=ibase_fetch_object($res);
+			$monto = $row->SALDODOC;
+			$result=$this->aplicaGasto($idg=$key, $uuid=$value, $valor= $monto);
+			echo 'Cargos: Estatus del documento: '.$result['status'].'UUID: '.$uuid.' idg : '.$idg.'<br/>';
+		}
+		die;
+	}
+
+	function aplicacionesEdoCta(){
+		foreach($data as $d){
+			if($d->TIPO=='A'){
+				$this->aplicaPagoFactura();
+			}elseif($d->TIPO == 'C'){
+				$this->query="INSERT INTO APLICAIONES_GASTOS (ID, IDG, UUID, DOCUMENTO, APLICADO, FECHA, USUARIO, STATUS) VALUES (null, ) ";
+				$this->grabaBD();
+			}
+			
+		}
 	}
 
 	function folioBanco($banco, $cuenta){
