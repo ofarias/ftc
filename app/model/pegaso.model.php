@@ -25113,7 +25113,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					
 						COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A' and tipo='Dr') AS VARCHAR(2000)),'') as provi
 						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F' or x.status = 'C') $uuid";
-		}elseif($ide == 'Recibidos' && ($doc == 'I' || $doc == 'E')){
+			}elseif($ide == 'Recibidos' && ($doc == 'I' || $doc == 'E')){
     				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
     					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
@@ -25138,25 +25138,25 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
 						
     	}elseif($ide == 'Emitidos' && $doc=='P'){
-			/// en emitidos traemos cuando el rfce es igual al rfc de la empresa que estamos analizando
-			$rfc= $_SESSION['rfc'];
-			$this->query="SELECT X.*, x.importe as importexml ,
-							(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO, 
-							(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.CLIENTE and tipo = 'Cliente') AS EMISOR, 
-							(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.RFCE ) AS RECEPTOR,
-							(SELECT FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
-							FROM XML_DATA_UPPER X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
-			//die('Estos son los pagos');
-		}elseif($ide == 'Recibidos' && $doc == 'P'){
-			$this->query="SELECT X.*, x.importe as importexml ,
-							(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO,
-							(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.RFCE and tipo = 'Proveedor') AS RECEPTOR, 
-							(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.CLIENTE ) AS EMISOR,
-							(SELECT FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
-							FROM XML_DATA_UPPER X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
-			//die('Estos son los pagos');
-		}else{
-			$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
+				/// en emitidos traemos cuando el rfce es igual al rfc de la empresa que estamos analizando
+				$rfc= $_SESSION['rfc'];
+				$this->query="SELECT X.*, x.importe as importexml ,
+								(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO, 
+								(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.CLIENTE and tipo = 'Cliente') AS EMISOR, 
+								(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.RFCE ) AS RECEPTOR,
+								(SELECT FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
+								FROM XML_DATA_UPPER X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
+				//die('Estos son los pagos');
+			}elseif($ide == 'Recibidos' && $doc == 'P'){
+				$this->query="SELECT X.*, x.importe as importexml ,
+								(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO,
+								(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.RFCE and tipo = 'Proveedor') AS RECEPTOR, 
+								(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.CLIENTE ) AS EMISOR,
+								(SELECT FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
+								FROM XML_DATA_UPPER X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
+				//die('Estos son los pagos');
+			}else{
+				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
     					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
     					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = rfce) as emisor,
@@ -25183,7 +25183,46 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	while($tsArray = ibase_fetch_object($res)){
     		$data[]=$tsArray;
     	}
-    	return ($data);
+    	return $data;
+    }
+
+    function infoContable($uuid, $ide){
+    	$data=array(); $tipo = ''; 
+    	if($ide == 'Emitidos'){
+    			$tipo = 'Cliente';
+    			$rfc = 'CLIENTE';
+    	}else{
+    			$tipo = 'Proveedor';
+    			$rfc = 'RFCE';
+     	}
+     	$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
+    					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
+    					(select first 1 nombre from xml_clientes where rfc = $rfc) as nombre, 
+    					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = $rfc) as emisor,
+    					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = $rfc and tipo = '$tipo') as cuenta_Contable,
+    					COALESCE(CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(2500)),'') as poliza
+    					, COALESCE( 
+    						CAST(
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID or CPD.UUID_PAGO = X.UUID) 
+    						AS VARCHAR(2500)) , '') AS CEPA
+    					,COALESCE(
+    						CAST(
+    						substring( 
+    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE||'|'||x2.FORMAPAGO) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) from 1 for 1499)
+    							AS VARCHAR(1500)
+    						), ''
+    						) AS RELACIONES, 
+    						x.importe - coalesce((SELECT SUM(AG.APLICADO) FROM APLICACIONES_GASTOS AG WHERE AG.UUID = x.UUID AND STATUS=0),0) AS SALDO_XML,
+    						(SELECT DESCRIPCION FROM XML_TIPO_DOC XT WHERE XT.ID_TIPO = X.ID_RELACION) AS TIPO_DOC,
+    						COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A' and tipo='Dr') AS VARCHAR(2000)),'') as provi
+						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
+						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') and x.uuid = '$uuid'";
+			//echo $this->query;
+    	$res=$this->EjecutaQuerySimple();
+    	while($tsArray=ibase_fetch_object($res)){
+    		$data[]=$tsArray;
+    	}
+    	return $data;
     }
 
     /* Actualiza razones sociales con RFC XAXX010101000

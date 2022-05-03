@@ -20236,10 +20236,9 @@ function ImpSolicitud2($idsol){
     		$ccpartidas=array();
     		$cimpuestos=array();
     		$param=array();
-  			$infoCabecera=$data->verXMLSP($mes=false, $anio= false, $ide, $uuid, $doc=false);
+  			$infoCabecera=$data->infoContable($uuid, $ide);
     		$info=$data->verXML($uuid, $ide);
     		if($cnxcoi=='si'){
-    			echo 'Hay conexion coi';
     			$cccliente=$coi->traeCuentaCliente($infoCabecera, $ide, $a);
     			$ccC=$coi->traeCatalogoCuentas($tipo='V', $ide, $a);
     			$ctA=$coi->traeCtasAcum($ide, $a);
