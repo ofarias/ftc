@@ -1038,5 +1038,16 @@ class pegasoCobranza extends database {
         }
         return $data;
     }
+
+    function saldoPago($idp){
+        $tipo='';
+        $this->query="SELECT SALDO FROM CARGA_PAGOS WHERE ID = $idp";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($res);
+        if($row->SALDO > 0.01){
+            $tipo='999999';
+        }
+        return $tipo;
+    }
 }
 ?> 

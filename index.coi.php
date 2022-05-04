@@ -57,9 +57,7 @@ if (isset($_POST['usuario'])){
 	echo json_encode($res);
 	exit();
 }elseif (isset($_POST['contabiliza'])) {
-	$res=$controller_coi->contabiliza($_POST['tipo'], $_POST['idp'], $_POST['a'], $_POST['obs'], $_POST['tp']);
-	echo json_encode($res);
-	exit();
+	$res=$controller_coi->contabiliza($_POST['tipo'], $_POST['idp'], $_POST['a'], $_POST['obs'], $_POST['tp']); echo json_encode($res); exit();
 }elseif(isset($_POST['borraCuenta'])){
 	$res=$controller_coi->borraCuenta($_POST['idImp'], $_POST['opcion']);
 	echo json_encode($res);
@@ -67,9 +65,7 @@ if (isset($_POST['usuario'])){
 }elseif (isset($_POST['grabaImp'])) {
 	$res=$controller_coi->grabaImp($_POST['imp'],$_POST['cccoi'],$_POST['tipo'],$_POST['tasa'],$_POST['uso'], $_POST['nombre'], $_POST['factor'], $_POST['aplica'], $_POST['status']);
 }elseif(isset($_POST['contabilizaIg'])){
-	$res=$controller_coi->contabilizaIg($_POST['idp'],$_POST['y'],$_POST['tipo'], $_POST['obs'], $_POST['tp']);
-	echo json_encode($res);
-	exit();
+	$res=$controller_coi->contabilizaIg($_POST['idp'],$_POST['y'],$_POST['tipo'], $_POST['obs'], $_POST['tp']); echo json_encode($res); exit();
 }elseif (isset($_POST['acmd'])) {
 	$res=$controller_coi->acmd($_POST['mes'], $_POST['anio']);
 	echo json_encode($res);

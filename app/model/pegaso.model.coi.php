@@ -1866,7 +1866,7 @@ class CoiDAO extends DataBaseCOI {
         $this->queryActualiza();
         foreach($cabecera as $pol){
             $con='Egreso '.$pol->CUENTA_BANCARIA;
-            $concepto = substr($con.', '.$proveedorf.' -- '.$pol->REFERENCIA.', pago factura '.$pol->FACTURA, 0, 110);
+            $concepto = utf8_decode(substr($con.', '.$proveedorf.' -- '.$pol->REFERENCIA.', pago factura '.$pol->FACTURA, 0, 110));
             $cuenta = $pol->CTA_BANCO;
             if($cfp==2){
                 $nat0 = 'H';
@@ -1901,7 +1901,7 @@ class CoiDAO extends DataBaseCOI {
             $cuenta = $aux->CUENTA_CONTABLE;
             $documento = $aux->DOCUMENTO;
             $proveedor = $aux->PROV;
-            $concepto = substr($pol->DOC.' '.$aux->DESCRIPCION.', '.$documento.', '.$proveedor, 0, 120);
+            $concepto = utf8_decode(substr($pol->DOC.' '.$aux->DESCRIPCION.', '.$documento.', '.$proveedor, 0, 120));
                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto', '$nat1', $aux->APLICADO, 0, $tc, 0, $partida, 0,0, null, null)";
                 $this->grabaBD();   
@@ -2800,6 +2800,23 @@ class CoiDAO extends DataBaseCOI {
             }
         }
         return array("Mensaje"=>'Listo');
+    }
+
+    function buscaTipo($tp, $nat){
+        $data = array();
+        $this->query="SELECT first 1 * FROM TIPOSPOL where TIPO ='$tp' and CLASSAT=$nat";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        if(count($data)>0){
+            $tipo= $data->TIPO;
+        }elseif($nat == 2){
+            $tipo= 'Eg';
+        }elseif($nat == 1){
+            $tipo= 'Ig';
+        }
+        return $tipo;
     }
 }      
 ?>

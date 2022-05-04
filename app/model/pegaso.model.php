@@ -9,6 +9,7 @@ require_once 'app/model/facturacion.php';
 require_once 'app/controller/controller.coi.php';
 require_once 'app/simplexlsx-master/src/SimpleXLSX.php';
 require_once 'app/model/pegaso.model.cxc.php';
+require_once 'app/controller/controller.coi.php';
 
 class pegaso extends database{
 	/*Comprueba datos de login*/
@@ -27902,6 +27903,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						$tipo = $key[6];
 						$uuid = @$key[7];
 						$obs = substr(utf8_encode(@$key[8]),0,255);
+						$tp = substr(utf8_encode(@$key[9]),0,5);
 						if($cargo <> 0 and $abono <> 0 ){
 							$e++;
 							echo $clave.' <font color="red">No Inserta la linea por que el valor cargo y valor de abono son mayores a 0.00 .</font><br/>';
@@ -27945,7 +27947,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							$e++;
 						}
 						if($e == 0){
-							$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid, "obs"=>$obs);
+							$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid, "obs"=>$obs, "tp"=>$tp);
 						}
 					}		
 					$i++;
@@ -27971,10 +27973,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$uuid=$key['uuid'];
 			$tipo = $key['tipo'];
 			$desc = $key['desc'];
-			$obs=$key['obs'];	
+			$obs=$key['obs'];
+			$tp=$key['tp'];	
 			if($key['ca']=='a'){
 				$folio=$this->folioBanco($banco, $cuenta);
-				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS, REGISTRO) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs', $reg) RETURNING ID";
+				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS, REGISTRO, USUARIO_CONTA) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs', $reg, '$tp') RETURNING ID";
 				$fol_cp=$this->grabaBD();
 				$rowp=ibase_fetch_object($fol_cp);
 				if(!empty($uuid)){
@@ -27984,7 +27987,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					}
 				}
 			}elseif($key['ca']=='c'){
-				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo, NUM_PAR) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto', $reg) RETURNING ID";
+				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo, NUM_PAR, USUARIO_AUTO) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto', $reg, '$tp' ) RETURNING ID";
 				switch ($tipo) {
 
 				 	case 'TNS':
@@ -28011,17 +28014,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				}
 			}
 		}
-
 		$dup=$this->revisaDuplicado(); 
-		/// Aplicacion de los pagos y gastos 
-		### 1 Creamos un array con las nuevas aplicaciones con el ID y el UUID, 
-		### 2 Buscamos la informaicon del UUID en XML_DATA , si existe y el monto aplicado es menor o igual al saldo del documento, entonces creamos la aplicacion.
-		### 3 Creamos un array de las aplicaciones para posteriormente hacer la poliza de Ig.
-		### 4 creacion de reporte con el resultado para medir la eficiencia. 
-		### 
-		/// creacion de las polizas de Gastos y Pagos
 		if(count($abonos) > 0 or count($cargos) > 0){
 			$this->datosAplicacion($abonos, $cargos);
+			$this->creaPolizas($abonos, $cargos);
 		}
 	}
 
@@ -28108,7 +28104,27 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$result=$this->aplicaGasto($idg=$key, $uuid=$value, $valor= $monto);
 			echo 'Cargos: Estatus del documento: '.$result['status'].'UUID: '.$uuid.' idg : '.$idg.'<br/>';
 		}
-		die;
+		return;
+	}
+
+	function creaPolizas($abonos, $cargos){
+		$controller_coi = new controller_coi;
+		foreach($cargos as $key => $value){
+			$this->query="SELECT DOC, USUARIO_AUTO from GASTOS WHERE id=$key";
+			$res=$this->EjecutaQuerySimple();
+			$row=ibase_fetch_object($res);
+			$obs = $row->DOC; $tp = $row->USUARIO_AUTO;
+			$controller_coi->contabiliza($tipo='auto', $key, $a='', $obs, $tp);
+		}
+
+		foreach($abonos as $key => $value){
+			$this->query="SELECT OBS, USUARIO_CONTA from CARGA_PAGOS WHERE id=$key";
+			$res=$this->EjecutaQuerySimple();
+			$row=ibase_fetch_object($res);
+			$obs = $row->OBS; $tp = $row->USUARIO_CONTA;
+			$controller_coi->contabilizaIg($key, $a='', $tipo='auto', $obs, $tp);	
+		}
+		return;
 	}
 
 	function aplicacionesEdoCta(){
@@ -28230,11 +28246,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$data[]=$tsArray;
 		}
 		if($tipo == 'c'){
-			$uuid= '';
-			$por= '';
+			$uuid= '';$por= '';
 			foreach ($data as $key){
-				$uuid .= "'".$key->UUID."',";
-				$por  .="".$key->POR.",";
+				$uuid .= "'".$key->UUID."',"; $por  .="".$key->POR.",";
 			}
 			$uuid=substr($uuid,0, strlen($uuid)-1);
 			$por = substr($por,0, strlen($por)-1);
@@ -28967,7 +28981,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		FROM FTC_MEDIA_FILES M 
     		WHERE M.TIPO = 'EDOCTA' 
     			AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$b' 
-    			AND (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$c'";
+    			AND (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$c'
+    			ORDER BY M.ID";
     	$res=$this->EjecutaQuerySimple();
     	while ($tsArray=ibase_fetch_object($res)) {
     		$data[]=$tsArray;
@@ -29029,7 +29044,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$this->query="DELETE FROM GASTOS WHERE NUM_PAR = $idc";
     		$this->grabaBD();
     	}
-    	return;
+    	return $res;
     }
 
     function valCarga($idc){
@@ -29157,6 +29172,18 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$res=$this->EjecutaQuerySimple();
     	$row = ibase_fetch_row($res);
     	return $row[0];
+    }
+
+    function saldoGasto($idg){
+				$data=array(); $z='';
+				$this->query="SELECT * FROM GASTOS WHERE id = $idg";
+				//echo $this->query;
+				$res=$this->EjecutaQuerySimple();
+				$row = ibase_fetch_object($res);
+				if($row->SALDO > 0 ){
+					$z='111111111';
+				}   
+				return $z;
     }
 
 }?>

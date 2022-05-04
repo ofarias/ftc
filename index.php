@@ -2686,9 +2686,7 @@ exit();
 	$controller->creaProy($_POST['mes'], $_POST['anio'], $_POST['tipo']);
 	exit();
 }elseif (isset($_POST['delCarga'])) {
-	$res=$controller->delCarga($_POST['idc']);
-	echo json_encode($res);
-	exit();
+	$res=$controller->delCarga($_POST['idc']);echo json_encode($res);exit();
 }
 else{
 	switch ($action){
