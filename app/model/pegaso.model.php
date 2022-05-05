@@ -28080,29 +28080,37 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		foreach($abonos as $key => $value){
 				$this->query="SELECT 
 						IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.OBSERVACIONES = X.UUID and A.status!='C'),0) as saldofinal
-					FROM XML_DATA X
-					WHERE x.uuid= '$value'";
+					FROM XML_DATA_UPPER X
+					WHERE x.uuid= '$value' or x.uuid_upper = '$value'";
 				$res=$this->EjecutaQuerySimple();
 				$row = ibase_fetch_object($res);
 				$monto = $row->SALDOFINAL;
 				//echo $a++.' ID_CP: '.$key.' UUID '.$value.' monto '.$monto.'<br/>';
-				$aplica = new pegasoCobranza;
-				$result = $aplica->aplicaInd($idp=$key, $monto, $uuid=$value);
-				echo "Abonos: Estatus de la operación ".$result["status"]." mensaje ".$result['mensaje']." SaldoDoc: ".$result['SaldoDoc']." SaldoPago: ".$result['SaldoPago']."<br/>";
+				if($monto > 0 ){
+					$aplica = new pegasoCobranza;
+					$result = $aplica->aplicaInd($idp=$key, $monto, $uuid=$value);
+					//echo "Abonos: Estatus de la operación ".$result["status"]." mensaje ".$result['mensaje']." SaldoDoc: ".$result['SaldoDoc']." SaldoPago: ".$result['SaldoPago']."<br/>";
+				}else{
+					unset($abonos[$key]);
+				}
 		}
 		foreach ($cargos as $key => $value) {
 			//echo $c++.' Folio: '.$key.' UUID '.$value.'<br/>';
 			$this->query="SELECT IMPORTE,
 							(SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO,
 			 				IMPORTE - (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS SALDODOC
-							FROM XML_DATA X
-							WHERE UUID = '$value'
-							and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0)";
+							FROM XML_DATA_UPPER X
+							WHERE UUID = '$value' or x.uuid_upper = '$value'
+							--and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0)";
 			$res=$this->EjecutaQuerySimple();
 			$row=ibase_fetch_object($res);
 			$monto = $row->SALDODOC;
-			$result=$this->aplicaGasto($idg=$key, $uuid=$value, $valor= $monto);
-			echo 'Cargos: Estatus del documento: '.$result['status'].'UUID: '.$uuid.' idg : '.$idg.'<br/>';
+			if($monto > 0 ){
+				$result=$this->aplicaGasto($idg=$key, $uuid=$value, $valor= $monto);
+			}else{
+					unset($cargos[$key]);				
+			}
+			//echo 'Cargos: Estatus del documento: '.$result['status'].'UUID: '.$uuid.' idg : '.$idg.'<br/>';
 		}
 		return;
 	}
