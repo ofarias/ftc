@@ -28015,6 +28015,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			}
 		}
 		$dup=$this->revisaDuplicado(); 
+		///print_r($cargos);
+		///print_r($abonos);
+		///echo '<br/>Abonos'.count($abonos);
+		///echo '<br/>Cargos'.count($cargos);
+
 		if(count($abonos) > 0 or count($cargos) > 0){
 			$this->datosAplicacion($abonos, $cargos);
 			$this->creaPolizas($abonos, $cargos);
@@ -28076,42 +28081,60 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function datosAplicacion($abonos, $cargos){
 		//print_r($abonos);
-		//$a=0;$c=0;
+		$a=0;$c=0;
 		foreach($abonos as $key => $value){
-				$this->query="SELECT 
-						IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.OBSERVACIONES = X.UUID and A.status!='C'),0) as saldofinal
-					FROM XML_DATA_UPPER X
-					WHERE x.uuid= '$value' or x.uuid_upper = '$value'";
+				//$this->query="SELECT 
+				//		IMPORTE - COALESCE( (SELECT SUM(A.MONTO_APLICADO) FROM APLICACIONES A WHERE A.OBSERVACIONES = X.UUID and A.status!='C'),0) as saldofinal
+				//	FROM XML_DATA_UPPER X
+				//	WHERE x.uuid= '$value' or x.uuid_upper = '$value'";
+				$this->query="SELECT SALDO FROM CARGA_PAGOS WHERE ID = $key";
 				$res=$this->EjecutaQuerySimple();
 				$row = ibase_fetch_object($res);
-				$monto = $row->SALDOFINAL;
-				//echo $a++.' ID_CP: '.$key.' UUID '.$value.' monto '.$monto.'<br/>';
+				$monto = $row->SALDO;
+				//echo '<br/>'.$a++.' ID_CP: '.$key.' UUID '.$value.' monto '.$monto.'<br/>';
+				/// el monto debe de ser el saldo del cargo o abono.
 				if($monto > 0 ){
+					//echo '<br/> Segun hace la aplicacion del pago '.$key. ' por un monto de '.$monto;;
 					$aplica = new pegasoCobranza;
 					$result = $aplica->aplicaInd($idp=$key, $monto, $uuid=$value);
+					//echo '<br/>'.$result["status"];
 					//echo "Abonos: Estatus de la operación ".$result["status"]." mensaje ".$result['mensaje']." SaldoDoc: ".$result['SaldoDoc']." SaldoPago: ".$result['SaldoPago']."<br/>";
+					if($result["status"] == 'no'){
+						unset($abonos[$key]);				
+					}
 				}else{
 					unset($abonos[$key]);
 				}
 		}
 		foreach ($cargos as $key => $value) {
-			//echo $c++.' Folio: '.$key.' UUID '.$value.'<br/>';
-			$this->query="SELECT IMPORTE,
-							(SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO,
-			 				IMPORTE - (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS SALDODOC
-							FROM XML_DATA_UPPER X
-							WHERE UUID = '$value' or x.uuid_upper = '$value'
-							--and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0)";
+			//echo '<br/>'.$c++.' Folio: '.$key.' UUID '.$value.'<br/>';
+			//$this->query="SELECT IMPORTE,
+			//				(SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO,
+			// 				IMPORTE - (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS SALDODOC
+			//				FROM XML_DATA_UPPER X
+			//				WHERE UUID = '$value' or x.uuid_upper = '$value'";
+			//				//and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0)
+			$this->query="SELECT SALDO FROM GASTOS WHERE ID = $key";
 			$res=$this->EjecutaQuerySimple();
 			$row=ibase_fetch_object($res);
-			$monto = $row->SALDODOC;
+			$monto = $row->SALDO;
 			if($monto > 0 ){
+				//echo '<br/>Segun hace la aplicacion del gasto '.$key. ' por un monto de '.$monto;
+				/// el monto debe de ser el saldo del cargo o abono.
 				$result=$this->aplicaGasto($idg=$key, $uuid=$value, $valor= $monto);
+				//echo '<br/>'.$result["status"]. ' mensaje '.$result['mensaje'];
+				//print_r($result['Valuacion Factura']);
+				//print_r($result['Valuacion Contable']);
+				if($result["status"] == 'no'){
+					unset($cargos[$key]);				
+				}
 			}else{
 					unset($cargos[$key]);				
 			}
 			//echo 'Cargos: Estatus del documento: '.$result['status'].'UUID: '.$uuid.' idg : '.$idg.'<br/>';
 		}
+		echo '<br/> Abonos aplicados: '.count($abonos);
+		echo '<br/> Cargos aplicados: '.count($cargos);
 		return;
 	}
 
@@ -28210,7 +28233,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		}
 		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') 
 			FROM XML_DATA X WHERE X.RFCE != '$rfc' and x.tipo ='I' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) $a $op";
-		//echo $this->query;
+		//echo 'Validacion de factura: '.$this->query;
 		//die();
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
@@ -28275,10 +28298,17 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			return $valConta;
 		}
 		$mensaje= 'No hizo nada: '.$valor;
+		//echo 'Valor en la aplicacion de gastos '. $valor;
+		//echo '<br/> Primera valuacion : ValFact[0] '.$valFact[0]->IMPORTE . '-' . $valFact[0]->APLICADO. 'debe de ser mayor a -0.1';
+		//echo '<br/> Segunda valuacion : ValFact[0] '.$valFact[0]->IMPORTE . '-' . $valFact[0]->APLICADO. ' - '.$valor. 'debe de ser mayor a -0.1';
+		//echo '<br/> Tercera valuacion : valor '. $valor.' debe de ser mayor a 0';
 		if( ((float)$valFact[0]->IMPORTE - (float)$valFact[0]->APLICADO) >= (-0.1) and  ( (((float)$valFact[0]->IMPORTE - (float)$valFact[0]->APLICADO) - $valor) >= (-0.1)) and $valor > 0){ // Validacion de la factura
+			//echo '<br/>entro en la aplicacion ';
 			$this->query="SELECT * FROM gastos where id = $idp";
 			$res=$this->EjecutaQuerySimple();
 			$row = ibase_fetch_object($res);
+			//echo '<br/> Cuarta Validacion: Saldo + 0.5 = '.(($row->SALDO) +0.5) .' , debe de ser mayor a: '.$valor;
+			//echo '<br/> Quinta Validacion: Status  = '.$row->STATUS;
 			if( ($row->SALDO+.05) >= $valor and $row->STATUS != 'C'){ // Valida que el saldo sea mayor a lo que se va a aplicar.
 				$this->query="UPDATE GASTOS SET SALDO = SALDO - $valor where id = $idp";
 				$res=$this->queryActualiza();
@@ -28304,13 +28334,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					}
 				}
 			}else{
-				$mensaje= array("status"=>'no', "mensaje"=>'El documento no tiene saldo o esta cancelado....');
+				$mensaje= array("status"=>'no', "mensaje"=>'El documento no tiene saldo o esta cancelado....', "Valuacion Factura"=>$valFact, "Valuacion Contable"=>$valConta);
 			}	
 		}else{
 			if($valor == 0){
-				$mensaje= array("status"=>'no',"mensaje"=>'No se puede aplicar 0.00 al documento');
+				$mensaje= array("status"=>'no',"mensaje"=>'No se puede aplicar 0.00 al documento', "Valuacion Factura"=>$valFact, "Valuacion Contable"=>$valConta);
 			}else{
-				$mensaje= array("status"=>'no', "mensaje"=>'Fallo la validacion del documento');
+				$mensaje= array("status"=>'no', "mensaje"=>'Fallo la validacion del documento', "Valuacion Factura"=>$valFact, "Valuacion Contable"=>$valConta);
 			}
 		}
 		return $mensaje;
