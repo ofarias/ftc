@@ -265,10 +265,9 @@ class controller_coi{
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$data_coi = new CoiDAO;
-
 			if($tipo == 'auto'){
 				$tipo = 'gasto';
-				$tp=$data_coi->buscaTipo($tp, '2'); /// Buscar el tipo de poliza en COI si existe entonces dejamos esa, la predeterminada es Eg
+				$tp=$data_coi->buscaTipo($tp, '2', $tedo=$z); /// Buscar el tipo de poliza en COI si existe entonces dejamos esa, la predeterminada es Eg
 				$z=$data->saldoGasto($idp); // hay que saber si el gasto tiene saldo, si es asi se contabiliza con la cuenta predeterminada, quizas una de dudores.
 			}
 

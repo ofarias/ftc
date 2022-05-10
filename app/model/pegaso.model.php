@@ -28141,19 +28141,19 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	function creaPolizas($abonos, $cargos){
 		$controller_coi = new controller_coi;
 		foreach($cargos as $key => $value){
-			$this->query="SELECT DOC, USUARIO_AUTO from GASTOS WHERE id=$key";
+			$this->query="SELECT DOC, USUARIO_AUTO, TIPO_PAGO from GASTOS WHERE id=$key";
 			$res=$this->EjecutaQuerySimple();
 			$row=ibase_fetch_object($res);
 			$obs = $row->DOC; $tp = $row->USUARIO_AUTO;
-			$controller_coi->contabiliza($tipo='auto', $key, $a='', $obs, $tp);
+			$controller_coi->contabiliza($tipo='auto', $key, $a=$row->TIPO_PAGO, $obs, $tp);
 		}
 
 		foreach($abonos as $key => $value){
-			$this->query="SELECT OBS, USUARIO_CONTA from CARGA_PAGOS WHERE id=$key";
+			$this->query="SELECT OBS, USUARIO_CONTA, CONTABILIZADO from CARGA_PAGOS WHERE id=$key";
 			$res=$this->EjecutaQuerySimple();
 			$row=ibase_fetch_object($res);
 			$obs = $row->OBS; $tp = $row->USUARIO_CONTA;
-			$controller_coi->contabilizaIg($key, $a='', $tipo='auto', $obs, $tp);	
+			$controller_coi->contabilizaIg($key, $a=$row->CONTABILIZADO, $tipo='auto', $obs, $tp);	
 		}
 		return;
 	}

@@ -2802,8 +2802,28 @@ class CoiDAO extends DataBaseCOI {
         return array("Mensaje"=>'Listo');
     }
 
-    function buscaTipo($tp, $nat){
+    function buscaTipo($tp, $nat, $tedo){
         $data = array();
+        if(empty($tp )){
+            switch($tedo){
+                case 'TNS':
+                        $tp = $nat==1? 'Ig':'Eg';
+                    break;
+                case 'EFE':
+                        $tp = $nat==1? 'Ig':'Eg';
+                    break;
+                case 'TDC':
+                        $tp = $nat==1? 'Ig':'Eg';
+                    break;
+                case 'CHQ':
+                        $tp = $nat==1? 'Ig':'Ch';
+                    break;
+                default:
+                        $tp = $nat==1? 'Ig':'Eg';
+                    break;
+            }   
+        }
+        
         $this->query="SELECT first 1 * FROM TIPOSPOL where TIPO ='$tp' and CLASSAT=$nat";
         $res=$this->EjecutaQuerySimple();
         while($tsArray=ibase_fetch_object($res)){
