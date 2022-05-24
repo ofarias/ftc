@@ -25145,7 +25145,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 								(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO, 
 								(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.CLIENTE and tipo = 'Cliente') AS EMISOR, 
 								(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.RFCE ) AS RECEPTOR,
-								(SELECT FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
+								(SELECT first 1 FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
 								FROM XML_DATA_UPPER X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
 				//die('Estos son los pagos');
 			}elseif($ide == 'Recibidos' && $doc == 'P'){
@@ -25153,7 +25153,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 								(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO,
 								(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.RFCE and tipo = 'Proveedor') AS RECEPTOR, 
 								(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.CLIENTE ) AS EMISOR,
-								(SELECT FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
+								(SELECT first 1 FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
 								FROM XML_DATA_UPPER X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
 				//die('Estos son los pagos');
 			}else{
@@ -27984,7 +27984,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					$uuid = explode(",",$uuid);
 					for($i=0;$i<count($uuid); $i++){
 						if(!empty($uuid[$i])){
-							$abonos[$uuid[$i]]= [$rowp->ID];
+							$abonos[$uuid[$i]]= $rowp->ID;
 						}
 					}
 				}
@@ -28087,7 +28087,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	function datosAplicacion($abonos, $cargos){
 		$a=0;$c=0;
 		foreach($abonos as $key => $value){
-				$this->query="SELECT SALDO FROM CARGA_PAGOS WHERE ID = $value";
+				$this->query="SELECT SALDO FROM CARGA_PAGOS WHERE ID = $value";///
 				$res=$this->EjecutaQuerySimple();
 				$row = ibase_fetch_object($res);
 				$monto = $row->SALDO;
