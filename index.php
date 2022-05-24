@@ -2656,6 +2656,7 @@ exit();
 	$controller->creaProy($_POST['mes'], $_POST['anio'], $_POST['tipo']);
 	exit();
 }elseif (isset($_POST['delCarga'])) {
+<<<<<<< HEAD
 	$res=$controller->delCarga($_POST['idc']);
 	echo json_encode($res);
 	exit();
@@ -2663,6 +2664,9 @@ exit();
 	$res=$controller->saveObs($_POST['saveObs'], $_POST['art']);echo json_encode($res); exit(); 
 }elseif(isset($_POST['actImg'])){
 	$res=$controller->actImg(); echo json_encode($res);exit();
+=======
+	$res=$controller->delCarga($_POST['idc']);echo json_encode($res);exit();
+>>>>>>> c37f2dd9e4169e390405c87472327b78489267c1
 }
 else{
 	switch ($action){

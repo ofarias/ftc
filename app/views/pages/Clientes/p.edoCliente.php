@@ -12,7 +12,11 @@
                         <table class="table table-bordered" id="dataTables-CarteraXCliente">
                             <thead>
                                   <tr>
-                                        <td colspan="7" align="right">
+                                        <td colspan="6" align="right">
+                                            <input type="button" name="impimir" value="Ver Productos" class="btn-info" id="productos">
+                                            
+                                        </td>
+                                        <td colspan="1" align="right">
                                             <input type="button" name="impimir" value="Descargar a Excel" class="btn-info" onclick="utilerias('<?php echo $maestro?>', this.value, 'x')">
                                             <p id="descarga"></p>
                                         </td>
@@ -24,7 +28,7 @@
                                             <input type="button" name="impimir" value="Enviar Correo" class="btn-info" onclick="utilerias('<?php echo $maestro?>', this.value,'e')">
                                         </td>
                                     </tr>
-                            <tr>
+                            <tr  id='HFact'>
                                 <th>Ln</th>
                                 <th>Sel</th>
                                 <th>Factura</th>
@@ -37,7 +41,7 @@
                                 <th>Saldo Factura</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="BFact">
                             <?php $total = 0;
                             $i = 0;
                             foreach($facturas as $doc):
@@ -60,7 +64,6 @@
                                         <input type="hidden" name="clie" id="cli_<?php echo $i?>" value="<?php echo $doc->CVE_CLPV?>"></td>
                                         <td><?php echo $doc->CVE_DOC?><br/><?php echo $doc->STATUS?>
                                             <a href="/Facturas/facturaPegaso/<?php echo $doc->CVE_DOC.'.xml'?>" download>  <img border='0' src='app/views/images/xml.jpg' width='12' height='15'></a>
-                                            
                                             <a href="index.php?action=imprimeFact&factura=<?php echo $doc->CVE_DOC?>" onclick="alert('Se ha descargado tu factura.')"><img border='0' src='app/views/images/pdf.jpg' width='12' height='15'></a>
                                         </td>
                                         <td><?php echo '( '.$doc->CVE_CLPV.') '.$doc->NOMBRE?></td>                                    
@@ -75,16 +78,9 @@
                             <?php endforeach;?>
                         </tbody>
                                     <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td><b>Total Por Cobrar: </b></td>
-                                        <td><font size="3pxs" color="blue"><b><?php echo '$ '.number_format($total,2)?></font></b></td>
+                                        
+                                        <td colspan="9" align="right"><b>Total Por Cobrar: </b></td>
+                                        <td colspan="1"><font size="3pxs" color="blue"><b><?php echo '$ '.number_format($total,2)?></font></b></td>
                                     </tr>
                     </table>
                 </div>
@@ -108,6 +104,11 @@
 <script type="text/javascript" language="JavaScript" src="app/views/bower_components/jquery/dist/jquery.min.js"></script>
 
 <script type="text/javascript">
+    var cte = <?php echo "'".$cliente."';"?>
+    $("#productos").click(function(){
+        
+        alert("Traemos los productos del cliente, generamos la consulta con el numero de cliente la  " + cte)
+    })
 
     function altaCC(i){
        var m = document.getElementById('mae').value

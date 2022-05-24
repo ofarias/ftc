@@ -265,6 +265,12 @@ class controller_coi{
 		if($_SESSION['user']){
 			$data= new pegaso;
 			$data_coi = new CoiDAO;
+			if($tipo == 'auto'){
+				$tipo = 'gasto';
+				$tp=$data_coi->buscaTipo($tp, '2', $tedo=$z); 
+				$z=$data->saldoGasto($idp); 
+			}
+
 			$cabecera = $data->detalleGasto($idp, $tip='z', $obs);
 			$detalle = $data->aplicacionesGasto($idp, $t='c');
 			$impuestos2=$data->impuestosPolizaFinalDetImp($uuid=$detalle['uuid'], $por=$detalle['por']); // $impuestos= $data2->impuestosPolizaFinalDetImp($uuid, $por);
@@ -312,6 +318,10 @@ class controller_coi{
 			$data= new pegasoCobranza;
 			$data2 = new pegaso;
 			$data_coi = new CoiDAO;
+			if($tipo == 'auto'){
+				$tp=$data_coi->buscaTipo($tp, '1', $tedo=$tp); /// Buscar el tipo de poliza en COI si existe entonces dejamos esa, la predeterminada es Eg
+				$y=$data->saldoPago($idp); // hay que saber si el gasto tiene saldo, si es asi se contabiliza con la cuenta predeterminada, quizas una de dudores.
+			}
 			$pago = $data->traePago($idp, $obs);/// Pendiente
 			if(!empty($pago)){
 				$detalle= $data->traeAplicaciones($idp);

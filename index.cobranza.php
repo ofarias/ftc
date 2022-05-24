@@ -6,7 +6,10 @@ require_once('app/controller/pegaso.controller.cobranza.php');
 
 $controller_cxc = new pegaso_controller_cobranza;
 $controller = new pegaso_controller;
+<<<<<<< HEAD
 
+=======
+>>>>>>> c37f2dd9e4169e390405c87472327b78489267c1
 
 if (isset($_POST['cobranza'])){
 	$controller_cxc->InsertaUsuarioN($_POST['usuario'], $_POST['contrasena'], $_POST['email'], $_POST['rol'], $_POST['letra']);	
@@ -169,7 +172,12 @@ else{
 			break;
 	case 'envFac':
 			$controller->ImprimeFacturaPegaso($factura=$_GET['docf'], $destino='f');
+<<<<<<< HEAD
 			$controller_cxc->envFac($_GET['docf']);break;
+=======
+			$controller_cxc->envFac($_GET['docf']);
+			break;
+>>>>>>> c37f2dd9e4169e390405c87472327b78489267c1
 	case 'edoCliente':
 		$controller_cxc->edoCliente($_GET['cliente'], $_GET['tipo'],$_GET['nombre'], $_GET['maestro']);
 		break;

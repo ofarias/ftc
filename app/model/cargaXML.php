@@ -116,6 +116,7 @@ class cargaXML extends database {
 
 	function insertarMetaDatos($archivo){
 		//echo $archivo;
+		$cancelados[]=array();
 		$usuario = $_SESSION['user']->NOMBRE;
 		$fp=fopen($archivo,'r');
 		$l=0;
@@ -143,12 +144,12 @@ class cargaXML extends database {
 					$this->query="INSERT INTO FTC_META_DATOS (IDMD, UUID, RFCE, NOMBRE_EMISOR, RFCR, NOMBRE_RECEPTOR, RFCPAC, FECHA_EMISION, FECHA_CERTIFICACION, MONTO, EFECTO_COMPROBANTE, STATUS, FECHA_CANCELACION, ARCHIVO, FECHA_CARGA, USUARIO, PROCESADO, UUID_ORIGINAL) 
 									VALUES (NULL, '$d[0]', '$d[1]', '$nombre_e', '$d[3]', '$nombre_r', '$d[5]', '$d[6]','$d[7]', $d[8], '$d[9]', $d[10], ".$fc.", '$archivo', current_timestamp, '$usuario', 0, (SELECT UUID FROM XML_DATA X WHERE X.UUID CONTAINING('$d[0]')))";
 					$res=$this->grabaBD();
-					
 					if($res==1){
 						$r+=$res;
 						if(strlen($d[11]) > 2){
 							$this->query="UPDATE XML_DATA SET STATUS = 'C' WHERE UPPER(UUID) = UPPER('$d[0]')";
 							$r=$this->queryActualiza();
+							$cancelados[]=strtoupper($d[0]);
 							if($r==1){
 								$this->query="UPDATE FTC_META_DATOS SET PROCESADO = 1 WHERE UPPER(UUID) = UPPER('$d[0]') AND FECHA_CANCELACION IS NOT NULL";
 								$this->queryActualiza();
@@ -177,6 +178,24 @@ class cargaXML extends database {
 		}
 		*/
 		return array("status"=>'ok', "data"=>'0');
+	}
+
+	function cancelaciones($anio, $mes, $tipo){
+		$data=array();
+		$this->query="SELECT * FROM FTC_META_DATOS WHERE FECHA_CANCELACION IS NOT NULL AND EXTRACT(month from FECHA_EMISION) = $mes AND extract(YEAR FROM FECHA_EMISION) = $anio";
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		if(count($data) > 0){
+			$i=0;
+			foreach ($data as $dt) {
+				$uuid=$dt->UUID_ORIGINAL; $i++;
+				$this->query="UPDATE XML_DATA SET STATUS='C' WHERE UUID = $uuid";
+				$this->queryActualiza();
+			}	
+		}
+		return $i;
 	}
 
 	function nomMeta(){
@@ -1378,6 +1397,64 @@ class cargaXML extends database {
 		$this->query="SELECT tipo, DOCUMENTO, CAST(DESCRIPCION AS VARCHAR(2000)) AS DESCRIPCION, CLIENTE, FI, FF, USUARIO, PRESUPUESTO, VALOR FROM XML_GET_DOCS WHERE DESCRIPCION CONTAINING('$doc') or documento containing ('$doc') or tipo containing ('$doc')";
 		$rs=$this->QueryDevuelveAutocompletePro();
 		return @$rs;
+	}
+	
+	function cancelados($opc){
+		$data=array();
+		$this->query="SELECT * FROM FTC_META_DATOS where fecha_cancelacion is not null and rfce = (SELECT RFC FROM FTC_EMPRESAS WHERE ID = 1)";
+		$res=$this->EjecutaQuerySimple();
+		while($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function buscaPol($uuid){
+		$data=array();
+		$this->query="SELECT * FROM XML_POLIZAS WHERE UPPER(UUID) = UPPER('$uuid')";
+		$res=$this->EjecutaQuerySimple();
+		while($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		return $data;
+	}
+
+	function repRet($fi, $ff){
+		$data=array();
+		$this->query="SELECT  extract(year from x.fecha) as anio,
+            extract(month from x.fecha) as mes,
+            case i.impuesto
+                when '001' then 'ISR'
+                when '002' then 'IVA'
+                when '003' then 'IEPS'
+                end as nombre_impuesto,
+            I.IMPUESTO,
+            I.TASA,
+            I.MONTO,
+            I.PARTIDA,
+            X.UUID,
+            I.factura,
+            i.tipofactor,
+            I.BASE,
+            I.TIPO,
+            X.STATUS,
+            X.RFCE,
+            (SELECT FIRST 1 NOMBRE FROM XML_CLIENTES C WHERE C.RFC = X.RFCE) AS NOMBRE,
+            X.cliente,
+            X.DOCUMENTO,
+            X.FECHA,
+            X.subtotal,
+            X.IMPORTE
+        FROM XML_IMPUESTOS I LEFT JOIN XML_DATA X ON X.UUID = I.UUID
+    WHERE I.UUID IN (SELECT D.UUID from xml_data D where
+    fecha >= '$fi' and fecha <= '$ff' and X.CLIENTE = 'BIO870307QD0')
+    order by  x.fecha asc";
+    //echo $this->query;
+		$res=$this->EjecutaQuerySimple();
+		while($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		return $data;
 	}
 
 }

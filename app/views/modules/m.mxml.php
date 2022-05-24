@@ -172,10 +172,26 @@
                 <p><a class="btn-sm btn-success cargaEFOS" >Carga EFOs</a></p>
                 <p><a class="btn-sm btn-primary sincronizar">Sincronizar Datos</a></p>
                 <p><a href="index.php?action=millon" class="btn-sm btn-primary unmillon">Un Millon de Nombres</a></p>
+               <!-- <p><input type="file" webkitdirectory mozdirectory msdirectory odirectory directory  id="folder"></p>-->
+                <p><input type="button" class="dir" value="acomodar"></p>
                 </div>
                 </div>
             </div>
     <?php }?>
+    <?php if($_SESSION['empresa']['retenciones'] == 'S'){ ?>
+        <div class="col-md-4" title="Genera reporte en execel de las retenciones por un rango de fecha">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4><i class="fa fa-list-alt">Reporte Retenciones</i></h4>
+                </div>
+            <div class="panel-body">
+                <p><label>Seleccione la fecha</label></p>
+                <label>Inicial:</label> &nbsp;<input type="date" name="fi" id="rFi"><br/>
+                <label>Final: </label> &nbsp;&nbsp;&nbsp;<input type="date" name="ff" id="rFf"> <input type="button" name="exe" class="btn-small btn-primary ret" value="Ejecutar">
+                </div>
+                </div>
+            </div>
+    <?php } ?>
         </div>
     </div>
 <form action="index.php" method="post" id="migrar">
@@ -193,6 +209,42 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+
+        $(".dir").click(function(){
+            $.ajax({
+                url:'index.xml.php',
+                type:'get',
+                dataType:'json',
+                data:{action:'acomoda'},
+                success:function(data){
+                    alert("Se acomodaron: " + data.archivos)
+                },
+                error:function(){
+                }
+            })
+        })
+
+
+        $(".ret").click(function(){
+            var fi = document.getElementById('rFi').value
+            var ff = document.getElementById('rFf').value
+            $.ajax({
+                url:'index.xml.php',
+                type:'post',
+                dataType:'json',
+                data:{repRet:1, fi, ff},
+                success:function(data){
+                    var archivo = data.archivo
+                    alert("Se genero el archivo" +  archivo)
+                    window.open(data.htmlPath, "download")
+                },
+                error:function(){
+
+                }
+
+            })
+        })
 
         $(".sincronizar").click(function(){
             //$.confirm("desea continuar?")

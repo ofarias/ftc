@@ -77,7 +77,8 @@
                                             <th>Autor</th>
                                             <th>Clave Proveedor</th>
                                             <th>STATUS</th>
-                                            <th>Seleccionar</th>
+                                            <th>Tipo</th>
+                                            <th>Editar</th>
                                             <th>Datos Fiscales</th>
                                             <th>Dar de Baja</th>
                                             
@@ -134,6 +135,10 @@
                                             <td><?php echo $data->EMPAQUE?></td>
                                             <td><?php echo $data->SKU?></td>
                                             <td><?php echo $status?></td>
+                                            <td><?php echo empty($data->TIPO)? 'No Definido':$data->TIPO?>
+                                
+                                            </td>
+
                                             <td><input type="button" class="btn btn-info editar" valor="<?php echo $data->ID?>" value="Editar"> </td>
                                             <td>
                                                 <input type="text" name="cvesat" maxlength="20" placeholder="<?php echo empty($data->CLAVE_SAT)? 'CLAVE SAT':$data->CLAVE_SAT;?>" value="<?php echo $data->CLAVE_SAT;?>" class="cvesat1" prod="<?php echo $data->CLAVE_PEGASO?>" idp="<?php echo $data->ID?>" orig="<?php echo $data->CLAVE_SAT?>" id="ln_<?php echo $data->ID?>" <?php echo empty($data->CLAVE_SAT)? '':''?>> 

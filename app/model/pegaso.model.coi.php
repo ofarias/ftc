@@ -1814,10 +1814,7 @@ class CoiDAO extends DataBaseCOI {
 
     function creaPolizaGasto($cabecera, $detalle, $tipo, $impuestos2, $z, $tp){
         $cfp=2;//La clase fiscal de polizas 2 equivale a Egresos;
-        $tipo = $tipo == 'gasto'? 'Eg':'Ig';
-        $tipo = $tp;
-        $usuario=$_SESSION['user']->USER_LOGIN;
-        $i=0;
+        $tipo = $tipo == 'gasto'? 'Eg':'Ig'; $tipo = $tp; $usuario=$_SESSION['user']->USER_LOGIN; $i=0;
         foreach($cabecera as $cb){
             $fecha = strtotime($cb->FECHA_EDO_CTA);
             $periodo= date("m", $fecha);
@@ -1866,7 +1863,7 @@ class CoiDAO extends DataBaseCOI {
         $this->queryActualiza();
         foreach($cabecera as $pol){
             $con='Egreso '.$pol->CUENTA_BANCARIA;
-            $concepto = substr($con.', '.$proveedorf.' -- '.$pol->REFERENCIA.', pago factura '.$pol->FACTURA, 0, 110);
+            $concepto = utf8_decode(substr($con.', '.$proveedorf.' -- '.$pol->REFERENCIA.', pago factura '.$pol->FACTURA, 0, 110));
             $cuenta = $pol->CTA_BANCO;
             if($cfp==2){
                 $nat0 = 'H';
@@ -1877,12 +1874,12 @@ class CoiDAO extends DataBaseCOI {
             $this->query="INSERT INTO $tbPol(TIPO_POLI, NUM_POLIZ, PERIODO, EJERCICIO, FECHA_POL, CONCEP_PO, NUM_PART, LOGAUDITA, CONTABILIZ, NUMPARCUA, TIENEDOCUMENTOS, PROCCONTAB, ORIGEN, UUID, ESPOLIZAPRIVADA, UUIDOP) 
                                 values ('$tipo','$folio', $periodo, $ejercicio, '$pol->FECHA_EDO_CTA', substring( ('$pol->DOC'||' $concepto') from 1 for 120), 0, '', 'N', 0, 1, 0, substring('PHP $usuario' from 1 for 15),'', 0, '')";
             $this->grabaBD();
-            //echo '<br/>Inserta Poliza:'.$this->query.'<br/>';
+            // echo '<br/>Inserta Poliza:'.$this->query.'<br/>';
             $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', 1, $periodo, $ejercicio, '$cuenta', '$pol->FECHA_EDO_CTA', substring( ('$pol->DOC'||'  $concepto') from 1 for 120), '$nat0' , $pol->MONTO_PAGO, 0, $tc, 0, 1, 0, 0, NULL,NULL)";
             $this->grabaBD();  
-            //echo '<br/> Inserta Primer Partida'.$this->query.'<br/>';
-            /// Validacion para la insercion de UUID.
+            // echo '<br/> Inserta Primer Partida'.$this->query.'<br/>';
+            // Validacion para la insercion de UUID.
         }
         $partida = 1;
         if($cfp==2){
@@ -1901,7 +1898,7 @@ class CoiDAO extends DataBaseCOI {
             $cuenta = $aux->CUENTA_CONTABLE;
             $documento = $aux->DOCUMENTO;
             $proveedor = $aux->PROV;
-            $concepto = substr($pol->DOC.' '.$aux->DESCRIPCION.', '.$documento.', '.$proveedor, 0, 120);
+            $concepto = utf8_decode(substr($pol->DOC.' '.$aux->DESCRIPCION.', '.$documento.', '.$proveedor, 0, 120));
                 $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
                                 values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto', '$nat1', $aux->APLICADO, 0, $tc, 0, $partida, 0,0, null, null)";
                 $this->grabaBD();   
@@ -1990,7 +1987,7 @@ class CoiDAO extends DataBaseCOI {
             $a++; 
         }
         
-        //exit();
+        // exit();
         return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>$tipo.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
     }
 
@@ -2800,6 +2797,40 @@ class CoiDAO extends DataBaseCOI {
             }
         }
         return array("Mensaje"=>'Listo');
+    }
+
+    function buscaTipo($tp, $nat, $tedo){
+        $row = array();
+        if(empty($tp )){
+            switch($tedo){
+                case 'TNS':
+                        $tp = $nat==1? 'Ig':'Eg';
+                    break;
+                case 'EFE':
+                        $tp = $nat==1? 'Ig':'Eg';
+                    break;
+                case 'TDC':
+                        $tp = $nat==1? 'Ig':'Eg';
+                    break;
+                case 'CHQ':
+                        $tp = $nat==1? 'Ig':'Ch';
+                    break;
+                default:
+                        $tp = $nat==1? 'Ig':'Eg';
+                    break;
+            }   
+        }
+        $this->query="SELECT first 1 * FROM TIPOSPOL where TIPO ='$tp' and CLASSAT=$nat";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_row($res);
+        if(isset($row)){
+            $tipo= $row[0];
+        }elseif($nat == 2){
+            $tipo= 'Eg';
+        }elseif($nat == 1){
+            $tipo= 'Ig';
+        }
+        return $tipo;
     }
 }      
 ?>

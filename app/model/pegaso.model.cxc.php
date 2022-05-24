@@ -1014,8 +1014,6 @@ class pegasoCobranza extends database {
                 from CARGA_PAGOS c where C.ID = $idp and (poliza_ingreso = '' or poliza_ingreso is null)";
             $res=$this->EjecutaQuerySimple();
             $row=ibase_fetch_object($res);
-
-
             return $row;
             //return array("statsu"=>'ok', "info"=>"Banco: ".$row->BANCO." Cuenta: ".$row->CUENTA." Importe: ".$row->MONTO, "banco"=>$row->BANCO, "cuenta"=>$row->CUENTA, "cuentaCoi"=>$row->CCOI, "monto"=>"$ ".number_format($row->MONTO,2), "fecha_edo"=>$row->FECHA_RECEP, "conciliado"=>$row->GUARDADO, "perido"=>$row->PERIODO, "ejercicio"=>$row->EJERCICIO, "factura"=>$row->OBS, "importe"=>$row->MONTO, "obs"=>$row->OBS,"tipo_tes"=>$row->CONTABILIZADO);
     }
@@ -1039,6 +1037,17 @@ class pegasoCobranza extends database {
             $data[]=$tsArray;
         }
         return $data;
+    }
+
+    function saldoPago($idp){
+        $tipo='';
+        $this->query="SELECT SALDO FROM CARGA_PAGOS WHERE ID = $idp";
+        $res=$this->EjecutaQuerySimple();
+        $row=ibase_fetch_object($res);
+        if($row->SALDO > 0.01){
+            $tipo='999999';
+        }
+        return $tipo;
     }
 }
 ?> 

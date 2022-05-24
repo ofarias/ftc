@@ -176,6 +176,7 @@
                                 <table class="table table-striped table-bordered table-hover" id="dataTables-aplicaGasto">
                                     <thead>
                                         <tr>
+                                            <!--<th>Aplica Multiple</th>-->
                                             <th>UUID <br/> Factura</th>
                                             <th>Proveedor</th>
                                             <th>Fecha Edo de Cta</th>
@@ -196,6 +197,7 @@
                                             $saldo = $f->IMPORTE - $f->APLICADO;
                                         ?>
                                         <tr class="odd gradeX" <?php echo $color ?> >
+                                            <!--<td><input type="checkbox" name="aplicaMulti" id="am_<?php echo $f->UUID?>" class="am"></td>-->
                                             <td> <?php echo $f->UUID?>&nbsp;&nbsp;&nbsp;<a href="index.php?action=verXML&uuid=<?php echo $f->UUID?>&ide=Recibidos&anio=<?php echo $a?>" class="btn-sm btn-info" target="popup" onclick="window.open(this.href, this.target, 'width=1800,height=1320'); return false;"> Clasificar UUID</a><br/><?php echo $f->DOCUMENTO?> </td>
                                             <td><?php echo $f->PROV?></td>
                                             <td><?php echo $f->FECHA;?> </td>

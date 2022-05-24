@@ -1,4 +1,18 @@
 <br /><br />
+<div>
+    <?php if($_SESSION['user']->USER_LOGIN == 'ofarias'){?>
+        <form action="upload_txt.php" method="POST" enctype="multipart/form-data">
+            <input type="file" name="fileToUpload" id="fileToUpload" required="required">
+            <input type="submit" value="Catalogos de cuentas" name="submit">
+        </form>
+    <br/>
+        <form action="upload_xls.php" method="POST" enctype="multipart/form-data">
+            <input type="file" name="fileToUpload" id="fileToUpload" required="required" accept=".xls, .xlsx">
+            <input type="submit" value="Poliza Contpaq" name="submit">
+        </form>
+    <?php }?>
+</div>
+<br/>
 <div class="row">
     <div class="col-lg-12">
         <div class="panel panel-default">

@@ -8,6 +8,8 @@ require_once 'app/views/unit/commonts/numbertoletter.php';
 require_once 'app/model/facturacion.php';
 require_once 'app/controller/controller.coi.php';
 require_once 'app/simplexlsx-master/src/SimpleXLSX.php';
+require_once 'app/model/pegaso.model.cxc.php';
+require_once 'app/controller/controller.coi.php';
 
 class pegaso extends database{
 	/*Comprueba datos de login*/
@@ -23725,7 +23727,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				}
 				if($version == '3.2'){
 					$tipo = $cfdiComprobante['tipoDeComprobante'];
-				}elseif($version == '3.3'){
+				}elseif($version == '3.3' or $version == '4.0'){
 					$tipo = $cfdiComprobante['TipoDeComprobante'];
 				}
 				foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
@@ -23736,7 +23738,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					}elseif($version == '3.3'){
 						$rfc= $Receptor['Rfc'];
 						$nombre_recep=utf8_encode($Receptor['Nombre']);
+						$usoCFDI =$Receptor['UsoCFDI'];;
+					 }elseif($version == '4.0'){
+						$rfc= $Receptor['Rfc'];
+						$nombre_recep=utf8_encode($Receptor['Nombre']);
 						$usoCFDI =$Receptor['UsoCFDI'];
+						$domFisc = $Receptor['DomicilioFiscalReceptor'];// nuevo para la version 4.0 
+						$regFisc = $Receptor['RegimenFiscalReceptor'];// nuevo para la version 4.0
 					 }
 				}
 				foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $Emisor){
@@ -23744,7 +23752,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						$rfce = $Emisor['rfc'];
 						$nombreE = '';
 						$regimen = '';	
-					}elseif($version == '3.3'){
+					}elseif($version == '3.3' or $version == '4.0'){
 						$rfce = $Emisor['Rfc'];
 						$nombreE = utf8_encode($Emisor['Nombre']);
 						$regimen = $Emisor['RegimenFiscal'];
@@ -23884,6 +23892,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				  if($version == ''){
 				  	$version = $cfdiComprobante['Version'];
 				  }
+				  $export='';
 				  if($version == '3.2'){
 				      $serie = $cfdiComprobante['serie'];                  
 	                  $folio = $cfdiComprobante['folio'];
@@ -23903,14 +23912,14 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					  $LugarExpedicion = substr($cfdiComprobante['LugarExpedicion'],0,149);
 					  $MetodoPago = $cfdiComprobante['metodoDePago'];
 					  
-				  }elseif($version == '3.3'){
-				      $serie = $cfdiComprobante['Serie'];                  
-	                  $folio = $cfdiComprobante['Folio'];
+				  }elseif($version == '3.3' or $version == '4.0'){
+				      $serie = isset($cfdiComprobante['Serie'])? $cfdiComprobante['Serie']:'';                  
+	                  $folio = isset($cfdiComprobante['Folio'])? $cfdiComprobante['Folio']:'';
 	                  $total = $cfdiComprobante['Total'];
 	                  $subtotal = $cfdiComprobante['SubTotal'];
 					  $descuento = $cfdiComprobante['Descuento'];
 					  $tipo = $cfdiComprobante['TipoDeComprobante'];
-					  $condicion = $cfdiComprobante['CondicionesDePago'];
+					  $condicion = isset($cfdiComprobante['CondicionesDePago'])? $cfdiComprobante['CondicionesDePago']:'';
 					  $metodo = $cfdiComprobante['MetodoPago'];
 					  $moneda = $cfdiComprobante['Moneda'];
 					  $lugar = substr($cfdiComprobante['LugarExpedicion'],0,149);
@@ -23921,6 +23930,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					  $formaPago = $cfdiComprobante['FormaPago'];
 					  $LugarExpedicion = substr($cfdiComprobante['LugarExpedicion'],0,149);
 					  $MetodoPago = $cfdiComprobante['MetodoPago'];
+					  $export = $cfdiComprobante['Exportacion']; /// Nuevo campo en cfdi 4.0
 				  }
 				  	if(strpos($tc, ',')){
 						$tc=str_replace(",", ".", $tc);
@@ -23942,7 +23952,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
             	//echo 'Entro a la carga: '.$serie.' <br/> Archivo: '.$archivo.' <br/> tipo: '.$tipo.'<br/> ';
             			$this->query="UPDATE XML_DATA_FILES SET TIPO = upper(substring('$tipo' from 1 for 1)) WHERE NOMBRE='$archivo'";
             			$this->EjecutaQuerySimple();
-
+							$usoCFDI = '';
+							$domFisc = '';
+							$regFisc = '';
 			        	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Receptor') as $Receptor) {
 			            	if($version == '3.2'){
 			            		$rfc= $Receptor['rfc'];
@@ -23952,7 +23964,13 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		$rfc= $Receptor['Rfc'];
 			            		$nombre_recep=str_replace("'", "", $Receptor['Nombre']);
 			            		$usoCFDI =$Receptor['UsoCFDI'];
-			            	 }
+			            	 }elseif($version == '4.0'){
+								$rfc= $Receptor['Rfc'];
+			            		$nombre_recep=str_replace("'", "", $Receptor['Nombre']);
+			            		$usoCFDI =$Receptor['UsoCFDI'];
+								$domFisc = $Receptor['DomicilioFiscalReceptor'];
+								$regFisc = $Receptor['RegimenFiscalReceptor'];
+							 }
 			            }
 			            foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Emisor') as $Emisor){
 			            	if($version == '3.2'){
@@ -23960,6 +23978,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		$nombreE = '';
 			            		$regimen = '';	
 			            	}elseif($version == '3.3'){
+			            		$rfce = $Emisor['Rfc'];
+			            		$nombreE = str_replace("'", "", $Emisor['Nombre']);
+			            		$regimen = $Emisor['RegimenFiscal'];
+			            	}elseif($version == '4.0'){
 			            		$rfce = $Emisor['Rfc'];
 			            		$nombreE = str_replace("'", "", $Emisor['Nombre']);
 			            		$regimen = $Emisor['RegimenFiscal'];
@@ -23993,7 +24015,16 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$recep_estado='';
 				            	$recep_pais='';
 				            	$recep_cp='';
-			            	}
+			            	}elseif($version == '4.0'){
+											$recep_calle='';
+				            	$recep_noExterior='';
+				            	$recep_noInterior='';
+				            	$recep_colonia='';
+				            	$recep_municipio='';
+				            	$recep_estado='';
+				            	$recep_pais='';
+				            	$recep_cp='';
+										}
 			            }
 			            /// debemos traer el RFC de la empresa que se esta trabajando.
 			            $rfcEmpresa = $_SESSION['rfc'];
@@ -24045,7 +24076,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$claveUni='';
 								$identificador='';
 				            	$partida[] =array($unidad, $importe, $cantidad, $descripcion, $valor,$claveSat, $claveUni); 
-			            	}elseif($version =='3.3'){
+			            	}elseif($version =='3.3'or $version == '4.0'){
 			            		$unidad = $Concepto['Unidad'];
 				            	$importe = $Concepto['Importe'];
 				            	$cantidad = $Concepto['Cantidad'];
@@ -24069,7 +24100,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							            	$parTasaCuota='';
 							            	$parImpImporte='';
 							           		$partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte); 
-						            	}elseif($version =='3.3'){
+						            	}elseif($version =='3.3' or $version == '4.0'){
 						            		$base = $TrasladoPartida['Base'];
 							            	$parImpuesto= $TrasladoPartida['Impuesto'];
 							            	$parTipoFact = $TrasladoPartida['TipoFactor'];
@@ -24093,7 +24124,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							            	$parTasaCuota='';
 							            	$parImpImporte='';
 							           		$partidaImp[]=array($base, $parImpuesto, $parTipoFact, $parTasaCuota, $parImpImporte); 
-						            	}elseif($version =='3.3'){
+						            	}elseif($version =='3.3' or $version == '4.0'){
 						            		$base = $RetencionPartida['Base'];
 							            	$parImpuesto= $RetencionPartida['Impuesto'];
 							            	$parTipoFact = $RetencionPartida['TipoFactor'];
@@ -24118,7 +24149,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			          					$fechaPed = isset($infoAdu['fechaPedimento'])? $infoAdu['fechaPedimento']:'01.01.1909';
 			          					$cantiPed = isset($infoAdu['cantidad'])? $infoAdu['cantidad']:$cantidad; 
 			          					$parInfoAduana[]=array($numPed, $parIT, $fechaPed, $cantiPed, $descripcion);
-			          				}elseif($version == '3.3'){
+			          				}elseif($version == '3.3' or $version == '4.0'){
 			          					$numPed = $infoAdu['NumeroPedimento'];
 			          					$fechaPed = isset($infoAdu['fechaPedimento'])? $infoAdu['fechaPedimento']:'01.01.1909';
 			          					$cantiPed = isset($infoAdu['cantidad'])? $infoAdu['cantidad']:$cantidad; 
@@ -24137,7 +24168,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            			$parte_claveSat='';
 				            			$parte_claveUni='';
 				            			$parte_partida[] =array($parte_unidad, $parte_importe, $parte_cantidad, $parte_descripcion, $parte_valor,$parte_claveSat, $parte_claveUni, $parIT);
-			          				}elseif($version == '3.3'){
+			          				}elseif($version == '3.3' or $version == '4.0'){
 			          					$parte_unidad = $Concepto['Unidad'];
 				            			$parte_importe = $Concepto['Importe'];
 				            			$parte_cantidad = $Concepto['Cantidad'];
@@ -24179,8 +24210,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			          				$numParcialidad =isset($pgdet['NumParcialidad'])? $pgdet['NumParcialidad']:1; 
 			          				$impSaldoAnt =isset($pgdet['ImpSaldoAnt'])? $pgdet['ImpSaldoAnt']:0; 
 			          				$impPago =isset($pgdet['ImpPagado'])? $pgdet['ImpPagado']:0; 
-			          				$impSaldoIns =isset($pgdet['ImpSaldoInsoluto'])? $pgdet['ImpSaldoInsoluto']:0; 
-			          				$pagoDetalle[]=array('idDocumento'=>$idDocumento,'serie'=>$serie,'folio'=>$folio,'monedaDr'=>$monedaDr,'metodoPago'=>$metodoPago,'numParcialidad'=>$numParcialidad,'impSaldoAnt'=>$impSaldoAnt,'impPago'=>$impPago,'impSaldoIns'=>$impSaldoIns);
+			          				$impSaldoIns =isset($pgdet['ImpSaldoInsoluto'])? $pgdet['ImpSaldoInsoluto']:0;
+									$tc =isset($pgdet['TipoCambioDR'])? $pgdet['TipoCambioDR']:1; 
+			          				$pagoDetalle[]=array('idDocumento'=>$idDocumento,'serie'=>$serie,'folio'=>$folio,'monedaDr'=>$monedaDr,'metodoPago'=>$metodoPago,'numParcialidad'=>$numParcialidad,'impSaldoAnt'=>$impSaldoAnt,'impPago'=>$impPago,'impSaldoIns'=>$impSaldoIns, 'tc'=>$tc);
 			          			}
 			          		}
 			          	}
@@ -24189,7 +24221,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            	if($version == '3.2'){
 				            	$titra=0.00;
 					            $tiret=0.00;
-				            }elseif($version == '3.3'){
+				            }elseif($version == '3.3' or $version == '4.0'){
 				            	$titra= isset($Timp['TotalImpuestosTrasladados'])? $Timp['TotalImpuestosTrasladados']:0;
 					            $tiret= isset($Timp['TotalImpuestosRetenidos'])? $Timp['TotalImpuestosRetenidos']:0;
 				            }
@@ -24199,6 +24231,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 			            //HASTA AQUI TODA LA INFORMACION ES LEIDA E IMPRESA CORRECTAMENTE
 			            //ESTA ULTIMA PARTE ES LA QUE GENERA ERROR, AL PARECER NO ENCUENTRA EL NODO
+						$verCfdi = $version; /// Cambios en CFDI 4
 			            foreach ($xml->xpath('//t:TimbreFiscalDigital') as $tfd) {
 			               if($version == '3.2'){
 			               		$fecha = $tfd['FechaTimbrado']; 
@@ -24208,7 +24241,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			               		$RfcProvCertif=$tfd['RfcProvCertif'];
 			               		$SelloCFD=$tfd['selloCFD'];
 			               		$SelloSAT=$tfd['selloSAT'];
-			               		$version = $tfd['version'];
+			               		$versat = $tfd['version'];
 			               		$rfcprov = empty($tfd['RfcProvCertif'])? '':$tfd['RfcProvCertif'];
 			               }else{
 			               		$fecha = $tfd['FechaTimbrado']; 
@@ -24218,7 +24251,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			               		$RfcProvCertif=$tfd['RfcProvCertif'];
 			               		$SelloCFD=$tfd['SelloCFD'];
 			               		$SelloSAT=$tfd['SelloSAT'];
-			               		$version = $tfd['Version'];
+			               		$versat = $tfd['Version'];
 			               		$rfcprov = $tfd['RfcProvCertif'];
 			               }
 			            }
@@ -24241,8 +24274,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            ///}
 			            if($tipo2 == 'F'){
 			            	//echo '<br/> Tipo de cambio: '.$tc.'<br/>';
-			            	$this->query = "INSERT INTO XML_DATA (UUID, CLIENTE, SUBTOTAL, IMPORTE, FOLIO, SERIE, FECHA, RFCE, DESCUENTO, STATUS, TIPO, NOCERTIFICADOSAT, SELLOCFD, SELLOSAT, FECHATIMBRADO, CERTIFICADO, SELLO, versionSAT, no_cert_contr, rfcprov,formaPago, LugarExpedicion, metodoPago, moneda, TipoCambio, FILE, USO, RELACION, ID_RELACION)";
-				            $this->query.= "VALUES ('$uuid', '$rfc', '$subtotal', '$total', '$folio', '$serie', '$fecha', '$rfce', $descuento, 'S', '$tipo', '$noNoCertificadoSAT', '$SelloCFD', '$SelloSAT', '$fecha','$Certificado', '$Sello', '$version', '$noCert', '$rfcprov', '$formaPago', '$LugarExpedicion', '$MetodoPago', '$moneda', $tc, '$archivo','$usoCFDI', '',null )";
+			            	$this->query = "INSERT INTO XML_DATA (UUID, CLIENTE, SUBTOTAL, IMPORTE, FOLIO, SERIE, FECHA, RFCE, DESCUENTO, STATUS, TIPO, NOCERTIFICADOSAT, SELLOCFD, SELLOSAT, FECHATIMBRADO, CERTIFICADO, SELLO, versionSAT, no_cert_contr, rfcprov,formaPago, LugarExpedicion, metodoPago, moneda, TipoCambio, FILE, USO, RELACION, ID_RELACION, VERSION_CFDI, DOM_FISC_RECEP, REG_FISC_RECEP, EXPORTACION)";
+				            $this->query.= "VALUES ('$uuid', '$rfc', '$subtotal', '$total', '$folio', '$serie', '$fecha', '$rfce', $descuento, 'S', '$tipo', '$noNoCertificadoSAT', '$SelloCFD', '$SelloSAT', '$fecha','$Certificado', '$Sello', '$versat', '$noCert', '$rfcprov', '$formaPago', '$LugarExpedicion', '$MetodoPago', '$moneda', $tc, '$archivo','$usoCFDI', '',null, '$verCfdi', '$domFisc ', '$regFisc', '$export' )";
 				            //echo "<p>query: ".$this->query."</p>";
 							//$respuesta = $this->grabaDB();
 							if($respuesta = @$this->grabaBD() === false){
@@ -24356,7 +24389,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$i=$i+1;
 			            	}
 
-			            if($version == '3.3'){ 
+			            if($version == '3.3' or $version == '4.0'){ 
 			            	if(count($parte_partida) > 0){
 			            		foreach ($parte_partida as $pp ){
 			            			$parte_unidad = $pp[0];
@@ -24430,10 +24463,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 									$impSaldoAnt = $keyPD['impSaldoAnt'];
 									$impPago = $keyPD['impPago'];
 									$impSaldoIns = $keyPD['impSaldoIns'];
-			            			$this->query="INSERT INTO XML_COMPROBANTE_PAGO_DETALLE (ID, ID_DOCUMENTO,SERIE,FOLIO,	MONEDA,METODO_PAGO,NUM_PARCIALIDAD,SALDO,PAGO,SALDO_INSOLUTO,STATUS, UUID_PAGO) VALUES ( null, '$idDocumento', '$serie', '$folio', '$monedaDr', '$metodoPago', $numParcialidad, $impSaldoAnt, $impPago, $impSaldoIns, 'P', '$uuid')";
+									$tc = $keyPD['tc'];
+			            			$this->query="INSERT INTO XML_COMPROBANTE_PAGO_DETALLE (ID, ID_DOCUMENTO,SERIE,FOLIO,	MONEDA,METODO_PAGO,NUM_PARCIALIDAD,SALDO,PAGO,SALDO_INSOLUTO,STATUS, UUID_PAGO, TIPO_CAMBIO) VALUES ( null, '$idDocumento', '$serie', '$folio', '$monedaDr', '$metodoPago', $numParcialidad, $impSaldoAnt, $impPago, $impSaldoIns, 'P', '$uuid', $tc)";
 			            			$this->grabaBD();
 			            		}
-								
 			            	}
 
 							if($xml->xpath('//cfdi:CfdiRelacionados')){
@@ -25088,7 +25121,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	}elseif($ide == 'Recibidos'){
     		$uuid = "and extract(year from cast(fechatimbrado as timestamp)) = ".$anio." and extract(month from cast(fechatimbrado as timestamp))=".$mes." and cliente = '".$_SESSION['rfc']."' and x.TIPO = '".$doc."'";
     	}
-    	if($ide== 'Emitidos'){
+		//echo 'valor del uuid'.$uuid.' valor del ide: '.$ide.' valor del doc '.$doc;
+    	if($ide== 'Emitidos' && ($doc =='I' or $doc == 'E')){
 					$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
     					CASE x.cliente
@@ -25102,22 +25136,25 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					, fecha_recep as fecha_edo_cta
     					,COALESCE( 
     						CAST(
-    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID or CPD.UUID_PAGO = X.UUID) 
+							substring(
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = UPPER(X.UUID) or CPD.UUID_PAGO = UPPER(X.UUID))
+							from 1 for 1999) 
     						AS VARCHAR(2000)) , '') AS CEPA
     					
     					,COALESCE(
     						CAST(
     							substring(
-    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID )
+    							(SELECT LIST(R.UUID||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE||'|'||x2.FORMAPAGO) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID )
     							 from 1 for 1499)
     							 AS VARCHAR(1500)
     						), ''
     						) AS RELACIONES,
     					X.importe - coalesce((SELECT sum(monto_Aplicado) from aplicaciones ap where ap.observaciones = x.uuid AND STATUS != 'C'), 0) as saldo_xml,
     					(SELECT DESCRIPCION FROM XML_TIPO_DOC XT WHERE XT.ID_TIPO = X.ID_RELACION) AS TIPO_DOC,
-    					COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A' and tipo='Dr') AS VARCHAR(2000)),'') as provi
+    					
+						COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A' and tipo='Dr') AS VARCHAR(2000)),'') as provi
 						FROM XML_DATA x left join carga_pagos cr on cr.id = x.idpago WHERE (x.STATUS = 'P' OR x.STATUS  = 'S' or x.STATUS= 'D' or x.STATUS= 'I' or x.STATUS= 'E' or x.status ='F' or x.status = 'C') $uuid";
-		}else{
+			}elseif($ide == 'Recibidos' && ($doc == 'I' || $doc == 'E')){
     				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
     					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
     					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
@@ -25131,7 +25168,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					,COALESCE(
     						CAST(
     						substring( 
-    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) from 1 for 1499)
+    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE||'|'||x2.FORMAPAGO) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) from 1 for 1499)
     							AS VARCHAR(1500)
     						), ''
     						) AS RELACIONES, 
@@ -25141,12 +25178,92 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
 						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
 						
-    	}
-    	$res=$this->EjecutaQuerySimple();
+    	}elseif($ide == 'Emitidos' && $doc=='P'){
+				/// en emitidos traemos cuando el rfce es igual al rfc de la empresa que estamos analizando
+				$rfc= $_SESSION['rfc'];
+				$this->query="SELECT X.*, x.importe as importexml ,
+								(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO, 
+								(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.CLIENTE and tipo = 'Cliente') AS EMISOR, 
+								(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.RFCE ) AS RECEPTOR,
+								(SELECT first 1 FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
+								FROM XML_DATA_UPPER X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
+				//die('Estos son los pagos');
+			}elseif($ide == 'Recibidos' && $doc == 'P'){
+				$this->query="SELECT X.*, x.importe as importexml ,
+								(SELECT sum(MONTO) as monto FROM xml_comprobante_pago WHERE UUID =X.UUID) AS MONTO_PAGO,
+								(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE RFC = X.RFCE and tipo = 'Proveedor') AS RECEPTOR, 
+								(SELECT RAZON_SOCIAL FROM FTC_EMPRESAS WHERE RFC = X.CLIENTE ) AS EMISOR,
+								(SELECT first 1 FECHA FROM XML_COMPROBANTE_PAGO CP WHERE CP.UUID = X.UUID OR CP.UUID = X.UUID_UPPER) AS FECHA_PAGO
+								FROM XML_DATA_UPPER X  where (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C')  $uuid";
+				//die('Estos son los pagos');
+			}else{
+				$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
+    					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
+    					(select first 1 nombre from xml_clientes where rfc = cliente) as nombre, 
+    					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = rfce) as emisor,
+    					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = rfce and tipo = 'Proveedor') as cuenta_Contable,
+    					COALESCE(CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(2500)),'') as poliza
+    					, COALESCE( 
+    						CAST(
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID or CPD.UUID_PAGO = X.UUID) 
+    						AS VARCHAR(2500)) , '') AS CEPA
+    					,COALESCE(
+    						CAST(
+    						substring( 
+    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE||'|'||x2.FORMAPAGO) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) from 1 for 1499)
+    							AS VARCHAR(1500)
+    						), ''
+    						) AS RELACIONES, 
+    						x.importe - coalesce((SELECT SUM(AG.APLICADO) FROM APLICACIONES_GASTOS AG WHERE AG.UUID = x.UUID AND STATUS=0),0) AS SALDO_XML,
+    						(SELECT DESCRIPCION FROM XML_TIPO_DOC XT WHERE XT.ID_TIPO = X.ID_RELACION) AS TIPO_DOC,
+    						COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A' and tipo='Dr') AS VARCHAR(2000)),'') as provi
+						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
+						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') $uuid";
+		}
+		$res=$this->EjecutaQuerySimple();
     	while($tsArray = ibase_fetch_object($res)){
     		$data[]=$tsArray;
     	}
-    	return ($data);
+    	return $data;
+    }
+
+    function infoContable($uuid, $ide){
+    	$data=array(); $tipo = ''; 
+    	if($ide == 'Emitidos'){
+    			$tipo = 'Cliente';
+    			$rfc = 'CLIENTE';
+    	}else{
+    			$tipo = 'Proveedor';
+    			$rfc = 'RFCE';
+     	}
+     	$this->query="SELECT x.importe  as importexml, x.* , cr.*, 
+    					(IEPS030+ cast(IEPS000 as double precision)+ IEPS018+ IEPS020+ IEPS060+ IEPS250+ IEPS300+ IEPS600+ IEPS090+ IEPS304+ IEPS500+ IEPS530+ IEPS070+ IEPS080+ IEPS265+ IEPSC) AS IEPS, 
+    					(select first 1 nombre from xml_clientes where rfc = $rfc) as nombre, 
+    					(SELECT first 1 NOMBRE FROM XML_CLIENTES WHERE rfc = $rfc) as emisor,
+    					(SELECT first 1 CUENTA_CONTABLE FROM XML_CLIENTES WHERE rfc = $rfc and tipo = '$tipo') as cuenta_Contable,
+    					COALESCE(CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(2500)),'') as poliza
+    					, COALESCE( 
+    						CAST(
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID or CPD.UUID_PAGO = X.UUID) 
+    						AS VARCHAR(2500)) , '') AS CEPA
+    					,COALESCE(
+    						CAST(
+    						substring( 
+    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE||'|'||x2.FORMAPAGO) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) from 1 for 1499)
+    							AS VARCHAR(1500)
+    						), ''
+    						) AS RELACIONES, 
+    						x.importe - coalesce((SELECT SUM(AG.APLICADO) FROM APLICACIONES_GASTOS AG WHERE AG.UUID = x.UUID AND STATUS=0),0) AS SALDO_XML,
+    						(SELECT DESCRIPCION FROM XML_TIPO_DOC XT WHERE XT.ID_TIPO = X.ID_RELACION) AS TIPO_DOC,
+    						COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A' and tipo='Dr') AS VARCHAR(2000)),'') as provi
+						FROM XML_DATA x left join cr_directo cr on cr.id = x.idpago 
+						WHERE (STATUS = 'P' OR STATUS  = 'S' or STATUS= 'D' or STATUS= 'I' or STATUS= 'E' or status = 'F' or x.status = 'C') and x.uuid = '$uuid'";
+			//echo $this->query;
+    	$res=$this->EjecutaQuerySimple();
+    	while($tsArray=ibase_fetch_object($res)){
+    		$data[]=$tsArray;
+    	}
+    	return $data;
     }
 
     /* Actualiza razones sociales con RFC XAXX010101000
@@ -25245,11 +25362,11 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					, fecha_recep as fecha_edo_cta
     					,COALESCE( 
     						CAST(
-    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID or CPD.UUID_PAGO = X.UUID) 
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = UPPER(X.UUID) or CPD.UUID_PAGO = UPPER(X.UUID)) 
     						AS VARCHAR(2500)) , '') AS CEPA
     					,COALESCE(
     						CAST(
-    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID ) AS VARCHAR(2000)
+    							(SELECT LIST(R.UUID||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE||'x2.FORMAPAGO') FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID and x2.status !='C' WHERE UPPER(R.UUID) = UPPER(X.UUID) OR UPPER(R.UUID_DOC_REL) = UPPER(X.UUID) ) AS VARCHAR(2000)
     						), ''
     						) AS RELACIONES,
     					X.importe - coalesce((SELECT sum(monto_Aplicado) from aplicaciones ap where ap.observaciones = x.uuid AND STATUS != 'C'), 0) as saldo_xml, 
@@ -25270,12 +25387,12 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     					COALESCE(CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = x.uuid and status='A') AS VARCHAR(1000)),'') as poliza
     					, COALESCE( 
     						CAST(
-    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = X.UUID or CPD.UUID_PAGO = X.UUID) 
+    						(SELECT LIST(CP.DOCUMENTO||'|'||CPD.PAGO||'|'||CP.UUID) FROM XML_COMPROBANTE_PAGO_DETALLE CPD LEFT JOIN XML_DATA CP ON CP.UUID = CPD.UUID_PAGO WHERE CPD.ID_DOCUMENTO = UPPER(X.UUID) or CPD.UUID_PAGO = UPPER(X.UUID)) 
     						AS VARCHAR(1500)) , '') AS CEPA
     					
     					,COALESCE(
     						CAST( 
-    							(SELECT LIST(R.UUID_DOC_REL||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE) FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID_DOC_REL and x2.status !='C' WHERE R.UUID = X.UUID OR R.UUID_DOC_REL = X.UUID) AS VARCHAR(1000)
+    							(SELECT LIST(R.UUID||'|'||R.TIPO||'|'||x2.DOCUMENTO||'|'||x2.IMPORTE||'x2.FORMAPAGO') FROM XML_RELACIONES R left join xml_data x2 on x2.uuid = r.UUID and x2.status !='C' WHERE UPPER(R.UUID) = UPPER(X.UUID) OR UPPER(R.UUID_DOC_REL) = UPPER(X.UUID)) AS VARCHAR(2000)
     						), ''
     						) AS RELACIONES,
 
@@ -27436,7 +27553,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function cabeceraUUID($uuid){
 		$data = array();
-		$this->query="SELECT X.*, COALESCE((SELECT FIRST 1 NOMBRE FROM XML_CLIENTES WHERE RFC = RFCE ), (SELECT F.RAZON_SOCIAL FROM FTC_EMPRESAS F WHERE F.RFC = X.RFCE)) AS NOMBRE_EMISOR, coalesce((SELECT FIRST 1 NOMBRE FROM XML_CLIENTES WHERE RFC=CLIENTE), (SELECT F.RAZON_SOCIAL FROM FTC_EMPRESAS F WHERE F.RFC = X.CLIENTE)) AS NOMBRE_RECEPTOR FROM XML_DATA X WHERE upper(UUID) =upper('$uuid')";
+		$this->query="SELECT X.*, COALESCE((SELECT FIRST 1 NOMBRE FROM XML_CLIENTES WHERE RFC = RFCE ), (SELECT F.RAZON_SOCIAL FROM FTC_EMPRESAS F WHERE F.RFC = X.RFCE)) AS NOMBRE_EMISOR, coalesce((SELECT FIRST 1 NOMBRE FROM XML_CLIENTES WHERE RFC=CLIENTE), (SELECT F.RAZON_SOCIAL FROM FTC_EMPRESAS F WHERE F.RFC = X.CLIENTE)) AS NOMBRE_RECEPTOR FROM XML_DATA_UPPER X WHERE UUID ='$uuid' OR UUID_UPPER ='$uuid'";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
@@ -27832,6 +27949,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						$tipo = $key[6];
 						$uuid = @$key[7];
 						$obs = substr(utf8_encode(@$key[8]),0,255);
+						$tp = substr(utf8_encode(@$key[9]),0,5);
 						if($cargo <> 0 and $abono <> 0 ){
 							$e++;
 							echo $clave.' <font color="red">No Inserta la linea por que el valor cargo y valor de abono son mayores a 0.00 .</font><br/>';
@@ -27875,7 +27993,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							$e++;
 						}
 						if($e == 0){
-							$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid, "obs"=>$obs);
+							$data[]=array("linea"=>$clave, "fecha"=>$fecha, "desc"=>$desc, "ca"=>$ca, "monto"=>$monto,"tipo"=>$tipo, "uuid"=>$uuid, "obs"=>$obs, "tp"=>$tp);
 						}
 					}		
 					$i++;
@@ -27894,22 +28012,32 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	}
 
 	function cargaXLSX($datos, $data, $banco, $cuenta, $reg){
-		$usuario = $_SESSION['user']->NOMBRE;
+		$usuario = $_SESSION['user']->NOMBRE; $abonos=array(); $cargos=array();
 		foreach ($data as $key) {
 			$monto = $key['monto'];
 			$fecha = $key['fecha'];
 			$uuid=$key['uuid'];
 			$tipo = $key['tipo'];
 			$desc = $key['desc'];
-			$obs=$key['obs'];	
+			$obs=$key['obs'];
+			$tp=$key['tp'];	
 			if($key['ca']=='a'){
 				$folio=$this->folioBanco($banco, $cuenta);
-				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS, REGISTRO) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs', $reg) ";
-				//echo '<br/>Consulta Carga Pagos: <br/>'.$this->query.'<br/>';
-				$this->grabaBD();
+				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS, REGISTRO, USUARIO_CONTA) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs', $reg, '$tp') RETURNING ID";
+				$fol_cp=$this->grabaBD();
+				$rowp=ibase_fetch_object($fol_cp);
+				if(!empty($uuid)){
+					$uuid = explode(",",$uuid);
+					for($i=0;$i<count($uuid); $i++){
+						if(!empty($uuid[$i])){
+							$abonos[$uuid[$i]]= $rowp->ID;
+						}
+					}
+				}
 			}elseif($key['ca']=='c'){
-				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo, NUM_PAR) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto', $reg) RETURNING ID";
+				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo, NUM_PAR, USUARIO_AUTO) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto', $reg, '$tp' ) RETURNING ID";
 				switch ($tipo) {
+
 				 	case 'TNS':
 				 		$tipo = 'TR';
 				 		break;
@@ -27917,7 +28045,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 						$tipo = 'TR';
 				 		break;
 				}
-				//echo '<br/>Consulta Gastos: <br/>'.$this->query.'<br/>';
 				$foliog=$this->grabaBD();
 				$row=ibase_fetch_object($foliog);
 				$tipo = substr($tipo,0,2);
@@ -27927,9 +28054,27 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$this->grabaBD();
 				$this->revisaGasto($row->ID);
 				$this->verCargas($banco, $cuenta, $t=9);
+				if(!empty($uuid)){
+					$uuid = explode(",",$uuid);
+					for($i=0;$i<count($uuid); $i++){
+						if(!empty($uuid[$i])){
+							$cargos[$uuid[$i]] = $row->ID ;
+							//echo '<br/>se agrego '.$uuid[$i].' al arreglo '.print_r($cargos);
+						}
+					}
+				}
 			}
 		}
 		$dup=$this->revisaDuplicado(); 
+		if(count($abonos) > 0 or count($cargos) > 0){
+			$aplica = $this->datosAplicacion($abonos, $cargos);
+			print_r($aplica);
+
+			if(isset($aplica['abonos']) or isset($aplica['cargos'])){
+				echo 'Intenta crear las polizas';
+				$this->creaPolizas($abonos, $cargos);
+			}
+		}
 	}
 
 	function revisaDuplicado(){
@@ -27985,6 +28130,97 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		return;
 	}
 
+	function datosAplicacion($abonos, $cargos){
+		$a=0;$c=0;
+		foreach($abonos as $key => $value){
+				$this->query="SELECT SALDO FROM CARGA_PAGOS WHERE ID = $value";///
+				$res=$this->EjecutaQuerySimple();
+				$row = ibase_fetch_object($res);
+				$monto = $row->SALDO;
+
+				$this->query="SELECT * FROM XML_DATA_UPPER WHERE UUID_UPPER = '$key' or UUID='$key'";
+				$result=$this->EjecutaQuerySimple();
+				$row=ibase_fetch_row($result);
+				
+				if($monto > 0 and !empty($key) and isset($row)){
+					$aplica = new pegasoCobranza;
+					$result = $aplica->aplicaInd($idp=$value, $monto, $uuid=$key);
+					if($result["status"] == 'no'){
+						unset($abonos[$key]);				
+					}
+				}else{
+					unset($abonos[$key]);
+				}
+		}
+		foreach ($cargos as $key => $value) {
+			$this->query="SELECT SALDO FROM GASTOS WHERE ID = $value";
+			$res=$this->EjecutaQuerySimple();
+			$row=ibase_fetch_object($res);
+			$monto = $row->SALDO;
+
+			$this->query="SELECT x.IMPORTE,  (SELECT SUM(APLICADO) FROM APLICACIONES_GASTOS a where (a.uuid = x.uuid or a.uuid = x.uuid_upper) and a.status = 0) as aplicado FROM XML_DATA_UPPER x WHERE x.UUID_UPPER = '$key' or x.UUID='$key'";
+			$result=$this->EjecutaQuerySimple();
+			$row=ibase_fetch_row($result);
+			$saldoDoc = $row[0]-$row[1];
+			if($monto > $saldoDoc){
+				$monto = $saldoDoc;
+			}
+			if($monto > 0 and !empty($key) and isset($row)){
+				$result=$this->aplicaGasto($idg=$value, $uuid=$key, $valor= $monto);
+				if($result["status"] == 'no'){
+					unset($cargos[$key]);				
+				}
+				
+			}else{
+					unset($cargos[$key]);				
+			}
+		}
+		echo '<br/> Abonos aplicados: '.count($abonos);
+		echo '<br/> Cargos aplicados: '.count($cargos);
+		return array("abonos"=>$abonos, "cargos"=>$cargos);
+	}
+
+	function creaPolizas($abonos, $cargos){
+		$controller_coi = new controller_coi;
+
+		foreach($cargos as $key => $value){
+			$this->query="SELECT DOC, USUARIO_AUTO, TIPO_PAGO, CONTABILIZADO from GASTOS WHERE id=$value";
+			$res=$this->EjecutaQuerySimple();
+			$row=ibase_fetch_object($res);
+			$obs = $row->DOC; $tp = $row->USUARIO_AUTO;
+			if(empty($row->CONTABILIZADO) or  is_null($row->CONTABILIZADO)){
+				$controller_coi->contabiliza($tipo='auto', $value, $a=$row->TIPO_PAGO, $obs, $tp);
+			}else{
+				//echo 'Ya se creo la poliza';
+			}
+		}
+
+		foreach($abonos as $key => $value){
+			$this->query="SELECT OBS, USUARIO_CONTA, CONTABILIZADO from CARGA_PAGOS WHERE id=$value";
+			$res=$this->EjecutaQuerySimple();
+			$row=ibase_fetch_object($res);
+			$obs = $row->OBS; $tp = $row->USUARIO_CONTA;
+			if(empty($row->POLIZA_INGRESO) or  is_null($row->POLIZA_INGRESO)){
+				$controller_coi->contabilizaIg($value, $a=$row->CONTABILIZADO, $tipo='auto', $obs, $tp);	
+			}else{
+				//echo 'Ya se creo la poliza';
+			}	
+		}
+		return;
+	}
+
+	function aplicacionesEdoCta(){
+		foreach($data as $d){
+			if($d->TIPO=='A'){
+				$this->aplicaPagoFactura();
+			}elseif($d->TIPO == 'C'){
+				$this->query="INSERT INTO APLICAIONES_GASTOS (ID, IDG, UUID, DOCUMENTO, APLICADO, FECHA, USUARIO, STATUS) VALUES (null, ) ";
+				$this->grabaBD();
+			}
+			
+		}
+	}
+
 	function folioBanco($banco, $cuenta){
 		$this->query="SELECT * FROM PG_BANCOS WHERE BANCO = '$banco' and NUM_CUENTA = '$cuenta'";
 			$rs=$this->EjecutaQuerySimple();
@@ -28030,7 +28266,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$a = '';
 		$op = '';
 		if($uuid){
-			$a =" and X.UUID = '".$uuid."'";
+			$a =" and upper(X.UUID) = upper('".$uuid."')";
 		}
 		if($opc == 'm'){
 			$m = date("m", strtotime($f)); $mi=$m; $anio=date("Y", strtotime($f));
@@ -28046,28 +28282,33 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$m = date("m", strtotime($f)); $mi=$m-1; $mf=$m; $anio=date("Y", strtotime($f));
 			$op = ' AND extract(month from x.fecha) between '.$mi.' and '.$mf.' and extract(year from x.fecha) = '.$anio. ' order by x.fecha asc' ;
 		}
-		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') 
-			FROM XML_DATA X WHERE X.RFCE != '$rfc' and x.tipo ='I' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) $a $op";
-		//echo $this->query;
+		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE upper(X.UUID) = upper(AG.UUID) AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') 
+			FROM XML_DATA X WHERE X.RFCE != '$rfc' and x.tipo ='I' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE upper(X.UUID) = upper(AG.UUID) AND STATUS = 0) $a $op";
+		//echo 'Validacion de factura: '.$this->query;
 		//die();
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
 		}
 		if($uuid){
-			foreach ($data as $vc) {
-				if(empty($vc->CUENTA_CONTABLE)){
-					return array("status"=>'no', "mensaje"=>'El Proveedor '.$vc->PROV.' no tiene cuenta contable');
-				}elseif($vc->STATUS == 'P'){
-					return array("status"=>'no', "mensaje"=>'Aun no se crea la poliza de Dr del Documento '.$vc->DOCUMENTO);
-				}
-			}	
+			if(count($data)>0){
+				foreach ($data as $vc) {
+					if(empty($vc->CUENTA_CONTABLE)){
+						return array("status"=>'no', "mensaje"=>'El Proveedor '.$vc->PROV.' no tiene cuenta contable');
+					}elseif($vc->STATUS == 'P'){
+						return array("status"=>'no', "mensaje"=>'Aun no se crea la poliza de Dr del Documento '.$vc->DOCUMENTO);
+					}
+				}	
+			}else{
+					return array("status"=>'no', "mensaje"=>'No encontro el documento ');
+			}
 		}
 		return $data;
 	}
 	
 	function valContable($uuid){
-		$this->query="SELECT * FROM XML_PARTIDAS WHERE UUID = '$uuid'";
+		$data = array();
+		$this->query="SELECT * FROM XML_PARTIDAS WHERE upper(UUID) = '$uuid'";
 		$rs=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($rs)){
 			$data[]=$tsArray;
@@ -28092,11 +28333,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$data[]=$tsArray;
 		}
 		if($tipo == 'c'){
-			$uuid= '';
-			$por= '';
+			$uuid= '';$por= '';
 			foreach ($data as $key){
-				$uuid .= "'".$key->UUID."',";
-				$por  .="".$key->POR.",";
+				$uuid .= "'".$key->UUID."',"; $por  .="".$key->POR.",";
 			}
 			$uuid=substr($uuid,0, strlen($uuid)-1);
 			$por = substr($por,0, strlen($por)-1);
@@ -28129,7 +28368,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 					if($row){
 						$this->query="UPDATE APLICACIONES_GASTOS SET APLICADO = APLICADO + $valor where idg=$idp and status = 0 and uuid='$uuid'";
 						$this->queryActualiza();
-						$mensaje = array("status"=>'ok', "mensajse"=>'Se actualizo la aplicacion del pago');
+						$mensaje = array("status"=>'ok', "mensaje"=>'Se actualizo la aplicacion del pago');
 					}else{
 						$this->query="INSERT INTO APLICACIONES_GASTOS (ID, IDG, UUID, DOCUMENTO, APLICADO, FECHA, USUARIO, STATUS) VALUES (NULL, $idp, '$uuid', (SELECT DOCUMENTO FROM XML_DATA WHERE UUID = '$uuid'), $valor, current_timestamp, '$usuario', 0) RETURNING id";
 						$res=$this->grabaBD();
@@ -28138,19 +28377,19 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 							$this->query="UPDATE XML_DATA SET idpago = $g->ID WHERE uuid = '$uuid'";
 							$ru=$this->queryActualiza();
 							if($ru==1){
-								$mensaje = array("status"=>'ok', "mensajse"=>'Se ejecuto correctamente el pago');
+								$mensaje = array("status"=>'ok', "mensaje"=>'Se ejecuto correctamente el pago');
 							}
 						}
 					}
 				}
 			}else{
-				$mensaje= array("status"=>'no', "mensaje"=>'El documento no tiene saldo o esta cancelado....');
+				$mensaje= array("status"=>'no', "mensaje"=>'El documento no tiene saldo o esta cancelado....', "Valuacion Factura"=>$valFact, "Valuacion Contable"=>$valConta);
 			}	
 		}else{
 			if($valor == 0){
-				$mensaje= array("status"=>'no',"mensaje"=>'No se puede aplicar 0.00 al documento');
+				$mensaje= array("status"=>'no',"mensaje"=>'No se puede aplicar 0.00 al documento', "ValFac"=>$valFact, "ValCon"=>$valConta);
 			}else{
-				$mensaje= array("status"=>'no', "mensaje"=>'Fallo la validacion del documento');
+				$mensaje= array("status"=>'no', "mensaje"=>'Fallo la validacion del documento ---', "ValFac"=>$valFact, "ValCon"=>$valConta);
 			}
 		}
 		return $mensaje;
@@ -28760,8 +28999,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
     function creaProy($mes, $anio, $tipo){
     	$x=''; $data=array();
-    	if($mes == '' or $anio == ''){
-    		$mes = date('m'); $anio = date('Y');$usuario=$_SESSION['user']->NOMBRE;
+    	$usuario=$_SESSION['user']->NOMBRE;
+		if($mes == '' or $anio == ''){
+    		$mes = date('m'); $anio = date('Y');
     	}
     	if($tipo != ''){
     		$x = " where id in (".$tipo."";
@@ -28828,7 +29068,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		FROM FTC_MEDIA_FILES M 
     		WHERE M.TIPO = 'EDOCTA' 
     			AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$b' 
-    			AND (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$c'";
+    			AND (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$c'
+    			ORDER BY M.ID";
     	$res=$this->EjecutaQuerySimple();
     	while ($tsArray=ibase_fetch_object($res)) {
     		$data[]=$tsArray;
@@ -28890,7 +29131,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$this->query="DELETE FROM GASTOS WHERE NUM_PAR = $idc";
     		$this->grabaBD();
     	}
-    	return;
+    	return $res;
     }
 
     function valCarga($idc){
@@ -28971,6 +29212,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	echo 'Inicio :'.$inicio.' - Finzaliza: '.date("G:i:s:u").' Tiempo por: '.date_diff($inicio, date("G:i:s:u")).'--> Numero de nombres realizados:'.$nombres;
     }
 
+<<<<<<< HEAD
 
 	function filtrosProd(){
 		$editorial=array();$autor=array();
@@ -28993,4 +29235,66 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		$this->grabaBD();
 		return array("status"=>'ok');
 	}
+=======
+    function insertaCC($datos){
+    	for($i = 0; $i <count($datos); $i++){
+    		$cuenta=$datos[$i][0];
+    		$nombre=$datos[$i][1];
+    		$sat=   $datos[$i][2];
+    		$this->query="INSERT INTO FTC_CUENTAS_CONT (ID_CC, NUM_CTA, NOMBRE, CLAVE_SAT, STATUS) VALUES (NULL, '$cuenta', '$nombre', '$sat', 'I') ";
+    		$rs=$this->grabaBD();
+    		if($rs == 0 or $rs == False){
+    			echo 'Fallo al insertar: '.$this->query;
+    		}
+    	}
+    }
+
+    function polLondinense($cabecera, $partidas){
+    	//print_r($cabecera);
+    	for($i=0; $i<count($cabecera); $i++){
+    		$id= $cabecera[$i]['id'];
+    		$num = $cabecera[$i]['numero'];
+    		$tipo = $cabecera[$i]['tipo'];
+    		$fecha = $cabecera[$i]['fecha'];
+    		$periodo = $cabecera[$i]['periodo'];
+    		$eje = $cabecera[$i]['eje'];
+    		$concepto = $cabecera[$i]['concepto'];
+    		$this->query="INSERT INTO FTC_POLIZAS (ID_POL, NUMERO, TIPO, FECHA, PARTIDAS, MONTO, CONCEPTO, EJERCICIO, PERIODO, CREACION, ORIGEN, STATUS) VALUES ($id, $num, '$tipo', '$fecha',0, 0, '$concepto', $eje, $periodo, current_timestamp, 'Contpaq', 'I' )";
+    		$this->grabaBD();
+    	}
+
+    	for($a=0; $a<count($partidas); $a++){
+    		$id= $partidas[$a]['idpol'];
+    		$par = $partidas[$a]['par'];
+    		$cuenta = $partidas[$a]['cuenta'];
+    		$cargo = isset($partidas[$a]['cargo'])? $partidas[$a]['cargo']:0;
+    		$abono = isset($partidas[$a]['abono'])? $partidas[$a]['abono']:0;
+    		$referencia = $partidas[$a]['ref'];
+    		$concepto = $partidas[$a]['concepto'];
+    		$this->query="INSERT INTO FTC_POLIZAS_PAR (ID_PP, ID_POL, PAR, CUENTA, CONCEPTO, REFERENCIA, CARGO, ABONO, UUID, CEP) VALUES (NULL, $id, $par, '$cuenta', '$concepto', '$referencia', $cargo, $abono, '', '' )";
+    		$this->grabaBD();
+    	}
+
+    	return;
+    }
+
+    function idPol(){
+    	$this->query="SELECT COALESCE(max(ID_POL), 0) as idpol FROM FTC_POLIZAS";
+    	$res=$this->EjecutaQuerySimple();
+    	$row = ibase_fetch_row($res);
+    	return $row[0];
+    }
+
+    function saldoGasto($idg){
+				$data=array(); $z='';
+				$this->query="SELECT * FROM GASTOS WHERE id = $idg";
+				$res=$this->EjecutaQuerySimple();
+				$row = ibase_fetch_object($res);
+				if($row->SALDO > 0 ){
+					$z='111111111';
+				}   
+				return $z;
+    }
+
+>>>>>>> c37f2dd9e4169e390405c87472327b78489267c1
 }?>

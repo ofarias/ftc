@@ -523,10 +523,7 @@ elseif (isset($_POST['proveedorXproducto'])) {
     echo json_encode($cliente);
     exit;
 }elseif(isset($_GET['term']) && isset($_GET['prodVM'])){
-    $b = $_GET['term'];
-    $producto=$controller_v->prodVM($b);
-    echo json_encode($producto);
-    exit;
+    $b = $_GET['term']; $producto=$controller_v->prodVM($b); echo json_encode($producto); exit;
 }elseif (isset($_POST['docNV'])) {
 	$partida=$controller_v->docNV($_POST['clie'], $_POST['prod'], $_POST['cant'], $_POST['prec'], $_POST['desc'], $_POST['iva'], $_POST['ieps'], $_POST['descf'], $_POST['doc'], $_POST['idf'], $_POST['add']);
 	echo json_encode($partida);
@@ -566,6 +563,7 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	echo json_encode($res);
 	exit();
 }elseif (isset($_POST['nvcl'])) {
+<<<<<<< HEAD
 	$res = $controller_v->nvcl($_POST['nvcl']);
 	echo json_encode($res);
 	exit();
@@ -577,6 +575,9 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	$res = $controller_v->sisbn($_POST['sisbn']); echo json_encode($res);exit();
 }elseif(isset($_POST['impNV'])){
 	$res = $controller_v->impNV($_POST['impNV'], $d='f'); echo json_encode($res);exit();
+=======
+	$res = $controller_v->nvcl($_POST['nvcl']); echo json_encode($res); exit();
+>>>>>>> c37f2dd9e4169e390405c87472327b78489267c1
 }
 else{switch ($_GET['action']){
 		case 'login':

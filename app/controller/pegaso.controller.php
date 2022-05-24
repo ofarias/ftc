@@ -19084,6 +19084,8 @@ function ImpSolicitud2($idsol){
   	}
 
 	function ImprimeFacturaPegaso($factura, $destino){
+		//$this->impFact($factura, $destino);
+		//die;
   		$data= new pegaso;
 		$qr= new qrpegaso;	
 		$letras=new NumberToLetterConverter;
@@ -19135,7 +19137,7 @@ function ImpSolicitud2($idsol){
   		$pdf->SetXY(75, 13);
   		$pdf->Write(10, $DF->DELEGACION.', '.$DF->ESTADO);
         $pdf->SetXY(75, 17);
-  		$pdf->Write(10,'RFC:'.$DF->RFC.'Regimen Fiscal:'.$DF->REGIMEN_FISCAL);
+  		$pdf->Write(10,'RFC:'.$DF->RFC.utf8_decode('Regimen Fiscal:').$DF->REGIMEN_FISCAL);
         $pdf->SetXY(75, 21);
         $pdf->Write(10,'LUGAR DE EXPEDICION: '.$lugar);
         $pdf->SetXY(140, 1);
@@ -19274,7 +19276,7 @@ function ImpSolicitud2($idsol){
 		    $centavos=substr($M1,-2);
 		   	$m5= $M4.'00';
 		   	$res=$letras->to_word($m5);   
-		    $descr=strlen($row->DESCRIPCION); 
+		    $descr=strlen(utf8_decode($row->DESCRIPCION)); 
             
 		        if ($centavos == 00){
 		        	$leyenda = 'PESOS CON 00/100 MN';
@@ -19286,7 +19288,11 @@ function ImpSolicitud2($idsol){
             $pdf->Cell(13,6,($row->CLAVE_SAT),'L,T,R');
            	$pdf->Cell(13,6,($row->MEDIDA_SAT),'L,T,R',0, 'C');
             $pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 0,45), 'L,T,R');
+<<<<<<< HEAD
             $pdf->Cell(8,6,number_format($row->CANTIDAD,0),'L,T,R');
+=======
+            $pdf->Cell(8,6,number_format($row->CANTIDAD,2),'L,T,R');
+>>>>>>> c37f2dd9e4169e390405c87472327b78489267c1
             $pdf->Cell(10,6,$row->UM,'L,T,R',0, 'C');
             $pdf->Cell(13,6,'$ '.number_format($row->PRECIO,2),'L,T,R',0, 'R');
             $pdf->Cell(13,6,'% '.number_format($descpor,2),'L,T,R',0,'R');
@@ -19303,7 +19309,10 @@ function ImpSolicitud2($idsol){
 	            $pdf->SetFont('Arial', 'I', 6);
 	            $pdf->Cell(13,6,substr($row->DESCUNI,0),'L,R');
             	$pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 45,55),'L,R');
+<<<<<<< HEAD
 	            $pdf->Cell(8,6,strlen(utf8_decode($row->DESCRIPCION)),'L,R');
+=======
+>>>>>>> c37f2dd9e4169e390405c87472327b78489267c1
 	            $pdf->Cell(10,6,"",'L,R');
 	            $pdf->Cell(13,6,"",'L,R');
 	            $pdf->Cell(13,6,'$ '.number_format(($descuni),2),'L,R',0, 'R');
@@ -19527,6 +19536,7 @@ function ImpSolicitud2($idsol){
         	$lugar = $dataF->LUGAREXPEDICION;
         	$cadenaSat = '||'.$version.'|'.$uuid.'|'.$fechaTimbre.'|'.$rfcProv.'|'.$selloSAT.'|'.$NoCertiSat;
         	$usocfdi = $dataF->USO;
+
         }
 
         $pdf->SetFont('Arial', 'B', 6);
@@ -19541,8 +19551,8 @@ function ImpSolicitud2($idsol){
         $pdf->Cell(100,6,'Receptor',1,0,'C', True);
         $pdf->Ln(6);
         $pdf->SetFont('Arial', 'I', 6);
-        $pdf->Cell(100,6,$c->NOMBRE_EMISOR,1,0,'C');
-        $pdf->Cell(100,6,$c->NOMBRE_RECEPTOR,1,0,'C');
+        $pdf->Cell(100,6,utf8_decode($c->NOMBRE_EMISOR),1,0,'C');
+        $pdf->Cell(100,6,utf8_decode($c->NOMBRE_RECEPTOR),1,0,'C');
         $pdf->Ln(6);
         $pdf->Cell(100,6,$c->RFCE,1,0,'C');
         $pdf->Cell(100,6,$c->CLIENTE,1,0,'C');
@@ -19559,7 +19569,7 @@ function ImpSolicitud2($idsol){
 		$pdf->Cell(100,6,'Serie: '.$c->SERIE,1,0,'C');
         $pdf->Cell(100,6,'Folio: '.$c->FOLIO,1,0,'C');
 		$pdf->Ln(6);
-		$pdf->Cell(100,6,'Monto: '.number_format($c->IMPORTE,2),1,0,'C');
+		$pdf->Cell(100,6,utf8_decode('Versión: ').$c->VERSION_CFDI,1,0,'C');
         $pdf->Cell(100,6,'Uso: '.$c->USO,1,0,'C');
 		$pdf->Ln(6);
 		$pdf->Cell(100,6,'Moneda: '.$c->MONEDA,1,0,'C');
@@ -19570,6 +19580,12 @@ function ImpSolicitud2($idsol){
         $pdf->Ln(6);
 		$pdf->Cell(100,6,'Lugar de Expedicion: '.$c->LUGAREXPEDICION,1,0,'C');
         $pdf->Cell(100,6,'Fecha de Timbrado: '.$c->FECHATIMBRADO,1,0,'C');
+		$pdf->Ln(6);
+		$pdf->Cell(100,6,'Importe Documento: '.number_format($c->IMPORTE,2),1,0,'C');
+        $pdf->Cell(100,6,'Importe Impuestos: IVA 16% '.number_format($c->IVA160,3),1,0,'C');
+		$pdf->Ln(6);
+		$pdf->Cell(100,6,'Retencion de IVA: '.number_format($c->IVA_RET,3),1,0,'C');
+        $pdf->Cell(100,6,'Retencion ISR '.number_format($c->ISR_RET,3),1,0,'C');
 		$pdf->Ln(6);
         $pdf->Ln(6);
         $pdf->SetFont('Arial', 'B', 7);
@@ -19604,7 +19620,7 @@ function ImpSolicitud2($idsol){
 		$pdf->SetFont('Arial', 'I', 6);
         $pdf->Ln(6);
         $pdf->Cell(5,6,'Ln',1,0,'C');	
-        $pdf->Cell(125,6,'Descripcion',1,0,'C');	
+        $pdf->Cell(125,6,utf8_decode('Descripción'),1,0,'C');	
         $pdf->Cell(15,6,'Clave',1,0,'C');	
         $pdf->Cell(10,6,'Unidad',1,0,'C');	
         $pdf->Cell(15,6,'Cantidad',1,0,'C');	
@@ -19613,7 +19629,7 @@ function ImpSolicitud2($idsol){
         $pdf->Ln(6);
         foreach ($partidas as $par) {
         	$pdf->Cell(5,6,$par->PARTIDA,1,0,'C');
-    	    $pdf->Cell(125,6,substr($par->DESCRIPCION,0,100),1,0,'L');
+    	    $pdf->Cell(125,6,utf8_decode(substr($par->DESCRIPCION,0,100)),1,0,'L');
         	$pdf->Cell(15,6,$par->CLAVE_SAT,1,0,'C');
 	        $pdf->Cell(10,6,$par->UNIDAD_SAT,1,0,'C');
 	        $pdf->Cell(15,6,$par->CANTIDAD,1,0,'C');
@@ -20206,15 +20222,23 @@ function ImpSolicitud2($idsol){
     	if($_SESSION['user']){
     		$data = new pegaso;
     		$pagina = $this->load_template();
-  			$html=$this->load_page('app/views/pages/xml/p.verXMLSP.php');
+			if($doc == 'I' || $doc == 'E'){
+				$html=$this->load_page('app/views/pages/xml/p.verXMLSP.php');
+			}elseif($doc == 'P'){
+				$html=$this->load_page('app/views/pages/xml/p.verXMLSPP.php');
+			}
   			ob_start();
   			$user=$_SESSION['user']->NOMBRE;
   			$cnxcoi=$_SESSION['cnxcoi'];
   			$uuid =false;
     		$info=$data->verXMLSP($mes, $anio, $ide, $uuid, $doc);
     		$tipoDOC = $data->traeTipo();
-    		include 'app/views/pages/xml/p.verXMLSP.php';
-  			$table = ob_get_clean();
+			if($doc == 'I' || $doc == 'E'){
+				include 'app/views/pages/xml/p.verXMLSP.php';
+			}else{
+				include 'app/views/pages/xml/p.verXMLSPP.php';
+			}
+			$table = ob_get_clean();
   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table, $pagina);
   			$this->view_page($pagina);
     	}
@@ -20249,7 +20273,7 @@ function ImpSolicitud2($idsol){
     		$ccpartidas=array();
     		$cimpuestos=array();
     		$param=array();
-  			$infoCabecera=$data->verXMLSP($mes=false, $anio= false, $ide, $uuid, $doc=false);
+  			$infoCabecera=$data->infoContable($uuid, $ide);
     		$info=$data->verXML($uuid, $ide);
     		if($cnxcoi=='si'){
     			$cccliente=$coi->traeCuentaCliente($infoCabecera, $ide, $a);
@@ -20720,6 +20744,7 @@ function ImpSolicitud2($idsol){
 					$carga=$data->cargaXLSX($datos, $res['data'], $banco, $cuenta, $reg);
 				}	
         	}
+			die();
 			$html = $this->load_page('app/views/pages/p.redirectform.php');
 			$redireccionar="estado_de_cuenta&banco={$banco}&cuenta={$cuenta}";
 			$pagina=$this->load_template('Pedidos');
@@ -20840,6 +20865,7 @@ function ImpSolicitud2($idsol){
     	}
     }
 
+
     function verCargas($b, $c){
     	if($_SESSION['user']){
     		$data = new pegaso;
@@ -20874,6 +20900,7 @@ function ImpSolicitud2($idsol){
     	}
     }
 
+<<<<<<< HEAD
 	function saveObs($obs, $art){
 		if($_SESSION['user']){
 			$data = new pegaso;
@@ -20889,5 +20916,27 @@ function ImpSolicitud2($idsol){
 			return $res;
 		}
 	}
+=======
+    function insertaCuentasContables($datos){
+    	//print_r($datos);
+    	$data = new pegaso;
+    	$res=$data->insertaCC($datos);
+    	return;
+    }
+
+    function idPol(){
+    	$data = new pegaso;
+    	$res=$data->idPol();
+  		return $res;
+    }
+
+    function insertaPoliza($cabecera,$partidas){
+    	echo '<br/>Numero de cabeceras: '.count($cabecera);
+    	echo '<br/>Numero de partidas: '.count($partidas);
+    	$data = new pegaso;
+    	$res=$data->polLondinense($cabecera, $partidas);
+    	die();
+    }
+>>>>>>> c37f2dd9e4169e390405c87472327b78489267c1
 }?>
 

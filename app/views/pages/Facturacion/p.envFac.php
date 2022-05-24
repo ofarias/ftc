@@ -25,7 +25,11 @@
                         <div class="form-group">
                             <label for="descripcion" class="col-lg-2 control-label">Mensaje: </label>
                                 <div class="col-lg-8">
+<<<<<<< HEAD
                                     <textarea  class="form-control" name="mensaje" placeholder="Escriba aqui el mensaje."  cols="100" rows="5"></textarea><br>
+=======
+                                    <textarea  class="form-control" name="mensaje" placeholder="Escriba aqui el mensaje." cols="100" rows="5"></textarea><br>
+>>>>>>> c37f2dd9e4169e390405c87472327b78489267c1
                                 </div>
                         </div>
                     <input type="hidden" name="docf" value="<?php echo $fact->CVE_DOC?>">
