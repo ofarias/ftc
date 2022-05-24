@@ -644,13 +644,20 @@ class pegaso_ventas extends database{
             $desc2 = explode(' ', $descripcion);
             $contado  = count($desc2);
             for($i = 0; $i < $contado; $i++){
-                $COMPLETO = $COMPLETO." AND nombre containing('".$desc2[$i]."') ";
+                $COMPLETO = $COMPLETO." AND (nombre containing('".$desc2[$i]."') or clave containing (upper('".$descripcion."')))";
             }
         }else{
-            $COMPLETO = " and nombre containing ('".$descripcion."') or clave=upper('".$descripcion."')";
+            $COMPLETO = " AND nombre containing ('".$descripcion."') or clave containing (upper('".$descripcion."'))";
         }
         //$this->query = "INSERT INTO DICCIONARIO (ID, PALABRA)"
-        $this->query="SELECT pftc.* FROM producto_ftc pftc left join FTC_Articulos ftca on ftca.id = pftc.clave_ftc where ftca.status = 'A' $COMPLETO";
+        /*$this->query="SELECT pftc.* FROM producto_ftc pftc 
+            left join FTC_Articulos ftca on ftca.id = pftc.clave_ftc 
+            where ftca.status = 'A' 
+            $COMPLETO";
+        */
+        $this->query="SELECT pftc.* FROM producto_ftc pftc 
+            where STATUS!=''
+            $COMPLETO";
         //echo $this->query;
         $rs=$this->QueryDevuelveAutocompletePFTC();
 
@@ -2245,8 +2252,9 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
             $doc = $c->DOCUMENTO;
         }
         $this->query="INSERT INTO FTC_NV_DETALLE ( IDFP ,IDF ,DOCUMENTO ,PARTIDA ,CANTIDAD ,ARTICULO ,UM ,DESCRIPCION ,IMP1 ,IMP2 ,IMP3 ,IMP4 ,DESC1 ,DESC2 ,DESC3 ,DESCF ,SUBTOTAL ,TOTAL ,CLAVE_SAT ,MEDIDA_SAT ,PEDIMENTOSAT ,LOTE ,USUARIO ,FECHA ,IDPREOC ,IDCAJA ,IDPAQUETE ,PRECIO ,STATUS ,NUEVO_PRECIO ,NUEVA_CANTIDAD ,CAMBIO ) 
-            VALUES (null, $idf, '$doc', (SELECT COALESCE(MAX(PARTIDA),0) + 1 FROM FTC_NV_DETALLE WHERE IDF = $idf), $cant, '$prod', (SELECT FIRST 1 UM FROM producto_ftc WHERE CLAVE_FTC=$prod), (SELECT FIRST 1 NOMBRE FROM producto_ftc WHERE CLAVE_FTC=$prod)|| ' $add', $iva, $ieps, 0, 0, $desc, 0, 0, $descf, $st, $t, (SELECT CVE_PRODSERV FROM INVE01 I WHERE I.CVE_art = 'PGS'||$prod), (SELECT CVE_UNIDAD FROM INVE01 I WHERE I.CVE_ART = 'PGS'||$prod), '','','$usuario', current_date, 0, 0, 0, $prec, 0, 0, 0, 0  
+            VALUES (null, $idf, '$doc', (SELECT COALESCE(MAX(PARTIDA),0) + 1 FROM FTC_NV_DETALLE WHERE IDF = $idf), $cant, '$prod', (SELECT FIRST 1 UM FROM producto_ftc WHERE CLAVE_FTC='$prod'), (SELECT FIRST 1 NOMBRE FROM producto_ftc WHERE CLAVE_FTC='$prod')|| ' $add', $iva, $ieps, 0, 0, $desc, 0, 0, $descf, $st, $t,  (SELECT coalesce(CLAVE_SAT,'01010101') FROM ftc_articulos I WHERE I.id = $prod ), (SELECT coalesce(UNIDAD_SAT, 'H87') FROM ftc_articulos I WHERE I.id =$prod ), '',(SELECT FIRST 1 CVE_PROD FROM producto_ftc WHERE CLAVE_FTC='$prod'),'$usuario', current_date, 0, 0, 0, $prec, 0, 0, 0, 0  
         )";
+        //echo $this->query;
         $this->grabaBD();
 
         $this->query="UPDATE FTC_NV F SET 
@@ -2539,6 +2547,154 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
             $data[]=$tsArray;
         }
         return $data;
+    }
+
+    function cargaProd($file, $ext){
+        if($ext == 'xls' or $ext == 'XLS' or $ext == 'xlsx' or $ext == 'XLSX'){
+            $this->cargaXLS($file);
+        }elseif($ext == 'txt' or $ext == 'TXT'){
+
+        }elseif($ext == 'csv' or $ext == 'CSV'){
+
+        }
+    }
+
+    function cargaXLS($file){
+        if($xlsx = SimpleXLSX::parse($file)){
+            $hoja = $xlsx->sheetName(0);
+            $ln=0;$update=0; $insert=0;
+            foreach($xlsx->rows() as $key){
+                //print_r($key);
+                $ln++;
+                if($ln > 1){
+                    if($key[3] != '' and $key[7]!=''){/// Validamos los campos indispensables para la insercion del producto
+                        ///detectamos los campos que son int o double y vengan vacios, los colocamos como 0.00 
+                        // 10, 15, 16, 17, 20, 21, 22, 23, 24, 25, 28 date, 29, 30 , 31, 32, 33 timestamp, 36, 37, 38
+                        $numeros = array(10, 15, 16, 17, 20, 21, 22, 23, 24, 25, 29, 30 , 31, 32, 36, 37, 38);
+                        $fechas = array(28, 33);
+                        $texto = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 18, 19, 26, 27, 34, 35);
+                        for ($i=0; $i <=38 ; $i++) { 
+                            if(in_array($i, $texto)){
+                                $caracteres = array("'",'"');
+                                $t = 't'.$i;
+                                //$$t = htmlentities($key[$i]);
+                                $$t = str_replace($caracteres, '',$key[$i]);
+                            }
+                            if(in_array($i, $numeros)){
+                                $c = 'c'.$i;
+                                $$c = (!is_numeric($key[$i]))? 0:$key[$i];                               
+                            }
+                            
+                            //if (in_array($i, $fechas)){
+                            //    $c = 'c'.$i;
+                            //    $$c = (!is_date())
+                            //}
+                        }
+                        $caracteres = array("/", "-", ",", ".", " ", "+", "'", " ");
+                        $cve_prod = str_replace($caracteres, '',$key[7]);
+                        $proISBN=array();
+                        $this->query="SELECT * FROM FTC_Articulos WHERE CLAVE_PROD = '$cve_prod'";
+                        $res=$this->EjecutaQuerySimple();
+                        while($tsarray=ibase_fetch_object($res)){
+                            $proISBN[]=$tsarray;
+                        }
+                        if(count($proISBN)>0){
+                            $update++;
+                            $costo = $c15>0? ' ,COSTO= $c15 ':'';
+                            $costot = $c30>0? ' ,COSTO_T = $c30 ':'';
+                            $this->query="UPDATE FTC_ARTICULOS SET PRECIO_V = $c38 $costo $costot where CLAVE_PROD = '$cve_prod'";
+                            //echo '<br/>'.$this->query;
+                            $this->queryActualiza();
+                            
+                        }else{
+                            $insert++;
+                            $this->query="INSERT INTO FTC_ARTICULOS (ID, LINEA, CATEGORIA, GENERICO, SINONIMO, CALIFICATIVO, MEDIDAS, CLAVE_PROD, MARCA, UM, EMPAQUE, CLAVE_DISTRIBUIDOR, CLAVE_FABRICANTE, SKU_CLIENTE, SKU, COSTO, PRECIO, UTILIDAD_MININA, STATUS, VENDEDOR, COTIZACION, DESC1, DESC2, DESC3, DESC4, DESCF, DESCRIPCION, IVA, FECHA_ALTA, IMPUESTO, COSTO_T, COSTO_OC, CANTSOL, FECHA_BAJA, USUARIO_BAJA, CLAVE_PEGASO, IVA_V, IEPS_V, PRECIO_V)
+                            VALUES (NULL,'$t1', '$t2', '$t3', '$t4', '$t5', '$t6', '$cve_prod', '$t8', '$t9', $c10, '$t11', '$t12', '$t13', '$t14',
+                            $c15, $c16, $c17, '$t18', '$t19', $c20, $c21, $c22, $c23, $c24, $c25, '$t26', '$t27', current_timestamp,
+                            $c29, $c30, $c31, $c32, current_timestamp, '$t34', '$t35', $c36, $c37, $c38
+                            )"; //echo $this->query; die();
+                            $this->grabaBD();    
+                        }
+                    }    
+                }
+            }
+        }
+        echo '<br/> Se realizaron '.$update.' actualizaciones';
+        echo '<br/> Se realizaron '.$insert.' inserciones';
+    }
+
+
+    function producto($id){
+        $data=array();
+        $this->query="SELECT * FROM FTC_ARTICULOS WHERE ID = $id";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function productoF($isbn){
+        $data=array();
+        $this->query="SELECT max(descripcion) as generico, max(identificador) as clave_prod FROM XML_PARTIDAS WHERE IDENTIFICADOR = '$isbn'";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        return $data;
+    }
+
+    function sisbn($isbn){
+        $data=array(); $status='ok';
+        $this->query="SELECT
+                            (SELECT NOM_COMERCIAL FROM FTC_EMPRESAS WHERE RFC = 'MABL7705259U7') as cliente,
+                            x.documento,
+                            x.tipo, 
+                            x.fecha as fecha_doc,
+                            p.cantidad,
+                            p.unitario as precio, 
+                            (select iif(max(tasa) ='' , 0,coalesce(max(tasa),0)) from xml_impuestos i where p.uuid = i.uuid and p.partida = i.partida and impuesto = '002') as IMP1, 
+                            (select iif(max(tasa) ='' , 0,coalesce(max(tasa),0)) from xml_impuestos i where p.uuid = i.uuid and p.partida = i.partida and impuesto = '003') as IMP2, 
+                            (select iif(max(tasa) ='' , 0,coalesce(max(tasa),0)) from xml_impuestos i where p.uuid = i.uuid and p.partida = i.partida and impuesto = '002') as IMP1,
+                            P.descuento, 
+                            p.importe as total,
+                            (SELECT c.NOMBRE FROM XML_CLIENTES c where c.rfc = x.rfce) AS PROVEEDOR,
+                            P.descripcion,
+                            p.identificador
+                        FROM XML_PARTIDAS p 
+                        left join xml_data x on x.uuid = p.uuid 
+                        WHERE p.IDENTIFICADOR = '$isbn'";
+        $res=$this->EjecutaQuerySimple();
+        while($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        if(count($data)==0 ){
+            $status='no';
+        }
+        return array("status"=>$status, "datos"=>$data);
+    }
+
+    function cabeceraN_V($nv){
+        $data=array();
+        $this->query="SELECT * FROM FTC_NOTA_VENTA WHERE DOCUMENTO = '$nv'";
+        $res=$this->EjecutaQuerySimple();
+        while($tsarray=ibase_fetch_object($res)){
+            $data[]=$tsarray;
+        }
+        return $data;
+    }
+
+    function detalleNV($nv){
+        $data=array();
+        $this->query="SELECT fd.*, 
+                (select descripcion from claves_sat cs where cs.cve_prod_serv = fd.clave_sat) as descCve, 
+                (select descripcion from unidades_sat us where  us.clave = fd.medida_sat) as descUni 
+                FROM FTC_NV_DETALLE fd WHERE DOCUMENTO = '$nv'";
+        $res=$this->EjecutaQuerySimple();
+        while($tsarray=ibase_fetch_object($res)){
+            $data[]=$tsarray;
+        }
+        return $data;   
     }
 
 }?>

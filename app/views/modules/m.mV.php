@@ -78,7 +78,7 @@
                 </div>
             </div>
             <div class="col-md-2">
-                <div class="panel panel-default">
+                <div class="panel panel-default cu-panel-clie">
                     <div class="panel-heading">
                         <h4><i class="fa fa-list-alt"></i> Solicitudes de Margen Bajo </h4>
                     </div>

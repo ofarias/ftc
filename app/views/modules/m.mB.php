@@ -1,17 +1,4 @@
 
-<div class="row">
-    <div class="col-lg-10">
-         <div class="col-lg-12">
-            <br/><br/>
-            <label>&nbsp;&nbsp;Buscar Factura o Remision :</label>&nbsp;&nbsp;<input type="text" name="idp" value="" placeholder="Colocar Documento " id="docv">&nbsp;&nbsp;<input type="button" name="buscar" value="Buscar" class="btn btn-info" id="buscar">
-             <div id="resultado">
-            </div>
-            <div id="o">
-            </div>
-        </div>
-        </div>
-    </div>
-
 <div class="container">
         <!-- Marketing Icons Section -->
         <div class="row">

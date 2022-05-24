@@ -82,7 +82,7 @@
                                                 <?php }?>
                                             </td>
                                             <td><?php echo $i->USUARIO?></td>
-                                            <td><input type="button" name="" value="Imprimir N.V." class="btn-sm  btn-primary"></td>
+                                            <td><input type="button" name="" value="Imprimir N.V." class="btn-sm  btn-primary print" nv="<?php echo $i->DOCUMENTO?>"></td>
                                         </tr>               
                                         <?php endforeach; ?>
 
@@ -161,6 +161,28 @@
             }
         })
     }
+
+    $(".print").click(function(){
+        var nv = $(this).attr('nv')
+        //$.alert("Nota de venta " + nv )
+        $.ajax({
+            url:'index.v.php',
+            type:'post',
+            dataType:'json',
+            data:{impNV:nv},
+            success:function(data){
+                if(data.status=='ok'){
+                    window.open('/notas de venta/'+nv+'.pdf', 'download')
+                }else{
+                    $.alert('No se pudo generar la impresión.')
+                }
+            },
+            error:function(){
+                    $.alert('No se pudo generar la impresión.')
+            }
+        })
+    })
+
     /*
     $(document).ready(function(){
         var table = $('#dataTables-nv')

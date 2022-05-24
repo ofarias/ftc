@@ -1705,9 +1705,343 @@ class pegaso_controller_ventas{
         }
     }
 
+    function impNV($nv, $d){
+        $data= new pegaso_ventas;
+        //$qr= new qrpegaso;  
+        $dataDF = new pegaso;
+        $letras=new NumberToLetterConverter;
+        $usuario=$_SESSION['user']->NOMBRE;
+        $DF=$dataDF->traeDF($ide= 1);
+        $Cabecera=$data->cabeceraN_V($nv);/// traemos la nota de venta 
+        //$fiscal=$data->infoFiscal($factura);
+        $Detalle=$data->detalleNV($nv);
+        //$cancelaciones = $data->traeCancelaciones($factura);
+        $tipo=3;
+        //$genqr=$qr->QRFactura($Cabecera, $fiscal);
+        $pdf=new FPDF('P','mm','Letter');
+        $pdf->AddPage();
+        $pdf->Image('app/views/images/logos/'.$_SESSION['empresa']['logo'],5,1, 60, 30);
+        
+
+        $pdf->SetFont('Courier','B', 6);
+        $pdf->SetXY(75, 1);
+        $pdf->Write(10,$DF->RAZON_SOCIAL);
+        $pdf->SetXY(75, 5);
+        $pdf->Write(10,'Domicilio Fiscal: '.$DF->CALLE.', '.$DF->EXTERNO.', '.$DF->INTERNO);
+        $pdf->SetXY(75, 9);
+        $pdf->Write(10,'Col:'.$DF->COLONIA.', CP: '.$DF->CP);
+        $pdf->SetXY(75, 13);
+        $pdf->Write(10, $DF->DELEGACION.', '.$DF->ESTADO);
+        $pdf->SetXY(75, 17);
+        $pdf->Write(10,'RFC:'.$DF->RFC.'Regimen Fiscal:'.$DF->REGIMEN_FISCAL);
+        $pdf->SetXY(75, 21);
+        
+        $pdf->SetFont('Courier','B',10);
+        $pdf->SetXY(140, 5);
+        $pdf->Write(10,'Nota de Venta');
+        $pdf->SetXY(140, 10);
+        $pdf->Write(10,$nv);
+
+        $pdf->SetTextColor(0,0,0);
+        $pdf->Ln(50);
+        $pdf->SetFont('Arial', 'B', 15);
+        $pdf->SetXY(50, 30);
+        $pdf->Write(6, ''); // Control de impresiones.
+        $pdf->Ln(8);
+        foreach ($Cabecera as $data){
+            $pedido = $data->PEDIDO_CLIENTE;
+            $documento = $data->DOCUMENTO;
+            $maestro= isset($data->MAESTRO)? $data->MAESTRO:'';
+        $pdf->SetFont('Arial', 'B', 7);
+        $pdf->Write(6,'Usuario Imprime: '.$usuario);
+        $pdf->Ln(4);
+        $pdf->Write(6,'Cliente : ('.$data->CLAVE.')'.utf8_decode($data->NOMBRE).' RFC: '.$data->RFC);
+        $pdf->Ln(4);
+        $pdf->Write(6,utf8_decode('Dirección: Calle :').$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F);
+        $pdf->Ln(4);
+        $direccionCompleta=utf8_decode('Dirección: Calle :').$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F;
+        //if()
+        //$pdf->Write(6,'Calle (continuacion):'.$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F);
+        $pdf->Write(6,'Colonia: '.$data->COLONIA_F.' Estado: '.$data->ESTADO_F);
+        $pdf->Ln(4);
+        $pdf->Write(6,utf8_decode('Código Postal: ').$data->CP_F.' Pais: '.$data->PAIS_F);
+        $pdf->Ln(4);
+        $pdf->Write(6,'Pedido Cliente:'.$data->PEDIDO_CLIENTE.' -- Pedido: '.$data->COTIZACION.'-- Prefactura: PF'.$data->CAJAF);
+        $pdf->Ln(10);
+        if(!empty($data->CALLE_E)){
+            $pdf->Write(6,'DIRECCION DE ENVIO:');
+            $pdf->Ln(4);
+            $pdf->Write(6,'Direccion Envio Calle :'.$data->CALLE_E.', Num Ext:'.$data->EXTERIOR_E.', Num Int:'.$data->INTERIOR_E);
+            $pdf->Ln(4);
+            $pdf->Write(6,'Colonia: '.$data->COLONIA_E.' Estado: '.$data->ESTADO_E);
+            $pdf->Ln(6);
+            $pdf->Write(6,'Codigo Postal: '.$data->CP_E.', Pais: '.$data->PAIS_F);
+            $pdf->Ln(6);
+        }
+        if(!empty($data->OBSERVACION)){
+            $pdf->Write(6,'Observaciones del cliente:'.substr($data->OBSERVACION,0,65));
+            $pdf->Ln(4);
+            $pdf->Write(6, substr($data->OBSERVACION, 81, 150));
+                if(substr($tipoDoc,0,1)!= 'N'){
+                    $pdf->Ln(4);
+                    $pdf->Write(6, substr($data->OBSERVACIONES,0, 65));
+                    $pdf->Ln(4);
+                    $pdf->Write(6, 'Banco y Cuenta de Deposito: '.$data->BANCO_PEGASO);
+                    $pdf->Ln(4);
+                    $pdf->Write(6, 'Banco y Cuenta Origen: '.$data->BANCO_EMISOR.' / '.$data->CTA_EMISORA);
+                    $pdf->Ln(6);    
+                }
+            }
+        }
+        $pdf->SetFont('Arial', 'B', 6);
+        $pdf->Cell(6,6,"Part.",1);
+        $pdf->Cell(13,6,"Art.",1);
+        $pdf->Cell(13,6,"Clave SAT",1);
+        $pdf->Cell(13,6,"Unidad SAT",1);
+        $pdf->Cell(60,6,"Descripcion",1);
+        $pdf->Cell(8,6,"Cant",1);
+        $pdf->Cell(10,6,"UM",1);
+        $pdf->Cell(13,6,"Precio",1);
+        $pdf->Cell(13,6,"Descuento",1);
+        $pdf->Cell(15,6,"Subtotal ",1);
+        $pdf->Cell(15,6,"Iva",1);
+        $pdf->Cell(15,6,"Total",1);
+        $pdf->Ln();
+        $pdf->SetFont('Arial', 'I', 6);
+            $descuento = 0;
+            $subtotal = 0;
+            $iva = 0;
+            $total = 0;
+            $partida= 0;
+            $descTot=0;
+            $PARTIDA=0;
+            $totalImp1=0;
+        foreach($Detalle as $row){
+            if($row->CANTIDAD > 0){
+            $PARTIDA++;
+            $descpor=number_format((($row->DESC1/($row->PRECIO * $row->CANTIDAD)) *100),2,".","");
+            $descuni = $row->PRECIO * ($descpor * 0.0100);
+            $subtotal += ($row->PRECIO * $row->CANTIDAD);
+            $descTot += ($descuni*$row->CANTIDAD);
+            $iva += ($row->IMP1);
+            $totalImp1 +=$iva;
+            $total += (($row->PRECIO * $row->CANTIDAD)-$row->DESC1)+$row->IMP1;
+            $desp = 0;
+            $m = $total;
+            $Monto=number_format($m,0);
+            $M1=number_format($m,2);
+            $M4=substr($M1,0,-2);
+            $centavos=substr($M1,-2);
+            $m5= $M4.'00';
+            $res=$letras->to_word($m5);   
+            $descr=strlen($row->DESCRIPCION); 
+            
+                if ($centavos == 00){
+                    $leyenda = 'PESOS CON 00/100 MN';
+                }else{
+                    $leyenda = 'PESOS CON '.$centavos.'/100 MN';
+                }
+            $pdf->Cell(6,6,($PARTIDA),'L,T,R');
+            $pdf->Cell(13,6,(substr($row->ARTICULO,0,8)),'L,T,R');
+            $pdf->Cell(13,6,($row->CLAVE_SAT),'L,T,R');
+            $pdf->Cell(13,6,($row->MEDIDA_SAT),'L,T,R',0, 'C');
+            $pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 0,45), 'L,T,R');
+            $pdf->Cell(8,6,number_format($row->CANTIDAD,0),'L,T,R');
+            $pdf->Cell(10,6,$row->UM,'L,T,R',0, 'C');
+            $pdf->Cell(13,6,'$ '.number_format($row->PRECIO,2),'L,T,R',0, 'R');
+            $pdf->Cell(13,6,'% '.number_format($descpor,2),'L,T,R',0,'R');
+            $pdf->Cell(15,6,'$ '.number_format(($row->PRECIO * $row->CANTIDAD)-$row->DESC1,2),'L,T,R',0, 'R');
+            $pdf->Cell(15,6,'$ '.number_format($row->IMP1,2),'L,T,R',0, 'R');
+            $pdf->Cell(15,6,'$ '.number_format((($row->PRECIO * $row->CANTIDAD)-($row->DESC1))+ $row->IMP1,2),'L,T,R',0, 'R');
+            
+            if($descr > 95){
+                $pdf->Ln(4);                
+                $pdf->Cell(6,6,"",'L,R');
+                $pdf->SetFont('Arial', 'I', 5);
+                $pdf->Cell(13,6,'('.substr($row->DESCCVE,0,20).')','L');
+                $pdf->Cell(13,6,"",'R');
+                $pdf->SetFont('Arial', 'I', 6);
+                $pdf->Cell(13,6,substr($row->DESCUNI,0),'L,R');
+                $pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 45,55),'L,R');
+                //$pdf->Cell(8,6,strlen(utf8_decode($row->DESCRIPCION), 56,95),'L,R');
+                $pdf->Cell(8,6,'','L,R');
+                $pdf->Cell(10,6,"",'L,R');
+                $pdf->Cell(13,6,"",'L,R');
+                $pdf->Cell(13,6,'$ '.number_format(($descuni),2),'L,R',0, 'R');
+                $pdf->Cell(15,6,"",'L,R');
+                $pdf->Cell(15,6,"",'L,R');
+                $pdf->Cell(15,6,"",'L,R');
+            }else{
+                $pdf->Ln(4);                
+                $pdf->Cell(6,6,"",'L,B,R');
+                $pdf->SetFont('Arial', 'I', 5);
+                $pdf->Cell(13,6,'('.substr($row->DESCCVE,0,20).')','L,B');
+                $pdf->Cell(13,6,"",'B,R');
+                $pdf->SetFont('Arial', 'I', 6);
+                $pdf->Cell(13,6,substr($row->DESCUNI,0),'L,B,R');
+                $pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 45,55),'L,R,B');
+                $pdf->Cell(8,6,"",'L,B,R');
+                $pdf->Cell(10,6,"",'L,B,R');
+                $pdf->Cell(13,6,"",'L,B,R');
+                $pdf->Cell(13,6,'$ '.number_format(($descuni),2),'L,B,R',0, 'R');
+                $pdf->Cell(15,6,"",'L,B,R');
+                $pdf->Cell(15,6,"",'L,B,R');
+                $pdf->Cell(15,6,"",'L,B,R');
+            }
+            $di=100;
+                while($descr > 65 and $di <= $descr){
+                    $di=$di;
+                    $df=$di+20;
+                    if($df <= $descr){
+                        $pdf->Ln(4);                
+                        $pdf->Cell(6,6,"",'L,R');
+                        $pdf->SetFont('Arial', 'I', 5);
+                        $pdf->Cell(13,6,"",'L,R');
+                        $pdf->Cell(13,6,"",'L,R');
+                        $pdf->SetFont('Arial', 'I', 6);
+                        $pdf->Cell(13,6,"",'L,R');
+                        $pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), $di,55),'L,R');
+                        $pdf->Cell(8,6,"",'L,R');
+                        $pdf->Cell(10,6,"",'L,R');
+                        $pdf->Cell(13,6,"",'L,R');
+                        $pdf->Cell(13,6,"",'L,R');
+                        $pdf->Cell(15,6,"",'L,R');
+                        $pdf->Cell(15,6,"",'L,R');
+                        $pdf->Cell(15,6,"",'L,R');
+                    }else{
+                        $pdf->Ln(4);                
+                        $pdf->Cell(6,6,"",'L,B,R');
+                        $pdf->SetFont('Arial', 'I', 5);
+                        $pdf->Cell(13,6,"",'L,B,R');
+                        $pdf->Cell(13,6,"",'L,B,R');
+                        $pdf->SetFont('Arial', 'I', 6);
+                        $pdf->Cell(13,6,"",'L,B,R');
+                        $pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), $di,55),'L,B,R');
+                        $pdf->Cell(8,6,"" ,'L,B,R');
+                        $pdf->Cell(10,6,"",'L,B,R');
+                        $pdf->Cell(13,6,"",'L,B,R');
+                        $pdf->Cell(13,6,"",'L,B,R');
+                        $pdf->Cell(15,6,"",'L,B,R');
+                        $pdf->Cell(15,6,"",'L,B,R');
+                        $pdf->Cell(15,6,"",'L,B,R');
+                    }           
+                    $di = $di +20;
+                    //$pdf->Ln();       
+                }
+            $pdf->Ln();
+            }
+        }
+            $pdf->Cell(6,6,"",0);
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(25,6,"",0);
+            $pdf->Cell(8,6,"",0);
+            $pdf->Cell(63,6,"",0);
+            $pdf->Cell(15,6,"",0);
+            $pdf->Cell(8,6,"",0);
+
+            $pdf->Cell(15,6,"SubTotal",1);
+            $pdf->Cell(15,6,'$ '.number_format($subtotal,2),1,0, 'R');
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(20,6,"",0);
+            $pdf->Ln();
+            $pdf->Cell(6,6,"",0);
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(122,6,$res.$leyenda,0,0,'C');
+            $pdf->Cell(15,6,"",0);
+            $pdf->Cell(8,6,"",0);
+            $pdf->Cell(15,6,"Descuento",1);
+            $pdf->Cell(15,6,'$ '.number_format($descTot,2),1,0, 'R');
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(20,6,"",0);
+            $pdf->Ln();
+            $pdf->Cell(6,6,"",0);
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(25,6,"",0);
+            $pdf->Cell(8,6,"",0);
+            $pdf->Cell(63,6,"",0);
+            $pdf->Cell(15,6,"",0);
+            $pdf->Cell(8,6,"",0);
+            $pdf->Cell(15,6,"IVA",1);
+            $pdf->Cell(15,6,'$ '.number_format($totalImp1,2),1,0, 'R');
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(20,6,"",0);
+            $pdf->Ln();
+            $pdf->Cell(6,6,"",0);
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(25,6,"",0);
+            $pdf->Cell(8,6,"",0);
+            $pdf->Cell(63,6,"",0);
+            $pdf->Cell(15,6,"",0);
+            $pdf->Cell(8,6,"",0);
+            $pdf->Cell(15,6,"Total",1);
+            $pdf->Cell(15,6,'$ '.number_format($total,2),1,0, 'R');
+            $pdf->Cell(13,6,"",0);
+            $pdf->Cell(20,6,"",0);
+            $pdf->Ln(3);
+            //$pdf->Image($genqr);
+            //$pdf->SetXY(10, 220);
+            $pdf->Ln(3);
+            $pdf->SetFont('Arial','',6);
+            //$pdf->Write(4,'POR ESTE PAGARE DEBEMOS Y PAGAREMOS INCONDICIONALMENTE A LA ORDEN DE '.$DF->RAZON_SOCIAL.' LA CANTIDAD DE $ '.number_format(($subtotal-$descTot)+$iva,2).', ESTA FACTURA CAUSARA INTERESES MORATORIOS DEL 3.5 % MENSUAL, SOBRE EL VALOR TOTAL DE LA MISMA AL NO SER PAGADA A LOS 30 DIAS DE RECEPCION DE ESTE DOCUMENTO');
+            $pdf->Ln(6);
+            $pdf->Write(4, 'RECIBI DE CONFORMIDAD LOS PRODUCTOS QUE AMPARA LA PRESENTE NOTA DE VENTA');
+            $pdf->Ln(6);
+            $pdf->Write(4,'Nombre _______________________________________  Cargo: _______________________________________  Firma: ______________________________'); 
+            $pdf->Ln(6);
+            $pdf->Write(4,utf8_decode('Los datos personales obtenidos en este documento tienen por finalidad dar cumplimiento a las disposiciones establecidas por la Ley Federal de Protección de Datos Personales en Posesión de los Particulares'));
+            $pdf->Ln(6);
+            $pdf->SetFont('Arial','',5);
+            //$pdf->Write(6,'Este documento es una representacion impresa de un CFDI');
+            //$pdf->Ln(3);
+            //$pdf->Write(6,'Sello digital del CFDI:');
+            //$pdf->Ln(6);
+            //$pdf->MultiCell(0,3,$selloSAT,1,'j');
+            //$pdf->Ln(0);
+            //$pdf->Write(6,'Cadena Original del complemento de certificacion digital del SAT:');
+            //$pdf->Ln(6);
+            //$pdf->MultiCell(0,3,$cadenaSat,1);
+            //$pdf->Ln(0);
+            //$pdf->Write(6,'Sello digital del SAT:');
+            //$pdf->Ln(6);
+            //$pdf->MultiCell(0,3,$selloCFD,1,'j');
+            $pdf->SetTextColor(255,0,0);
+            $pdf->Write(6,'Favor de confirmar con el Cliente la entrega de su pedido. ('.$pedido.')');
+            $pdf->Ln(3);
+            $pdf->Write(6,'Si tiene algun comentario o duda favor de comunicarse a '.$DF->RAZON_SOCIAL.' por los siguientes medios:');
+            $pdf->Ln(3);
+            $pdf->Write(6,'Con: '.$usuario);
+            $pdf->Ln(3);
+            $pdf->Write(6,'Telefonos :55 55 73 38 34 o por Correo a: libreriamedicahorus@gmail.com');
+            $pdf->Ln(3);
+            $pdf->Write(6,'Linea de Atencion a Quejas: 55 55 73 38 34');
+            $pdf->Ln(5);
+            $pdf->SetFont('Arial','',14);
+            //// informacion de la rerfacturacion de pegaso.
+            ob_get_clean();
+
+        $ruta='C:\\xampp\\htdocs\\notas de venta\\';
+        if(!file_exists($ruta)){
+            mkdir($ruta, 0777,true);
+        }
+        if($d == 'd'){
+            $pdf->Output( $nv.'.pdf',$d );
+            $this->ImprimeFacturaPegaso($nv, $d='f');    
+        }elseif($d ==  'f'){
+            $pdf->Output( 'C:\\xampp\\htdocs\\notas de venta\\'.$nv.'.pdf',$d );
+        }
+        return array("status"=>'ok');
+    }
+
     function impresionTicket($doc, $cambio){
         if($_SESSION['user']){
-            $contexto = "http://ofa.dyndns.org:8888/ftc/app/";
+            //$contexto = "http://ofa.dyndns.org:8888/ftc/app/";
+            $contexto = "http://ofa.dyndns.org:8081/ftc/app/";
             $datav = new pegaso_ventas;
             $cabecera=$datav->nvCabecera($doc);
             $partidas=$datav->nvPartidas($doc);
@@ -2001,14 +2335,23 @@ class pegaso_controller_ventas{
         }
     }
 
-    function histProd($id, $per, $fi, $ff){
+    function histProd($id, $per, $fi, $ff, $tipo, $isbn){
         if($_SESSION['user']){
             $data = new pegaso_ventas;
             $pagina=$this->load_template('Historia Producto');
-            $html=$this->load_page('app/views/pages/ventas/p.histProd.php');
             ob_start();
-            $info = $data->histProd($id, $per, $fi, $ff);
-            include 'app/views/pages/ventas/p.histProd.php';
+            if($tipo == 'f'){
+                $html=$this->load_page('app/views/pages/ventas/p.histProd.php');
+                $inf=$this->sisbn($isbn);
+                $info = $inf['datos'];
+                $prod = $data->productoF($isbn);
+                include 'app/views/pages/ventas/p.histProd.php';
+            }else{
+                $html=$this->load_page('app/views/pages/ventas/p.histProd.php');
+                $prod = $data->producto($id);
+                $info = $data->histProd($id, $per, $fi, $ff);
+                include 'app/views/pages/ventas/p.histProd.php';
+            }
             $table = ob_get_clean();
             $pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
             $this->view_page($pagina);
@@ -2016,6 +2359,103 @@ class pegaso_controller_ventas{
                 $e = "Favor de iniciar Sesión";
                 header('Location: index.php?action=login&e='.urlencode($e)); exit;
         }    
+    }
+
+    function cargaProd($files2upload){
+        echo $files2upload; $res= array();
+        if (isset($_SESSION['user'])) {            
+            $data = new pegaso_ventas;
+            $valid_formats = array("xls", "xlsx", "XLS", "XLSX", "txt", "TXT", "csv", "CSV");
+            $max_file_size = 1024 * 1000; //1000 kb
+            $target_dir="C:/xampp/htdocs/uploads/listaProductos/";
+            if(!file_exists($target_dir)){
+            	mkdir($target_dir, 0777, true);
+            }
+            $count=0;
+            $respuesta=0;
+            foreach ($_FILES['files']['name'] as $f => $name) {	
+                $ext= pathinfo($name, PATHINFO_EXTENSION);
+                if ($_FILES['files']['error'][$f] == 4) {
+                    continue;
+                }
+                if ($_FILES['files']['error'][$f] == 0){
+                    if ($_FILES['files']['size'][$f] > $max_file_size or $_FILES['files']['size'][$f] == 0){
+                        $message[] = "$name es demasiado grande para subirlo.";
+                        continue; // Skip large files
+                    }elseif(!in_array(pathinfo($name, PATHINFO_EXTENSION), $valid_formats)){
+                        $message[] = "$name no es un archivo permitido.";
+                        continue; // Skip invalid file formats
+                    }else{ // No error found! Move uploaded files 
+                        $archivo = $target_dir.$name;
+                        $ar = $name;
+                        if (move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name)){
+                        	$count++; // Number of successfully uploaded file
+							$res = $data->cargaProd($archivo, $ext);
+                        }	
+                    }
+                }
+            }
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+        return $res;
+    }
+
+    function cargaImg($files2upload){
+        //echo $files2upload; 
+        $res= array();
+        if (isset($_SESSION['user'])) {            
+            $data = new pegaso_ventas;
+            $valid_formats = array("jpg", "png", "gif", "webp");
+            $max_file_size = 1024 * 1000; //1000 kb
+            $target_dir="C:/xampp/htdocs/imagenes/books/";
+            if(!file_exists($target_dir)){
+            	mkdir($target_dir, 0777, true);
+            }
+            $count=0;
+            $respuesta=0;
+            foreach ($_FILES['files']['name'] as $f => $name) {	
+                $ext= pathinfo($name, PATHINFO_EXTENSION);
+                if ($_FILES['files']['error'][$f] == 4) {
+                    continue;
+                }
+                if ($_FILES['files']['error'][$f] == 0){
+                    if ($_FILES['files']['size'][$f] > $max_file_size or $_FILES['files']['size'][$f] == 0){
+                        $message[] = "$name es demasiado grande para subirlo.";
+                        continue; // Skip large files
+                    }elseif(!in_array(pathinfo($name, PATHINFO_EXTENSION), $valid_formats)){
+                        $message[] = "$name no es un archivo permitido.";
+                        continue; // Skip invalid file formats
+                    }else{ // No error found! Move uploaded files 
+                        //$archivo = $target_dir.$name;
+                        //$ar=$name;
+                        if (move_uploaded_file($_FILES["files"]["tmp_name"][$f], $target_dir . $name)){
+                        	$count++; // Number of successfully uploaded file
+							///$res = $data->cargaProd($archivo, $ext);
+                        }	
+                    }
+                }
+            }
+        } else {
+            $e = "Favor de Iniciar Sesión";
+            header('Location: index.php?action=login&e=' . urlencode($e));
+            exit;
+        }
+        $url="index.php?action=catalogoProductosFTC";
+			echo "<SCRIPT>window.location='$url';</SCRIPT>";
+			//header("Location:$url");
+        return $res;
+    }
+
+
+    function sisbn($isbn){
+        if(isset($_SESSION['user'])){
+            $data = new pegaso_ventas;
+            $res=$data->sisbn($isbn);
+            return $res;
+        }
     }
 }
 ?>

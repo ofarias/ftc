@@ -118,6 +118,12 @@ class pegaso_controller{
 						case 'servicio':
 						$this->MenuServicio ();
 						break;
+						case 'admin':
+						$this->MenuAdmin ();
+						break;
+						case 'auditoria':
+						$this->MenuAuditoria();
+						break;
 						default:
 						$e = "Error en acceso 1, favor de revisar usuario y/o contraseña";
 						header('Location: index.php?action=login&e='.urlencode($e)); exit;
@@ -131,7 +137,6 @@ class pegaso_controller{
 	}
 
 	function Inicio(){
-		
 		if(isset($_SESSION['user'])){
 			$o = $_SESSION['user'];
 			switch($o->USER_ROL){
@@ -170,6 +175,12 @@ class pegaso_controller{
 				break;
 				case 'servicio':
 				$this->MenuServicio();
+				break;
+				case 'admin':
+				$this->MenuAdmin ();
+				break;
+				case 'auditoria':
+				$this->MenuAuditoria();
 				break;
 				default:
 				$e = "Error en acceso 1, favor de revisar usuario y/o contraseña";
@@ -568,7 +579,6 @@ class pegaso_controller{
     }
 
 	function MenuAuditoria(){
-		
 		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'auditoria'){
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/modules/m.mauditoria.php');
@@ -581,7 +591,7 @@ class pegaso_controller{
 	}
 
 	function xmlMenu(){
-		if(isset($_SESSION['user']) && ($_SESSION['user']->USER_ROL == 'xml' || $_SESSION['user']->USER_ROL == 'ContaXML'|| $_SESSION['user']->USER_ROL == 'administracion')){
+		if(isset($_SESSION['user']) && ($_SESSION['user']->USER_ROL == 'xml' || $_SESSION['user']->USER_ROL == 'ContaXML'|| $_SESSION['user']->USER_ROL == 'administracion' || $_SESSION['user']->USER_ROL == 'admin')){
 			$data = new pegaso;
 			$meses = $data->traeMeses();
 			$nomina = $data->traePeriodoNom();
@@ -602,7 +612,7 @@ class pegaso_controller{
 	}
 
 	function mXMLSP($tipo, $anio){
-		if(isset($_SESSION['user']) && ($_SESSION['user']->USER_ROL == 'xml' || $_SESSION['user']->USER_ROL == 'ContaXML'||$_SESSION['user']->USER_ROL == 'administracion' )){
+		if(isset($_SESSION['user']) && ($_SESSION['user']->USER_ROL == 'xml' || $_SESSION['user']->USER_ROL == 'ContaXML'||$_SESSION['user']->USER_ROL == 'administracion'||$_SESSION['user']->USER_ROL == 'admin' )){
 			$data = new pegaso;
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/modules/m.mxmlSP.php');
@@ -1228,10 +1238,14 @@ class pegaso_controller{
 
 	/*Carga menu de administrador*/
 	function MenuAdmin(){
-		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'administrador'){
+		if(isset($_SESSION['user']) && $_SESSION['user']->USER_ROL == 'admin'){
 			$pagina = $this->load_template('Menu Admin');			
-			$html = $this->load_page('app/views/modules/m.madmin.php');
-			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $html, $pagina);
+			ob_start();
+			$table=ob_get_clean();
+			$usuario=$_SESSION['user']->NOMBRE;    
+			//$html = $this->load_page('app/views/modules/m.madmin.php');
+			include 'app/views/modules/m.madmin.php';
+			$pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
 			$this-> view_page($pagina);
 		}else{
 			$e = "Favor de Revisar sus datos";
@@ -1257,7 +1271,6 @@ class pegaso_controller{
 	function MenuAd(){    
         if(isset($_SESSION['user'])){
             $pagina = $this->load_template('Menu Admin');
-            //$html = $this->load_page('app/views/modules/m.mad.php');
             ob_start();
             $table =ob_get_clean();
             $usuario=$_SESSION['user']->NOMBRE;    
@@ -1271,7 +1284,6 @@ class pegaso_controller{
     }
 	
 	function MenuUsuario(){
-		
 		if(isset($_SESSION['user'])){
 			$pagina = $this->load_template('Menu Admin');
 			$html = $this->load_page('app/views/modules/m.muser.php');
@@ -12039,7 +12051,7 @@ function fallarOC($doco){
              		$suministros =$data->revisarNuevoIngreso($suministros);
              	}
              	$um = $datav->traeUM();           
-                include 'app/views/pages/p.IngresoBodega.php';
+                include 'app/views/pages/Bodega/p.IngresoBodega.php';
                 $table = ob_get_clean();
                 $pagina = $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
              $this->view_page($pagina);
@@ -14011,8 +14023,7 @@ function ImpSolicitud2($idsol){
 
 	}
 
-	function utilerias($opcion, $docp, $docd, $docf, $fechaIni, $fechaFin, $maestro){
-    	        
+	function utilerias($opcion, $docp, $docd, $docf, $fechaIni, $fechaFin, $maestro, $ver){
      	if (isset($_SESSION['user'])) {            
             $data = new pegaso;
             $pagina = $this->load_template('Pagos');        	            
@@ -14067,6 +14078,8 @@ function ImpSolicitud2($idsol){
             	$analisis = $data->analisis($idpreoc, $fechaIni, $fechaFin);
             }elseif($opcion == 21){
             	$this->timbraFact($docf);
+            }elseif($opcion == 22){
+            	$this->generaJson($docf, $ver);
             }
             echo $resultado;
             //$cf = $data->asociaCF();
@@ -14089,11 +14102,15 @@ function ImpSolicitud2($idsol){
     	}
     }
 
-    function generaJson($docf, $idc){
+    function generaJson($docf, $ver){
     	if($_SESSION['user']){
     		$data= new factura;
-    		$exec=$data->generaJson($docf, $idc);
-    		$this->xmlMenu();
+    		$ver==''? $data->generaJson_v2($docf, $ver):$data->generaJson_v4($docf, $ver); 
+    		$redireccionar="utilerias";
+            $pagina=$this->load_template('Pedidos');
+            $html = $this->load_page('app/views/pages/p.redirectform.php');
+            include 'app/views/pages/p.redirectform.php';
+    		return;    		
     	}
     }
 
@@ -14519,8 +14536,11 @@ function ImpSolicitud2($idsol){
     		$pagina=$this->load_template('Pedidos');
         	$html=$this->load_page('app/views/pages/ventas/p.verCatalogoProductosFTC.php');
         	ob_start();
-        	$catProductos = $data->catalogoProductosFTC($descripcion);
-        	//$carga = $this->cargaProductosXls();
+        	$catProductos = $data->catalogoProductosFTC($descripcion, $marca, $desc1);
+        	$filtros=$data->filtrosProd();
+			$editorial = $filtros['editorial'];
+			$autor= $filtros['autor'];
+			//$carga = $this->cargaProductosXls();
 	        include 'app/views/pages/ventas/p.verCatalogoProductosFTC.php';
 	        $table = ob_get_clean();
             if (count($catProductos)>0){
@@ -14948,7 +14968,7 @@ function ImpSolicitud2($idsol){
     		$html = $this->load_page('app/views/pages/Proveedores/p.verProveedores.php');
     		ob_start();
     		$proveedores=$data->verProveedores();
-    		$lay = $data->LayOutCargaProv();
+    		//$lay = $data->LayOutCargaProv();
     		include 'app/views/pages/Proveedores/p.verProveedores.php';
     		$table = ob_get_clean();
     		$pagina= $this->replace_content('/\#CONTENIDO\#/ms', $table, $pagina);
@@ -19175,16 +19195,16 @@ function ImpSolicitud2($idsol){
         $pdf->SetFont('Arial', 'B', 7);
   		$pdf->Write(6,'Usuario Imprime: '.$usuario);
   		$pdf->Ln(4);
-  		$pdf->Write(6,'Cliente : ('.$data->CLAVE.')'.$data->NOMBRE.' RFC: '.$data->RFC);
+  		$pdf->Write(6,'Cliente : ('.$data->CLAVE.')'.utf8_decode($data->NOMBRE).' RFC: '.$data->RFC);
   		$pdf->Ln(4);
-  		$pdf->Write(6,'Direccion: Calle :'.$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F);
+  		$pdf->Write(6,utf8_decode('Dirección: Calle :').$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F);
   		$pdf->Ln(4);
-  		$direccionCompleta='Direccion: Calle :'.$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F;
+  		$direccionCompleta=utf8_decode('Dirección: Calle :').$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F;
   		//if()
   		//$pdf->Write(6,'Calle (continuacion):'.$data->CALLE_F.', Num Ext:'.$data->EXTERIOR_F.', Num Int:'.$data->INTERIOR_F);
   		$pdf->Write(6,'Colonia: '.$data->COLONIA_F.' Estado: '.$data->ESTADO_F);
   		$pdf->Ln(4);
-  		$pdf->Write(6,'Codigo Postal: '.$data->CP_F.' Pais: '.$data->PAIS_F);
+  		$pdf->Write(6,utf8_decode('Código Postal: ').$data->CP_F.' Pais: '.$data->PAIS_F);
   		$pdf->Ln(4);
   		$pdf->Write(6,'Pedido Cliente:'.$data->PEDIDO_CLIENTE.' -- Pedido: '.$data->COTIZACION.'-- Prefactura: PF'.$data->CAJAF);
   		$pdf->Ln(10);
@@ -19235,6 +19255,7 @@ function ImpSolicitud2($idsol){
             $partida= 0;
             $descTot=0;
             $PARTIDA=0;
+            $totalImp1=0;
         foreach($Detalle as $row){
         	if($row->CANTIDAD > 0){
         	$PARTIDA++;
@@ -19242,8 +19263,9 @@ function ImpSolicitud2($idsol){
         	$descuni = $row->PRECIO * ($descpor * 0.0100);
         	$subtotal += ($row->PRECIO * $row->CANTIDAD);
         	$descTot += ($descuni*$row->CANTIDAD);
-        	$iva += (($row->PRECIO * $row->CANTIDAD)-$row->DESC1)*.16;
-        	$total += (($row->PRECIO * $row->CANTIDAD)-$row->DESC1)*1.16;
+        	$iva += ($row->IMP1);
+        	$totalImp1 +=$iva;
+        	$total += (($row->PRECIO * $row->CANTIDAD)-$row->DESC1)+$row->IMP1;
         	$desp = 0;
         	$m = $total;
 			$Monto=number_format($m,0);
@@ -19263,14 +19285,14 @@ function ImpSolicitud2($idsol){
             $pdf->Cell(13,6,(substr($row->ARTICULO,0,8)),'L,T,R');
             $pdf->Cell(13,6,($row->CLAVE_SAT),'L,T,R');
            	$pdf->Cell(13,6,($row->MEDIDA_SAT),'L,T,R',0, 'C');
-            $pdf->Cell(60,6,substr($row->DESCRIPCION, 0,45), 'L,T,R');
-            $pdf->Cell(8,6,number_format($row->CANTIDAD,2),'L,T,R');
+            $pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 0,45), 'L,T,R');
+            $pdf->Cell(8,6,number_format($row->CANTIDAD,0),'L,T,R');
             $pdf->Cell(10,6,$row->UM,'L,T,R',0, 'C');
             $pdf->Cell(13,6,'$ '.number_format($row->PRECIO,2),'L,T,R',0, 'R');
             $pdf->Cell(13,6,'% '.number_format($descpor,2),'L,T,R',0,'R');
             $pdf->Cell(15,6,'$ '.number_format(($row->PRECIO * $row->CANTIDAD)-$row->DESC1,2),'L,T,R',0, 'R');
-            $pdf->Cell(15,6,'$ '.number_format((($row->PRECIO * $row->CANTIDAD)-($row->DESC1))*.16,2),'L,T,R',0, 'R');
-            $pdf->Cell(15,6,'$ '.number_format((($row->PRECIO * $row->CANTIDAD)-($row->DESC1))*1.16,2),'L,T,R',0, 'R');
+            $pdf->Cell(15,6,'$ '.number_format($row->IMP1,2),'L,T,R',0, 'R');
+            $pdf->Cell(15,6,'$ '.number_format((($row->PRECIO * $row->CANTIDAD)-($row->DESC1))+ $row->IMP1,2),'L,T,R',0, 'R');
             
             if($descr > 95){
 	            $pdf->Ln(4);				
@@ -19280,8 +19302,8 @@ function ImpSolicitud2($idsol){
 	            $pdf->Cell(13,6,"",'R');
 	            $pdf->SetFont('Arial', 'I', 6);
 	            $pdf->Cell(13,6,substr($row->DESCUNI,0),'L,R');
-            	$pdf->Cell(60,6,substr($row->DESCRIPCION, 45,55),'L,R');
-	            $pdf->Cell(8,6,strlen($row->DESCRIPCION),'L,R');
+            	$pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 45,55),'L,R');
+	            $pdf->Cell(8,6,strlen(utf8_decode($row->DESCRIPCION)),'L,R');
 	            $pdf->Cell(10,6,"",'L,R');
 	            $pdf->Cell(13,6,"",'L,R');
 	            $pdf->Cell(13,6,'$ '.number_format(($descuni),2),'L,R',0, 'R');
@@ -19296,7 +19318,7 @@ function ImpSolicitud2($idsol){
 	            $pdf->Cell(13,6,"",'B,R');
 	            $pdf->SetFont('Arial', 'I', 6);
 	            $pdf->Cell(13,6,substr($row->DESCUNI,0),'L,B,R');
-            	$pdf->Cell(60,6,substr($row->DESCRIPCION, 45,55),'L,R,B');
+            	$pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), 45,55),'L,R,B');
 	            $pdf->Cell(8,6,"",'L,B,R');
 	            $pdf->Cell(10,6,"",'L,B,R');
 	            $pdf->Cell(13,6,"",'L,B,R');
@@ -19318,7 +19340,7 @@ function ImpSolicitud2($idsol){
             			$pdf->Cell(13,6,"",'L,R');
             			$pdf->SetFont('Arial', 'I', 6);
             			$pdf->Cell(13,6,"",'L,R');
-                   		$pdf->Cell(60,6,substr($row->DESCRIPCION, $di,55),'L,R');
+                   		$pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), $di,55),'L,R');
                    		$pdf->Cell(8,6,"",'L,R');
             			$pdf->Cell(10,6,"",'L,R');
             			$pdf->Cell(13,6,"",'L,R');
@@ -19334,7 +19356,7 @@ function ImpSolicitud2($idsol){
             			$pdf->Cell(13,6,"",'L,B,R');
             			$pdf->SetFont('Arial', 'I', 6);
             			$pdf->Cell(13,6,"",'L,B,R');
-                   		$pdf->Cell(60,6,substr($row->DESCRIPCION, $di,55),'L,B,R');
+                   		$pdf->Cell(60,6,substr(utf8_decode($row->DESCRIPCION), $di,55),'L,B,R');
             			$pdf->Cell(8,6,"" ,'L,B,R');
             			$pdf->Cell(10,6,"",'L,B,R');
             			$pdf->Cell(13,6,"",'L,B,R');
@@ -19384,7 +19406,7 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(15,6,"",0);
         	$pdf->Cell(8,6,"",0);
         	$pdf->Cell(15,6,"IVA",1);
-        	$pdf->Cell(15,6,'$ '.number_format(($subtotal-$descTot)*.16,2),1,0, 'R');
+        	$pdf->Cell(15,6,'$ '.number_format($totalImp1,2),1,0, 'R');
         	$pdf->Cell(13,6,"",0);
         	$pdf->Cell(20,6,"",0);
         	$pdf->Ln();
@@ -19398,7 +19420,7 @@ function ImpSolicitud2($idsol){
         	$pdf->Cell(15,6,"",0);
         	$pdf->Cell(8,6,"",0);
         	$pdf->Cell(15,6,"Total",1);
-        	$pdf->Cell(15,6,'$ '.number_format(($subtotal-$descTot)*1.16,2),1,0, 'R');
+        	$pdf->Cell(15,6,'$ '.number_format($total,2),1,0, 'R');
         	$pdf->Cell(13,6,"",0);
         	$pdf->Cell(20,6,"",0);
         	$pdf->Ln(3);
@@ -19406,13 +19428,13 @@ function ImpSolicitud2($idsol){
 			//$pdf->SetXY(10, 220);
 			$pdf->Ln(3);
 			$pdf->SetFont('Arial','',6);
-  			$pdf->Write(4,'POR ESTE PAGARE DEBEMOS Y PAGAREMOS INCONDICIONALMENTE A LA ORDEN DE '.$DF->RAZON_SOCIAL.' LA CANTIDAD DE $ '.number_format(($subtotal-$descTot)*1.16,2).', ESTA FACTURA CAUSARA INTERESES MORATORIOS DEL 3.5 % MENSUAL, SOBRE EL VALOR TOTAL DE LA MISMA AL NO SER PAGADA A LOS 30 DIAS DE RECEPCION DE ESTE DOCUMENTO');
+  			$pdf->Write(4,'POR ESTE PAGARE DEBEMOS Y PAGAREMOS INCONDICIONALMENTE A LA ORDEN DE '.$DF->RAZON_SOCIAL.' LA CANTIDAD DE $ '.number_format(($subtotal-$descTot)+$iva,2).', ESTA FACTURA CAUSARA INTERESES MORATORIOS DEL 3.5 % MENSUAL, SOBRE EL VALOR TOTAL DE LA MISMA AL NO SER PAGADA A LOS 30 DIAS DE RECEPCION DE ESTE DOCUMENTO');
   			$pdf->Ln(6);
   			$pdf->Write(4, 'RECIBI DE CONFORMIDAD LOS PRODUCTOS QUE AMPARA LA PRESENTE FACTURA');
   			$pdf->Ln(6);
   			$pdf->Write(4,'Nombre _______________________________________  Cargo: _______________________________________  Firma: ______________________________'); 
   			$pdf->Ln(6);
-  			$pdf->Write(4,'Los datos personales obtenidos en este documento tienen por finalidad dar cumplimiento a las disposiciones establecidas por la Ley Federal de Protección de Datos Personales en Posesión de los Particulares');
+  			$pdf->Write(4,utf8_decode('Los datos personales obtenidos en este documento tienen por finalidad dar cumplimiento a las disposiciones establecidas por la Ley Federal de Protección de Datos Personales en Posesión de los Particulares'));
   			$pdf->Ln(6);
   			$pdf->SetFont('Arial','',5);
   			$pdf->Write(6,'Este documento es una representacion impresa de un CFDI');
@@ -19431,13 +19453,13 @@ function ImpSolicitud2($idsol){
         	$pdf->SetTextColor(255,0,0);
   			$pdf->Write(6,'Favor de confirmar con el Cliente la entrega de su pedido. ('.$pedido.')');
   			$pdf->Ln(3);
-  			$pdf->Write(6,'Si tiene algun comentario o duda favor de comunicarse a FTC por los siguientes medios:');
+  			$pdf->Write(6,'Si tiene algun comentario o duda favor de comunicarse a '.$DF->RAZON_SOCIAL.' por los siguientes medios:');
   			$pdf->Ln(3);
   			$pdf->Write(6,'Con: '.$usuario);
   			$pdf->Ln(3);
-  			$pdf->Write(6,'Telefonos : 55-73126323, 55-4020-1811 o por Correo a: info@ftcenlinea.com');
+  			$pdf->Write(6,'Telefonos :55 55 73 38 34 o por Correo a: libreriamedicahorus@gmail.com');
   			$pdf->Ln(3);
-  			$pdf->Write(6,'Linea de Atencion a Quejas: 55 5055-3392');
+  			$pdf->Write(6,'Linea de Atencion a Quejas: 55 55 73 38 34');
   			$pdf->Ln(5);
   			$pdf->SetFont('Arial','',14);
   			//// informacion de la rerfacturacion de pegaso.
@@ -19465,6 +19487,9 @@ function ImpSolicitud2($idsol){
   			$pdf->Output( 'C:\xampp\htdocs\Facturas\facturaPegaso\\'.$factura.'.pdf',$destino );
   		}
   	}
+
+
+
 
 	function imprimeUUID($uuid){
   		$data= new pegaso;
@@ -19734,7 +19759,7 @@ function ImpSolicitud2($idsol){
             $pdf->Cell(13,6,($row->CLAVE_SAT),'L,T,R');
            	$pdf->Cell(13,6,($row->MEDIDA_SAT),'L,T,R',0, 'C');
             $pdf->Cell(60,6,substr($row->DESCRIPCION, 0,45), 'L,T,R');
-            $pdf->Cell(8,6,number_format($row->CANTIDAD,2),'L,T,R');
+            $pdf->Cell(8,6,number_format($row->CANTIDAD,0),'L,T,R');
             $pdf->Cell(10,6,$row->UM,'L,T,R',0, 'C');
             $pdf->Cell(13,6,'$ '.number_format($row->PRECIO,2),'L,T,R',0, 'R');
             $pdf->Cell(13,6,'% '.number_format($descpor,2),'L,T,R',0,'R');
@@ -20065,8 +20090,12 @@ function ImpSolicitud2($idsol){
         if (isset($_SESSION['user'])) {            
             $data = new pegaso;
             $rfc = $_SESSION['rfc'];
+
             $ruta = 'C:\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descargas\\'.$rfc.'\\';
-            //$ruta = '\\\\192.168.100.33\\C:\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descarga'; Ruta remota.
+            if(!file_exists($ruta)){
+				mkdir($ruta);
+			}
+			//$ruta = '\\\\192.168.100.33\\C:\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descarga'; Ruta remota.
             $archivos = $data->leeDirectorio($ruta, $opcion);
             $pagina = $this->load_template('Pagos');        	            
             $html = $this->load_page('app/views/pages/p.factura.upload.xml.php');            
@@ -20655,7 +20684,7 @@ function ImpSolicitud2($idsol){
   				$factura = $res['factura'];
   				$this->ImprimeFacturaPegaso($res['factura'], $destino='f');
   				$correo=$_SESSION['user']->USER_EMAIL;
-  				$env=$ctrl->enviarFact($res['factura'],$correo, $mensaje="Correo generado de forma automatica");	
+  				//$env=$ctrl->enviarFact($res['factura'],$correo, $mensaje="Correo generado de forma automatica");	
 			}
 		}
 		return $res;
@@ -20841,8 +20870,24 @@ function ImpSolicitud2($idsol){
     	if($_SESSION['user']){
     		$data= new pegaso;
     		$exec=$data->unMillon();
-    		return;
+			return;
     	}
     }
+
+	function saveObs($obs, $art){
+		if($_SESSION['user']){
+			$data = new pegaso;
+			$res=$data->saveObs($obs, $art);
+			return $res;
+		}
+	}
+
+	function actImg(){
+		if($_SESSION['user']){
+			$data = new pegaso;
+			$res=$data->actImg();
+			return $res;
+		}
+	}
 }?>
 

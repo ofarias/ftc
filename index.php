@@ -1530,38 +1530,14 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	$fecha = $_POST['fecha'];
 	$controller->recDocCierreCob($idp, $fecha);
 }elseif (isset($_POST['utilerias'])) {
-	$opcion = $_POST['opcion'];
-	if(isset($_POST['docp'])){
-		$docp = $_POST['docp'];	
-	}else{
-		$docp='';	
-	}
-	if(isset($_POST['docf'])){
-		$docf = $_POST['docf'];
-	}else{
-		$docf='';
-	}
-	if(isset($_POST['docd'])){
-		$docd = $_POST['docd'];
-	}else{
-		$docd = '';
-	}
-	if(isset($_POST['fechaIni'])){
-		$fechaIni = $_POST['fechaIni'];
-	}else{
-		$fechaIni = '';
-	}
-	if(isset($_POST['fechaFin'])){
-		$fechaFin = $_POST['fechaFin'];
-	}else{
-		$fechaFin = '';
-	}
-	if(isset($_POST['maestro'])){
-		$maestro =$_POST['maestro'];
-	}else{
-		$maestro = '';
-	}
-	$controller->utilerias($opcion, $docp, $docd, $docf, $fechaIni, $fechaFin, $maestro);
+	$docp = isset($_POST['docp'])? $_POST['docp']:'';	
+	$docf = isset($_POST['docf'])? $_POST['docf']:'';
+	$docd = isset($_POST['docd'])? $_POST['docd']:'';
+	$fechaIni = isset($_POST['fechaIni'])? $_POST['fechaIni']:'';
+	$fechaFin = isset($_POST['fechaFin'])? $_POST['fechaFin']:'';
+	$maestro =isset($_POST['maestro'])?  $_POST['maestro']:'';
+	$ver = isset($_POST['ver'])? isset($_POST['ver']):'';
+	$controller->utilerias($_POST['opcion'], $docp, $docd, $docf, $fechaIni, $fechaFin, $maestro, $ver);
 }elseif (isset($_POST['contVenta'])) {
 	$ida = $_POST['ida'];
 	$docf =$_POST['docf'];
@@ -2521,10 +2497,7 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	$controller->addendaLoreal($docf, $oc, $recepcion, $cc);
 	exit();
 }elseif (isset($_POST['generaJson'])) {
-	$docf=$_POST['docf'];
-	$idc = $_POST['caja'];
-	$controller->generaJson($docf, $idc);
-	exit();
+	$docf=$_POST['docf']; $idc = $_POST['caja']; $controller->generaJson($docf, $idc); exit();
 }elseif(isset($_POST['timbraNC'])){
 	$docf=$_POST['docf'];
 	$docn=$_POST['docn'];
@@ -2654,10 +2627,7 @@ exit();
 	echo json_encode($res);
 	exit();
 }elseif (isset($_POST['buscaDoc'])) {
-	$docf=$_POST['buscaDoc'];
-	$res=$controller->buscaDoc($docf);
-	echo json_encode($res);
-	exit();
+	$res=$controller->buscaDoc($_POST['buscaDoc']); echo json_encode($res); exit();
 }elseif(isset($_POST['ctaXML'])){
 	$res=$controller->ctaXML($_POST['uuid'], $_POST['cta'], $_POST['t'], $_POST['obs'], $_POST['fecha'], $_POST['tpago']);
 	echo json_encode($res);
@@ -2689,6 +2659,10 @@ exit();
 	$res=$controller->delCarga($_POST['idc']);
 	echo json_encode($res);
 	exit();
+}elseif(isset($_POST['saveObs'])){
+	$res=$controller->saveObs($_POST['saveObs'], $_POST['art']);echo json_encode($res); exit(); 
+}elseif(isset($_POST['actImg'])){
+	$res=$controller->actImg(); echo json_encode($res);exit();
 }
 else{
 	switch ($action){
@@ -3551,14 +3525,7 @@ else{
        		$controller->recCierreCob();
        		break;
        	case 'utilerias':
-       		$opcion = 0;
-       		$docp = '';
-       		$docf = '';
-       		$docd = '';
-       		$fechaIni='';
-       		$fechaFin='';
-       		$maestro = '';
-       		$controller->utilerias($opcion, $docp, $docf, $docd, $fechaIni, $fechaFin, $maestro);
+       		$controller->utilerias($opcion=0, $docp='', $docf='', $docd='', $fechaIni='', $fechaFin='', $maestro='', $ver='');
        		break;
        	case 'RecibirDocsRevision':
        		$contoller->RecibirDocsRevision();
@@ -3622,8 +3589,8 @@ else{
        		if(!empty($_GET['unidadmedida'])){
        			$unidadmedida=$_GET['unidadmedida'];	
        		}
-       		echo 'Valor de la Marca : '.$marca.'<p>';
-       		echo 'Valor prov1: '.$prov1.'<p>';
+       		//echo 'Valor de la Marca : '.$marca.'<p>';
+       		//echo 'Valor prov1: '.$prov1.'<p>';
        		$controller->catalogoProductosFTC($marca, $categoria, $desc1, $generico, $unidadmedida, $prov1, $desc2, $descripcion);
        		break;
        	case 'altaProductoFTC':

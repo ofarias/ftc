@@ -14,7 +14,7 @@ class pegaso extends database{
 	function AccesoLogin($user, $pass){
 		$u=$user;
 			//$this->creaPeriodo();
-			$this->query = "SELECT  USER_LOGIN, USER_PASS, USER_ROL, LETRA, LETRA2, LETRA3, LETRA4, LETRA5, LETRA6, NUMERO_LETRAS, NOMBRE, CC, CR, aux_comp, COORDINADOR_COMP, USER_EMAIL, POLIZA_TIPO, CATEGORIA, LETRA_NUEVA
+			$this->query = "SELECT  ID, USER_LOGIN, USER_PASS, USER_ROL, LETRA, LETRA2, LETRA3, LETRA4, LETRA5, LETRA6, NUMERO_LETRAS, NOMBRE, CC, CR, aux_comp, COORDINADOR_COMP, USER_EMAIL, POLIZA_TIPO, CATEGORIA, LETRA_NUEVA
 						FROM PG_USERS 
 						WHERE USER_LOGIN = '$u' and USER_PASS = '$pass' and user_status = 'alta'"; /*Contraseña va encriptada con MD5*/
 		 	$res = $this->EjecutaQuerySimple();
@@ -6513,13 +6513,15 @@ function ReEnrutar($id_preoc, $pxr, $doco){
 
 
 	function IngresarBodega($desc, $cant, $marca, $proveedor, $costo, $unidad){
+
     	$desc = explode(":", $desc);
     	$prod = trim($desc[0]);
     	$descripcion = $desc[1];
     	$usuario = $_SESSION['user']->NOMBRE;
     	$this->query="INSERT INTO INGRESOBODEGA (PRODUCTO, DESCRIPCION, CANT, FECHA, MARCA, Proveedor, Costo, unidad, restante, usuario, origen) 
-    	VALUES ('$prod',(select nombre from producto_ftc where clave = '$prod'), $cant, current_timestamp, '$marca', '$proveedor', (select costo_ventas from producto_ftc where clave = '$prod'), '$unidad', $cant,'$usuario', 'Directo')";
-    	$rs =  $this->EjecutaQuerySimple();
+    	VALUES ('$prod',(select first 1 nombre from producto_ftc where clave = '$prod'), $cant, current_timestamp, '$marca', '$proveedor', (select first 1 costo_ventas from producto_ftc where clave = '$prod'), '$unidad', $cant,'$usuario', 'Directo')";
+    	//echo $this->query;
+		$rs =  $this->EjecutaQuerySimple();
     	
     	$this->query="SELECT MAX(ID) AS FOLIO FROM INGRESOBODEGA";
     	$rs=$this->EjecutaQuerySimple();
@@ -14115,6 +14117,7 @@ function Pagos() {
     }
 
     function traeMaestros(){
+    	$data = array();
     	$this->query="SELECT * FROM MAESTROS where status = 'A' order by nombre";
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
@@ -15457,13 +15460,18 @@ function Pagos() {
     	return $folio;
     }
     
-    function catalogoProductosFTC($descripcion){
+    function catalogoProductosFTC($descripcion, $marca, $desc1){
     	$data = array();
-    	if(!empty($descripcion)){
+		//// Actualiiza imagenes
+		$filtro = !empty($marca)? " and marca= '".$marca."' ":'';
+		$filtro .=  ($desc1=='s')? " and (SELECT COUNT(ID_IMG) FROM FTC_ARTICULOS_IMG I WHERE I.ID_ART = fart.ID )=0 ":'';
+ 		if(!empty($descripcion)){
     		$id= strpos($descripcion,':');
     		if($id === false){
     				$this->query="SELECT fart.*, ct.id as idc, (select cve_prodserv from inve01 where cve_art = fart.clave_pegaso) as cve_prodserv, (select cve_unidad from inve01 where cve_art = fart.clave_pegaso ) as cve_unidad, (SELECT id FROM FTC_Articulos_N ftn WHERE fart.id = ftn.referencia) as artn
-    				FROM FTC_Articulos fart
+    				, (SELECT COUNT(ID_IMG) FROM FTC_ARTICULOS_IMG I WHERE I.ID_ART = fart.ID ) as imagenes 
+					, (SELECT COUNT(ID_OBS) FROM FTC_ARTICULOS_OBS O WHERE O.ID_ART = fart.ID) as Obs
+					FROM FTC_Articulos fart
     				left join producto_ftc pftc on pftc.clave_ftc = fart.id
     				left join CATEGORIAS ct ON  ct.nombre_categoria = fart.categoria
     				where  (pftc.nombre||' '||pftc.clave||' '||pftc.sku) containing ('$descripcion') ";
@@ -15471,17 +15479,23 @@ function Pagos() {
     			$a= explode(':',$descripcion);    
                             $descripcion = $a[0];
                           	$this->query="SELECT fart.*, ct.id as idc, (select cve_prodserv from inve01 where cve_art = fart.clave_pegaso) as cve_prodserv, (select cve_unidad from inve01 where cve_art = fart.clave_pegaso ) as cve_unidad, (SELECT id FROM FTC_Articulos_N ftn WHERE fart.id = ftn.referencia) as artn 
-    						FROM FTC_Articulos fart
+    						, (SELECT COUNT(ID_IMG) FROM FTC_ARTICULOS_IMG I WHERE I.ID_ART = fart.ID ) as imagenes
+							, (SELECT COUNT(ID_OBS) FROM FTC_ARTICULOS_OBS O WHERE O.ID_ART = fart.ID) as Obs
+							FROM FTC_Articulos fart
     						left join producto_ftc pftc on pftc.clave_ftc = fart.id
     						left join CATEGORIAS ct ON  ct.nombre_categoria = fart.categoria
     						where   upper(pftc.clave)= upper('$descripcion')";
     		}
     	}else{
+
     			$this->query="SELECT first 500 fart.*, ct.id as idc , (select cve_prodserv from inve01 where cve_art = fart.clave_pegaso) as cve_prodserv, (select cve_unidad from inve01 where cve_art = fart.clave_pegaso ) as cve_unidad, (SELECT id FROM FTC_Articulos_N ftn WHERE fart.id = ftn.referencia) as artn
-    			FROM FTC_Articulos fart
+    			, (SELECT COUNT(ID_IMG) FROM FTC_ARTICULOS_IMG I WHERE I.ID_ART = fart.ID ) as imagenes
+				, (SELECT COUNT(ID_OBS) FROM FTC_ARTICULOS_OBS O WHERE O.ID_ART = fart.ID) as Obs
+				FROM FTC_Articulos fart
     			left join CATEGORIAS ct ON  ct.nombre_categoria = fart.categoria
-    			where fart.status = 'A' or fart.status= 'B' or fart.status = 'M' ";
+    			where (fart.status = 'A' or fart.status= 'B' or fart.status = 'M') $filtro";
 		}    		
+		//echo $this->query;
     		$rs=$this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
@@ -15489,12 +15503,35 @@ function Pagos() {
     	return @$data;
     }
 
+	function actImg(){/// Para relacionar imagenes
+		$usuario = $_SESSION['user']->ID;
+		$path = 'C:\\xampp\\htdocs\\imagenes\\books\\';
+		$this->query="SELECT * FROM FTC_ARTICULOS ";
+		$rs=$this->EjecutaQuerySimple();
+		while($tsArray = ibase_fetch_object($rs)){
+			$data[]=$tsArray;
+		}
+		$nom = array('-mini.jpg', '-big.jpg', '-mini.gif','-big.gif', '-mini.png', '-big.png', '-mini.webp', '-big.webp');
+		foreach($data as $x){
+			for($i=0; $i<count($nom); $i++){
+				$ISBN = $x->CLAVE_PROD;
+				$nombre = $ISBN.$nom[$i];
+				if(file_exists($path.$nombre)){
+					$this->query="INSERT INTO FTC_ARTICULOS_IMG (ID_IMG, ID_ART, ISBN, CDB, RUTA, TIPO, NOMBRE, FECHA, STATUS, USUARIO) 
+								VALUES (NULL, $x->ID, '$ISBN', '', '$path', '', '$nombre', current_timestamp, 1, $usuario)";
+					@$this->grabaBD();
+				}
+			}
+		}
+		return array("status"=>'ok');
+	}
+
     function creaProductoFTC($categoria, $linea, $descripcion, $marca, $generico, $sinonimos, $calificativo, $medidas, $unidadmedida, $empaque, $prov1, $codigo_prov1, $sku, $costo_prov1, $iva, $desc1, $desc2, $desc3, $desc4, $desc5, $impuesto, $costo_total, $clave, $costo_t, $costo_oc, $iva_v, $ieps_v, $precio_v){
     	$generico = utf8_encode($generico);
     	$sinonimos = utf8_encode($sinonimos);
     	$calificativo = utf8_encode($calificativo);
     	$medidas = utf8_encode($medidas);
-    	$this->query="INSERT INTO FTC_ARTICULOS VALUES (NULL,'$linea','$categoria','$generico','$sinonimos','$calificativo','$medidas','$clave','$marca','$unidadmedida',$empaque,'$prov1','$codigo_prov1','','$sku',$costo_total,$costo_prov1,0,'A','DIRECTO COMPRAS',0, $desc1,$desc2,$desc3,$desc4,$desc5,'$descripcion','$iva',current_date,$impuesto,$costo_t,$costo_oc,0,NULL, NULL,'', $iva_v, $ieps_v, $precio_v) RETURNING ID";
+    	$this->query="INSERT INTO FTC_ARTICULOS VALUES (NULL,'$linea','$categoria','$generico','$sinonimos','$calificativo','$medidas','$clave','$marca','$unidadmedida',$empaque,'$prov1','$codigo_prov1','','$sku',$costo_total,$costo_prov1,0,'A','DIRECTO COMPRAS',0, $desc1,$desc2,$desc3,$desc4,$desc5,'$descripcion','$iva',current_date,$impuesto,$costo_t,$costo_oc,0,NULL, NULL,'', $iva_v, $ieps_v, $precio_v, '', '') RETURNING ID";
     	$a=$this->query;
     	$rs=$this->grabaBD();
     	$row= ibase_fetch_object($rs);
@@ -20085,9 +20122,9 @@ function ejecutarRecepcion($ida, $cantRec, $cantOr ){
 	function verInventarioBodega(){
 		$data=array();
 		$this->query="SELECT sum(restante) as restante, max(descripcion) as descripcion, ib.producto, avg(costo) as costo, unidad, max(fecha) as fecha,
-				 (select marca from producto_ftc where clave = ib.producto) as marca,
-				 (select proveedor from producto_ftc where clave = ib.producto) as proveedor,
-				 (select categoria from producto_ftc where clave = ib.producto) as categoria, 
+				 (select first 1 marca from producto_ftc where clave = ib.producto) as marca,
+				 (select first 1 proveedor from producto_ftc where clave = ib.producto) as proveedor,
+				 (select first 1 categoria from producto_ftc where clave = ib.producto) as categoria, 
 				 iif((select nueva from FTC_INVFISBOD ifi where ifi.status = 0 and ifi.producto = ib.producto and ifi.UM = ib.unidad) is null, 9999999,(select nueva from FTC_INVFISBOD ifi where ifi.status = 0 and ifi.producto = ib.producto and ifi.UM = ib.unidad)) as nueva
 				 FROM INGRESOBODEGA ib WHERE ib.RESTANTE > 0 group by ib.producto, ib.unidad ";
 		$rs=$this->EjecutaQuerySimple();
@@ -20511,7 +20548,7 @@ function ejecutarRecepcion($ida, $cantRec, $cantOr ){
 	}
 
 	function verOCI(){
-		//$data=false;
+		$data=array();
 		$this->query="SELECT OCI, MAX(NOMBRE) AS NOMBRE, MAX(PROVEEDOR) AS PROVEEDOR, MAX(FECHA_OCI) AS FECHA_OCI, SUM(COSTO_PARTIDA) AS COSTO, MAX(USUARIO_OCI) USUARIO_OCI, count(id) as PARTIDAS
 					 FROM FTC_OCI OCI 
 					 	LEFT JOIN PROV01 P ON P.CLAVE = OCI.PROVEEDOR
@@ -20521,7 +20558,7 @@ function ejecutarRecepcion($ida, $cantRec, $cantOr ){
 		while ($tsArray=ibase_fetch_object($rs)) {
 			$data[]=$tsArray;
 		}
-		return @$data;
+		return $data;
 	}
 
 	function execOCI($idoci, $tipo){
@@ -21649,7 +21686,7 @@ function invAunaFecha($fecha, $tipo){
 	return $rfc;
     }
 
-     function facturaPegaso($factura){
+  function facturaPegaso($factura){
 		$data=array();
 		if(substr($factura,0,3)=='NCR' or substr($factura,0,3)=='NCS' or substr($factura, 0,3) == 'NCD' or substr($factura, 0,3) == 'NCB'){
 			$this->query="SELECT * FROM NC_PEGASO WHERE DOCUMENTO = '$factura'";
@@ -23721,7 +23758,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				}
 			return array("uuid"=>$uuid, "tcf"=>$tipo);
 		}
-    }
+  }
 
 	function seleccionarArchivoXMLCargado($archivo, $uuid){
 		$this->query= "SELECT NOMBRE,ARCHIVO,FECHA,USUARIO,TIPO FROM XML_DATA_FILES WHERE UUID = '$uuid';";
@@ -24006,6 +24043,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$valor = $Concepto['valorUnitario'];
 				            	$claveSat='';
 				            	$claveUni='';
+								$identificador='';
 				            	$partida[] =array($unidad, $importe, $cantidad, $descripcion, $valor,$claveSat, $claveUni); 
 			            	}elseif($version =='3.3'){
 			            		$unidad = $Concepto['Unidad'];
@@ -24016,7 +24054,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$claveSat=$Concepto['ClaveProdServ'];
 				            	$claveUni=$Concepto['ClaveUnidad'];
 				            	$descp = isset($Concepto['Descuento'])? $Concepto['Descuento']:0;
-				            	$partida[]=array($unidad, $importe, $cantidad, $descripcion, $valor, $claveSat, $claveUni, $descp); 
+								$identificador=isset($Concepto['NoIdentificacion'])? $Concepto['NoIdentificacion']:'';
+				            	$partida[]=array($unidad, $importe, $cantidad, $descripcion, $valor, $claveSat, $claveUni, $descp, $identificador); 
 			            	}
 			            	//echo '<br/>Valor de parIT antes de los Impuestos: '.$parIT.'<br/>';
 			           		if($Concepto->xpath('cfdi:Impuestos')){
@@ -24308,7 +24347,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				            	$cvesat = $data[5];
 				            	$unisat = $data[6];
 				            	$descp = empty($data[7])? 0:$data[7];
-				            	$this->query = "INSERT INTO XML_PARTIDAS (id, unidad, importe, cantidad, partida, descripcion, unitario, uuid, documento, cliente_SAE, rfc, fecha, descuento, cve_art, cve_clpv, unitario_original, CLAVE_SAT, UNIDAD_SAT) values (null, '$unidad', $importe, $cantidad, $i, '$descripcion', $unitario, '$uuid', ('$serie'||'-'||'$folio'), '', '$rfc', '$fecha', $descp, '', '', $unitario, '$cvesat','$unisat')";
+								$iden = empty($data[8])? '':$data[8];
+				            	$this->query = "INSERT INTO XML_PARTIDAS (id, unidad, importe, cantidad, partida, descripcion, unitario, uuid, documento, cliente_SAE, rfc, fecha, descuento, cve_art, cve_clpv, unitario_original, CLAVE_SAT, UNIDAD_SAT, IDENTIFICADOR) values (null, '$unidad', $importe, $cantidad, $i, '$descripcion', $unitario, '$uuid', ('$serie'||'-'||'$folio'), '', '$rfc', '$fecha', $descp, '', '', $unitario, '$cvesat','$unisat', '$iden')";
 				            	if($rs=$this->grabaBD() === false){
 				            		echo 'Falla al insertar la partida:<br/>';
 				            		echo $this->query.'<br/>';
@@ -25539,7 +25579,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	return $data;
     }
 
-      function gcvesat($prod, $cvesat, $idp, $nuni, $tipo){
+    function gcvesat($prod, $cvesat, $idp, $nuni, $tipo){
     	$this->query="SELECT * FROM INVE01 WHERE CVE_ART = '$prod'";
     	$rs=$this->EjecutaQuerySimple();
     	$row=ibase_fetch_object($rs);
@@ -25552,6 +25592,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$r = $this->EjecutaQuerySimple();
 	    		$row=ibase_fetch_object($r);
 	    		if(!empty($row)){
+	    			$idart = substr($prod, 3);
+	    			$this->query="UPDATE FTC_Articulos SET CLAVE_SAT = '$cve' where id = $idart";
+	    			$this->queryActualiza();
 	    			$this->query="UPDATE INVE01 SET CVE_PRODSERV = '$cve' where cve_art='$prod'";
 	    			$res=$this->queryActualiza();
 	    			if($res == 1){
@@ -25574,6 +25617,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 	    		$r = $this->EjecutaQuerySimple();
 	    		$row=ibase_fetch_object($r);
 	    		if(!empty($row)){
+	    			$idart= substr($prod, 3);
+	    			$this->query="UPDATE FTC_ARTICULOS SET UNIDAD_SAT = '$nuni' where id = $idart";
+	    			$this->queryActualiza();
 	    			$this->query="UPDATE INVE01 SET CVE_UNIDAD = '$nuni' where cve_art='$prod'";
 	    			$res=$this->queryActualiza();
 	    			if($res == 1){
@@ -27358,8 +27404,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		        return array("status"=>'ok',"mensaje"=>'Se Encontro el Archivo', "archivo"=>$fileName.'.xml', "factura"=>$docf);
 		        break;
 		    }
-		}
-		return array("status"=>'no',"mensaje"=>'No se encontro el Archivo', "archivo"=>'no');
+			}
+			return array("status"=>'no',"mensaje"=>'No se encontro el Archivo', "archivo"=>'no');
     }
 
     function xmlAnual($tipo, $anio){
@@ -28925,4 +28971,26 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	echo 'Inicio :'.$inicio.' - Finzaliza: '.date("G:i:s:u").' Tiempo por: '.date_diff($inicio, date("G:i:s:u")).'--> Numero de nombres realizados:'.$nombres;
     }
 
+
+	function filtrosProd(){
+		$editorial=array();$autor=array();
+		$this->query="SELECT MARCA AS EDITORIAL FROM FTC_ARTICULOS GROUP BY MARCA";
+		$res=$this->EjecutaQuerySimple();
+		while($tsArray = ibase_fetch_object($res)){
+			$editorial[]=$tsArray;
+		}
+		$this->query="SELECT SINONIMO AS AUTOR FROM FTC_ARTICULOS GROUP BY SINONIMO";
+		$res=$this->EjecutaQuerySimple();
+		while($tsArray = ibase_fetch_object($res)){
+			$autor[]=$tsArray;
+		}
+		return array("editorial"=>$editorial, "autor"=>$autor);
+	}
+
+	function saveObs($obs, $art){
+		$usr=$_SESSION['user']->ID;
+		$this->query="INSERT INTO FTC_ARTICULOS_OBS (ID_OBS, ID_ART, OBS, FECHA, STATUS, USUARIO) VALUES (NULL, $art, '$obs', current_timestamp, 'A', $usr )";
+		$this->grabaBD();
+		return array("status"=>'ok');
+	}
 }?>

@@ -7,14 +7,21 @@
 		<h3>Alta de Productos</h3>
 	</div>
 <br />
+<style type="text/css">
+	.form-group input:required~label::before {
+		content: "* ";
+		color: red;
+		font-weight: bold;
+	}
+</style>
 
 <div class="panel panel-body">
 		<form action="index.v.php" method="post">
 
 		<div class="form-group">
-				<label for="categoria" class="col-lg-2 control-label">Modelo : </label>
+				<label for="categoria" class="col-lg-2 control-label">ISBN / Clave: </label>
 				<div class="col-lg-10">
-					<input type="text" maxlength="20" name="clave" placeholder="Clave del Articulo" value="">
+					<input type="text" maxlength="20" name="clave" placeholder="ISBN o Clave" value="" required>
 				</div>
 			</div>
 			<?php if($categoria !=''){
@@ -65,7 +72,7 @@
 
 			<?php if($marca != ''){?>
 			<div class="form-group">
-				<label for="marca1" class="col-lg-2 control-label">Marca: </label>
+				<label for="marca1" class="col-lg-2 control-label">Editorial: </label>
 				<div class="col-lg-10">
 					<select name="marca">
 						<option value="<?php echo $marca?>"><?php echo $marca ?></option>
@@ -77,10 +84,10 @@
 			</div>
 			<?php }else{ ?>
 			<div class="form-group">
-				<label for="marca1" class="col-lg-2 control-label">Marca: </label>
+				<label for="marca1" class="col-lg-2 control-label">Editorial: </label>
 				<div class="col-lg-10">
 					<select name="marca">
-						<option value="0">Seleccione la Marca</option>
+						<option value="0">Seleccione Editorial</option>
 						<?php foreach ($marcas as $key): ?>
 							<option value="<?php echo $key->CLAVE_MARCA?>"><?php echo $key->NOMBRE_COMERCIAL?></option>
 						<?php endforeach ?>
@@ -91,16 +98,16 @@
 
 			<?php if($generico != ''){?>
 			<div class="form-group">
-				<label for="generico" class="col-lg-2 control-label">Generico: </label>
+				<label for="generico" class="col-lg-2 control-label">Nombre del Libro o Producto: </label>
 				<div class="col-lg-10">
-					<input type="text" maxlength="200" class="form-control" name="generico" placeholder="Nombre Generico" value="<?php echo $generico?>" /><br>
+					<input type="text" maxlength="200" class="form-control" name="generico" placeholder="Nombre del Libro o Producto:" value="<?php echo $generico?>" /><br>
 				</div>
 			</div>
 			<?php }else{ ?>
 			<div class="form-group">
-				<label for="generico" class="col-lg-2 control-label">Generico: </label>
+				<label for="generico" class="col-lg-2 control-label">Nombre del Libro o Producto: </label>
 				<div class="col-lg-10">
-					<input type="text" maxlength="200" class="form-control" name="generico" placeholder="Nombre Generico" value="" /><br>
+					<input type="text" maxlength="200" class="form-control" name="generico" placeholder="Nombre del Libro o Producto:" value="" /><br>
 				</div>
 			</div>
 			<?php } ?>
@@ -108,21 +115,21 @@
 
 
 			<div class="form-group">
-				<label for="sinonimos" class="col-lg-2 control-label">Sinonimos: </label>
+				<label for="sinonimos" class="col-lg-2 control-label">Autor: </label>
 				<div class="col-lg-10">
-					<input type="text" maxlength="150" class="form-control" name="sinonimos" placeholder="sinonimos" value=""/><br>
+					<input type="text" maxlength="150" class="form-control" name="sinonimos" placeholder="Autor" value=""/><br>
 				</div>
 			</div>
 			<div class="form-group">
-				<label for="calificativo" class="col-lg-2 control-label">Calificativo: </label>
+				<label for="calificativo" class="col-lg-2 control-label">Edición: </label>
 				<div class="col-lg-10">
-					<input type="text" maxlength="200" class="form-control" name="calificativo" placeholder="Calificativos del producto"  value=""/><br>
+					<input type="text" maxlength="200" class="form-control" name="calificativo" placeholder="Numero de Edición"  value=""/><br>
 				</div>
 			</div>
 			<div class="form-group">
-				<label for="medidas" class="col-lg-2 control-label">Medidas: </label>
+				<label for="medidas" class="col-lg-2 control-label">Año de Edición: </label>
 				<div class="col-lg-10">
-					<input type="text" maxlength="20" class="form-control" name="medidas" placeholder="medidas" value=""/><br>
+					<input type="text" maxlength="20" class="form-control" name="medidas" placeholder="Año de Edición" value=""/><br>
 				</div>
 			</div>
 

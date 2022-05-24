@@ -7,10 +7,56 @@
  <label>Nuevo Producto</label>
   <a href="index.php?action=altaProductoFTC&marca=<?php echo $marca?>&prov1=<?php echo $prov1?>&desc1=<?php echo $desc1?>&desc2=<?php echo $desc2?>&categoria=<?php echo $categoria?>&generico=<?php echo $generico?>&unidadmedida=<?php echo $unidadmedida?>" class="btn btn-success">Nuevo</a> &nbsp;&nbsp; &nbsp;&nbsp;  <input type="text" name='descripcion' id='descripcion' value='' class="text" maxlength="40" style="width: 50%" />  <button  name="buscarArticuloCatalogo" class="btn btn-info" >Buscar Articulo</button>
 </form>
-</div>
+    <div class="col-lg-12">
+        <div>
+            <div class="col-lg-6">
+                <label>Carga Desde Excel</label>&nbsp;&nbsp;<a href="..//layout//LayOut Productos.xlsx", download >Layout</a>
+                <form action="index.v.php" method="post" enctype="multipart/form-data">
+                    
+                    <input type="file" name="files[]" multiple="" onchange="makeFileList()" id="filesToUpload" accept=".xls, .xlsx, .csv, .txt" >
+
+                    <input type="hidden" name="cargaProd" value="cargaProd">
+                    <input type="hidden" name="files2upload" value="" >  
+                    <input type="submit" value="Carga Productos" class="btn-sm btn-success">
+                </form>
+                <ul id="fileList">
+                    <li>No hay Archivos Seleccionados</li>
+                </ul>
+            </div>
+            <div class="col-lg-6" >
+                <label>Cargar Imagenes</label>
+                <form action="index.v.php" method="post" enctype="multipart/form-data">
+                    <input type="file" name="files[]" multiple="" onchange="makeFileList()" id="filesToUpload" accept=".jpg, .gif, .png, .webp" >
+                    <input type="hidden" name="cargaImg" value="cargaImg">
+                    <input type="hidden" name="files2upload" value="" >  
+                    <input type="submit" value="Carga Imagenes" class="btn-sm btn-primary">
+                </form>
+                <ul id="fileList">
+                    <li>No hay Archivos Seleccionados</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
 <div>
-    <input type="button" value="Mas Vendidos" class="btn-sm btn-info">
+    <input type="button" value="Mas Vendidos" class="btn-small btn-info"> 
+    <input type="button" value="Sin Imagenes" class="btn-small btn-warning outImg">
+    <select id="editorial">
+            <option>Seleccione una opcion</option>
+            <?php foreach($editorial as $e){?>
+                <option><?php echo $e->EDITORIAL?></option>
+            <?php }?>
+    </select>
+    <select id="autor">
+            <option>Seleccione una opcion</option>
+            <?php foreach($autor as $a){?>
+                <option><?php echo $a->AUTOR?></option>
+            <?php }?>
+    </select>
+                <input type="button" class="btn-small btn-info actImg" value="Actualiza Imagenes">
+                <input type="button" class="btn-small btn-primary bfis" value="Busqueda de ISBN en Documentos Fiscales">
 </div>
+
 <br/>
 <div class="row" >
                 <div class="col-lg-12">
@@ -23,19 +69,18 @@
                                 <table class="table table-striped table-bordered table-hover" id="dataTables-aplicapago">
                                     <thead>
                                         <tr>
-                                            <th>Cat</th>
-                                            <th>Marca</th>
-                                            <th>Generico / Sinonimo</th>
-                                            <th>Modelo / Medida</th>
-                                            <th>Proveedor <br/> Clave </th>
-                                            <th>Empaque</th>
-                                            <th>Clave Fabricante</th>
+                                            <th>Ln</th>
+                                            <th>ISBN</th>
+                                            <th>Nombre / Titulo</th>
+                                            <th>Editorial</th>
+                                            <th>Precios</th>
+                                            <th>Autor</th>
+                                            <th>Clave Proveedor</th>
                                             <th>STATUS</th>
                                             <th>Seleccionar</th>
                                             <th>Datos Fiscales</th>
-                                            <?php if($user=='gcompras'){?>
-                                                <th>Dar de Baja</th>
-                                            <?php }?>
+                                            <th>Dar de Baja</th>
+                                            
                                         </tr>
                                     </thead>                                   
                                   <tbody>
@@ -51,7 +96,7 @@
                                                 $status = 'Espera Modificacion';
                                             }
                                             $artn = $data->ARTN;
-                                            $a='<select name="unisat" class="unisat"  prod="'.$data->CLAVE_PEGASO.'" idp="'.$data->ID.'" orig="'.$data->CVE_UNIDAD.'" id="ln_'.$data->ID.'">
+                                            $a='<select name="unisat" class="unisat"  prod="'.$data->CLAVE_PEGASO.'" idp="'.$data->ID.'" orig="'.$data->UNIDAD_SAT.'" id="ln_'.$data->ID.'">
                                                 <option value="a">Seleccione una Unidad</option>
                                                 <option value="H87">Pieza "H87" </option>
                                                 <option value="ACT">Actividad "ACT"</option>
@@ -60,19 +105,30 @@
                                                 </select>';
                                         ?>
                                         <tr <?php echo $color?> >
-                                            <td><?php echo 'PGS'.$data->ID;?>
+                                            <td><?php echo $data->ID;?>
                                                 <br/>
+                                                <input type="checkbox" />
                                             <?php if($artn == ''){?>
-                                            <label id="id_<?php echo $data->ID?>">Copiar <input type="checkbox" onchange="copiar(<?php echo $data->ID?>)"> </label>
+                                            <!---- <label id="id_<?php echo $data->ID?>">Copiar <input type="checkbox" onchange="copiar(<?php echo $data->ID?>)"> </label> --->
                                         <?php }else{?>
-                                            <label><?php echo 'PGN'.$artn?></label>
+                                            <label><?php echo $artn?></label>
                                         <?php }?>
                                             </td>
-                                            <td><?php echo $data->MARCA;?></td>
-
-                                            <td><a href="index.v.php?action=histProd&id=<?php echo $data->ID?>&per=t&fi=&ff=" onclick="window.open(this.href, this.target, 'width=1200,height=600'); return false;" ><?php echo $data->GENERICO;?> <?php echo ($data->CALIFICATIVO == '')? '':', '.$data->CALIFICATIVO?> <?php echo ($data->SINONIMO == '')? '':', '.$data->SINONIMO?></a></td>
-
-                                            <td><?php echo $data->CLAVE_PROD?> <br/>
+                                            <td><?php echo $data->CLAVE_PROD;?>
+                                            <br/>
+                                            <!--<a href="http://www.google.com/search?q=<?php echo htmlentities($data->CLAVE_PROD)?>" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;"> <IMG SRC="http://www.google.com/logos/Logo_40wht.gif" border="0" ALT="Google" align="absmiddle"  width="50" height="40"> </a> -->
+                                            <a href="http://images.google.com/images?gbv=1&hl=en&sa=1&q=<?php echo htmlentities($data->CLAVE_PROD)?>&btnG=Search+images" target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;"> <IMG SRC="http://www.google.com/logos/Logo_40wht.gif" border="0" ALT="Google" align="absmiddle"  width="50" height="40"> </a>
+                                            
+                                            </td>
+                                            <td><a href="index.v.php?action=histProd&id=<?php echo $data->ID?>&per=t&fi=&ff=&tipo=&isbn=" onclick="window.open(this.href, this.target, 'width=1200,height=600'); return false;" ><?php echo $data->GENERICO;?> <?php echo ($data->CALIFICATIVO == '')? '':', '.$data->CALIFICATIVO?> <?php echo ($data->SINONIMO == '')? '':', '.$data->SINONIMO?></a>
+                                            <br/><font color="red" size="2pxs"><?php echo $data->IMAGENES?></font>
+                                            <br/><input type="text" class="obs" value="" placeholder="Escriba una Observacion" size="80" art="<?php echo $data->ID?>">
+                                            <!--
+                                            <br/> <img src="..//imagenes//books//<?php echo $data->CLAVE_PROD.'-mini.JPG'?>"  style="width:100px;height:100px;">
+                                            <img src="..//imagenes//books//<?php echo $data->CLAVE_PROD.'-big.JPG'?>"  style="width:150px;height:100px;" />
+                                            -->
+                                        </td>
+                                            <td><?php echo $data->MARCA?> <br/>
                                             <?php echo $data->MEDIDAS.' '.$data->UM?>  </td>
                                             <td><?php echo $data->CLAVE_DISTRIBUIDOR?> <br/><p style="font-weight: bold; background-color: red"> <?php echo $data->CLAVE_FABRICANTE.' Precio Lista $ '.$data->PRECIO?> <p><p style="font-weight: bold; background-color: yellow">Costo Neto $ <?php echo $data->COSTO?> </p> </td>
                                             <td><?php echo $data->EMPAQUE?></td>
@@ -80,8 +136,8 @@
                                             <td><?php echo $status?></td>
                                             <td><input type="button" class="btn btn-info editar" valor="<?php echo $data->ID?>" value="Editar"> </td>
                                             <td>
-                                                <input type="text" name="cvesat" maxlength="20" placeholder="<?php echo empty($data->CVE_PRODSERV)? 'CLAVE SAT':$data->CVE_PRODSERV;?>" value="<?php echo $data->CVE_PRODSERV;?>" class="cvesat1" prod="<?php echo $data->CLAVE_PEGASO?>" idp="<?php echo $data->ID?>" orig="<?php echo $data->CVE_PRODSERV?>" id="ln_<?php echo $data->ID?>" <?php echo empty($data->CVE_PRODSERV)? '':''?>> 
-                                                <br/><?php echo (empty($data->CVE_UNIDAD))? $a:$data->CVE_UNIDAD ?>
+                                                <input type="text" name="cvesat" maxlength="20" placeholder="<?php echo empty($data->CLAVE_SAT)? 'CLAVE SAT':$data->CLAVE_SAT;?>" value="<?php echo $data->CLAVE_SAT;?>" class="cvesat1" prod="<?php echo $data->CLAVE_PEGASO?>" idp="<?php echo $data->ID?>" orig="<?php echo $data->CLAVE_SAT?>" id="ln_<?php echo $data->ID?>" <?php echo empty($data->CLAVE_SAT)? '':''?>> 
+                                                <br/><?php echo (empty($data->UNIDAD_SAT))? $a:$data->UNIDAD_SAT ?>
                                             </td>
                                             <td><button name='bajaFTCArticualo' class="btn btn-danger bajaArticulo" valor='<?php echo $data->ID?>'><?php echo ($data->STATUS == 'B')? 'Reactivar':'Baja'?></button></td>    
                                             </tr>                                       
@@ -100,6 +156,72 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script src="http://bootboxjs.com/bootbox.js"></script>
 <script type="text/javascript">
+
+
+        $(".bfis").click(function(){
+            alert("Hola Doris...")
+            window.open("index.v.php?action=histProd&id=1&per=t&fi=&ff=&tipo=&isbn=",  "popup", 'width=1200,height=600')
+        })
+
+        $(".actImg").click(function(){
+            $.ajax({
+                url:'index.php',
+                type:'post',
+                dataType:'json',
+                data:{actImg:1},
+                success:function(data){
+                    alert("Se actualizaron los productos con sus imagenes...")
+                },
+                error:function(){
+
+                }
+            })
+        })
+
+        $(".obs").change(function(){
+            var obs=$(this).val()
+            var art=$(this).attr('art')
+            $.ajax({
+                url:'index.php',
+                type:'post',
+                dataType:'json',
+                data:{saveObs:obs, art},
+                success:function(data){
+                    $(this).val('')
+                },
+                error:function(){
+                    $(this).val('')
+                }
+            })
+        })
+
+        $("#editorial").change(function(){
+            var edit = $(this).val()
+            window.open("index.php?action=catalogoProductosFTC&marca=" + edit, "_self")        
+        })
+
+        $(".outImg").click(function(){
+            window.open("index.php?action=catalogoProductosFTC&desc1=s", "_self")
+        })
+
+        function makeFileList(){
+            var input = document.getElementById("filesToUpload")
+            var ul = document.getElementById("fileList")
+            while(ul.hasChildNodes()){
+                ul.removeChild(ul.firstChild)
+            }
+            for(var i = 0; i < input.files.lenght; i++){
+                var li = document.createElement("li")
+                li.innerHtml = input.files[i].name
+                ul.appendChild(li)
+            }
+            if(!ul.hasChildNodes()){
+                var li = document.createElement("li")
+                li.innerHtml = "No hay elementos seleccionados"
+                ul.appendChild(li)
+            }
+            document.getElementById("files2upload").value = input.files.length
+        }
 
         function copiar(idp){
             if(confirm('Desea copiar este producto al nuevo Catologo? PGS' + idp)){

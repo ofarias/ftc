@@ -1,18 +1,5 @@
-<br /><br />
-
-<?php if($lay['BBVA'] >= 0 ){?>
-    <a href="app/LayoutBBVA/Alta/archivo_bbva.txt" download="app/LayoutBBVA/Alta/archivo_bbva.txt" class="btn btn-info"> Descargar BBVA <a/>
-<?php }?>
-<?php if($lay['Clabe'] >= 0 ){?>
-    <a href="app/LayoutBBVA/Alta/archivo_clabe.txt" download="app/LayoutBBVA/Alta/archivo_clabe.txt" class="btn btn-success" > Descargar BBVA <a/>
-<?php }?>
-
 <br/>
 <br/>
-<form action="upload_Cuentas_bbva.php" method="POST" enctype="multipart/form-data">
-        <input type="file" name="fileToUpload" id="fileToUpload" required="required">
-        <input type="submit" value="Subir Respuesta BBVA" name="submit">
-</form>
 <br/>
 <br/>
     <a href="index.php?action=formProveedor"  target="popup" onclick="window.open(this.href, this.target, 'width=1200,height=820'); return false;" class="btn btn-success">Alta de proveedor</a>

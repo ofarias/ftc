@@ -248,7 +248,7 @@
 
     $('#dataTables-provdetalle').DataTable({
         responsive: true, 
-        lengthMenu: [[100,-1], [1000,"Todo"]],
+        lengthMenu: [[1000,-1], [1000,"Todo"]],
         columnDefs:[
             {
                 targets: [],
@@ -257,7 +257,7 @@
         ],
         "order": [[ 2, "asc"]],
         language: {
-            lengthMenu: "Mostrando _MENU_ por pagina",
+            lengthMenu: "Mostrando _MENU_ Documentos por pagina",
             zeroRecords: "No hay dato para mostrar",
             info: "Mostrando página _PAGE_ de _PAGES_",
             sSearch: "Filtrar: ",
@@ -271,7 +271,30 @@
         }
     });  
   
-
+    $('#dataTables-provdetpart').DataTable({
+        responsive: true, 
+        lengthMenu: [[1000,-1], [1000,"Todo"]],
+        columnDefs:[
+            {
+                targets: [],
+                searchable: false
+            }
+        ],
+        "order": [[ 0, "asc"]],
+        language: {
+            lengthMenu: "Mostrando _MENU_ Productos por pagina",
+            zeroRecords: "No hay dato para mostrar",
+            info: "Mostrando página _PAGE_ de _PAGES_",
+            sSearch: "Filtrar: ",
+            sInfoFiltered:   "(Filtrado de un total de _MAX_ registros)",                   
+            oPaginate: {
+                            "sFirst":    "Primero",
+                            "sLast":     "Último",
+                            "sNext":     "Siguiente",
+                            "sPrevious": "Anterior"
+                        }
+        }
+    });  
 
     $('#dataTables-detnom').DataTable({
         responsive: true, 

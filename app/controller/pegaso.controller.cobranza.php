@@ -783,6 +783,8 @@ class pegaso_controller_cobranza{
         ob_start();
         $usuario = $_SESSION['user']->NOMBRE;
         $tipoUsuario = $_SESSION['user']->LETRA;
+        ///mandar a llamar la generacion de PDF de la Factura.
+        
         $fact=$data->envFac($docf);
         include 'app/views/pages/Facturacion/p.envFac.php';    
         $table = ob_get_clean();

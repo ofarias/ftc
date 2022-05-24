@@ -1,5 +1,7 @@
 <br/>
-
+    <style>
+        input {text-transform: uppercase;}
+    </style>
 <label>Modulo de Utilerias.</label>
 <br/>
 <label> Todos los procesos de este modulo estan registrados para su conciliacion con los gerentes y el director, cualquier uso mal intencionado sera sancionado.</label> 
@@ -7,6 +9,25 @@
 <label> Usuario registrado es: <?php echo $usuario;?></label>
 <br/>
 <label> Fecha y hora del proceso es: <?php echo date("Y-m-d H:i:s");?></label>
+<br/>
+<div>
+	<form action="index.php" method="post">
+		<label> Genera Json </label>
+		<input type="hidden" name="opcion" value="22">
+		<label>Colocar el documento </label><input type="text" name="docf" placeholder="Factura" onchange="javascript:this.value=this.value.toUpperCase();" >
+		<button name="utilerias" type="submit" value="enviar"> Genera Json</button>
+	</form>
+</div>
+<br/>
+<div>
+	<form action="index.php" method="post">
+		<label> Genera Json CFDI 4.0</label>
+		<input type="hidden" name="opcion" value="22">
+		<input type="hidden" name="ver" value="4">
+		<label>Colocar el documento </label><input type="text" name="docf" placeholder="Factura" onchange="javascript:this.value=this.value.toUpperCase();" >
+		<button name="utilerias" type="submit" value="enviar"> Genera Json</button>
+	</form>
+</div>
 <br/>
 <br/>
 <form action="index.php" method="post">
@@ -182,11 +203,11 @@
 </div>
 
 <div>
-<form action="index.php" method="post">
-<label> Timbrar Doc </label>
-<input type="hidden" name="opcion" value="21">
-<label>Colocar el numero de Factura </label><input type="text" name="docf" placeholder="Factura" >
-<button name="utilerias" type="submit" value="enviar"> Facturar</button>
-</form>
-	
+	<form action="index.php" method="post">
+		<label> Timbrar Doc </label>
+		<input type="hidden" name="opcion" value="21">
+		<label>Colocar el numero de Factura </label><input type="text" name="docf" placeholder="Factura" >
+		<button name="utilerias" type="submit" value="enviar"> Facturar</button>
+	</form>
 </div>
+

@@ -536,9 +536,7 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	echo json_encode($par);
 	exit();
 }elseif (isset($_POST['impresionTicket'])){
-	$res=$controller_v->impresionTicket($_POST['impresionTicket'], $cambio=0);
-	echo json_encode($res);
-	exit();
+	$res=$controller_v->impresionTicket($_POST['impresionTicket'], $cambio=0); echo json_encode($res); exit();
 }elseif (isset($_POST['cancelaNV'])){
 	$res=$controller_v->cancelaNV($_POST['cancelaNV']);
 	echo json_encode($res);
@@ -571,6 +569,14 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	$res = $controller_v->nvcl($_POST['nvcl']);
 	echo json_encode($res);
 	exit();
+}elseif(isset($_POST['cargaProd'])){
+	$res = $controller_v->cargaProd($_POST['files2upload']); echo json_encode($res);exit();
+}elseif(isset($_POST['cargaImg'])){
+	$res = $controller_v->cargaImg($_POST['files2upload']); echo json_encode($res);exit();
+}elseif(isset($_POST['sisbn'])){
+	$res = $controller_v->sisbn($_POST['sisbn']); echo json_encode($res);exit();
+}elseif(isset($_POST['impNV'])){
+	$res = $controller_v->impNV($_POST['impNV'], $d='f'); echo json_encode($res);exit();
 }
 else{switch ($_GET['action']){
 		case 'login':
@@ -734,7 +740,7 @@ else{switch ($_GET['action']){
 				$controller_v->verNV($p, $fi, $ff);
 				break;
 			case 'histProd':
-				$controller_v->histProd($_GET['id'],$_GET['per'],$_GET['fi'],$_GET['ff']);
+				$controller_v->histProd($_GET['id'],$_GET['per'],$_GET['fi'],$_GET['ff'],$_GET['tipo'],$_GET['isbn']);
 				break;
 	default:
 		header('Location: index.v.php?action=login');

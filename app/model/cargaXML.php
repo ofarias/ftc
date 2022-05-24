@@ -1277,7 +1277,7 @@ class cargaXML extends database {
 	}
 
 	function infoProv($rfc, $tipo){
-		$data=array();$data2=array();$data3=array();$data4=array();
+		$data=array();$data2=array();$data3=array();$data4=array();$data5 = array();
 		if($tipo == 'Recibidos'){
 			$this->query="SELECT x.*, c.* , cd.*, td.descripcion as tipo_doc, (SELECT SUM(X1.IMPORTE) FROM XML_DATA X1 WHERE X1.RFCE = '$rfc') as total_gral FROM XML_DATA x left join XML_CLIENTES c on c.rfc = x.rfce and c.tipo = 'Proveedor' left join XML_CLIENTES_DET cd on cd.id_cl = c.IDCLIENTE left join xml_tipo_doc td on td.id_tipo = x.id_relacion WHERE RFCE = '$rfc'";
 			$res=$this->EjecutaQuerySimple();
@@ -1300,6 +1300,12 @@ class cargaXML extends database {
 			while ($tsArray=ibase_fetch_object($res)){
 				$data4[]=$tsArray;
 			}	
+
+			$this->query="SELECT * FROM PARTIDAS_XML WHERE RFC = '$rfc'";
+			$res = $this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)){
+				$data5[]=$tsArray;
+			}
 		}else{
 			$this->query="SELECT x.*, c.* , cd.*, td.descripcion as tipo_doc, (SELECT SUM(X1.IMPORTE) FROM XML_DATA X1 WHERE X1.CLIENTE = '$rfc') as total_gral FROM XML_DATA x left join XML_CLIENTES c on c.rfc = x.CLIENTE and c.tipo = 'Cliente' left join XML_CLIENTES_DET cd on cd.id_cl = c.IDCLIENTE left join xml_tipo_doc td on td.id_tipo = x.id_relacion WHERE CLIENTE = '$rfc'";
 			$res=$this->EjecutaQuerySimple();
@@ -1322,8 +1328,9 @@ class cargaXML extends database {
 			while ($tsArray=ibase_fetch_object($res)){
 				$data4[]=$tsArray;
 			}
+			$data5 = array();
 		}
-		return array("detalle"=>$data, "tot_anl"=>$data2, "tipo_doc"=>$data3, "tipoDocs"=>$data4);
+		return array("detalle"=>$data, "tot_anl"=>$data2, "tipo_doc"=>$data3, "tipoDocs"=>$data4, "partidas"=>$data5);
 	}
 
 

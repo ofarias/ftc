@@ -13,6 +13,7 @@
                         <div class="panel-heading">
                             Informacion del <?php echo $tipo=='Recibidos'? 'Proveedor ':'Cliente '?> " <font color="white" size="2 px"><b><?php echo $inf->NOMBRE?></b></font> "
                             <br/>
+                            
                             <label>Total facturas recibidas: $ <?php echo number_format($inf->TOTAL_GRAL,2)?> </label><br/>
                             <ol>
                                 <?php foreach($info['tot_anl'] as $tot):?>
@@ -51,8 +52,20 @@
                                                                                     <option >15 - Proveedor Global</option>
                                                                                 </select><br/></font>
                             <?php }?>
-                        </div> 
-                        <div class="panel-body">
+                            <br/>
+                            <input type='button' value="Productos" class="btn-sm btn-success prodProv" id="<?php echo $rfc?>" >
+                            <br/>
+                        </div>
+                        </div>
+		</div>
+</div>
+
+<div class="row documentos">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                
+
+                        <div class="panel-body " >
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered table-hover" id="dataTables-provdetalle">
                                     <thead>
@@ -104,8 +117,62 @@
                                 </table>
                             </div>
 			          </div>
-			</div>
-		</div>
+</div>
+                                        </div>
+                                        </div>
+<div class="row partidas hidden">
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                      <div class="panel-body" >
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover" id="dataTables-provdetpart">
+                                    <thead>
+                                        <tr>
+                                            <th>Ln</th>
+                                            <th>Sel</th>
+                                            <th>UUID</th>
+                                            <th>DOCUMENTO</th>
+                                            <th>PARTIDA</th>
+                                            <th>DESCRIPCION</th>
+                                            <th>ISBN</th>
+                                            <th>FECHA</th>
+                                            <th>TIPO DE CAMBIO</th>
+                                            <th>MONEDA</th>
+                                            <th>SUBTOTAL</th>
+                                            <th>ESTADO</th>
+                                            <th>MES</th>
+                                            <th>ANIO</th>
+                                            
+                                        </tr>
+                                    </thead>                                   
+                                  <tbody>
+                                    	<?php $ln =0;
+                                    	foreach ($info['partidas'] as $data): $ln++;
+                                        ?>                 
+                                        <tr>
+                                            <td><?php echo $ln?></td>
+                                            <td><input type="checkbox" ></th>
+                                            <td><?php echo $data->UUID?></td>
+                                            <td><?php echo $data->DOCUMENTO ?></td>
+                                            <td><?php echo $data->PARTIDA?></td>
+                                            <td><?php echo $data->DESCRIPCION?></td>
+                                            <td><?php echo $data->ISBN?></td>
+                                            <td><?php echo $data->FECHA ?></td>
+                                            <td align="right"><?php echo '$ '.number_format($data->TIPOCAMBIO,2)?></td>
+                                            <td><?php echo $data->MONEDA?></td>
+                                            <td align="right"><?php echo '$ '.number_format($data->IMPORTE,2)?></td>
+                                            <td><?php echo $data->STATUS?></a></td>
+                                            <td><?php echo date("m", strtotime($data->FECHA))?></td>
+                                            <td><?php echo date("Y", strtotime($data->FECHA))?></td>
+                                            
+                                        </tr>
+                                        <?php endforeach; ?>
+                                 </tbody>
+                                </table>
+                            </div>
+			          </div>        
+        </div>
+    </div>
 </div>
 
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
@@ -163,6 +230,20 @@
                 }
             }
         })
+    })
+
+    $(".prodProv").click(function(){
+        //alert("Productos del proveedor")
+        var tipo= $(".prodProv").val()
+        if(tipo == 'Productos'){
+            $(".documentos").addClass("hidden")
+            $(".partidas").removeClass("hidden")
+            $(".prodProv").val('Documentos')
+        }else{
+            $(".documentos").removeClass("hidden")
+            $(".partidas").addClass("hidden")
+            $(".prodProv").val('Productos')
+        }
     })
 
 </script>
