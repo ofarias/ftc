@@ -2014,13 +2014,19 @@ class controller_xml{
 	    return array("status"=>'ok',"archivo"=>$ruta.$nom, "htmlPath"=>$htmlPath);
 	}
 
-	function acomodoXml(){
+	function acomodoXml($t){
 		if($_SESSION['user']){
 			$data = new acomodoXML;
-			$path = "\\\\DORIS\\Emitidos";
-			//$path = 'C:\\elcfdi\\DescargaMasiva\\Emitidos\\';
-			$path = $data->mapeo();
-			$info = $data->acomodo($path);
+			if($t == 1){
+				$path = "\\\\DORIS\\Emitidos";
+				//$path = 'C:\\elcfdi\\DescargaMasiva\\Emitidos\\';
+				$path = $data->mapeo();
+				$info = $data->acomodo($path);
+			}elseif($t==2){
+				echo 'analiza XML';
+				$analisis = $data->analiza();
+			}
+
 			return;
 		}
 	}

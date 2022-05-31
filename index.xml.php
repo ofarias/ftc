@@ -147,7 +147,7 @@ else{
 		$controller->cancelados($_GET['opc']);
 		break;
 	case 'acomoda':
-		$controller->acomodoXml();
+		$controller->acomodoXml($_GET['opc']);
 		break;
 	default: 
 		header('Location: index.php?action=login');

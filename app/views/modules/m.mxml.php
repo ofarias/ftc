@@ -164,19 +164,21 @@
                 <div class="panel-heading">
                     <h4><i class="fa fa-list-alt">Descargas XML</i></h4>
                 </div>
-            <div class="panel-body">
-                <p>Descargas de XML</p>
-                <center><a href="index_xml.php?action=''" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
-                <p><a href="index.xml.php?action=actTablas">Actualizar Tablas</a></p>
-                <p><a href="index.xml.php?action=calculaSaldo">Calcula Saldos Mizco</p>
-                <p><a class="btn-sm btn-success cargaEFOS" >Carga EFOs</a></p>
-                <p><a class="btn-sm btn-primary sincronizar">Sincronizar Datos</a></p>
-                <p><a href="index.php?action=millon" class="btn-sm btn-primary unmillon">Un Millon de Nombres</a></p>
-               <!-- <p><input type="file" webkitdirectory mozdirectory msdirectory odirectory directory  id="folder"></p>-->
-                <p><input type="button" class="dir" value="acomodar"></p>
-                </div>
+                <div class="panel-body">
+                    <p>Descargas de XML</p>
+                    <center><a href="index_xml.php?action=''" class="btn btn-default"><img src="http://icons.iconarchive.com/icons/mcdo-design/smooth-leopard/64/Route-Folder-Blue-icon.png"></a></center>
+                    <p><a href="index.xml.php?action=actTablas">Actualizar Tablas</a></p>
+                    <p><a href="index.xml.php?action=calculaSaldo">Calcula Saldos Mizco</p>
+                    <p><a class="btn-sm btn-success cargaEFOS" >Carga EFOs</a></p>
+                    <p><a class="btn-sm btn-primary sincronizar">Sincronizar Datos</a></p>
+                    <p><a href="index.php?action=millon" class="btn-sm btn-primary unmillon">Un Millon de Nombres</a></p>
+                    <!-- <p><input type="file" webkitdirectory mozdirectory msdirectory odirectory directory  id="folder"></p>-->
+                    <p><input type="button" class="dir" value="acomodar" t="1"></p>
+                    <p><input type="button" class="dir" value="analizarXmls" t="2"></p>
                 </div>
             </div>
+        </div>
+
     <?php }?>
     <?php if($_SESSION['empresa']['retenciones'] == 'S'){ ?>
         <div class="col-md-4" title="Genera reporte en execel de las retenciones por un rango de fecha">
@@ -184,13 +186,13 @@
                 <div class="panel-heading">
                     <h4><i class="fa fa-list-alt">Reporte Retenciones</i></h4>
                 </div>
-            <div class="panel-body">
-                <p><label>Seleccione la fecha</label></p>
-                <label>Inicial:</label> &nbsp;<input type="date" name="fi" id="rFi"><br/>
-                <label>Final: </label> &nbsp;&nbsp;&nbsp;<input type="date" name="ff" id="rFf"> <input type="button" name="exe" class="btn-small btn-primary ret" value="Ejecutar">
-                </div>
+                <div class="panel-body">
+                    <p><label>Seleccione la fecha</label></p>
+                    <label>Inicial:</label> &nbsp;<input type="date" name="fi" id="rFi"><br/>
+                    <label>Final: </label> &nbsp;&nbsp;&nbsp;<input type="date" name="ff" id="rFf"> <input type="button" name="exe" class="btn-small btn-primary ret" value="Ejecutar">
                 </div>
             </div>
+        </div>
     <?php } ?>
         </div>
     </div>
@@ -212,11 +214,12 @@
 
 
         $(".dir").click(function(){
+            var opc = $(this).attr('t')
             $.ajax({
                 url:'index.xml.php',
                 type:'get',
                 dataType:'json',
-                data:{action:'acomoda'},
+                data:{action:'acomoda', opc},
                 success:function(data){
                     alert("Se acomodaron: " + data.archivos)
                 },
