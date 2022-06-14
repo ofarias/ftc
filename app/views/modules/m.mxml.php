@@ -178,7 +178,6 @@
                 </div>
             </div>
         </div>
-
     <?php }?>
     <?php if($_SESSION['empresa']['retenciones'] == 'S'){ ?>
         <div class="col-md-4" title="Genera reporte en execel de las retenciones por un rango de fecha">
