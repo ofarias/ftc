@@ -1,11 +1,12 @@
 <?php 
 
 require_once ('app/model/database.php');
+require_once 'app/Classes/PHPExcel.php';
 
 class acomodoXML extends database{
 
 	function acomodo($path){
-		$destiny="\\\\192.168.100.33\\c$\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descargas\\";
+		$destiny="\\\\serverHP30\\c$\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descargas\\";
 		$all = scandir($path);
 		$files=0;$dir=0; $file=array(); $d=array();
 		for($i=0; $i<count($all); $i++){
@@ -89,6 +90,41 @@ class acomodoXML extends database{
 
 		}
 		die();
+	}
+
+	function nombraImagenes($imagen, $lista){
+		$inputFileType = PHPExcel_IOFactory::identify($lista);
+		$objReader = PHPExcel_IOFactory::createReader($inputFileType);
+		$objPHPExcel= $objReader->load($lista);
+		$sheet = $objPHPExcel->getSheet(0);
+		$highestRow = $sheet->getHighestRow();
+		$highestColumn = $sheet->getHighestColumn();
+
+		for($row = 2; $row <= $highestRow; $row++){
+			echo '<br/>Nombre imagen '.$sheet->getCell("A".$row)->getValue();
+			$nom = $sheet->getCell("A".$row)->getValue();
+			$isbn = trim($sheet->getCell("C".$row)->getValue());
+			rename ($imagen.$nom.'.jpg', $imagen.$isbn.'.jpg');
+			//rename($imagen.)		
+		}
+	}
+
+	function revisaImagen(){
+		$data=array();
+		$this->query="SELECT * FROM ftc_articulos_img where status = 1";
+		$res= $this->EjecutaQuerySimple();
+		while($tsArray=ibase_fetch_object($res)){
+			$data[]=$tsArray;
+		}
+		$n =0;
+		foreach ($data as $d) {
+			if(!file_exists($d->RUTA.$d->NOMBRE)){
+				$n++;
+				$this->query="UPDATE ftc_articulos_img set status = 9 where id_img = $d->ID_IMG";
+				$this->queryActualiza();
+			}
+		}
+		echo 'No existen '.$n. ' imagenes. ';
 	}
 } 
 

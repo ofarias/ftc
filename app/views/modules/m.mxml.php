@@ -175,6 +175,9 @@
                     <!-- <p><input type="file" webkitdirectory mozdirectory msdirectory odirectory directory  id="folder"></p>-->
                     <p><input type="button" class="dir" value="acomodar" t="1"></p>
                     <p><input type="button" class="dir" value="analizarXmls" t="2"></p>
+                    <p><input type="button" class="dir" value="Nombra Imagenes" t="3"></p>
+                    <p><input type="button" class="dir" value="Revisa Imagenes" t="4"></p>
+
                 </div>
             </div>
         </div>

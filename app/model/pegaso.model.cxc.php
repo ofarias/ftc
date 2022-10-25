@@ -983,12 +983,20 @@ class pegasoCobranza extends database {
             (SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and (STATUS = '0' or status = 'I'))-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0) AS SALDOPAGO,
             ((SELECT coalesce(cp.MONTO,0) FROM CARGA_PAGOS cp WHERE cp.ID = $idp and (STATUS = '0' or status = 'I'))-(SELECT coalesce(sum(ac.monto_aplicado), 0) FROM APLICACIONES ac WHERE ac.IDPAGO = $idp and cancelado = 0))-(x.importe - (SELECT coalesce(sum(a.MONTO_APLICADO),0) from aplicaciones a where observaciones = '$uuid')) as SaldoInsPago
             FROM XML_DATA x WHERE UUID = '$uuid'";
-            ///echo $this->query;
+            //echo '<br/>'.$this->query;
+
          $res=$this->EjecutaQuerySimple();
         $row=ibase_fetch_object($res);
-
-        if( $row->SALDODOC > 0 And ($row->SALDOPAGO + .001) > 0 AND ( ($row->SALDOPAGO + .001) - $monto) >= 0 and ($row->SALDODOC-$monto>=0)){
+        //$monto = $row->SALDODOC;
+        if( 
+            $row->SALDODOC > 0 // 33779.2 > 0 true 
+            And ($row->SALDOPAGO + .001) > 0 /// 1446109.87 +.001 = 1446109.871 > 0 true
+            AND ( ($row->SALDOPAGO + .001) - $monto) >= 0 /// 1446109.871 - 1446109.87 true
+            and ($row->SALDODOC - $monto)>=0  ///  and ($monto - $row->SALDODOC) 33779.2 - 1446109.87 =  true   
+        ){
+            //echo '<br/>Entra a la aplicacion del pago: ';
             $this->query="INSERT INTO APLICACIONES (ID, FECHA, IDPAGO, DOCUMENTO, MONTO_APLICADO, SALDO_DOC, SALDO_PAGO, USUARIO, STATUS, RFC, FORMA_PAGO, CANCELADO, PROCESADO, CIERRE_CC, REC_CONTA, FECHA_CIERRE_CC, USUARIO_CIERRE_CC, FECHA_REC_CONTA, FOLIO_REC_CONTA, USUARIO_REC_CONTA, OBSERVACIONES, CONTABILIZADO, TIPO, POLIZA_INGRESO) VALUES (null, current_timestamp, $idp, (SELECT DOCUMENTO FROM XML_DATA WHERE UUID = '$uuid'),$monto, $row->SALDODOC - $monto, $row->SALDOPAGO -$monto,'$usuario', 'E', (SELECT CLIENTE FROM XML_DATA WHERE UUID = '$uuid'), (SELECT CONTABILIZADO FROM CARGA_PAGOS WHERE ID=$idp), 0, 0, 0, 0, null, null, null, 0, null, '$uuid', null,null, null  )";
+            //echo ' <br/>'.$this->query;
             if($res=$this->grabaBD()){
                 $this->query="UPDATE CARGA_PAGOS SET SALDO = SALDO - $monto where id = $idp";
                 $this->queryActualiza();

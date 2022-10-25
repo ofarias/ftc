@@ -2025,7 +2025,14 @@ class controller_xml{
 			}elseif($t==2){
 				echo 'analiza XML';
 				$analisis = $data->analiza();
+			}elseif($t == 3){
+				$rutaImagenes = "C:\\Users\\Administrador\\Downloads\\portadas-paidotribo\\";
+				$rutaXLS="C:\\Users\\Administrador\\Downloads\\portadas-paidotribo\\lista.xlsx";
+				$info=$data->nombraImagenes($rutaImagenes, $rutaXLS);
+			}elseif($t == 4){
+				$exe =$data->revisaImagen(); 
 			}
+
 
 			return;
 		}

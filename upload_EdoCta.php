@@ -20,7 +20,7 @@ if ($_FILES["fileToUpload"]["size"] > 5000000 ){
     $uploadOk = 0;
 }else{
         if( strtoupper($fileType) == 'XLSX' or  strtoupper($fileType) == 'CSV' or strtoupper($fileType== 'XLS') or strtoupper($fileType)=='PDF' ){
-            if(move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {  
+            if(move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
                 $res=$controller->cargaEdoCtaXLS($target_file, $datos, $banco=$datos[0], $cuenta=$datos[1], $fileType, $nombre, $target_dir, $o);
                 $retorno = $controller->estado_de_cuenta($banco=$datos[0], $cuenta=$datos[1]);
             } else {

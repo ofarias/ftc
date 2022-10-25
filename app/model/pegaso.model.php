@@ -6301,15 +6301,15 @@ function ReEnrutar($id_preoc, $pxr, $doco){
         }
         //14062016
         
-        function traeDocumentosxCliente(){
-        	$data=array();
-           $this->query="SELECT * FROM CATALOGO_DOCUMENTOS";
-           $resultado = $this->QueryObtieneDatosN();
-           while($tsArray = ibase_fetch_object($resultado)){
-               $data[] = $tsArray;
-           }
-           return $data;
-        }
+    function traeDocumentosxCliente(){
+    	$data=array();
+       $this->query="SELECT * FROM CATALOGO_DOCUMENTOS";
+       $resultado = $this->QueryObtieneDatosN();
+       while($tsArray = ibase_fetch_object($resultado)){
+           $data[] = $tsArray;
+       }
+       return $data;
+    }
         
         function guardaNuevoDocC($nombre, $descripcion, $tipoDoc, $tipoReq){
             $this->query="EXECUTE PROCEDURE SP_DOCUMENTOC_NUEVO('$nombre', '$descripcion', '$tipoDoc', '$tipoReq')";
@@ -27978,20 +27978,20 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			if($key['ca']=='a'){
 				$folio=$this->folioBanco($banco, $cuenta);
 				$this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_RECEP, FOLIO_X_BANCO, RFC, STATUS, ARCHIVO, CONTABILIZADO, OBS, REGISTRO, USUARIO_CONTA) values (NULL, '2', current_timestamp, $monto, $monto, '$usuario', '$banco'||' - '||'$cuenta', '$fecha', '$folio', null, 0, '$uuid', '$tipo', '$obs', $reg, '$tp') RETURNING ID";
+				//echo $this->query;
 				$fol_cp=$this->grabaBD();
 				$rowp=ibase_fetch_object($fol_cp);
 				if(!empty($uuid)){
-					$uuid = explode(",",$uuid);
-					for($i=0;$i<count($uuid); $i++){
-						if(!empty($uuid[$i])){
-							$abonos[$uuid[$i]]= $rowp->ID;
+					$uuidc = explode(",",$uuid);
+					for($i=0;$i<count($uuidc); $i++){
+						if(!empty($uuidc[$i])){
+							$abonos[$uuidc[$i]]= $rowp->ID;
 						}
 					}
 				}
 			}elseif($key['ca']=='c'){
 				$this->query="INSERT INTO GASTOS (ID, STATUS, CVE_CATGASTOS, CVE_PROV, REFERENCIA, DOC, AUTORIZACION, PRESUPUESTO, USUARIO, TIPO_PAGO, MONTO_PAGO, IVA_GEN, TOTAL, SALDO, FECHA_CREACION, MOV_PAR, CLASIFICACION, fecha_edo_cta, tipo, NUM_PAR, USUARIO_AUTO) VALUES (NULL, 'V', 1, '', substring('$desc' from 1 for 30), substring('$obs' from 1 for 255), 1, $monto, '$usuario', '$tipo', $monto, ($monto-($monto / 1.16)),$monto, $monto, current_timestamp, 'N', 1, '$fecha', 'Gasto', $reg, '$tp' ) RETURNING ID";
 				switch ($tipo) {
-
 				 	case 'TNS':
 				 		$tipo = 'TR';
 				 		break;
@@ -28009,10 +28009,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$this->revisaGasto($row->ID);
 				$this->verCargas($banco, $cuenta, $t=9);
 				if(!empty($uuid)){
-					$uuid = explode(",",$uuid);
-					for($i=0;$i<count($uuid); $i++){
-						if(!empty($uuid[$i])){
-							$cargos[$uuid[$i]] = $row->ID ;
+					$uuidg = explode(",",$uuid);
+					for($i=0;$i<count($uuidg); $i++){
+						if(!empty($uuidg[$i])){
+							$cargos[$uuidg[$i]] = $row->ID ;
 							//echo '<br/>se agrego '.$uuid[$i].' al arreglo '.print_r($cargos);
 						}
 					}
@@ -28023,7 +28023,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		if(count($abonos) > 0 or count($cargos) > 0){
 			$aplica = $this->datosAplicacion($abonos, $cargos);
 			print_r($aplica);
-
 			if(isset($aplica['abonos']) or isset($aplica['cargos'])){
 				echo 'Intenta crear las polizas';
 				$this->creaPolizas($abonos, $cargos);
@@ -28086,18 +28085,19 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function datosAplicacion($abonos, $cargos){
 		$a=0;$c=0;
+		//echo '<br/>Abonos a procesar'.count($abonos);
+		//echo '<br/>Cargos a procesar'.count($cargos);
 		foreach($abonos as $key => $value){
 				$this->query="SELECT SALDO FROM CARGA_PAGOS WHERE ID = $value";///
 				$res=$this->EjecutaQuerySimple();
 				$row = ibase_fetch_object($res);
 				$monto = $row->SALDO;
-
 				$this->query="SELECT * FROM XML_DATA_UPPER WHERE UUID_UPPER = '$key' or UUID='$key'";
 				$result=$this->EjecutaQuerySimple();
 				$row=ibase_fetch_row($result);
-				
 				if($monto > 0 and !empty($key) and isset($row)){
 					$aplica = new pegasoCobranza;
+					//echo '<br/>Intenta la aplicacion: '.$value.' - '.$monto.' - '.$key;
 					$result = $aplica->aplicaInd($idp=$value, $monto, $uuid=$key);
 					if($result["status"] == 'no'){
 						unset($abonos[$key]);				
@@ -28236,8 +28236,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			$m = date("m", strtotime($f)); $mi=$m-1; $mf=$m; $anio=date("Y", strtotime($f));
 			$op = ' AND extract(month from x.fecha) between '.$mi.' and '.$mf.' and extract(year from x.fecha) = '.$anio. ' order by x.fecha asc' ;
 		}
-		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE upper(X.UUID) = upper(AG.UUID) AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') 
-			FROM XML_DATA X WHERE X.RFCE != '$rfc' and x.tipo ='I' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE upper(X.UUID) = upper(AG.UUID) AND STATUS = 0) $a $op";
+		$this->query="SELECT X.*, (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) AS APLICADO, (SELECT NOMBRE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') as Prov, (SELECT CUENTA_CONTABLE FROM XML_CLIENTES XC WHERE XC.RFC = X.RFCE AND TIPO = 'Proveedor') 
+			FROM XML_DATA X WHERE X.RFCE != '$rfc' and x.tipo ='I' and X.IMPORTE > (SELECT COALESCE(SUM(APLICADO), 0) FROM APLICACIONES_GASTOS AG WHERE X.UUID = AG.UUID AND STATUS = 0) $a $op";
 		//echo 'Validacion de factura: '.$this->query;
 		//die();
 		$res=$this->EjecutaQuerySimple();
