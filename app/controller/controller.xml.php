@@ -282,6 +282,7 @@ class controller_xml{
 
 	function xmlExcel($mes, $anio, $ide, $doc, $t){
 		if($_SESSION['user']){
+			$uuid = isset($uuid)? $uuid:null;
 	        if($t == 'z'){
 	        	$conta=$this->contabilizacion($mes, $anio, $ide, $doc, $t);
 	        	return $conta;

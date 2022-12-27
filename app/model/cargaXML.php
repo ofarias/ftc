@@ -121,13 +121,15 @@ class cargaXML extends database {
 		$fp=fopen($archivo,'r');
 		$l=0;
 		$r=0;
+		$ins=0;
 		$this->query="SELECT * FROM FTC_META_DATOS WHERE ARCHIVO='$archivo'";
 		$rs=$this->EjecutaQuerySimple();
 		$row=ibase_fetch_object($rs);
 		if(!empty($row)){
 			echo 'El Archivo <b>'.$archivo.'</b> ya fue Cargado por <b>'.$row->USUARIO.'</b> el <b>'. $row->FECHA_CARGA.'</b><br/>';
 			return;
-		}							
+		}				
+		$ti = date("H_i_s");			
 		while(!feof($fp)){
 			$linea = fgets($fp);
 			if($l > 0){
@@ -141,23 +143,26 @@ class cargaXML extends database {
 					}
 					$nombre_e=str_replace("'", "", $d[2]);
 					$nombre_r=str_replace("'", "", $d[4]);
+					$uuid_up = strtoupper($d[0]);
 					$this->query="INSERT INTO FTC_META_DATOS (IDMD, UUID, RFCE, NOMBRE_EMISOR, RFCR, NOMBRE_RECEPTOR, RFCPAC, FECHA_EMISION, FECHA_CERTIFICACION, MONTO, EFECTO_COMPROBANTE, STATUS, FECHA_CANCELACION, ARCHIVO, FECHA_CARGA, USUARIO, PROCESADO, UUID_ORIGINAL) 
-									VALUES (NULL, '$d[0]', '$d[1]', '$nombre_e', '$d[3]', '$nombre_r', '$d[5]', '$d[6]','$d[7]', $d[8], '$d[9]', $d[10], ".$fc.", '$archivo', current_timestamp, '$usuario', 0, (SELECT UUID FROM XML_DATA X WHERE X.UUID CONTAINING('$d[0]')))";
+									VALUES (NULL, '$uuid_up', '$d[1]', '$nombre_e', '$d[3]', '$nombre_r', '$d[5]', '$d[6]','$d[7]', $d[8], '$d[9]', $d[10], ".$fc.", '$archivo', current_timestamp, '$usuario', 0, '')";
 					$res=$this->grabaBD();
+					$ins++;
 					if($res==1){
 						$r+=$res;
 						if(strlen($d[11]) > 2){
-							$this->query="UPDATE XML_DATA SET STATUS = 'C' WHERE UPPER(UUID) = UPPER('$d[0]')";
+							$this->query="UPDATE XML_DATA_UPPER SET STATUS = 'C' WHERE UUID_UPPER = '$uuid_up'";
 							$r=$this->queryActualiza();
 							$cancelados[]=strtoupper($d[0]);
 							if($r==1){
-								$this->query="UPDATE FTC_META_DATOS SET PROCESADO = 1 WHERE UPPER(UUID) = UPPER('$d[0]') AND FECHA_CANCELACION IS NOT NULL";
+								$this->query="UPDATE FTC_META_DATOS SET PROCESADO = 1 WHERE UUID = '$uuid_up' AND FECHA_CANCELACION IS NOT NULL";
 								$this->queryActualiza();
 							}
 						}
 					}else{
 						echo '<br/>'.$this->query.'<br/>';
 					}
+				
 				}elseif(count($d)>2 and count($d)<10){/// esta linea esta incompleta y es caso de estudio.
 					echo '<br/>Registro en 2 lineas: '.$l.'en el archivo '.$archivo.' valor de la linea: '.count($d);
 				}
@@ -165,6 +170,9 @@ class cargaXML extends database {
 			$l++;
 		}
 		fclose($fp);
+		$tf=date("H_i_s");
+		echo '<br/> Inicio la carga a las '.$ti. ' y la finalizo a las '.$tf.' total de registros '.$ins;
+
 		/*
 		$borrados = array();
 		$this->query="SELECT * FROM FTC_META_DATOS WHERE archivo = '$archivo' and FECHA_CANCELACION IS NOT NULL";
@@ -217,7 +225,7 @@ class cargaXML extends database {
 		    	     while(!feof($f)) {
 						$linea=fgets($f);
 						$lin=explode('~', $linea);
-						$nf=$i.'_'.$lin[1]."_".$lin[3]."_".$fileName.".txt";
+						$nf=$i.'_'.$lin[1]."_".$lin[3]."_".$fileName.".txt";/// manda error.
 						if($l == 2); //echo $lin[1]."-".$lin[3]."<br />";
 						$l++;
 						if($l>2)break;
@@ -237,8 +245,8 @@ class cargaXML extends database {
 						}
 					}else{
 					//echo '<br/> No se encontro el rfc: '.$lin[1].' en el array de empresas';
-						if(file_exists($path.$lin[3])){
-							copy($path.$nf, $path.$lin[3].'\\'.$nf);
+						if(file_exists($path.$lin[3])){ /// manda error 
+							copy($path.$nf, $path.$lin[3].'\\'.$nf); /// Manda error.
 							unlink($path.$nf);
 						}else{
 							mkdir($path.$lin[3]);
