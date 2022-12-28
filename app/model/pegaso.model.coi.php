@@ -1326,6 +1326,7 @@ class CoiDAO extends DataBaseCOI {
     function creaPoliza($tipo, $uuid, $cabecera, $detalle, $impuestos){
         $usuario=$_SESSION['user']->USER_LOGIN;
         foreach($cabecera as $cb){
+            $verCfdi = $cb->VERSION_CFDI;
             $periodo=$cb->PERIODO;
             $ejercicio=$cb->EJERCICIO;
             $eje=substr($ejercicio,2);
@@ -1455,6 +1456,7 @@ class CoiDAO extends DataBaseCOI {
                                 values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', ($aux->IMPORTE - $aux->DESCUENTO) * $TC, 0, $tc, 0, $partida, 0,0, null, null)";
                 $this->EjecutaQuerySimple();   
                 //echo $this->query;
+                
                 foreach ($impuestos as $imp){
                     //echo '<br/>'.print_r($imp).'<br/>';
                     $impuesto=$imp->IMPUESTO;
@@ -1502,14 +1504,59 @@ class CoiDAO extends DataBaseCOI {
                         $cuenta = $aux->CUENTA_CONTABLE;
                         $this->query="UPDATE $tbAux SET montomov = montomov + ($imp->MONTO*$TC) WHERE NUM_CTA = '$cuenta' and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo=$periodo and ejercicio=$ejercicio and num_part = ($parImp -1)";
                         $this->EjecutaQuerySimple();   
-                    }   
+                    }
                 }
-        $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo, $partAux);
+
+            $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo, $partAux);
         }
 
+        if($verCfdi = '3.2'){
+            $this->imp32($impuestos, $pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol, $fecha, $nat1);
+        }
+        die();
         #### Revisa Cuadre de la poliza ####
         $this->revisaCuadre($pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol);
         return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Dr'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
+    }
+
+    function imp32($impuestos,$pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x, $tbPol, $fecha, $nat1){
+        foreach ($impuestos as $imp) {
+            if($imp->TIPO == 'Traslado' and $imp->IMPUESTO =='003'){///003 es ieps
+                $this->query="UPDATE $tbAux set montomov = montomov + $imp->MONTO where ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and num_part = (select max(num_part) from $tbAux where ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio')";
+            }else{
+                $this->query="SELECT CUENTA_CONTABLE, NOMBRE FROM FTC_PARAM_COI WHERE TIPO = '$imp->TIPO' and tipo_xml = 'Recibido' and Poliza = '$tipo' and factor = '$imp->TIPOFACTOR' and tasa = $imp->TASA";
+                $rs=$this->EjecutaQuerySimple();
+                $row = ibase_fetch_row($rs);
+                $cuenta = $row[0];
+                $concepto = $row[1];
+                $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, TIPCAMBIO, ORDEN) values ('$tipo', '$folio', (select max(num_part) +1 from $tbAux where ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio'), $periodo, $ejercicio, '$cuenta', '$fecha', '$concepto', '$nat1', $imp->MONTO, 1, (select max(num_part) +1 from $tbAux where ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio'))";
+                $this->grabaBD();
+            }
+        }
+
+        $this->cuadrarPoliza($tbAux, $ejercicio, $periodo, $tipo, $folio);
+        
+    }
+
+    function cuadrarPoliza($tbAux, $ejercicio, $periodo, $tipo, $folio){
+        $this->query= "SELECT * FROM $tbAux where ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio'"; 
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)){
+            $data[]=$tsArray;
+        }
+        $debe = 0; $haber = 0;
+        foreach ($data as $pol) {
+            if($pol->NUM_PART == 1){
+                $ajuste=$pol->DEBE_HABER=='H'? 'D':'H';
+            }
+            $debe += $pol->DEBE_HABER == 'D'? $pol->MONTOMOV:0;
+            $haber += $pol->DEBE_HABER == 'H'? $pol->MONTOMOV:0;
+        }
+        if(($debe-$haber) != 0){
+            $ma = ($debe-$haber)<0? ($debe-$haber)*-1:$debe-$haber;
+            $this->query="UPDATE $tbAux set montomov = montomov + $ma where  ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and num_part = 2";
+            $this->grabaBD();
+         }
     }
 
     function insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo, $par){

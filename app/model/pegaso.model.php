@@ -27231,7 +27231,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 	function impuestosPoliza($uuid){
 		$data = array();
-		$this->query="SELECT partida, max(tasa) as tasa, sum(monto) as monto, uuid, impuesto, factura, tipoFactor, max(base) as base, tipo   FROM XML_IMPUESTOS WHERE UUID = '$uuid'  and status = 0 group by partida, impuesto, uuid, factura, tipoFactor, tipo";
+		$this->query="SELECT partida, max(tasa) as tasa, sum(monto) as monto, uuid, impuesto, factura, tipoFactor, max(base) as base, tipo   FROM XML_IMPUESTOS WHERE UUID = '$uuid'  and status = 0 and monto > 0 group by partida, impuesto, uuid, factura, tipoFactor, tipo";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
