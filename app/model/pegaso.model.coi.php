@@ -1456,86 +1456,91 @@ class CoiDAO extends DataBaseCOI {
                                 values ('$tipo', '$folio', $partida, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$nat1', ($aux->IMPORTE - $aux->DESCUENTO) * $TC, 0, $tc, 0, $partida, 0,0, null, null)";
                 $this->EjecutaQuerySimple();   
                 //echo $this->query;
-                
-                foreach ($impuestos as $imp){
-                    //echo '<br/>'.print_r($imp).'<br/>';
-                    $impuesto=$imp->IMPUESTO;
-                    $tasa = (float)$imp->TASA;
-                    $mImp = $imp->MONTO * $TC; 
-                    $par = $imp->PARTIDA; 
-                    $factor =$imp->TIPOFACTOR;
-                    $tf = $imp->TIPO;
-                    $nom_1 = $aux->DESCRIPCION;
-                    if($partAux == $par){
-                        $cuenta = '';
-                        $parImp = $partida + 1;
-                        if($tf=='Retencion'){
-                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status= 1 and factor = '$factor' and tipo = '$tf' and poliza ='$tipo' and round(tasa,3) = round($tasa,3) and tipo_xml = '$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
-                            //echo 'Consulta si existe Retencion: '.$this->query;
-                        }else{
-                            $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status= 1 and factor = '$factor'and tipo = '$tf' and poliza ='$tipo' and round(tasa,3) = round($tasa,3) and tipo_xml = '$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
-                            //echo 'Consulta si NO existe Retencion: '.$this->query;
-                        }
-                        //echo 'Busqueda de la cuenta de impuestos: '.$this->query;
-                        $res=$this->EjecutaQuerySimple();
-                        $rowImp=ibase_fetch_object($res);
-                        if(!empty($rowImp)){
-                            //echo 'Encontro impuesto'.$par;
-                            $cuenta = $rowImp->CUENTA_CONTABLE;
-                            $nom_1 = $rowImp->NOMBRE; 
-                            $n= $rowImp->NAT==1? 'H':$nat1;
+                if($verCfdi != '3.2'){
+                    foreach ($impuestos as $imp){
+                        //echo '<br/>'.print_r($imp).'<br/>';
+                        $impuesto=$imp->IMPUESTO;
+                        $tasa = (float)$imp->TASA;
+                        $mImp = $imp->MONTO * $TC; 
+                        $par = $imp->PARTIDA; 
+                        $factor =$imp->TIPOFACTOR;
+                        $tf = $imp->TIPO;
+                        $nom_1 = $aux->DESCRIPCION;
+                        if($partAux == $par){
+                            $cuenta = '';
+                            $parImp = $partida + 1;
+                            if($tf=='Retencion'){
+                                $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status= 1 and factor = '$factor' and tipo = '$tf' and poliza ='$tipo' and round(tasa,3) = round($tasa,3) and tipo_xml = '$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
+                                //echo 'Consulta si existe Retencion: '.$this->query;
+                            }else{
+                                $this->query="SELECT * FROM FTC_PARAM_COI WHERE impuesto = '$impuesto' and status= 1 and factor = '$factor'and tipo = '$tf' and poliza ='$tipo' and round(tasa,3) = round($tasa,3) and tipo_xml = '$tipoXML' and (CUENTA_CONTABLE != '' and CUENTA_CONTABLE is not null)";
+                                //echo 'Consulta si NO existe Retencion: '.$this->query;
+                            }
+                            //echo 'Busqueda de la cuenta de impuestos: '.$this->query;
+                            $res=$this->EjecutaQuerySimple();
+                            $rowImp=ibase_fetch_object($res);
+                            if(!empty($rowImp)){
+                                //echo 'Encontro impuesto'.$par;
+                                $cuenta = $rowImp->CUENTA_CONTABLE;
+                                $nom_1 = $rowImp->NOMBRE; 
+                                $n= $rowImp->NAT==1? 'H':$nat1;
+                                    $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
+                                    $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
+                                                    values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$n', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
+                                    $this->EjecutaQuerySimple();   
+                                    $partida++;
+                            }else{
+                                //echo 'La definicion del impueso no existe: '.$this->query;
+                                $cuenta=$aux->CUENTA_CONTABLE;
+                                $nom_1=$aux->DESCRIPCION;
+                                $cuenta = $aux->CUENTA_CONTABLE;
                                 $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
-                                $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, NUMDEPTO, TIPCAMBIO, CONTRAPAR, ORDEN, CCOSTOS, CGRUPOS, IDINFADIPAR, IDUUID) 
-                                                values ('$tipo', '$folio', $parImp, $periodo, $ejercicio, '$cuenta','$fecha', '$concepto','$n', $mImp, 0, $tc, 0, $parImp, 0,0, null, null)";
-                                $this->EjecutaQuerySimple();   
-                                $partida++;
-                        }else{
-                            //echo 'La definicion del impueso no existe: '.$this->query;
-                            $cuenta=$aux->CUENTA_CONTABLE;
-                            $nom_1=$aux->DESCRIPCION;
-                            $cuenta = $aux->CUENTA_CONTABLE;
-                            $concepto = substr($nom_1.' de la partida '.$partAux,0,120);
-                            $this->query="UPDATE $tbAux SET montomov = montomov + ($imp->MONTO * $TC) WHERE NUM_CTA = '$cuenta' and NUM_PART = $partida and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo = $periodo and ejercicio = $ejercicio";
-                            $this->EjecutaQuerySimple();
+                                $this->query="UPDATE $tbAux SET montomov = montomov + ($imp->MONTO * $TC) WHERE NUM_CTA = '$cuenta' and NUM_PART = $partida and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo = $periodo and ejercicio = $ejercicio";
+                                $this->EjecutaQuerySimple();
+                            }
                         }
-                    }
-                    
-                    if(strtoupper($tf)=='LOCAL'){
-                        $cuenta = $aux->CUENTA_CONTABLE;
-                        $this->query="UPDATE $tbAux SET montomov = montomov + ($imp->MONTO*$TC) WHERE NUM_CTA = '$cuenta' and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo=$periodo and ejercicio=$ejercicio and num_part = ($parImp -1)";
-                        $this->EjecutaQuerySimple();   
+                        
+                        if(strtoupper($tf)=='LOCAL'){
+                            $cuenta = $aux->CUENTA_CONTABLE;
+                            $this->query="UPDATE $tbAux SET montomov = montomov + ($imp->MONTO*$TC) WHERE NUM_CTA = '$cuenta' and NUM_POLIZ = '$folio' and TIPO_POLI = '$tipo' and periodo=$periodo and ejercicio=$ejercicio and num_part = ($parImp -1)";
+                            $this->EjecutaQuerySimple();   
+                        }
                     }
                 }
 
             $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo, $partAux);
         }
-
+        
         if($verCfdi = '3.2'){
-            $this->imp32($impuestos, $pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol, $fecha, $nat1);
+            $this->imp32($impuestos, $pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol, $fecha, $nat1, $nat0);
+            $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo, $partAux);
         }
-        die();
         #### Revisa Cuadre de la poliza ####
-        $this->revisaCuadre($pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol);
+        //$this->revisaCuadre($pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol);
         return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Dr'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
     }
 
-    function imp32($impuestos,$pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x, $tbPol, $fecha, $nat1){
+    function imp32($impuestos,$pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x, $tbPol, $fecha, $nat1, $nat0){
         foreach ($impuestos as $imp) {
             if($imp->TIPO == 'Traslado' and $imp->IMPUESTO =='003'){///003 es ieps
                 $this->query="UPDATE $tbAux set montomov = montomov + $imp->MONTO where ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio' and num_part = (select max(num_part) from $tbAux where ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio')";
             }else{
-                $this->query="SELECT CUENTA_CONTABLE, NOMBRE FROM FTC_PARAM_COI WHERE TIPO = '$imp->TIPO' and tipo_xml = 'Recibido' and Poliza = '$tipo' and factor = '$imp->TIPOFACTOR' and tasa = $imp->TASA";
+                //$this->query="SELECT CUENTA_CONTABLE, NOMBRE FROM FTC_PARAM_COI WHERE TIPO = '$imp->TIPO' and tipo_xml = 'Recibido' and Poliza = '$tipo' and factor = '$imp->TIPOFACTOR' and tasa = $imp->TASA ";
+                $this->query="SELECT CUENTA_CONTABLE, NOMBRE, TIPO FROM FTC_PARAM_COI WHERE TIPO = '$imp->TIPO' and tipo_xml = 'Recibido' and Poliza = '$tipo' and factor = '$imp->TIPOFACTOR'";
                 $rs=$this->EjecutaQuerySimple();
                 $row = ibase_fetch_row($rs);
                 $cuenta = $row[0];
                 $concepto = $row[1];
-                $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, TIPCAMBIO, ORDEN) values ('$tipo', '$folio', (select max(num_part) +1 from $tbAux where ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio'), $periodo, $ejercicio, '$cuenta', '$fecha', '$concepto', '$nat1', $imp->MONTO, 1, (select max(num_part) +1 from $tbAux where ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio'))";
+                if($row[2]=='Retencion'){
+                    $nat = $nat0;
+                }else{
+                    $nat = $nat1;
+                }
+                $this->query="INSERT INTO $tbAux (TIPO_POLI, NUM_POLIZ, NUM_PART, PERIODO, EJERCICIO, NUM_CTA, FECHA_POL, CONCEP_PO, DEBE_HABER, MONTOMOV, TIPCAMBIO, ORDEN) values ('$tipo', '$folio', (select max(num_part) +1 from $tbAux where ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio'), $periodo, $ejercicio, '$cuenta', '$fecha', '$concepto', '$nat', $imp->MONTO, 1, (select max(num_part) +1 from $tbAux where ejercicio = $ejercicio and periodo = $periodo and TIPO_POLI = '$tipo' and NUM_POLIZ = '$folio'))";
                 $this->grabaBD();
             }
         }
-
         $this->cuadrarPoliza($tbAux, $ejercicio, $periodo, $tipo, $folio);
-        
     }
 
     function cuadrarPoliza($tbAux, $ejercicio, $periodo, $tipo, $folio){
