@@ -1510,11 +1510,19 @@ class CoiDAO extends DataBaseCOI {
 
             $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo, $partAux);
         }
+<<<<<<< HEAD
         
         if($verCfdi = '3.2'){
             $this->imp32($impuestos, $pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol, $fecha, $nat1, $nat0);
             $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo, $partAux);
         }
+=======
+
+        //if($verCfdi = '3.2'){
+        //    $this->imp32($impuestos, $pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol, $fecha, $nat1);
+        //}
+        //die();
+>>>>>>> 4f413af25028e6d8ba7cac3c52867147960e4f4a
         #### Revisa Cuadre de la poliza ####
         //$this->revisaCuadre($pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol);
         return $mensaje= array("status"=>'ok', "mensaje"=>'Se ha creado la poliza', "poliza"=>'Dr'.$folio,"numero"=>$folio,"ejercicio"=>$ejercicio, "periodo"=>$periodo);
