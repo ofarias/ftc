@@ -29081,12 +29081,31 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$this->queryActualiza();
     		$this->query="DELETE FROM CARGA_PAGOS WHERE REGISTRO = $idc";
     		$this->grabaBD();
-    		$this->query="DELETE FROM PAGO_GASTO PG WHERE PG.ID_GASTO IN (SELECT ID FROM GASTOS G WHERE G.NUM_PAR = $idc)";
+    		$this->query="DELETE FROM PAGO_GASTO PG WHERE PG.IDGASTO IN (SELECT ID FROM GASTOS G WHERE G.NUM_PAR = $idc)";
     		$this->grabaBD();
     		$this->query="DELETE FROM GASTOS WHERE NUM_PAR = $idc";
     		$this->grabaBD();
     	}
     	return $res;
+    }
+
+    function eliminacionGatos($idc){
+
+    	$this->query="UPDATE xml_polizas p set status = 'C' where tipo='Eg'
+			and cast(fecha as date) = ( select first 1 cast(ag.fecha as date) from aplicaciones_gastos ag where ag.idg in (SELECT g.ID FROM GASTOS g WHERE g.NUM_PAR = $idc) )
+    	and p.uuid in (select a.uuid from aplicaciones_gastos a where a.idg in (SELECT g.ID FROM GASTOS g WHERE g.NUM_PAR = $idc))";
+    	$this->grabaBD();
+
+			$this->query="UPDATE xml_data x set status = 'D' where x.uuid in (select a.uuid from aplicaciones_gastos a where a.idg in (SELECT g.ID FROM GASTOS g WHERE g.NUM_PAR = $idc))";
+			$this->grabaBD();
+
+			$this->query="UPDATE aplicaciones_gastos set status= 9 where idg in (SELECT ID FROM GASTOS WHERE NUM_PAR = $idc)";
+			$this->grabaBD();
+
+    	$this->query="UPDATE gastos set status = 'C' where num_par = $idc";
+    	$this->grabaBD();
+
+    	return;
     }
 
     function valCarga($idc){
@@ -29095,7 +29114,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$row1 =ibase_fetch_object($res);
     	$aplia = $row1->APLI;
 
-    	$this->query="SELECT COUNT(*) AS apli from gastos where num_par = $idc and TOTAL <> SALDO";
+    	$this->query="SELECT COUNT(*) AS apli from gastos where num_par = $idc and TOTAL <> SALDO and status = 'V'";
     	$res=$this->EjecutaQuerySimple();
     	$row2 = ibase_fetch_object($res);
     	$aplic = $row2->APLI;
