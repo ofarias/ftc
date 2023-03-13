@@ -11,7 +11,9 @@
    		
    		protected function checkConnect(){
    			$host = $_SESSION['r_coi'];
-			@$res=$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
+   			//echo $host;
+   			//die;
+   			@$res=$this->cnx = ibase_connect($host, self::$usr, self::$pwd);
 			return $res;
    		}
 

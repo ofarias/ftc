@@ -19,12 +19,13 @@ class pegaso extends database{
 			$this->query = "SELECT  USER_LOGIN, USER_PASS, USER_ROL, LETRA, LETRA2, LETRA3, LETRA4, LETRA5, LETRA6, NUMERO_LETRAS, NOMBRE, CC, CR, aux_comp, COORDINADOR_COMP, USER_EMAIL, POLIZA_TIPO, CATEGORIA, LETRA_NUEVA
 						FROM PG_USERS 
 						WHERE USER_LOGIN = '$u' and USER_PASS = '$pass' and user_status = 'alta'"; /*Contraseña va encriptada con MD5*/
-		 	$res = $this->EjecutaQuerySimple();
+			$res = $this->EjecutaQuerySimple();
 		 	$log = ibase_fetch_object($res);
+		 	
 		 	if(isset($log) > 0){
 					$mySQL = new ftc;
 					$coi = new CoiDAO;
-					$empresas = $mySQL->loginMysql($user, $pass);	
+					$empresas = $mySQL->loginMysql($user, $pass);
 					$_SESSION['user'] = $log;
 					$_SESSION['coi']=$empresas;
 					$cxncoi = $coi->validaConexion();
