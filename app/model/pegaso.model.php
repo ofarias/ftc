@@ -6335,7 +6335,7 @@ function ReEnrutar($id_preoc, $pxr, $doco){
         }
         
         function traeClientesParaDocs(){
-        	$data=array();
+        		$data=array();
             $this->query = "SELECT CL.*, (SELECT EMAILPRED FROM CLIE01 C1 WHERE C1.CLAVE = CL.CLAVE) AS EMAILPRED FROM CATALOGO_CLIENTES_DOCS CL";
             $resultado = $this->QueryObtieneDatosN();
             while($tsArray = ibase_fetch_object($resultado)){
@@ -27470,7 +27470,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		    $fileName = $data[0];
 		    // Extensión del archivo 
 		    $fileExtension = $data[1];
-		    if(strpos(substr($fileName,12), $docf) !== false){
+		    if(strpos($fileName, $docf) !== false){
 		        //echo 'Encontramos el archivo: '.$fileName.'.xml';
 		        // Realizamos un break para que el ciclo se interrumpa
 		        return array("status"=>'ok',"mensaje"=>'Se Encontro el Archivo', "archivo"=>$fileName.'.xml', "factura"=>$docf);

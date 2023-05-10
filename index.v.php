@@ -566,8 +566,13 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	exit();
 }elseif (isset($_POST['nvcl'])) {
 	$res = $controller_v->nvcl($_POST['nvcl']); echo json_encode($res); exit();
-}
-else{switch ($_GET['action']){
+}elseif(isset($_POST['infoCte'])){
+	$res = $controller_v->infoCte($_POST['infoCte']); echo json_encode($res); exit();
+}elseif(isset($_POST['editCte'])){
+	$res = $controller_v->editCte($_POST['editCte'], $_POST['campo'], $_POST['val']);echo json_encode($res); exit();
+}elseif (isset($_POST['leeLog'])) {
+	$res=$controller_v->leeLog();echo json_encode($res);exit();
+}else{switch ($_GET['action']){
 		case 'login':
 		$controller->Login();
 		break;

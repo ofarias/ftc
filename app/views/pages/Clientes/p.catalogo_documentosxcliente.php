@@ -37,7 +37,10 @@
                             <?php foreach($exec as $row): ?>
                             <tr>
                                 <td><?php echo $row->CLAVE;?><br/><input type="checkbox" name="serv" checked="checked" class="servicio"></td>
-                                <td title="De click para ver las facturas del cliente"><a href="index.cobranza.php?action=edoCliente&cliente=<?php echo $row->CLAVE?>&tipo=c&nombre=<?php echo $row->NOMBRE?>&maestro=<?php echo $row->CVE_MAESTRO?>" target='popup' onclick='window.open(this.href, this.target, "width=1200, height=800"); return false;'><?php echo $row->NOMBRE.'( '.$row->RFC.' )';?></a><br/> <input class="correo" type="email" placeholder="Correo para envio de documentos" value="<?php echo $row->EMAILPRED?>"  multiple size="60" cl="<?php echo $row->CLAVE ?>"></td>
+                                <td title="De click para ver las facturas del cliente"><a href="index.cobranza.php?action=edoCliente&cliente=<?php echo $row->CLAVE?>&tipo=c&nombre=<?php echo $row->NOMBRE?>&maestro=<?php echo $row->CVE_MAESTRO?>" target='popup' onclick='window.open(this.href, this.target, "width=1200, height=800"); return false;'><?php echo $row->NOMBRE;?></a><?php echo ' ( '.$row->RFC.' )'?><br/>&nbsp;&nbsp;&nbsp;
+
+                                    <button class="glyphicon glyphicon-pencil infoCte" cte="<?php echo $row->CLAVE?>"></button> 
+                                    <input class="correo" type="email" placeholder="Correo para envio de documentos" value="<?php echo $row->EMAILPRED?>"  multiple size="60" cl="<?php echo $row->CLAVE ?>"></td>
                                 <td><?php echo $row->MAESTRO;?></td>
                                 <td><?php echo $row->DOCUMENTOS_ASOCIADOS;?></td>
                                 <!--<td><?php echo $row->CARTERA_COBRANZA;?></td>
@@ -78,6 +81,119 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+
+    $(".infoCte").click(function(){
+        var cte = $(this).attr('cte')
+        $.ajax({
+            url:'index.v.php',
+            type:'post',
+            dataType:'json',
+            data:{infoCte:cte}, 
+            success:function(data){
+                infoCte(data, cte)
+            }
+        })
+    })
+
+    function infoCte(data, cte){
+        $.confirm({
+            columnClass: 'col-md-8',
+            title: '<b>Edicion de cliente</b> <br/><font color="blue">' + data.nombre + '</font>',
+            content:'<b>Nombre</b>:<br/><input cte="'+cte+'"class="editCte" campo="nombre" value="'+data.nombre+'" size="100" maxlength="120"> '+
+            '<br/><b>Calle</b>:<br/><input cte="'+cte+'"class="editCte" campo="calle" value="'+data.calle+'" size="100" maxlength="80"> '+
+            '<br/><b>Ext</b>:<br/><input cte="'+cte+'"class="editCte" campo="numint" value="'+data.int+'" size="100" maxlength="80"> '+
+            '<br/><b>Int</b>:<br/><input cte="'+cte+'"class="editCte" campo="numext" value="'+data.ext+'" size="100" maxlength="80"> '+
+            '<br/><b>Colonia</b>:<br/><input cte="'+cte+'"class="editCte" campo="colonia" value="'+data.colonia+'" size="100" maxlength="50"> '+
+            '<br/><b>Estado</b>:<br/><input cte="'+cte+'"class="editCte" campo="estado" value="'+data.estado+'" size="100" maxlength="50"> '+
+            '<br/><b>RFC</b>:<br/><input cte="'+cte+'"class="editCte" campo="rfc" value="'+data.rfc+'" size="100" maxlength="13"> '+
+            '<br/><b>CP</b>:<br/><input cte="'+cte+'"class="editCte" campo="codigo" value="'+data.cp+'" size="100" maxlength="5"> '+
+            '<br/><b>Tel</b>:<br/><input cte="'+cte+'"class="editCte" campo="telefono" value="'+data.tel+'" size="100" maxlength="25">' +
+            '<br/><b>CFDI 4</b>:<br/><input type="checkbox" cte="'+cte+'"class="editCte" campo="cfdi4" '+data.cfdi4+' id = "chkCfdi">' +
+
+            //'<br/><b>Uso CFDI</b>:<br/><input cte="'+cte+'"class="editCte" campo="uso_cfdi" value="'+data.uso_cfdi+'" size="100" maxlength="25">' +
+            '<br/><b>Uso CFDI</b>:<br/> <font color="red"><b> ' + data.uso_cfdi + '</b></font> '+
+                '<br/><select cte="'+cte+'"class="editCte" campo="uso_cfdi">'+
+                    '<option value="no" >Seleccionar un uso</option>'+
+                    '<option value="G01" >G01 Adquisición de mercancías.</option>'+
+                    '<option value="G02" >G02 Devoluciones, descuentos o bonificaciones.</option>'+
+                    '<option value="G03" >G03 Gastos en general.</option>'+
+                    '<option value="I01" >I01 Construcciones.</option>'+
+                    '<option value="I02" >I02 Mobiliario y equipo de oficina por inversiones.</option>'+
+                    '<option value="I03" >I03 Equipo de transporte.</option>'+
+                    '<option value="I04" >I04 Equipo de computo y accesorios.</option>'+
+                    '<option value="I05" >I05 Dados, troqueles, moldes, matrices y herramental.</option>'+
+                    '<option value="I06" >I06 Comunicaciones telefónicas.</option>'+
+                    '<option value="I07" >I07 Comunicaciones satelitales.</option>'+
+                    '<option value="I08" >I08 Otra maquinaria y equipo.</option>'+
+                    '<option value="D01" >D01 Honorarios médicos, dentales y gastos hospitalarios.</option>'+
+                    '<option value="D02" >D02 Gastos médicos por incapacidad o discapacidad.</option>'+
+                    '<option value="D03" >D03 Gastos funerales.</option>'+
+                    '<option value="D04" >D04 Donativos.</option>'+
+                    '<option value="D05" >D05 Intereses reales efectivamente pagados por créditos hipotecarios (casa habitación).</option>'+
+                    '<option value="D06" >D06 Aportaciones voluntarias al SAR.</option>'+
+                    '<option value="D07" >D07 Primas por seguros de gastos médicos.</option>'+
+                    '<option value="D08" >D08 Gastos de transportación escolar obligatoria.</option>'+
+                    '<option value="D09" >D09 Depósitos en cuentas para el ahorro, primas que tengan como base planes de pensiones.</option>'+
+                    '<option value="D10" >D10 Pagos por servicios educativos (colegiaturas).</option>'+
+                    '<option value="S01" >S01 Sin efectos fiscales.  </option>'+
+                    '<option value="CP01" >CP01 Pagos</option>'+
+                    '<option value="CN01" >CN01 Nómina</option>'+
+                '</select>'+
+            '<br/><b>Regimen </b>: <font color="red"><b>'+ data.regimen +'</b></font> '+
+                '<br/><select cte="'+cte+'"class="editCte" campo="sat_regimen">' +
+                    '<option value="no" >Seleccionar</option>'+
+                    '<option value="601" >601 General de Ley Personas Morales</option>'+
+                    '<option value="603" >603 Personas Morales con Fines no Lucrativos</option>'+
+                    '<option value="605" >605 Sueldos y Salarios e Ingresos Asimilados a Salarios</option>'+
+                    '<option value="606" >606 Arrendamiento</option>'+
+                    '<option value="607" >607 Régimen de Enajenación o Adquisición de Bienes</option>'+
+                    '<option value="608" >608 Demás ingresos</option>'+
+                    '<option value="610" >610 Residentes en el Extranjero sin Establecimiento Permanente en México</option>'+
+                    '<option value="611" >611 Ingresos por Dividendos (socios y accionistas)</option>'+
+                    '<option value="612" >612 Personas Físicas con Actividades Empresariales y Profesionales</option>'+
+                    '<option value="614" >614 Ingresos por intereses</option>'+
+                    '<option value="615" >615 Régimen de los ingresos por obtención de premios</option>'+
+                    '<option value="616" >616 Sin obligaciones fiscales</option>'+
+                    '<option value="620" >620 Sociedades Cooperativas de Producción que optan por diferir sus ingresos</option>'+
+                    '<option value="621" >621 Incorporación Fiscal</option>'+
+                    '<option value="622" >622 Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras</option>'+
+                    '<option value="623" >623 Opcional para Grupos de Sociedades</option>'+
+                    '<option value="624" >624 Coordinados</option>'+
+                    '<option value="625" >625 Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas</option>'+
+                    '<option value="626" >626 Régimen Simplificado de Confianza</option>'+
+                '</select>'
+
+            //'<br/><b>Regimen</b>:<br/><input cte="'+cte+'"class="editCte" campo="sat_regimen" value="'+data.regimen+'" size="100" maxlength="25">' 
+            ,
+            buttons:{
+                cerrar:{
+                    text:'Cerrar',
+                    btnClass:'btn-blue',
+                    
+                }
+            }
+        })
+    }
+
+    $("body").on("change", ".editCte", function(e){
+        e.preventDefault();
+        var cte = $(this).attr('cte')
+        var campo = $(this).attr('campo')
+        var val = $(this).val()
+        if(campo == 'cfdi4'){if($('#chkCfdi').prop('checked') ) {val = 1}else{val = 0}}
+        if(campo == 'uso_cfdi' && val == 'no'){$.alert('Seleccione una opcion valida.');return false;}
+        $.ajax({
+            url:'index.v.php',
+            type:'post', 
+            dataType:'json',
+            data:{editCte:cte, campo, val}, 
+            success:function(data){
+
+            }
+        })
+    })
+
 
     $(".correo").change(function(){
         var correo = $(this).val()

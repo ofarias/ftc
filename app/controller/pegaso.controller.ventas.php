@@ -1971,9 +1971,13 @@ class pegaso_controller_ventas{
             $data = new pegaso_ventas;
             $factura = $data->creaFact($doc, $mp, $fp, $uso);
             $fact = new factura;
-            $timbra = $fact->timbraFact($factura, null);
-            $mueve = $fact->moverNCSUB($factura, $timbra);
-            return array("status"=>'ok',"factura"=>$factura, "mensaje"=>'Se genero la factura: '.$factura);
+            //$timbra = $fact->timbraFact($factura, null); /// version 3.3
+            $timbrav4 = $fact->timbraFactV4($factura, null);
+            //$mueve = $fact->moverNCSUB($factura, $timbra);
+            sleep(4);
+            $muevev4 = $fact->moverFactv4($factura, $timbrav4);
+            $leeLog = $fact->leeLog($doc);
+            return array("status"=>'ok',"factura"=>$factura, "mensaje"=>'Se genero la factura: '.$factura, "msgLog"=>$leeLog['mensaje']);
         }
     }
 
@@ -2016,6 +2020,24 @@ class pegaso_controller_ventas{
                 $e = "Favor de iniciar Sesión";
                 header('Location: index.php?action=login&e='.urlencode($e)); exit;
         }    
+    }
+
+    function infoCte($cte){
+        $data = new pegaso_ventas;
+        $res=$data->infoCte($cte);
+        return $res;
+    }
+
+    function editCte($cte, $campo, $val){
+        $data = new pegaso_ventas;
+        $res=$data->editCte($cte, $campo, $val);
+        return $res;
+    }
+
+    function leeLog(){
+        $fact = new factura;
+        $res=$fact->leeLog($doc=null);
+        return $res;
     }
 }
 ?>

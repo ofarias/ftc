@@ -2406,10 +2406,7 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	echo json_encode($response);
 	exit();
 }elseif(isset($_POST['buscaDocv'])) {
-	$docv=$_POST['buscaDocv'];
-	$response=$controller->buscaDocv($docv);
-	echo json_encode($response);
-	exit();
+	$docv=$_POST['buscaDocv']; $response=$controller->buscaDocv($docv); echo json_encode($response); exit();
 }elseif(isset($_POST['editarArticulo'])){
 	$art = $_POST['editarArticulo'];
 	$tipo = $_POST['tipo'];

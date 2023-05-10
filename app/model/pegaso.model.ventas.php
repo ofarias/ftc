@@ -2543,4 +2543,51 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return $data;
     }
 
+
+    function infoCte($cte){
+        $data=array(); $info=array();
+        $this->query="SELECT c.*, (SELECT R.DESCRIPCION FROM REGIMEN_SAT R WHERE R.CLAVE = c.SAT_REGIMEN) AS regimen, (SELECT U.DESCRIPCION FROM USO_SAT U WHERE U.CLAVE = c.USO_CFDI) AS uso FROM CLIE01 c WHERE c.CLAVE_TRIM = trim('$cte')";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)) {
+            $data[]=$tsArray;
+        }
+        foreach ($data as $k) {
+            $info= array("nombre"=>$k->NOMBRE,
+                         "rfc"=>$k->RFC,
+                         "calle"=>$k->CALLE,
+                         "int"=>$k->NUMINT,
+                         "ext"=>$k->NUMEXT,
+                         "colonia"=>$k->COLONIA, 
+                         "cp"=>$k->CODIGO, 
+                         "localidad"=>$k->LOCALIDAD, 
+                         "municipio"=>$k->MUNICIPIO, 
+                         "estado"=>$k->ESTADO, 
+                         "tel"=>empty($k->TELEFONO)? '':$k->TELEFONO,
+                         "cfdi4"=>empty($k->CFDI4)? '':'Si',
+                         "uso_cfdi"=>empty($k->USO_CFDI)? '':$k->USO_CFDI.' ('.utf8_encode($k->USO).') ' ,
+                         "regimen"=>empty($k->SAT_REGIMEN)? '':$k->SAT_REGIMEN.' ('.utf8_encode($k->REGIMEN).') ' 
+                        );
+        }
+        return $info;
+    }
+
+    function editCte($cte, $campo, $val){
+            $this->query="SELECT $campo as val from CLIE01 WHERE CLAVE_TRIM = trim('$cte')";
+            $res=$this->EjecutaQuerySimple();
+            $row=ibase_fetch_object($res);
+            $this->ftclog($cte, $campo, $val, 'CLIE01', $row->VAL);
+            $this->query="UPDATE CLIE01 SET $campo = '$val' where CLAVE_TRIM = trim('$cte')";
+            $this->queryActualiza();
+        return;
+    }
+
+    function ftclog($idt, $campo, $val, $tabla, $actual){
+        $usuario = $_SESSION['user']->NOMBRE;
+        $this->query="INSERT INTO FTC_CHG_LOG (ID, TABLA, USUARIO, CAMPO, ACTUAL, NUEVO, FECHA, STATUS, ID_TABLA) 
+            VALUES (NULL, '$tabla', '$usuario', '$campo', '$actual', '$val', current_timestamp, 0, '$idt')";
+        $this->grabaBD();
+        return;
+    }
+
+
 }?>

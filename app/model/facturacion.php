@@ -440,6 +440,429 @@ class factura extends database {
 		return $mensaje;//$mensaje = array("status"=>'ok',"factura"=>'$serie'.$nf);
 	}
 
+	function nuevaFactura_cfdi4($idc, $uso, $tpago, $mpago, $cp, $rel, $ocdet, $entdet){
+		$usuario = $_SESSION['user']->NOMBRE;
+		############### Traemos los datos Fiscales para la factura.##############
+    	//$docu=$nfact['folioNC'];
+    	$this->query="SELECT * FROM FTC_EMPRESAS WHERE ID = 1";
+    	$r=$this->EjecutaQuerySimple();
+    	$rowDF=ibase_fetch_object($r);
+		#########################################################################
+
+		//echo $idc.'<br/>';
+		$mysql = new pegaso_rep;
+		$dec=4; //decimales redondeados.
+		$dect=2; //decimales Truncados.
+		$imp1=0.16;
+		$this->query="SELECT C.*, 
+			(SELECT DETALLISTA FROM CARTERA WHERE TRIM(IDCLIENTE) = (SELECT TRIM(CVE_CLPV) FROM FACTP01 WHERE CVE_DOC = C.CVE_FACT)) AS DET 
+			FROM CAJAS C WHERE ID = $idc";
+		$res = $this->EjecutaQuerySimple();
+		$valRefacturacion=ibase_fetch_object($res);
+		$validacion = $valRefacturacion->PAR_FACTURADAS; 
+		$statusOriginal=$valRefacturacion->STATUS;
+		if($validacion ==  0 and $valRefacturacion->STATUS !='CFDI' and $valRefacturacion->STATUS != 'PENDIENTE'){
+			$this->query="UPDATE CAJAS SET STATUS = 'PENDIENTE' WHERE ID = $idc";
+			$this->queryActualiza();
+
+			$cliente = 'Liverpool';
+			if($valRefacturacion->DET == 1){
+				$det=$this->addendaLiverpool($idc, $uso, $tpago, $mpago, $cp, $rel, $ocdet, $entdet);
+				return $det;
+			}
+
+			if($idc < 9999999){
+			$this->query ="SELECT p.descripcion|| coalesce((select first 1 coalesce((select first 1 cast(ANEXO_DESCRIPCION as varchar(1000))
+                      from FTC_ANEXO_DESCR
+                      where CAJA = $idc and
+                            PARTIDA = P.PARTIDA and
+                            STATUS is null), '') as ANEXO from DETALLE_CAJA D
+                        where D.IDCAJA = $idc and D.partida = p.partida
+                        ),'') as descripcion, 
+						P.*,
+						(SELECT DBIMPPRE FROM FTC_COTIZACION_DETALLE
+		                WHERE cdfolio = (SELECT cdfolio FROM FTC_COTIZACION WHERE CVE_COTIZACION = DOCUMENTO)
+		                AND ('PGS'||CVE_ART) = ARTICULO
+		                ) AS PRECIO,
+		                (SELECT DBIMPDES FROM FTC_COTIZACION_DETALLE
+		                WHERE cdfolio = (SELECT cdfolio FROM FTC_COTIZACION WHERE CVE_COTIZACION= DOCUMENTO)
+		                AND ('PGS'||CVE_ART) = ARTICULO
+		                ) AS DESCUENTO,
+		                (SELECT CVE_CLIENTE FROM FTC_COTIZACION WHERE CVE_COTIZACION = DOCUMENTO) AS CLIENTE 
+		                FROM PAQUETES P WHERE IDCAJA = $idc and cantidad > devuelto";
+		}else{
+				$this->query="SELECT trim(f.CVE_CLPV) AS CLIENTE, 
+							p.cant as cantidad, 
+							p.prec as precio, 
+							p.desc1 as descuento, 
+							(select nombre from producto_ftc where clave = p.cve_art )as descripcion,
+							p.cve_art as articulo, 
+							p.id_Preoc, 
+							99 as idcaja, 
+							9 as id
+							FROM PAR_FACTV01 p 
+							left join factv01 f on f.cve_doc = p.cve_doc 
+							WHERE f.CVE_DOC = '$cp'";
+		}
+
+		$rs=$this->EjecutaQuerySimple();
+		while ($tsArray = ibase_fetch_object($rs)){
+			$data[]=$tsArray;
+		}
+		$totalDescuento= 0; 
+		$subTotal= 0;
+		$totalImp1=0;
+		$IEPS=0;
+		$desc2=0;
+		$descf=0;
+		$caja = $idc;
+		foreach ($data as $key) {  /// Calcula los totales pata pegarlos en la cabecera
+			$cliente=trim($key->CLIENTE);
+			/// Bases
+			$pPt = $this->truncarNumero($key->PRECIO, $dec, $dect); /// Precio Partida truncado; // $pPt
+			$pP=number_format($key->PRECIO, $dec,".",""); /// Precio redondeado // $pP
+			$pC=$key->CANTIDAD-$key->DEVUELTO;
+			$pDp=$key->DESCUENTO;/// Porcentaje de descuento por Partida.
+			$pS=$pP*$pC;
+			$pDi=(($key->DESCUENTO/100 * ($pP*$pC)));/// Descuento por el precio por la cantidad
+			$pImp1 = ($pS - $pDi)*$imp1; /// Importe del Impuesto1 imp1 
+			$totalDescuento =$totalDescuento + $pDi;
+			$subTotal =$subTotal+$pS;
+			$totalImp1=$totalImp1+$pImp1;
+			$totalDoc= $subTotal - $totalDescuento + $totalImp1;
+			$subSat = $this->truncarNumero($subTotal,$dec,$dect);
+			$totImp1Sat=number_format($totalImp1,2,".","");
+		}			
+			$this->query="SELECT * FROM CAJAS WHERE ID = $idc";
+			$res =$this->EjecutaQuerySimple();
+			$row = ibase_fetch_object($res);
+			$cotizacion = $row->CVE_FACT;
+			//exit($this->query);//// Obtenemos los datos de la caja....
+			$serie = $_SESSION['user']->CATEGORIA;
+			$this->query="SELECT iif(MAX(FOLIO) is null, 0, max(folio)) AS FOLIO FROM FTC_CTRL_FACTURAS WHERE SERIE = '$serie'";
+			$res=$this->EjecutaQuerySimple();
+			$folio = ibase_fetch_object($res);
+			$nf = $folio->FOLIO + 1;
+			$this->query="UPDATE FTC_CTRL_FACTURAS SET FOLIO = $nf where SERIE  ='$serie'";
+			$rs = $this->queryActualiza();
+			if($rs ==1 ){
+					$this->query="SELECT * FROM CLIE01 WHERE TRIM(CLAVE)='$cliente'";
+					$res=$this->EjecutaQuerySimple();
+					$cl=ibase_fetch_object($res);
+					$this->query="INSERT INTO FTC_FACTURAS (IDF, DOCUMENTO, SERIE, FOLIO, FORMADEPAGOSAT, VERSION, TIPO_CAMBIO, METODO_PAGO, REGIMEN_FISCAL, LUGAR_EXPEDICION, MONEDA, TIPO_COMPROBANTE, CONDICIONES_PAGO, SUBTOTAL, IVA, IEPS, DESC1, DESC2, DESCF, TOTAL, SALDO_FINAL, ID_PAGOS, ID_APLICACIONES, NOTAS_CREDITO, MONTO_NC, MONTO_PAGOS, MONTO_APLICACIONES, CLIENTE, USO_CFDI, STATUS, USUARIO, FECHA_DOC, FECHAELAB, IDCAJA) 
+					VALUES (NULL, ('$serie'||$nf), '$serie', $nf, '$tpago', '3.3', 1, '$mpago', '$rowDF->REGIMEN_FISCAL', '$rowDF->LUGAR_EXPEDICION', 'MXN', 'I', '$cp', $subTotal, $totalImp1, $IEPS, $totalDescuento, $desc2, $descf, $totalDoc, $totalDoc, '','', '', 0,0,0,'$cliente', '$uso', 0, '$usuario ', current_timestamp, current_timestamp, $caja)";
+					$this->grabaBD();
+					//exit($this->query);//// Insertamos la cabecera de la factura.	
+					$datos = array($cliente,$row->UNIDAD, $cl->NOMBRE,$cl->CALLE.', '.$cl->NUMEXT,$cl->COLONIA, $cl->ESTADO,$cl->TELEFONO, $cl->EMAILPRED,$cl->REFERENCIA_ENVIO, $caja,$totalDoc,'$serie'.$nf);  
+					$idviaje = $mysql->ingresaLogReparto($datos); /// Creamos el registro en la BD MySQL para el Rastreador.
+					$partida =0;
+					$totalDescuento= 0; 
+					$totalImp1=0;
+					$IEPS=0;
+					$desc2=0;
+					$descf=0;
+					$subTotal= 0;
+					$st2=0;
+					$st3=0;
+					$st4=0;
+					foreach ($data as $keyp ) {
+						$partida += 1;
+						$pPt = $this->truncarNumero($keyp->PRECIO, $dec, $dect); /// Precio Partida truncado; // $pPt
+						$pP=number_format($keyp->PRECIO, $dec,".",""); /// Precio redondeado // $pP
+						$pC=$keyp->CANTIDAD-$keyp->DEVUELTO;
+						$pDp=$keyp->DESCUENTO;/// Porcentaje de descuento por Partida.
+						// Calculos
+						$pS=$pP*$pC;
+						$pDi=number_format((($keyp->DESCUENTO/100 * ($pP*$pC))),2,".","");/// Descuento por el precio por la cantidad
+						$pImp1 = ($pS-$pDi)*$imp1; /// Importe del Impuesto1 imp1 
+						/// Totales
+						$totalDescuento=$totalDescuento + $pDi;
+						$psubTotal=number_format($pP*$pC,2,".","");
+						$subTotal+= $pS;
+						$totalImp1+=$pImp1;
+						$pTotal= $psubTotal-$pDi+$pImp1;
+						/// Datos Fiscales
+								//$pPt2=$this->truncarNumero($key->PRECIO, 6, 2);
+								//$st2=$st2 + $pPt2;
+								//$pPt3=$this->truncarNumero($key->PRECIO, 6, 3);
+								//$st3=$st3 + $pPt3;
+								//$pPt4=$this->truncarNumero($key->PRECIO, 6, 4);
+								//$st4=$st4 + $pPt4;
+						$base=number_format($psubTotal-$pDi,$dec,".","");	
+						$bimp=number_format($base * 0.16,$dec,".","");
+						$descr = $keyp->DESCRIPCION;
+						$this->query="INSERT INTO FTC_FACTURAS_DETALLE (IDFP, IDF, DOCUMENTO, PARTIDA, CANTIDAD, ARTICULO, UM, DESCRIPCION, IMP1, IMP2, IMP3, IMP4, DESC1, DESC2, DESC3, DESCF, SUBTOTAL, TOTAL, CLAVE_SAT, MEDIDA_SAT, PEDIMENTOSAT, LOTE, USUARIO, FECHA, IDPREOC, IDPAQUETE, IDCAJA, PRECIO )
+						VALUES(NULL, (SELECT IDF FROM FTC_FACTURAS WHERE DOCUMENTO = ('$serie'||$nf)), 
+									 ('$serie'||$nf), 
+									 $partida, $keyp->CANTIDAD-$keyp->DEVUELTO, '$keyp->ARTICULO', (SELECT UM FROM PREOC01 WHERE ID = $keyp->ID_PREOC), '$descr', 16, 0, 0, 0, $pDi, 0,0,0, $psubTotal, $pTotal, (SELECT coalesce(CVE_PRODSERV, '40141700') FROM INVE01 WHERE CVE_ART = '$keyp->ARTICULO'), (SELECT coalesce(CVE_UNIDAD, 'H87') FROM INVE01 WHERE CVE_ART = '$keyp->ARTICULO'), '', '', '$usuario', current_timestamp, $keyp->ID_PREOC, $keyp->ID, $keyp->IDCAJA, $pP)";	
+						$this->grabaBD();
+						$this->query="SELECT coalesce(CVE_UNIDAD, 'H87') AS CVE_UNIDAD, coalesce(CVE_PRODSERV, '40141700') AS CVE_PRODSERV,
+							coalesce(UNI_MED, 'Pza') as UNI_MED  FROM INVE01 WHERE CVE_ART='$keyp->ARTICULO'";
+						$resultado=$this->EjecutaQuerySimple();
+						$infoprod=ibase_fetch_object($resultado);
+						$datosp = array($idviaje,'$serie'.$nf, $partida, $keyp->CANTIDAD, $descr, $keyp->PRECIO, $psubTotal);
+						/// Base = importe para calcular el IVA 
+						$impConcepto=array(
+											"Base"=>"$base",
+								            "Impuesto"=>"002",
+								            "TipoFactor"=>"Tasa",
+								            "TasaOCuota"=>"0.160000",
+								            "Importe"=>"$bimp"
+											);
+						$trasConceptos[]=$impConcepto;
+						$trasConcepto=array("Traslados"=>$trasConceptos);
+						unset($trasConceptos);
+						
+						$CANTIDADN=$keyp->CANTIDAD-$keyp->DEVUELTO;
+
+						if($totalDescuento > 0){
+									$concepto = array(
+										  "ClaveProdServ"=> trim("$infoprod->CVE_PRODSERV"),
+									      "ClaveUnidad"=> "$infoprod->CVE_UNIDAD",
+									      "noIdentificacion"=> "$keyp->ARTICULO",
+									      "unidad"=> "$infoprod->UNI_MED",
+									      "Cantidad"=>"$CANTIDADN",
+									      "descripcion"=> "$descr",
+									      "ValorUnitario"=> "$pP",
+									      "Importe"=> "$pS",
+									      "Descuento"=>"$pDi",
+									      "Impuestos"=>$trasConcepto
+											);
+						}else{
+
+									$concepto = array(
+										  "ClaveProdServ"=> trim("$infoprod->CVE_PRODSERV"),
+									      "ClaveUnidad"=> "$infoprod->CVE_UNIDAD",
+									      "noIdentificacion"=> "$keyp->ARTICULO",
+									      "unidad"=> "$infoprod->UNI_MED",
+									      "Cantidad"=>"$CANTIDADN",
+									      "descripcion"=> "$descr",
+									      "ValorUnitario"=> "$pP",
+									      "Importe"=> "$base",
+									      "Impuestos"=>$trasConcepto
+											);
+						}
+					$conceptos[]=$concepto;
+					$partidas = $mysql->ingresaLogRepartoDetalle($datosp);/// ingresamos las partidas al rastreador.
+					}
+					$impuesto1 = array(	"Impuesto"=> "002",
+									    "TipoFactor"=> "Tasa",
+									    "TasaOCuota"=>"0.160000",
+									    "Importe"=>"$totImp1Sat"
+										);
+					
+					$Traslados=array($impuesto1);
+					$imptrs="TotalImpuestosTrasladados:".$totImp1Sat;//.$IVA; 
+					$imp = array(
+							     "TotalImpuestosTrasladados"=>"$totImp1Sat",//"$IVA",
+							 	 "Traslados"=>$Traslados);
+					$impuestos = array("Impuestos"=>$imp,);
+					$totSat= $subSat-$totalDescuento+$totImp1Sat;
+					
+					$relacion=$rel;
+					if($relacion==1){
+						$this->query="SELECT first 1 * FROM FTC_FACTURAS WHERE IDCAJA = $idc and status = 8 order by fecha_cancelacion desc";
+						$res=$this->EjecutaQuerySimple();
+						$row=ibase_fetch_object($res);
+						if(isset($row)){
+							$uuidr = $row->UUID;
+							$cfdiRelacionado = array("UUID"=>$uuidr);
+							$cfdiRelacionados=array("TipoRelacion"=>"04",
+									"CfdiRelacionado"=>$cfdiRelacionado
+									);
+						}
+					}
+
+					if($totalDescuento >0){
+						$datos_factura = array( 
+											"Caja"=>"$idc",
+											"FormaPago"=>"$mpago",
+											"Version"=>"3.3",
+											"Folio"=>"$nf",
+											"Serie"=>"$serie",
+											"TipoCambio"=>"1.0",
+											"MetodoPago"=> "$tpago",
+		    								"RegimenFiscal"=> "$rowDF->REGIMEN_FISCAL",
+										    "LugarExpedicion"=> "$rowDF->LUGAR_EXPEDICION",
+										    "Moneda"=> "MXN",
+										    "TipoDeComprobante"=> "I",
+										    "condicionesDePago"=> "$mpago",
+										    "SubTotal"=>"$subSat",//"$ST",
+										    "Descuento"=>"$totalDescuento",
+										    "Total"=>"$totSat",
+										    "Impuestos"=>$imp
+										);
+					}else{
+						$datos_factura = array( 
+											"Caja"=>"$idc",
+											"FormaPago"=>"$mpago",
+											"Version"=>"3.3",
+											"Folio"=>"$nf",
+											"Serie"=>"$serie",
+											"TipoCambio"=>"1.0",
+											"MetodoPago"=> "$tpago",
+		    								"RegimenFiscal"=> "$rowDF->REGIMEN_FISCAL",
+										    "LugarExpedicion"=> "$rowDF->LUGAR_EXPEDICION",
+										    "Moneda"=> "MXN",
+										    "TipoDeComprobante"=> "I",
+										    "condicionesDePago"=> "$mpago",
+										    "SubTotal"=>"$subSat",//"$ST",
+										    "Total"=>"$totSat",
+										    "Impuestos"=>$imp
+										);					
+					}
+
+					if($relacion==1){
+						$datos_factura["CfdiRelacionados"]=$cfdiRelacionados;
+					}
+
+					//$nombre=utf8_encode($cl->NOMBRE);
+					$nombre=utf8_decode($cl->NOMBRE);
+					$json_cliente=array(
+										"id"=>"$cl->CLAVE",
+										"UsoCFDI"=>"$uso",
+										"nombre"=>"$nombre",
+										"rfc"=>"$cl->RFC",
+										"correo"=>"ofarias@ftcenlinea.com"
+										);
+					$df =array( "id_transaccion"=>0,
+					  			"cuenta"=>strtolower($rowDF->RFC),
+					  			"user"=>'administrador',
+					  			"password"=>$rowDF->CONTRASENIA,
+					  			"getPdf"=>true,
+					  			"conceptos"=>$conceptos,
+								"datos_factura"=>$datos_factura,
+								"method"=>'nueva_factura', 
+								"cliente"=>$json_cliente
+								);
+					//var_dump($df).'<br/>';
+					$factura = json_encode($df,JSON_UNESCAPED_UNICODE);
+					$fh = fopen("C:\\xampp\\htdocs\\Facturas\\EntradaJson\\".$serie.'-'.$nf.".json", 'w');
+					fwrite($fh, $factura);
+					fclose($fh);
+					$espera= 3;
+					sleep(3);
+					$fecha = date('d-m-Y');
+					while ( $espera <= 15){	
+						if(file_exists("C:\\xampp\\htdocs\\Facturas\\originales\\".$serie.'-'.$nf.".json")){
+							$factura = 'ok';
+							sleep(2);
+							copy("C:\\xampp\\htdocs\\Facturas\\FacturasJson\\".str_replace(" ","",trim($cl->RFC))."(".$serie.$nf.")".$fecha.".xml", "C:\\xampp\\htdocs\\Facturas\\facturaPegaso\\".$serie.$nf.".xml");
+							$mensaje='Si la timbro';
+							$espera = 15;
+						}elseif(file_exists("C:\\xampp\\htdocs\\Facturas\\ErroresJson\\".$serie.'-'.$nf.".json")){
+							$factura = 'error';
+							$mensaje = 'Error la factura no se timbro';
+							$espera = 15; 						
+
+						}
+						sleep(2);
+						$espera = $espera+3;
+					}
+
+					if($factura){
+						//// Codigo para cerrar la caja se actualiza lo facturado en la tabla de control facturas.
+						$this->query="SELECT * FROM FTC_FACTURAS_DETALLE WHERE DOCUMENTO = '$serie'||$nf and (status= 0 or status is null)"; 
+						$result=$this->EjecutaQuerySimple();
+						while ($tsArray3=ibase_fetch_object($result)){
+							$partidas[]=$tsArray3;
+						}
+						$i = 0;
+						foreach ($partidas as $key) {
+							$documento = $key->DOCUMENTO;
+							$idcaja = $key->IDCAJA;
+							$i++;
+							$this->query="SELECT * FROM control_fact_rem where 
+									caja = $idcaja 
+									and idpreoc = $key->IDPREOC 
+									and (status = 'Nuevo' or status= 'remisionado')";
+							$result=$this->EjecutaQuerySimple();
+							$tipoControl=ibase_fetch_object($result);
+							$res = false;
+							//echo 'Consulta Control Fact'.$this->query.'<br/>';
+							if($tipoControl){
+								if($tipoControl->STATUS == 'remisionado'){
+									$this->query="UPDATE control_fact_rem set fact_rem = fact_rem - $key->CANTIDAD, FACTURAS = '$key->DOCUMENTO', STATUS = 'facturado', usuario_factura='$usuario', fecha_factura= current_timestamp
+												WHERE caja = $idcaja and idpreoc = $key->IDPREOC and status= 'remisionado'";
+									@$res=$this->queryActualiza();
+								}elseif ($tipoControl->STATUS == 'Nuevo'){
+									$this->query="UPDATE control_fact_rem set pxf = pxf - $key->CANTIDAD , USUARIO_FACTURA = '$usuario', FECHA_FACT_REM = current_timestamp, FECHA_FACTURA= CURRENT_TIMESTAMP,
+												FACTURAS = '$key->DOCUMENTO', STATUS = 'facturado'
+												WHERE caja = $idcaja and idpreoc = $key->IDPREOC and status = 'Nuevo'";
+									@$res=$this->queryActualiza();
+								}
+								
+								if($res==1){
+									$this->query="UPDATE PREOC01 SET FACTURADO = FACTURADO + $key->CANTIDAD, 
+																	 FACTURA = iif(factura is null,  '$serie'||$nf, factura||','||'$serie'||$nf),
+																	 PENDIENTE_FACTURAR = PENDIENTE_FACTURAR - $key->CANTIDAD 
+																	 where id = $key->IDPREOC";
+									$this->EjecutaQuerySimple();
+									$this->query="UPDATE CAJAS SET PAR_FACTURADAS = $i WHERE ID = $key->IDCAJA";
+									$this->EjecutaQuerySimple();
+									$this->query="UPDATE FTC_FACTURAS_DETALLE SET STATUS = 1 WHERE IDFP= $key->IDFP";
+									$this->queryActualiza();
+								}
+							}		
+						}
+								
+						$this->query="SELECT COUNT(IDFP) AS PARTIDAS FROM FTC_FACTURAS_DETALLE WHERE DOCUMENTO='$documento' and status = 1";
+						$resultado= $this->EjecutaQuerySimple();
+						$valfact=ibase_fetch_object($resultado);
+						$partidasFacturadas = $valfact->PARTIDAS;
+						//exit('Partidas afectadas '.$partidasFacturadas.' validacion:'.$i);
+							if($partidasFacturadas == $i){
+								$this->query="UPDATE FTC_FACTURAS SET STATUS = 1 WHERE DOCUMENTO='$documento'";
+								$this->EjecutaQuerySimple();
+
+								if($statusOriginal == 'cerrado'){
+									$this->query="UPDATE CAJAS SET FACTURA='$documento' where id=$idcaja";
+									$this->EjecutaQuerySimple();
+								}else{
+									$this->query="UPDATE CAJAS SET STATUS='cerrado', ruta='N', FACTURA='$documento', Docs='No' where id=$idcaja";
+									$this->EjecutaQuerySimple();
+								}
+
+								if($factura == 'ok'){
+									$mensaje = array("status"=>'ok', "factura"=>$serie.$nf,"razon"=>'Se ha cerrado la caja', "rfc"=>$cl->RFC, "fecha"=>$fecha);	
+								}elseif($factura == 'error'){
+									$mensaje = array("status"=>'No', "factura"=>$serie.$nf,"razon"=>'Se ha cerrado la caja', "rfc"=>$cl->RFC, "fecha"=>$fecha);
+								}
+							}else{
+								$this->query="UPDATE CAJAS SET STATUS = 'cerrado' where id=$idcaja";
+								$this->EjecutaQuerySimple();
+								//$this->query="UPDATE FTC_FACTURAS SET STATUS = 8 WHERE DOCUMENTO='$documento'";
+								//$this->EjecutaQuerySimple();
+								//$avisoCorreo = $this->avisoCorreo($docuemnto);
+									//if($avisoCorreo == 'ok'){
+										$this->query="UPDATE FTC_FACTURAS SET STATUS = 9 WHERE DOCUMENTO = '$documento'";
+										$this->EjecutaQuerySimple();
+									//}
+								$mensaje = array("status"=>'ok', "factura"=>$serie.$nf,"razon"=>'Se ha cerrado la caja y de Auditara la Mercancia', "rfc"=>$cl->RFC, "fecha"=>$fecha );
+							}
+					}else{
+						//Echo "No Existe y no se creo la facura";
+						$this->query="UPDATE CAJAS SET status='CFDI' where id = $idc";
+						$this->queryActualiza();
+						$mensaje = array("status"=>'No', "razon"=>'No se timbro la factura');
+					}
+				}else{
+					$mensaje = array("status"=>'No', "razon"=>'No se creo el folio');
+				}
+		}else{
+			if($valRefacturacion->STATUS == 'CFDI'){
+				$mensaje = array("status"=>'No', "razon"=>'La Factura se encuentra el proceso de timbrado, favor de esperar');
+			}elseif($valRefacturacion->STATUS == 'PENDIENTE'){
+				$mensaje = array("status"=>'No', "razon"=>'La caja esta en proceso de facturacion');	
+			}else{
+				$mensaje = array("status"=>'No', "razon"=>'Ya se facturo la Caja');	
+			}
+		}
+		//$this->query="UPDATE cajas set status= 'abierto', PAR_FACTURADAS= 0  where id = 41489";
+		//$this->EjecutaQuerySimple();
+		return $mensaje;//$mensaje = array("status"=>'ok',"factura"=>'$serie'.$nf);
+	}
+
 	function addendaLiverpool($idc, $uso, $tpago, $mpago, $cp, $rel, $ocdet, $entdet){
 		$mysql = new pegaso_rep;
 		$dec=4; //decimales redondeados.
@@ -1054,6 +1477,295 @@ class factura extends database {
 		return $cl->RFC;
     }
 
+
+	function timbraFactV4($docf, $idc){
+    	$usuario = $_SESSION['user']->NOMBRE;
+		############### Traemos los datos Fiscales para la factura.##############
+    	//$docu=$nfact['folioNC'];
+    	$this->query="SELECT * FROM FTC_EMPRESAS WHERE ID = 1";
+    	$r=$this->EjecutaQuerySimple();
+    	$rowDF=ibase_fetch_object($r);
+		#########################################################################
+		if(gettype($idc) == 'array'){
+    		$cfdiRelacionado = array("UUID"=>$idc["uuid_c"]);
+			//$cfdiRelacionado = array("UUID"=>"C46B2089-99B3-174C-B164-804944240C64");
+			$cfdiRelacionados=array("TipoRelacion"=>"04",
+									"CfdiRelacionado"=>$cfdiRelacionado
+									);
+			$doc=$idc['factCancel'];
+			$this->query="UPDATE FTC_FACTURAS SET STATUS = 8 WHERE DOCUMENTO = '$doc'";
+			$this->EjecutaQuerySimple();
+    	}
+
+    	$this->query="SELECT * FROM FTC_FACTURAS WHERE DOCUMENTO = '$docf'";
+		$res=$this->EjecutaQuerySimple();
+		$row=ibase_fetch_object($res);
+			$mpago=$row->METODO_PAGO;
+			$nf=$docf;
+			$tpago = $row->FORMADEPAGOSAT;
+			$uso =$row->USO_CFDI;
+			$serie =$row->SERIE;
+			$folio = $row->FOLIO;
+			$idc =empty($row->IDCAJA)? 0:$row->IDCAJA;
+		
+		$mysql = new pegaso_rep;
+		$dec=4; //decimales redondeados.
+		$dect=2; //decimales Truncados.
+		$imp1=0.16;
+			
+			$this->query="SELECT * FROM CLIE01 WHERE CLAVE_TRIM= (SELECT TRIM(CLIENTE) FROM FTC_FACTURAS WHERE DOCUMENTO='$docf')";
+    		$rs=$this->EjecutaQuerySimple();
+    		$rowc=ibase_fetch_object($rs);
+    		$cliente=$rowc->CLAVE_TRIM;
+    		$nombre=$rowc->NOMBRE;
+    		$rfc=$rowc->RFC;
+
+			$this->query="SELECT fd.*, f.cliente FROM FTC_FACTURAS_DETALLE fd LEFT JOIN FTC_FACTURAS F ON F.documento = fd.documento WHERE fd.DOCUMENTO = '$docf' and (fd.status= 0 or fd.status is null) and cantidad > 0"; 
+			$rs=$this->EjecutaQuerySimple();
+			while ($tsArray = ibase_fetch_object($rs)){
+				$data[]=$tsArray;
+			}
+				$totalDescuento= 0; 
+				$subTotal= 0;
+				$totalImp1=0;
+				$IEPS=0;
+				$desc2=0;
+				$descf=0;
+				$caja = $idc;
+			foreach ($data as $key) {  /// Calcula los totales pata pegarlos en la cabecera
+					$cliente=trim($key->CLIENTE);
+					$pPt = $this->truncarNumero($key->PRECIO, $dec, $dect); /// Precio Partida truncado; // $pPt
+					$pP=number_format($key->PRECIO, $dec,".",""); /// Precio redondeado // $pP
+					$pC=$key->CANTIDAD;
+					//$pDp=$key->DESCUENTO;
+					$pS=$pP*$pC;
+					$pDi=number_format($key->DESC1,$dec,".","");/// Descuento por el precio por la cantidad
+					$pImp1 = ($pS - $pDi)*$imp1; 
+					$totalDescuento =$totalDescuento + $pDi;
+					$subTotal =$subTotal+$pS;
+					$totalImp1=$totalImp1+$pImp1;
+					$totalDoc= $subTotal - $totalDescuento + $totalImp1;
+					$subSat = $this->truncarNumero($subTotal,$dec,$dect);
+					$totImp1Sat=number_format($totalImp1,2,".","");
+			}
+
+			$this->query="SELECT * FROM CAJAS WHERE ID = $idc";
+			$res =$this->EjecutaQuerySimple();
+			$row = ibase_fetch_object($res);
+			@$cotizacion = $row->CVE_FACT;
+			//exit($this->query);//// Obtenemos los datos de la caja....
+			$this->query="SELECT * FROM CLIE01 WHERE TRIM(CLAVE)='$cliente'";
+			$res=$this->EjecutaQuerySimple();
+			$cl=ibase_fetch_object($res);
+					//exit($this->query);//// Insertamos la cabecera de la factura.	
+
+					$partida =0;
+					$totalDescuento= 0; 
+					$totalImp1=0;
+					$IEPS=0;
+					$desc2=0;
+					$descf=0;
+					$subTotal= 0;
+					$st2=0;
+					$st3=0;
+					$st4=0;
+					foreach ($data as $keyp ) {
+						$partida += 1;
+						$pPt = $this->truncarNumero($keyp->PRECIO, $dec, $dect); /// Precio Partida truncado; // $pPt
+						$pP=number_format($keyp->PRECIO, $dec,".",""); /// Precio redondeado // $pP
+						$pC=$keyp->CANTIDAD;
+						//$pDp=$keyp->DESC1;/// Porcentaje de descuento por Partida.
+						// Calculos
+						$pS=$pP*$pC;
+						$pDi=number_format($keyp->DESC1,$dec,".","");/// Descuento por el precio por la cantidad
+						$pImp1 = ($pS-$pDi)*$imp1; /// Importe del Impuesto1 imp1 
+						/// Totales
+						$totalDescuento=$totalDescuento + $pDi;
+						$psubTotal=number_format($pP*$pC,2,".","");
+						$subTotal+= $pS;
+						$totalImp1+=$pImp1;
+						$pTotal= $psubTotal-$pDi+$pImp1;
+							$base=number_format($psubTotal-$pDi,$dec,".","");	
+							$bimp=number_format($base * 0.16,$dec,".","");
+						$this->query="SELECT coalesce(CVE_UNIDAD, 'H87') AS CVE_UNIDAD, coalesce(CVE_PRODSERV, '40141700') AS CVE_PRODSERV,
+							coalesce(UNI_MED, 'Pza') as UNI_MED  FROM INVE01 WHERE CVE_ART='$keyp->ARTICULO'";
+						$resultado=$this->EjecutaQuerySimple();
+						$infoprod=ibase_fetch_object($resultado);
+						//$datosp = array($idviaje,'$serie'.$nf, $partida, $keyp->CANTIDAD, $keyp->DESCRIPCION, $keyp->PRECIO, $psubTotal);
+						/// Base = importe para calcular el IVA
+						$bimp=number_format($bimp,2,".",""); 
+						$impConcepto=array(
+											"Base"=>"$base",
+								            "Impuesto"=>"002",
+								            "TipoFactor"=>"Tasa",
+								            "TasaOCuota"=>"0.160000",
+								            "Importe"=>"$bimp"
+											);
+						$trasConceptos[]=$impConcepto;
+						$trasConcepto=array("Traslados"=>$trasConceptos);
+						unset($trasConceptos);
+						
+						if($totalDescuento > 0){
+									$concepto = array(
+										  "ClaveProdServ"=> trim("$infoprod->CVE_PRODSERV"),
+									      "ClaveUnidad"=> "$infoprod->CVE_UNIDAD",
+									      "noIdentificacion"=> utf8_encode("$keyp->ARTICULO"),
+									      "unidad"=> "$infoprod->UNI_MED",
+									      "Cantidad"=>"$keyp->CANTIDAD",
+									      "descripcion"=> "$keyp->DESCRIPCION",
+									      "ValorUnitario"=> "$pP",
+									      "Importe"=> "$pS",
+									      "Descuento"=>"$pDi",
+									      "Impuestos"=>$trasConcepto
+											);
+						}else{
+									$concepto = array(
+										  "ClaveProdServ"=> trim("$infoprod->CVE_PRODSERV"),
+									      "ClaveUnidad"=> "$infoprod->CVE_UNIDAD",
+									      "noIdentificacion"=> utf8_encode("$keyp->ARTICULO"),
+									      "unidad"=> "$infoprod->UNI_MED",
+									      "Cantidad"=>"$keyp->CANTIDAD",
+									      "descripcion"=> "$keyp->DESCRIPCION",
+									      "ValorUnitario"=> "$pP",
+									      "Importe"=> "$base",
+									      "Impuestos"=>$trasConcepto
+											);
+						}
+					$conceptos[]=$concepto;
+					}
+					
+					$baseTimp = $subTotal-$totalDescuento;
+					$impuesto1 = array(	"Impuesto"=> "002",
+											"Base"=>"$baseTimp",
+									    "TipoFactor"=> "Tasa",
+									    "TasaOCuota"=>"0.160000",
+									    "Importe"=>"$totImp1Sat"
+										);
+					$Traslados=array($impuesto1);
+					$imptrs="TotalImpuestosTrasladados:".$totImp1Sat;//.$IVA; 
+					$imp = array(
+							     "TotalImpuestosTrasladados"=>"$totImp1Sat",//"$IVA",
+							 	 "Traslados"=>$Traslados);
+					$impuestos = array("Impuestos"=>$imp,);
+					$totSat= $subSat-$totalDescuento+$totImp1Sat;
+					if($totalDescuento >0){
+						if(isset($cfdiRelacionado)){
+							$datos_factura = array( 
+											"Caja"=>"$idc",
+											"FormaPago"=>"$mpago",
+											"Version"=>"3.3",
+											"Folio"=>"$folio",
+											"Serie"=>"$serie",
+											"TipoCambio"=>"1.0",
+											"MetodoPago"=> "$tpago",
+		    								"RegimenFiscal"=> "$rowDF->REGIMEN_FISCAL",
+										    "LugarExpedicion"=> "$rowDF->LUGAR_EXPEDICION",
+										    "Moneda"=> "MXN",
+										    "TipoDeComprobante"=> "I",
+										    "condicionesDePago"=> "$mpago",
+										    "SubTotal"=>"$subSat",//"$ST",
+										    "Descuento"=>"$totalDescuento",
+										    "Total"=>"$totSat",
+										    "CfdiRelacionados"=>$cfdiRelacionados,
+										    "Impuestos"=>$imp
+										);
+						}else{
+							$datos_factura = array( 
+											"Caja"=>"$idc",
+											"FormaPago"=>"$mpago",
+											"Version"=>"3.3",
+											"Folio"=>"$folio",
+											"Serie"=>"$serie",
+											"TipoCambio"=>"1.0",
+											"MetodoPago"=> "$tpago",
+		    								"RegimenFiscal"=> "$rowDF->REGIMEN_FISCAL",
+										    "LugarExpedicion"=> "$rowDF->LUGAR_EXPEDICION",
+										    "Moneda"=> "MXN",
+										    "TipoDeComprobante"=> "I",
+										    "condicionesDePago"=> "$mpago",
+										    "SubTotal"=>"$subSat",//"$ST",
+										    "Descuento"=>"$totalDescuento",
+										    "Total"=>"$totSat",
+										    "Impuestos"=>$imp
+										);	
+						}	
+					}else{
+						if(isset($cfdiRelacionados)){
+							$datos_factura = array( 
+											"Caja"=>"$idc",
+											"FormaPago"=>"$mpago",
+											"Version"=>"3.3",
+											"Folio"=>"$folio",
+											"Serie"=>"$serie",
+											"TipoCambio"=>"1.0",
+											"MetodoPago"=> "$tpago",
+		    								"RegimenFiscal"=> "$rowDF->REGIMEN_FISCAL",
+										    "LugarExpedicion"=> "$rowDF->LUGAR_EXPEDICION",
+										    "Moneda"=> "MXN",
+										    "TipoDeComprobante"=> "I",
+										    "condicionesDePago"=> "$mpago",
+										    "SubTotal"=>"$subSat",//"$ST",
+										    "Total"=>"$totSat",
+										    "CfdiRelacionados"=>$cfdiRelacionados,
+										    "Impuestos"=>$imp
+										);
+						}else{
+							$datos_factura = array( 
+											"Caja"=>"$idc",
+											"FormaPago"=>"$mpago",
+											"Version"=>"4.0",
+											"Folio"=>"$folio",
+											"Serie"=>"$serie",
+											"TipoCambio"=>"1.00",
+											"MetodoPago"=> "$tpago",
+		    							"RegimenFiscal"=> "$rowDF->REGIMEN_FISCAL",
+										  "LugarExpedicion"=> "$rowDF->LUGAR_EXPEDICION",
+										  "Moneda"=> "MXN",
+										  "TipoDeComprobante"=> "I",
+										  "Exportacion"=>"01",
+										  "condicionesDePago"=> "$mpago",
+										  "SubTotal"=>"$subSat",//"$ST",
+										  "Total"=>"$totSat",
+										  "Impuestos"=>$imp
+										);					
+						}
+					}
+					//$nombre=utf8_encode($cl->NOMBRE);
+					$nombre=utf8_decode($cl->NOMBRE);
+					$usoCFDI = !empty($cl->USO_CFDI)? $cl->USO_CFDI:$uso;
+					$json_cliente=array(
+										"id"=>"$cl->CLAVE",
+										"UsoCFDI"=>"$usoCFDI",
+										"nombre"=>"$nombre",
+										"rfc"=>"$cl->RFC",
+										"DomicilioFiscalReceptor"=>"$cl->CODIGO",
+										"RegimenFiscalReceptor"=>"$cl->SAT_REGIMEN",
+										"correo"=>"ofarias@ftcenlinea.com"
+										);
+					/*$df =array( "conceptos"=>$conceptos,
+								"datos_factura"=>$datos_factura,
+								"method"=>'nueva_factura', 
+								"cliente"=>$json_cliente
+								);
+					*/
+					$df =array( "id_transaccion"=>0,
+					  			"cuenta"=>strtolower($rowDF->RFC),
+					  			"user"=>'administrador',
+					  			"password"=>$rowDF->CONTRASENIA,
+					  			"getPdf"=>true,
+					  			"conceptos"=>$conceptos,
+								"datos_factura"=>$datos_factura,
+								"method"=>'nueva_factura', 
+								"cliente"=>$json_cliente
+								);
+					//var_dump($df).'<br/>';
+					$factura = json_encode($df,JSON_UNESCAPED_UNICODE);
+					$fh = fopen("C:\\xampp\\htdocs\\Facturas\\EntradaJson\\".$nf.".json", 'w');
+					fwrite($fh, $factura);
+					fclose($fh);
+		return $nf;
+    }
+
     function timbraNC($docf, $idc){
     	$usuario = $_SESSION['user']->NOMBRE;
     	############### Traemos los datos Fiscales para la factura.##############
@@ -1558,6 +2270,34 @@ class factura extends database {
 					$espera = 15;
 					$mensaje=array("rfc"=>$rfc,"fecha"=>$fecha,"factura"=>$docn);
 				}elseif(file_exists("C:\\xampp\\htdocs\\Facturas\\ErroresJson\\".$nc.".json")){
+					$factura = 'error';
+					$mensaje = 'Error la factura no se timbro';
+					$espera = 15; 
+				}
+				sleep(2);
+				$espera = $espera+3;
+			}
+		return $mensaje; 
+    }
+
+    function moverFactv4($nc, $doc){
+    	$data = new pegaso;
+    	$mensaje ='';
+			$espera= 3;
+			sleep(3);
+			$fecha = date('d-m-Y');
+			$docn = $nc;
+			while ( $espera <= 15){	
+				if(file_exists("C:\\xampp\\htdocs\\Facturas\\originales\\".$nc.".json")){
+					$ncval = 'ok';
+					sleep(2);
+					copy("C:\\xampp\\htdocs\\Facturas\\FacturasJson\\".$doc.".xml", "C:\\xampp\\htdocs\\Facturas\\facturaPegaso\\".$doc.".xml");
+					$nc= "C:\\xampp\\htdocs\\Facturas\\FacturasJson\\".$doc.".xml";
+					$a = $data->leeXML($archivo=$doc);;
+					$exe = $data->insertarArchivoXMLCargado($archivo=$doc, $tipo='F', $a);
+					$espera = 15;
+					$mensaje=array("rfc"=>$doc,"fecha"=>$fecha,"factura"=>$docn);
+				}elseif(file_exists("C:\\xampp\\htdocs\\Facturas\\ErroresJson\\".$doc.".json")){
 					$factura = 'error';
 					$mensaje = 'Error la factura no se timbro';
 					$espera = 15; 
@@ -2593,4 +3333,48 @@ class factura extends database {
 		$this->query = "UPDATE FTC_CEP SET cep_status = 'R' WHERE cod_cep = $folio);";		
 		$this->grabaBD();
 	}	
+
+	function leeLog($fac){
+		$info = array();
+		$path = "C:\\xampp\\htdocs\\Facturas\\originales\\";
+		$logTxt = date('Y-m-d').'-ic.log';
+		$archivo = $path.$logTxt;
+		$fp=fopen($archivo, "r");
+		$ln=0;
+		while (!feof($fp)) {
+			$linea = fgets($fp);
+			if(strpos($linea, "|")){
+				$reg= explode("|", $linea);
+				//print_r($reg);
+				$ln++;
+				$mensaje = str_replace("'","-", $reg[7]);
+				if(strpos($mensaje, ":")){
+					$mensaje = explode(":",$reg[7]);
+					$mensaje = $mensaje[2];
+				}
+				$mensaje = str_replace("'"," ", $mensaje);
+				$doc = substr($reg[3], 37);
+				$doc = explode(".", $doc);
+				$doc = $doc[0];
+				$this->query="INSERT INTO FTC_LOG_TIMBRADO (LINEA, ID, FECHA_INICIAL, FECHA_FINAL, ORIGEN, DESTINO, XML, PDF, MENSAJE, STATUS, ARCHIVO, DOC)
+												 VALUES ($ln, $reg[0], '$reg[1]', '$reg[2]', '$reg[3]', '$reg[4]', '$reg[5]', '$reg[6]', '$mensaje', 0, '$logTxt', '$doc' )";
+				@$this->grabaBD();
+			}
+		}
+		fclose($fp);
+		if(!empty($fac)){
+			$this->query="SELECT first 1 * FROM FTC_LOG_TIMBRADO WHERE DOC = '$fac' order by id_lt desc";
+			$res=$this->EjecutaQuerySimple();
+			while ($tsArray=ibase_fetch_object($res)) {
+				$info[] = $tsArray;
+			}
+			if(@count($info)>0 ){
+				foreach ($info as $k){
+					$msg = $k->MENSAJE;
+				}
+			}
+		}
+		return array("mensaje"=>$msg);
+	}
+
 }

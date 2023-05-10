@@ -20659,6 +20659,7 @@ function ImpSolicitud2($idsol){
 	}
 
 	function buscaDoc($docf){
+		$fact = new factura;
 		$data= new pegaso;
 		$ctrl = new pegaso_controller_cobranza;
 		$res =$data->buscaDoc($docf);
@@ -20673,6 +20674,11 @@ function ImpSolicitud2($idsol){
   				$correo=$_SESSION['user']->USER_EMAIL;
   				$env=$ctrl->enviarFact($res['factura'],$correo, $mensaje="Correo generado de forma automatica");	
 			}
+		}else{
+			$timbrav4 = $fact->timbraFactV4($docf, null);
+            $mueve = $fact->moverFactv4($docf, $timbrav4);
+            $leeLog = $fact->leeLog($docf);
+            return $leeLog;
 		}
 		return $res;
 	}

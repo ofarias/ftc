@@ -13,8 +13,8 @@
     if(strpos($correo, "@")>1){
 
     } else {
-        echo "No se ha localizado el correo electr&oacute;nico a quien enviar. No se va a enviar el correo.";
-        return;
+        //echo "No se ha localizado el correo electr&oacute;nico a quien enviar. No se va a enviar el correo.";
+        return array("status"=>'no', "mensaje"=>"No se ha localizado el correo electr&oacute;nico a quien enviar. No se va a enviar el correo.");
     }
     $asunto = "Envio de Factura Electronica.";  
     $mensaje.= "<p>Gracias por su apoyo.<br />Atentamente ".$_SESSION['empresa']['nombre']."</p> <br/> <br/>Si usted no es el interesado de este correo le pedimos de favor que lo borre inmediatamente.
