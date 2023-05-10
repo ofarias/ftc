@@ -1511,7 +1511,7 @@ class CoiDAO extends DataBaseCOI {
             $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo, $partAux);
         }
         
-    if($verCfdi = '3.2'){
+    if($verCfdi == '3.2'){
             $this->imp32($impuestos, $pol, $folio, $ejercicio, $periodo, $tipo, $tbAux, $x='I',$tbPol, $fecha, $nat1, $nat0);
             $this->insertaUUID($tipo, $uuid, $pol, $folio, $ejercicio, $periodo, $partAux);
         }
