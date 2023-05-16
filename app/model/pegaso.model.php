@@ -16,6 +16,7 @@ class pegaso extends database{
 	function AccesoLogin($user, $pass){
 		$u=$user;
 			//$this->creaPeriodo();
+			die('Llega aqui');
 			$this->query = "SELECT  USER_LOGIN, USER_PASS, USER_ROL, LETRA, LETRA2, LETRA3, LETRA4, LETRA5, LETRA6, NUMERO_LETRAS, NOMBRE, CC, CR, aux_comp, COORDINADOR_COMP, USER_EMAIL, POLIZA_TIPO, CATEGORIA, LETRA_NUEVA
 						FROM PG_USERS 
 						WHERE USER_LOGIN = '$u' and USER_PASS = '$pass' and user_status = 'alta'"; /*Contraseña va encriptada con MD5*/
