@@ -8,6 +8,7 @@ class ftcws {
     private $cnx;
     protected $query;
     private function AbreCnx() {
+        echo 'llega aqui';
     	$this->cnx = mysqli_connect($this->DBServer, $this->DBUser, $this->DBPaswd);
         //$this->cnx = mysqli_connect('192.168.100.33:3308', 'ftc3', 'elPaso01+');
         if (!$this->cnx) {

@@ -21,7 +21,7 @@ class ftc extends ftcws {
         $ide = $_SESSION['empresa'][0];
         $idu = $_SESSION['user']->USER_LOGIN;
         $this->query="INSERT INTO ftc_empresas_usuarios (idu, ide, status, fecha_alta, usuario_alta) values ( (SELECT max(ID) FROM ftc_usuarios), $ide, 1, current_timestamp, (SELECT ID FROM ftc_usuarios WHERE usuario = '$idu'))";
-        echo $this->query;
+        //echo $this->query;
         $this->grabaBD();
         return;
     }
@@ -30,9 +30,8 @@ class ftc extends ftcws {
         $data=array();
         $contra = $password;
         $this->query="SELECT * FROM ftc_usuarios where usuario = '$user' and contrasenia = '$contra' and status= 'Activo'";
-        echo $this->query;
         $res=$this->EjecutaQuerySimple();
-        die($contra);
+        die($contra); /// borrar
         while ($tsArray=mysqli_fetch_array($res)){
             $data[]=$tsArray;
         }
