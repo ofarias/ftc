@@ -54,7 +54,6 @@ class pegaso_controller{
 
 	function LoginConta($user, $pass){
 		$data= new ftc;
-		die('antes de Mysql');
 		$usuario = $data->loginMysql($user, $pass);
 		$_SESSION['usuario']=$user;
 		$_SESSION['contra']=$pass;

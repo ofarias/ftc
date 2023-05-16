@@ -29,6 +29,7 @@ class ftc extends ftcws {
     function loginMysql($user, $password){
         $data=array();
         $contra = $password;
+        die($contra);
         $this->query="SELECT * FROM ftc_usuarios where usuario = '$user' and contrasenia = '$contra' and status= 'Activo'";
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=mysqli_fetch_array($res)){
