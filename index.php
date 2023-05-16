@@ -44,8 +44,6 @@ if (isset($_POST['usuario'])){
 	$idu = $_POST['idu'];
 	$controller->ActualizaUnidades($numero, $marca, $modelo, $placas, $operador, $tipo, $tipo2, $coordinador, $idu);
 }elseif(isset($_POST['user']) && isset($_POST['contra'])){
-	echo 'Login A';
-	die();
 	$controller->LoginConta($_POST['user'], $_POST['contra']);
 	//$controller->LoginA($_POST['user'], $_POST['contra']);
 }elseif(isset($_POST['actualizausr'])){
