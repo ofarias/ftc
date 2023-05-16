@@ -31,7 +31,6 @@ class ftc extends ftcws {
         $contra = $password;
         $this->query="SELECT * FROM ftc_usuarios where usuario = '$user' and contrasenia = '$contra' and status= 'Activo'";
         $res=$this->EjecutaQuerySimple();
-        die($contra); /// borrar
         while ($tsArray=mysqli_fetch_array($res)){
             $data[]=$tsArray;
         }
