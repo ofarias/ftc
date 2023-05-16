@@ -57,8 +57,6 @@ class pegaso_controller{
 		$usuario = $data->loginMysql($user, $pass);
 		$_SESSION['usuario']=$user;
 		$_SESSION['contra']=$pass;
-		print_r($usuario);
-		die();
 		if(!empty($usuario)){
 			foreach ($usuario as $key) {
 				$u = $key['usuario'];
