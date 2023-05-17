@@ -12,6 +12,7 @@
 			$host = 'ofa.dyndns.org:'.$_SESSION['bd'];
 			//$path = "C:\\users\\gense\\desktop\\Datos\\";
 			//$host = $path.$_SESSION['folder'].'\\'.$_SESSION['bd'];
+			phpinfo();
 			$this->cnx=ibase_connect($host, self::$usr, self::$pwd);
 		}
 		#Cierra la conexion a la base de datos
