@@ -3,13 +3,15 @@
 /*Clase para acceder a datos*/
     abstract class database{
     	private static $usr = "SYSDBA";
-		private static $pwd = "masterkey";
+		private static $pwd = "genseg01+";
 		private $cnx;
 		protected $query;
-		private $host = "C:\\ftcData\\PCF.FDB";
+		//private $host = "C:\\ftcData\\PCF.FDB";
+		private $host = "/home/ofarias/ftc_v3.fdb";
 		#Abre la conexión a la base de datos
 		private function AbreCnx(){
 			$host = 'ofa.dyndns.org:'.$_SESSION['bd'];
+			$host = '192.168.0.126:/home/ofarias/ftc_v3.fdb';
 			//$path = "C:\\users\\gense\\desktop\\Datos\\";
 			//$host = $path.$_SESSION['folder'].'\\'.$_SESSION['bd'];
 			$this->cnx=ibase_connect($host, self::$usr, self::$pwd);

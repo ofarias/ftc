@@ -3006,6 +3006,7 @@ class factura extends database {
 		#########################################################################
 
 		$datosCEP = $this->obtienPagos($pagos, $idCliente, $ctaO, $bancoO, $tipoO, $numope);
+
 		if (count($datosCEP) > 0){
 			$folio = $this->generaFolioCEP();
 			$conceptos = array(
@@ -3042,7 +3043,16 @@ class factura extends database {
                     "Complementos"=>$Complementos
                   	);
             } else {
-            	$Complementos[] = array("Pagos"=>array("Pago"=>$datosCEP['pagos'])); 
+            	$totales = array(
+            									"TotalTrasladosBaseIVA16"=>"0",
+            									"TotalTrasladosImpuestoIVA16"=>"0",
+            									"MontoTotalPagos"=>"0"
+            									);
+            	
+            	$pagos = array("Version"=>"2.0", "Totales"=>$totales, "Pago"=>$datosCEP['pagos']);
+
+            	//$Complementos[] = array("Pagos"=>array("Pago"=>$datosCEP['pagos'])); 
+              $Complementos[] = array("Pagos"=>$pagos); 
                 $cep = array (
                     "id_transaccion"=>"0",
                     "cuenta"=>"faao790324e57",
@@ -3057,10 +3067,104 @@ class factura extends database {
                 );
             }
 			$fileCEP = $this->generaJsonCEP($cep, $folio);	
-			$final=$this->procesaJsonCEP($fileCEP,$folio, $foliop=$pagos, $datosCEP);
+			//$final=$this->procesaJsonCEP($fileCEP,$folio, $foliop=$pagos, $datosCEP);
+			die();
 		} else {
 			echo "KO - Error a pantalla ...";
 		}
+		die();
+		return $final;
+	}
+
+	function generaCEPPago_v4($pagos, $idCliente, $ctaO, $bancoO,$tipoO, $numope, $esPrueba=false) {
+		//exit($pagos.'Cliente: '.$idCliente.' CuentaO: '.$ctaO.' Banco: '.$bancoO.',  tipo'.$tipoO);
+		############### Traemos los datos Fiscales para la factura.##############
+    	//$docu=$nfact['folioNC'];
+    	$this->query="SELECT * FROM FTC_EMPRESAS WHERE ID = 1";
+    	$r=$this->EjecutaQuerySimple();
+    	$rowDF=ibase_fetch_object($r);
+		#########################################################################
+
+		$datosCEP = $this->obtienPagos($pagos, $idCliente, $ctaO, $bancoO, $tipoO, $numope);
+		$baseT = $datosCEP['pagos'][0]['Monto'];
+		$trasT = $baseT*0.16;
+		if (count($datosCEP) > 0){
+			$folio = $this->generaFolioCEP();
+			$conceptos = array(
+                "ClaveProdServ"=>"84111506",
+                "ClaveUnidad"=>"ACT",
+                "Importe"=>"0",
+                "Cantidad"=>"1",
+                "descripcion"=>"Pago",
+                "ValorUnitario"=>"0",
+                "ObjetoImp"=>"01"
+            );
+
+            $datosFactura = array(
+                "Serie"=>"P",
+                "Folio"=>$folio,
+                "Version"=>"4.0",
+                "RegimenFiscal"=>"$rowDF->REGIMEN_FISCAL",
+                "LugarExpedicion"=>"$rowDF->LUGAR_EXPEDICION",
+                "Moneda"=>"XXX",
+                "TipoDeComprobante"=>"P",
+                "numero_de_pago"=>$datosCEP['aplicados'],
+                "cantidad_de_pagos"=>"1",
+                "Exportacion"=>"01",
+                "SubTotal"=>"0",
+                "Total"=>"0"
+            );
+
+            if ($esPrueba) {
+                $Complementos[] = array("Pagos"=>array("Pago"=>$datosCEP['pagos'])); 
+                $cep = array (
+                    "id_transaccion"=>"0",
+                    "cuenta"=>$row->RFC,
+                    "user"=>"administrador",
+                    "password"=>$rowDF->CONTRASENIA,
+                    "getPdf"=>true,
+                    "conceptos"=>[$conceptos],
+                    "datos_factura"=>$datosFactura,
+                    "method"=>"nueva_factura",
+                    "cliente"=>$datosCEP['cliente'],
+                    "Complementos"=>$Complementos
+                  	);
+            } else {
+            	
+            	$totales = array(
+            									"TotalTrasladosBaseIVA16"=>"$baseT",
+            									"TotalTrasladosImpuestoIVA16"=>"$trasT",
+            									"MontoTotalPagos"=>"$baseT"
+            									);
+            	
+
+
+            	$pagos = array("Version"=>"2.0", "Totales"=>$totales, "Pago"=>$datosCEP['pagos']);
+
+            	//$Complementos[] = array("Pagos"=>array("Pago"=>$datosCEP['pagos']));
+            	
+
+              $Complementos[] = array("Pagos"=>$pagos ); 
+            	
+            	$cep = array (
+                    "id_transaccion"=>"0",
+                    "cuenta"=>$rowDF->RFC,//
+                    "user"=>"administrador",
+                    "password"=>$rowDF->CONTRASENIA,//
+                    "getPdf"=>true,
+                    "conceptos"=>[$conceptos],
+                    "datos_factura"=>$datosFactura,
+                    "method"=>"nueva_factura",
+                    "cliente"=>$datosCEP['cliente'],
+                    "Complementos"=>$Complementos
+                );
+            }
+			$fileCEP = $this->generaJsonCEP($cep, $folio);	
+			//$final=$this->procesaJsonCEP($fileCEP,$folio, $foliop=$pagos, $datosCEP);
+		} else {
+			echo "KO - Error a pantalla ...";
+		}
+		die();
 		return $final;
 	}
 
@@ -3069,7 +3173,7 @@ class factura extends database {
 		//$pagosId = implode(", ",$pagos);
 		$pagosId = $pagos;
 		if(substr($idCliente,0,1) != 'F'){
-		$mysql->query  = "SELECT CP.ID, CP.CLIENTE, CP.FECHA, CP.STATUS,(SELECT C.NOMBRE FROM CLIE01 C WHERE C.CLAVE_TRIM =TRIM('$idCliente')), (SELECT C.RFC FROM clie01 C WHERE C.CLAVE_TRIM = TRIM('$idCliente')) ";
+		$mysql->query  = "SELECT CP.ID, CP.CLIENTE, CP.FECHA, CP.STATUS,(SELECT C.NOMBRE FROM CLIE01 C WHERE C.CLAVE_TRIM =TRIM('$idCliente')), (SELECT C.RFC FROM clie01 C WHERE C.CLAVE_TRIM = TRIM('$idCliente')), (SELECT C.CODIGO FROM CLIE01 C WHERE C.CLAVE_TRIM =TRIM('$idCliente')), (SELECT C.SAT_REGIMEN FROM CLIE01 C WHERE C.CLAVE_TRIM =TRIM('$idCliente')) ";
 		$mysql->query .= "  FROM CARGA_PAGOS CP ";		
 		//$mysql->query .= " INNER JOIN CLIE01 C ";
 		//$mysql->query .= "    ON CP.CLIENTE = C.CLAVE_TRIM";
@@ -3089,16 +3193,20 @@ class factura extends database {
 			//$cliente = $registro->CLIENTE;
 			$cliente = $idCliente;
 			if ($cliente==$idCliente){
+
 				if(substr($idCliente,0,1) == 'F'){
 				$idPago = $pagos;
 				$nombre = $registro->NOMBRE;
 				$rfc = $registro->RFC;
 				$cepCliente = array(
 					"id"=>$cliente,
+					"UsoCFDI"=>'P01',
 					"nombre"=>$nombre,
 					"rfc"=>$rfc,
-					"UsoCFDI"=>'P01'
+					"DomicilioFiscalReceptor"=>"$registro->CODIGO",
+					"RegimenFiscalReceptor"=>"$registro->SAT_REGIMEN"
 				);
+
 				array_push($idPagos, $idPago);
 				//echo "cliente.nombre/rfc: ".$nombre."/$rfc\n";		
 				}else{
@@ -3106,9 +3214,11 @@ class factura extends database {
 				$rfc = $registro->RFC;
 				$cepCliente = array(
 					"id"=>$cliente,
+					"UsoCFDI"=>'P01',
 					"nombre"=>$nombre,
 					"rfc"=>$rfc,
-					"UsoCFDI"=>'P01'
+					"DomicilioFiscalReceptor"=>"$registro->CODIGO",
+					"RegimenFiscalReceptor"=>"$registro->SAT_REGIMEN"
 				);
 				array_push($idPagos, $idPago);
 				//echo "cliente.nombre/rfc: ".$nombre."/$rfc\n";
@@ -3179,23 +3289,45 @@ class factura extends database {
 			$aplicaciones[]=$registro;
 			
 		}
-			foreach($aplicaciones as $pagoAplicado){
+		$base = 0;
+		$importeP=0;
+		foreach($aplicaciones as $pagoAplicado){
 				$did = $pagoAplicado->DOCUMENTO;
 				$montoAplicado=$pagoAplicado->MONTO_APLICADO;
 				$montoSaldo=$pagoAplicado->SALDO_DOC;
 				//echo "processing documento: ".$did."\n";
 				$documentos = $this->datosDocumento($did, $montoAplicado, $montoSaldo, $ctaO, $bancoO, $tipoO);
 				$DocsRelacionados[]=$documentos;
+				$base += $montoAplicado;
+				$base = number_format($base,2,".","");
+				$importeP =number_format($base * 0.16,2,".","");
+				
+				$trasladoP=array();	
+
+				$trasladoP[] = array(
+														"BaseP"=>"$base",
+														"ImpuestoP"=>'002',
+														"TipoFactorP"=>'Tasa',
+														"TasaOCuotaP"=>'0.160000',
+														"ImporteP"=>"$importeP"
+														); 
+				$trasladosP = array("TrasladoP"=>$trasladoP);
+				//$impuestosP = array("RetencionesP"=>$retencionesP, "TrasladosP"=>$trasladosP);
+				$impuestosP = array("TrasladosP"=>$trasladosP);
+
 				
 				if($cuentaO == '' or $bancoE == '' or $rfcEmisor==''){
 					$aplica= array(
 						"FechaPago"=>substr($x->FECHA_RECEP,0,10).'T12:00:00',
 						"FormaDePagoP"=>"$tipoO",
 						"MonedaP"=>"MXN",
+						"TipoCambioP"=>"1",
 						"Monto"=>"$montoPago",
 						"RfcEmisorCtaBen"=>"$rfcBR",
 						"CtaBeneficiario"=>"$cuentaR",
-						"DoctoRelacionado"=>$DocsRelacionados
+						"NumOperacion"=>"1",
+						"DoctoRelacionado"=>$DocsRelacionados,
+						"ImpuestosP"=>$impuestosP
 					);
 				}else{
 
@@ -3204,27 +3336,31 @@ class factura extends database {
 							"FechaPago"=>substr($x->FECHA_RECEP,0,10).'T12:00:00',
 							"FormaDePagoP"=>"$tipoO",
 							"MonedaP"=>"MXN",
-							"NumOperacion"=>"$numope",
+							"TipoCambioP"=>"1",
 							"Monto"=>"$montoPago",
 							"RfcEmisorCtaOrd"=>"$rfcEmisor",
 							"NomBancoOrdExt"=>"$bancoE",
 							"CtaOrdenante"=>"$cuentaO",
 							"RfcEmisorCtaBen"=>"$rfcBR",
 							"CtaBeneficiario"=>"$cuentaR",
-							"DoctoRelacionado"=>$DocsRelacionados
+							"NumOperacion"=>"$numope",
+							"DoctoRelacionado"=>$DocsRelacionados,
+							"ImpuestosP"=>$impuestosP
 						);
 					}else{
 						$aplica= array(
 							"FechaPago"=>substr($x->FECHA_RECEP,0,10).'T12:00:00',
 							"FormaDePagoP"=>"$tipoO",
 							"MonedaP"=>"MXN",
+							"TipoCambioP"=>"1",
 							"Monto"=>"$montoPago",
 							"RfcEmisorCtaOrd"=>"$rfcEmisor",
 							"NomBancoOrdExt"=>"$bancoE",
 							"CtaOrdenante"=>"$cuentaO",
 							"RfcEmisorCtaBen"=>"$rfcBR",
 							"CtaBeneficiario"=>"$cuentaR",
-							"DoctoRelacionado"=>$DocsRelacionados
+							"DoctoRelacionado"=>$DocsRelacionados,
+							"ImpuestosP"=>$impuestosP
 						);	
 					}
 					
@@ -3233,7 +3369,7 @@ class factura extends database {
 			$pagos=array("Pago"=>$aplica);
 		}
 		if($v>0){
-			exit('Ya existe');
+			//exit('Ya existe');
 		}
 		//exit(var_dump($datosPago));
 		return $pagos;
@@ -3247,29 +3383,77 @@ class factura extends database {
 		$montoAplicado=number_format($montoAplicado,2,".","");
 		$montoSaldo=number_format($montoSaldo,2,".","");
 		$mysql = new pegaso;
-			$mysql->query = "SELECT ftc_facturas.uuid AS UUID,  FTC_FACTURAS.metodo_pago AS METODO, ftc_facturas.moneda AS MONEDA, SERIE AS SERIE, FOLIO as folio ";
+			$mysql->query = "SELECT uuid AS UUID, metodo_pago AS METODO, moneda AS MONEDA, SERIE AS SERIE, FOLIO as folio, total as importe, subtotal, 0 as SALDOINS ";
 			$mysql->query.= "  FROM ftc_facturas ";
 			$mysql->query.= "  WHERE ftc_facturas.documento = '$documentoId';";
 			$res = $mysql->EjecutaQuerySimple();
-		//echo $mysql->query.'<br/>';
+		
 		while ($registro = ibase_fetch_object($res)){
+			
+			$saldoAnt=$registro->SALDOINS + $registro->IMPORTE;
+      $si = number_format($registro->SALDOINS,2,".","");
+      $saldoAnt=number_format($saldoAnt,2,".","");
+      $imp=number_format($registro->IMPORTE,2,".","");
+      /// el importe es del pago? o del documento?.
+      $datosTrasDr = array();
+			//$base = number_format($p->SUBTOTAL,2,".","");
+			//$importeP =number_format($base * 0.16,2,".","");
+			$base = number_format($imp,2,".","");
+			$importeP =number_format($base * 0.16,2,".","");
+
+			$datosTrasDr[] = array("BaseDR"=>"$base",
+													"ImpuestoDR"=>'002',
+													"TipoFactorDR"=>'Tasa',
+													"TasaOCuotaDR"=>'0.160000',
+													"ImporteDR"=>"$importeP"
+													);
+			$trasladoDr=array();
+			$trasladoDr[] = array("TrasladoDR"=>$datosTrasDr);
+
+			$datosRetDr=array();
+			$datosRetDr[] = array("BaseDR"=>0,
+													"ImpuestoDR"=>0,
+													"TipoFactorDR"=>0,
+													"TasaOCuotaDR"=>0,
+													"ImporteDR"=>0
+													);
+			
+			$retencionDr = array("RetencionDr"=>$datosRetDr);
+
+			//$impDR = array("RetencionesDR"=>$retencionDr, "TrasladosDR"=>$trasladoDr);
+			
+			//$ImpuestosDR = array("RetencionesDR"=>$retencionDr, "TrasladosDR"=>$trasladoDr);
+			$ImpuestosDR = array("TrasladosDR"=>$trasladoDr);
+			$retencionP = array();
+			$retencionP[] = array("ImpuestoP"=>"001",
+													"ImporteP"=>"0"
+													);
+			$retencionesP = array("RetencionP"=>$retencionP);
+
 			$documento = array (
-				"IdDocumento"=>$registro->UUID,
-				"Serie"=>"$registro->SERIE",
 				"Folio"=>"$registro->FOLIO",
+				"Serie"=>"$registro->SERIE",
+				"IdDocumento"=>$registro->UUID,
 				"MonedaDR"=>$registro->MONEDA,
-				"MetodoDePagoDR"=>"PPD",
+				"EquivalenciaDR"=>"1",
 				"NumParcialidad"=>"1",
 				"ImpSaldoAnt"=>"$montoAplicado",
 				"ImpPagado"=>"$montoAplicado",
-				"ImpSaldoInsoluto"=>"$montoSaldo"
+				"ImpSaldoInsoluto"=>"$montoSaldo", 
+				"ObjetoImpDR"=>"02",
+				"ImpuestosDR"=>$ImpuestosDR,
 			);			
 		}
 		return $documento;
 	}
 
+
+
 	function generaJsonCEP ($datosCEP, $folio) {
 		$location = "C:\\xampp\\htdocs\\Facturas\\EntradaJson\\";
+		if(!file_exists($location)){
+			mkdir($location,0777, true);
+		}
 		$json = json_encode($datosCEP, JSON_UNESCAPED_UNICODE);
 		$mysql = new pegaso;
 		$mysql->query = "INSERT INTO FTC_CEP VALUES (";
