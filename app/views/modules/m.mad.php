@@ -17,7 +17,7 @@
                     </div>
                     <div class="panel-body">
                         <p><b>Proveedores y Productos</b></p>
-                        <center><a href="index.php?action=menuPP" class="btn btn-default" > <img src="app/views/images/Proveedores_y_productos/Proveedores_y_productos_ico.png" width="80" height="90"></a></center>
+                        <center><a href="index.php?action=menuPP" class="btn btn-default" > <img src="app/views/images/Proveedores y productos/Proveedores y productos ico.png" width="80" height="90"></a></center>
                     </div>
                 </div>
             </div>
