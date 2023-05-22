@@ -53,7 +53,7 @@
                         <h4>Imprimir Facturas</h4>
                     </div>
                     <div class="panel-body">
-                        <center><a href="index.php?action=imprimeXML" class="btn btn-default"><img class="img-ico" src="app/views/images/Ventas/ImpFact.png" width="50" height="70"></a></center>
+                        <center><a href="index.php?action=imprimeXML" class="btn btn-default"><img class="img-ico" src="app/views/images/Ventas/impFact.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
@@ -83,8 +83,7 @@
                         <h4>Solicitudes de Margen Bajo </h4>
                     </div>
                     <div class="panel-body">
-                        <p>Definir Margen Bajo</p>
-                        <center><a href="index.v.php?action=verSMB" class="btn btn-default"><img src="app/views/images/users.png"></a></center>
+                        <center><a href="index.v.php?action=verSMB" class="btn btn-default"><img src="app/views/images/Ventas/ventas.jpg" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>    
@@ -95,7 +94,7 @@
                         <h4>Realizar Notas de Credito</h4>
                     </div>
                     <div class="panel-body">
-                        <p>NC y Refac</p>
+                        
                         <center><a href="index.php?action=buscaFacturaNC" class="btn btn-default"><img class="img-ico" src="app/views/images/Clipboard-Paste-icon.png"></a></center>
                     </div>
                 </div>
