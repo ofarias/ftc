@@ -34,7 +34,7 @@
                     </div>
                     <div class="panel-body">
                         <p><br></p>
-                        <center><a href="index.php?action=documentos_cliente" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/Catalogodeclientes.png" width="50" height="70"></a></center>
+                        <center><a href="index.php?action=documentos_cliente" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/CatalogodeClientes.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
@@ -77,7 +77,7 @@
                         <h4>Cobranza </h4>
                     </div>
                     <div class="panel-body">    
-                        <center><a href="index.cobranza.php?action=cobranza" class="btn btn-default"><img class="img-ico" src="app/views/images/cobranza/cobranza_n.png" width="70" height="80"></a></center>
+                        <center><a href="index.cobranza.php?action=cobranza" class="btn btn-default"><img class="img-ico" src="app/views/images/Cobranza/cobranza_n.png" width="70" height="80"></a></center>
                     </div>
                 </div>
             </div>
@@ -87,7 +87,7 @@
                         <h4>Clientes y SKU</h4>
                     </div>
                     <div class="panel-body">
-                        <center><a href="index.v.php?action=verFTCArticulosVentas" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/ClientesSku.png" width="50" height="70"></a></center>
+                        <center><a href="index.v.php?action=verFTCArticulosVentas" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/clientesSku.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
@@ -150,7 +150,7 @@
                         <h4>Imprimir Relacion de Pago</h4>
                     </div>
                     <div class="panel-body">
-                        <center><a href="index.php?action=buscaPagosActivos" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/impPolizas.png" width="50" height="70"></a></center>
+                        <center><a href="index.php?action=buscaPagosActivos" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/ImpPolizas.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div> 
@@ -183,7 +183,7 @@
               </div>
               <div class="panel-body">
                   <p>Pagos Edo Cuenta</p>
-                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img src="app/views/images/dinero_v1.jpg"></a></center>
+                  <center><a href="index.php?action=edoCta_docs" class="btn btn-default"><img src="app/views/images/Cobranza/dinero_v1.jpg"></a></center>
               </div>
           </div>
         </div>

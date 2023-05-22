@@ -17,7 +17,7 @@
                     </div>
                     <div class="panel-body">
                         <p><b>Proveedores y Productos</b></p>
-                        <center><a href="index.php?action=menuPP" class="btn btn-default" > <img src="app/views/images/Proveedores_y_Productos/Proveedores_y_productos_ico.png" width="80" height="90"></a></center>
+                        <center><a href="index.php?action=menuPP" class="btn btn-default" > <img src="app/views/images/Proveedores_y_productos/Proveedores_y_productos_ico.png" width="80" height="90"></a></center>
                     </div>
                 </div>
             </div>
@@ -72,7 +72,7 @@
                     </div>
                     <div class="panel-body">
                         <p><b>Recoleccion</b></p>
-                        <center><a href="index.php?action=menuLR" class="btn btn-default" > <img src="app/views/images/LogisticaRecoleccion/logistica.png" width="80" height="90"></a></center>
+                        <center><a href="index.php?action=menuLR" class="btn btn-default" > <img src="app/views/images/LogisticaRecoleccion/Logistica.png" width="80" height="90"></a></center>
                     </div>
                 </div>
             </div>
@@ -127,7 +127,7 @@
                     </div>
                     <div class="panel-body">
                         <p><b>Contabilidad</b></p>
-                        <center><a href="index.php?action=menuCO" class="btn btn-default" > <img src="app/views/images/Contabilidad/contabilidad.png" width="80" height="90"></a></center>
+                        <center><a href="index.php?action=menuCO" class="btn btn-default" > <img src="app/views/images/Contabilidad/Contabilidad.png" width="80" height="90"></a></center>
                     </div>
                 </div>
             </div>
