@@ -129,7 +129,7 @@
                         <h4>Documentos en Preruta</h4>
                     </div>
                     <div class="panel-body">
-                        <center><a href="index.php?action=submenusec" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/Catalogodeclientes.png" width="50" height="70"></a></center>
+                        <center><a href="index.php?action=submenusec" class="btn btn-default"><img class="img-ico" src="app/views/images/Clientes/CatalogodeClientes.png" width="50" height="70"></a></center>
                     </div>
                 </div>
             </div>
