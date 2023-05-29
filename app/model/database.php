@@ -3,24 +3,27 @@
 /*Clase para acceder a datos*/
     abstract class database{
     	private static $usr = "SYSDBA";
-		private static $pwd = "masterkey";
+		private static $pwd = "genseg01+";
 		private $cnx;
 		protected $query;
 		private $host = "";
+		
 		#Abre la conexión a la base de datos
 		private function AbreCnx(){
 			if($_SESSION['servidor'] == 'Debian'){
-				$pwd = 'genseg01+';
 				$host = 'ofa.dyndns.org/3350:'.$_SESSION['db_new'];
 			}else{
 				$host = 'ofa.dyndns.org:'.$_SESSION['bd'];
 			}
 			$this->cnx=ibase_connect($host, self::$usr, self::$pwd);
 		}
+
 		#Cierra la conexion a la base de datos
 		private function CierraCnx(){
 			ibase_close($this->cnx);
 		}
+
+		
 		#Ejecuta un query simple del tipo INSERT, DELETE, UPDATE
 		protected function EjecutaQuerySimple(){
 			$this->AbreCnx();
