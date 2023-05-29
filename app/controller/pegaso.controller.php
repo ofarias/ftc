@@ -61,6 +61,7 @@ class pegaso_controller{
 			foreach ($usuario as $key) {
 				$u = $key['usuario'];
 			}
+
 			$pagina = $this->load_template('Menu Admin');			
 			$html = $this->load_page('app/views/modules/m.adminConta.php');
 			ob_start();

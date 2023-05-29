@@ -2518,10 +2518,9 @@ elseif (isset($_POST['imprimeValidacion'])) {
 	$controller->addendaLoreal($docf, $oc, $recepcion, $cc);
 	exit();
 }elseif (isset($_POST['generaJson'])) {
-	$docf=$_POST['docf'];
-	$idc = $_POST['caja'];
-	$controller->generaJson($docf, $idc);
-	exit();
+	$docf=$_POST['docf'];$idc = $_POST['caja']; $controller->generaJson($docf, $idc); exit();
+}elseif (isset($_POST['generaJsonv4'])) {
+	$controller->generaJsonR($_POST['docf'], $_POST['caja'], $_POST['db']); exit();
 }elseif(isset($_POST['timbraNC'])){
 	$docf=$_POST['docf'];
 	$docn=$_POST['docn'];

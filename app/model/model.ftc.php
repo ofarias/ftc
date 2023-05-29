@@ -95,6 +95,8 @@ class ftc extends ftcws {
         $_SESSION['rfc']=$data['rfc'];
         $_SESSION['r_coi']=$data['ruta_coi'];
         $_SESSION['empresa']=$data;
+        $_SESSION['servidor']=$data['servidor'];
+        $_SESSION['db_new']=$data['db_new'];
         return $data['ruta_bd'];
     }
 

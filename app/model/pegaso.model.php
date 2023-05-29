@@ -21,7 +21,6 @@ class pegaso extends database{
 						WHERE USER_LOGIN = '$u' and USER_PASS = '$pass' and user_status = 'alta'"; /*Contraseña va encriptada con MD5*/
 			$res = $this->EjecutaQuerySimple();
 		 	$log = ibase_fetch_object($res);
-		 	
 		 	if(isset($log) > 0){
 					$mySQL = new ftc;
 					$coi = new CoiDAO;

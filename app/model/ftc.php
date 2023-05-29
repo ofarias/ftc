@@ -9,7 +9,6 @@ class ftcws {
     protected $query;
     private function AbreCnx() {
         $this->cnx = mysqli_connect($this->DBServer, $this->DBUser, $this->DBPaswd);
-        //$this->cnx = mysqli_connect('192.168.100.33:3308', 'ftc3', 'elPaso01+');
         if (!$this->cnx) {
             die('no se pudo conectar 1 al host: '.$DBServer.' con el usuario: '.$DBUser.''. mysqli_error());
         }
