@@ -8,7 +8,7 @@ require_once('app/model/database.xmlTools.php');
 require_once('app/model/db.contabilidad.php');
 require_once('app/model/cargaXML.php');
 require_once('app/controller/controller.xml.php');
-require_once('app/model/acomodoXML.php');
+require_once('app/model/acomodoXml.php');
 
 class controller_xml{
 	var $contexto_local = "http://SERVIDOR:8081/pegasoFTC/app/";
@@ -1799,8 +1799,6 @@ class controller_xml{
 	}
 
 	function infoProv($rfc, $tipo){
-			echo 'infoProv';
-			die();
 		if($_SESSION['user']){
 			$data = new cargaXML;
 			$info = $data->infoProv($rfc, $tipo);
