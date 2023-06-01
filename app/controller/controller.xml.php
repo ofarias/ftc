@@ -1803,6 +1803,8 @@ class controller_xml{
 			$data = new cargaXML;
 			$info = $data->infoProv($rfc, $tipo);
 			$pagina=$this->load_template();
+			print_r($infoProv);
+			die();
 			$html=$this->load_page('app/views/pages/xml/p.infoProv.php');
    			ob_start();
    			include 'app/views/pages/xml/p.infoProv.php';   			
