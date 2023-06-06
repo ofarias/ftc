@@ -28816,7 +28816,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		    				echo 'El Archivo '.$file.'  ya existe...<br/>'. $file_dup.'<br/>';
 		    				$dup++;
 		    				rename($file,$file_dup);
-		    				die();
+		    				//die();
 		    			}	
 	    			}else{
 	    				echo 'El Archivo '.$file.'  se movio a la carpeta de No Validos...<br/>';
