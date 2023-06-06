@@ -1390,8 +1390,8 @@ $('#dataTables-ocf').DataTable({
         lengthMenu: [[500,-1], [500,"Todo"]],
         columnDefs:[
           {
-            targets: [2,3],
-            searchable: false
+            targets: [1,2,3,9,14],
+            searchable: true
           }
         ],
         language: {

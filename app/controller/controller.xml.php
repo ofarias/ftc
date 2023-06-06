@@ -188,9 +188,7 @@ class controller_xml{
 			$data=new pegaso;
 			$pagina =$this->load_template2('Pedidos');
 			$html=$this->load_page('app/views/pages/xml/p.verMetaDatosDet.php');
-   			ob_start();
-
-   			
+   			ob_start();   			
    			$md = $data->verMetaDatosDet($archivo);
    			include 'app/views/pages/xml/p.verMetaDatosDet.php';
    			$table = ob_get_clean();
@@ -2033,10 +2031,14 @@ class controller_xml{
 			}elseif($t == 4){
 				$exe =$data->revisaImagen(); 
 			}
-
-
 			return;
 		}
+	}
+
+	function revisaCarga($uuid){
+		$data = new cargaXML;
+		$res = $data->revisaCarga($uuid);
+		return $res;
 	}
 
 }?>

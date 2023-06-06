@@ -67,6 +67,8 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	$res=$controller->buscaPol($_POST['buscaPol']); echo json_encode($res); exit();
 }elseif(isset($_POST['repRet'])){
 	$res=$controller->repRet($_POST['fi'], $_POST['ff']); echo json_encode($res); exit();
+}elseif(isset($_POST['revisaCarga'])){
+	$res=$controller->revisaCarga($_POST['revisaCarga']); echo json_encode($res); exit();
 }
 else{
 	switch ($_GET['action']){

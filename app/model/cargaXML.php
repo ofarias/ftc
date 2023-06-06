@@ -1458,4 +1458,15 @@ class cargaXML extends database {
 		return $data;
 	}
 
+	function revisaCarga($uuid){
+		$data=array();
+		$this->query="SELECT coalesce(count(UUID),0) as CONTEO FROM XML_DATA WHERE UUUID = '$uuid'";
+		$res=$this->EjecutaQuerySimple();
+		$row = ibase_fetch_object($res);
+		if($row->CONTEO > 0){
+			return array("status"=>'ok');
+		}else{
+			return array("status"=>'no');
+		}
+	}
 }

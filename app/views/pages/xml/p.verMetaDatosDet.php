@@ -24,7 +24,8 @@
                                 <th>Status</th>
                                 <th>Fecha De Cancelacion</th>
                                 <th>Polizas</th>
-                                <th>Status</th>
+                                <th>Valida</th>
+                                
                             </tr>
                         </thead>
                         <tbody>
@@ -33,7 +34,7 @@
                             $color='';
                             $aviso='';
                             $status = 'Cargado';
-                            $color = "style='background-color:#DCE7F9';";
+                            //$color = "style='background-color:#DCE7F9';";
                             if(!empty($row->FECHA_CANCELACION)){
                                 $color = "style='background-color:#DC8496';";
                             }
@@ -43,10 +44,11 @@
                                 $status = 'Falta';
                             }
                                 //$color="style='background-color:brown;'";
+                            $sta = $row->STATUS == 1? 'Vigente':'Cancelado';
                             ?>
-                            <tr class="odd gradeX" <?php echo $color?> <?php echo $aviso?>>
+                            <tr class="odd gradeX" id="ln_<?php echo $row->UUID?>" <?php echo $color?> <?php echo $aviso?>>
                                 <td><?php echo $ln;?></td>
-                                <td><?php echo $row->UUID?></td>
+                                <td> <?php echo $row->UUID?> <input type="hidden" class="uuid" value="<?php echo $row->UUID?>"></td>
                                 <td><?php echo $row->RFCE?></td>
                                 <td><?php echo $row->NOMBRE_EMISOR?></td>
                                 <td><?php echo $row->RFCR?></td>
@@ -56,10 +58,11 @@
                                 <td><?php echo $row->FECHA_CERTIFICACION?></td>
                                 <td align="right"><?php echo '$ '.number_format($row->MONTO,2)?></td>
                                 <td><?php echo $row->EFECTO_COMPROBANTE?></td>
-                                <td title="Cero es Cancelado, Uno es Vigente"><?php echo $row->STATUS?></td>
+                                <td title="Cero es Cancelado, Uno es Vigente"><?php echo $sta?></td>
                                 <td><?php echo $row->FECHA_CANCELACION?></td>
                                 <td><?php echo $row->POLIZA?></td>
-                                <td><?php echo $status ?></td>
+                                <!--<td id="val_<?php echo $row->UUID?>"><?php echo $status?></td>-->
+                                <td><?php echo $status?></td>
                             </tr>
                             <?php endforeach ?>
                         </tbody>
@@ -76,6 +79,31 @@
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 <script type="text/javascript">
+
+    $().ready(function(){
+        $(".uuid").each(function(){
+            let uuid = $(this).val()
+            $.ajax({
+                url:'index.xml.php',
+                type:'post', 
+                dataType:'json', 
+                data:{revisaCarga:uuid},
+                success:function(data){
+                    let renglon = document.getElementById("ln_"+uuid)
+                    if(data.status=='ok'){
+                        renglon.style.background="#fef2ff";
+                        //document.getElementById("val_"+uuid).innerHTML='Cargado'
+                    }else{
+                        renglon.style.background="#ffcabd";
+                        //document.getElementById("val_"+uuid).innerHTML='Falta'
+                    }
+                }, 
+                error:function(){
+                }
+            })
+
+        })
+    })
 
  
 </script>

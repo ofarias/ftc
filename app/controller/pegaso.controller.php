@@ -20074,7 +20074,11 @@ function ImpSolicitud2($idsol){
         if (isset($_SESSION['user'])) {            
             $data = new pegaso;
             $rfc = $_SESSION['rfc'];
-            $ruta = 'C:\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descargas\\'.$rfc.'\\';
+            if($_SESSION['servidor']== 'Debian'){
+            	$ruta ='/home/ofarias/xmls/descargas/'.$rfc.'/';
+            }else{
+            	$ruta = 'C:\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descargas\\'.$rfc.'\\';
+            }
             //$ruta = '\\\\192.168.100.33\\C:\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descarga'; Ruta remota.
             $archivos = $data->leeDirectorio($ruta, $opcion);
             $pagina = $this->load_template('Pagos');        	            

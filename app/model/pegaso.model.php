@@ -28472,7 +28472,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		//$this->actMD();
 		//$this->actCan();
 		$data=array();
-		$this->query="SELECT f.*, COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = f.uuid and status='A') AS VARCHAR(100)),'') as poliza, coalesce((select count(*) from xml_data xd where xd.UUID = f.UUID_ORIGINAL),0) as carga FROM FTC_META_DATOS f WHERE f.ARCHIVO = '$archivo'";
+		$this->query="SELECT f.*, COALESCE( CAST((SELECT LIST(TIPO||trim(POLIZA)||' - '||PERIODO||'/'||EJERCICIO) FROM XML_POLIZAS XP WHERE XP.UUID = f.uuid and status='A') AS VARCHAR(100)),'') as poliza, 
+		coalesce((select count(*) from xml_data xd where xd.UUUID = f.UUID),0) as carga FROM FTC_META_DATOS f WHERE f.ARCHIVO = '$archivo'";
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$data[]=$tsArray;
@@ -28766,18 +28767,21 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     	$xmls=0;
     	$car=0;
     	$dup=0;
-    	$ruta_cargados = $ruta.'\\Cargados\\';
-    	if(!file_exists($ruta_cargados)){
-    		mkdir($ruta_cargados);
+
+    	if($_SESSION['servidor']!='Debian'){
+    		$ruta_cargados = $ruta.'\\Cargados\\';
+    		$ruta_dup = $ruta.'\\duplicados\\';
+    		$ruta_nv = $ruta.'\\No Validos\\';
+    	}else{
+    		$ruta_cargados = $ruta.'/Cargados';
+    		$ruta_dup = $ruta.'/duplicados';
+    		$ruta_nv = $ruta.'/No Validos';
     	}
-    	$ruta_dup = $ruta.'\\duplicados\\';
-    	if(!file_exists($ruta_dup)){
-    		mkdir($ruta_dup);
-    	}
-    	$ruta_nv = $ruta.'\\No Validos\\';
-    	if(!file_exists($ruta_nv)){
-    		mkdir($ruta_nv);
-    	}
+    	
+    	if(!file_exists($ruta_cargados)){mkdir($ruta_cargados, 0777);}
+    	if(!file_exists($ruta_dup)){mkdir($ruta_dup, 0777);}
+    	if(!file_exists($ruta_nv)){mkdir($ruta_nv, 0777);}
+    	
     	foreach ($archivos as $b){
     		$file = $ruta.$b;
     		$tipo = filetype($file);
