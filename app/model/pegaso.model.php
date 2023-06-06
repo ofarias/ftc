@@ -28812,9 +28812,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 		    				}
 		    			}else{
+		    				$file_dup = $ruta_dup.$b;
 		    				echo 'El Archivo '.$file.'  ya existe...<br/>'. $file_dup.'<br/>';
 		    				$dup++;
-		    				$file_dup = $ruta_dup.$b;
 		    				rename($file,$file_dup);
 		    				die();
 		    			}	
