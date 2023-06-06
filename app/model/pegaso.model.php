@@ -24256,7 +24256,6 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     							@$this->grabaBD();
                             }
 
-                            if($_SESSION['servidor']!='Debian'){
                             	if($rfce == $rfcEmpresa){
                             		$carpeta = 'Emitidos';
                             		$carpeta2= $rfc;
@@ -24264,20 +24263,24 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
                             		$carpeta = 'Recibidos';
                             		$carpeta2= $rfce;
                             	}
-                            	$path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\'.$carpeta.'\\'.$carpeta2;
-                            	//echo '<br/>'.$path.'<br/>';
-                            	if(is_dir($path)){
-                            		//echo '<br/> El directorio existe<br/>';
-                            	}else{
-                            		//echo '<br/> El Direcotirio no existe y se debe de crear<br/>';
-                            		mkdir($path,0777, true);
-                            	}
-                            	if($tipo=='P'){
-                                   copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serieComp).utf8_encode($folioComp).'-'.$uuid.".xml");
-                            	}else{	
-                                   copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serie).utf8_encode($folio).'-'.$uuid.".xml");
+                            if($_SESSION['servidor']!='Debian'){
+	                            	$path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\'.$carpeta.'\\'.$carpeta2;
+	                            	if(is_dir($path)){
+	                           		}else{
+	                            		mkdir($path,0777, true);
+	                            	}
+                            }else{
+                            	$path = '/home/ofarias/xmls/uploads/'.$rfcEmpresa.'/'.$carpeta.'/'.$carpeta2;
+                            	if(!file_exists($path)){
+	                            	mkdir($path,0777, true);
                             	}
                             }
+
+	                          if($tipo=='P'){
+	                              copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serieComp).utf8_encode($folioComp).'-'.$uuid.".xml");
+	                          }else{	
+	                              copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serie).utf8_encode($folio).'-'.$uuid.".xml");
+	                          }
 
                             
                             /// Insertamos en la tabla de CFIDsss
@@ -24713,17 +24716,18 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			    	*/
 				//die;
 			    	$rfcEmpresa = $_SESSION['rfc'];
-                	$path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\Nomina\\';
-                	//echo '<br/>'.$path.'<br/>';
-                	if(is_dir($path)){
-                		//echo '<br/> El directorio existe<br/>';
-                	}else{
-                		//echo '<br/> El Direcotirio no existe y se debe de crear<br/>';
-                		mkdir($path,0777, true);
-                	}
-                	copy($archivo, $path.$uuid.".xml");
+
+			    			if($_SESSION['servidor']!= 'Debian'){
+	                	$path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\Nomina\\';
+	                	//echo '<br/>'.$path.'<br/>';
+			    			}else{
+	                	$path='/home/ofarias/xmls/uploads/nomina7'.$rfcEmpresa;
+			    			}
+	                	if(!is_dir($path)){
+	                		mkdir($path,0777, true);
+	                	}
+	                	copy($archivo, $path.$uuid.".xml");
     			}
-    			
     		}
 
     		if( $version=='3.2' and $verNom=='1.1'){
@@ -28809,6 +28813,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		    				}
 		    			}else{
 		    				echo 'El Archivo '.$file.'  ya existe...<br/>';
+
 		    				$dup++;
 		    				$file_dup = $ruta_dup.$b;
 		    				rename($file,$file_dup);
