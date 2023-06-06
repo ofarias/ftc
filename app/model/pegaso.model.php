@@ -23748,7 +23748,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
         $file=str_replace(".xml", "", $file);
         $uuid=$a['uuid'];
         $tcf=$a['tcf'];
-        $this->query="INSERT INTO XML_DATA_FILES (ID,NOMBRE,ARCHIVO,FECHA,USUARIO,TIPO, UUID, TIPO_FISCAL)VALUES(NULL,'$archivo','$file','$HOY','$usuario', '$tipo', '$uuid','$tcf')";
+        $xml = file_get_contents($archivo);
+        $this->query="INSERT INTO XML_DATA_FILES (ID,NOMBRE,ARCHIVO,FECHA,USUARIO,TIPO, UUID, TIPO_FISCAL, XML)VALUES(NULL,'$archivo','$file','$HOY','$usuario', '$tipo', '$uuid','$tcf','$xml')";
         $respuesta = $this->grabaBD();
         $this->insertaXMLData($archivo, $tipo, $uuid);
         $this->actParametros($uuid, $tipo);
@@ -24255,6 +24256,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     							@$this->grabaBD();
                             }
 
+                            if($_SESSION['servidor']!='Debian'){
                             	if($rfce == $rfcEmpresa){
                             		$carpeta = 'Emitidos';
                             		$carpeta2= $rfc;
@@ -24275,6 +24277,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
                             	}else{	
                                    copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serie).utf8_encode($folio).'-'.$uuid.".xml");
                             	}
+                            }
+
                             
                             /// Insertamos en la tabla de CFIDsss
 
