@@ -28813,10 +28813,10 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 		    				}
 		    			}else{
 		    				echo 'El Archivo '.$file.'  ya existe...<br/>'. $file_dup.'<br/>';
-
 		    				$dup++;
 		    				$file_dup = $ruta_dup.$b;
 		    				rename($file,$file_dup);
+		    				die();
 		    			}	
 	    			}else{
 	    				echo 'El Archivo '.$file.'  se movio a la carpeta de No Validos...<br/>';
