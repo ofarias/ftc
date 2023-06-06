@@ -28781,9 +28781,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
     		$ruta_dup = $ruta.'\\duplicados\\';
     		$ruta_nv = $ruta.'\\No Validos\\';
     	}else{
-    		$ruta_cargados = $ruta.'/Cargados';
-    		$ruta_dup = $ruta.'/duplicados';
-    		$ruta_nv = $ruta.'/No Validos';
+    		$ruta_cargados = $ruta.'/Cargados/';
+    		$ruta_dup = $ruta.'/duplicados/';
+    		$ruta_nv = $ruta.'/No Validos/';
     	}
     	
     	if(!file_exists($ruta_cargados)){mkdir($ruta_cargados, 0777);}
@@ -28812,7 +28812,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 
 		    				}
 		    			}else{
-		    				echo 'El Archivo '.$file.'  ya existe...<br/>';
+		    				echo 'El Archivo '.$file.'  ya existe...<br/>'. $file_dup.'<br/>';
 
 		    				$dup++;
 		    				$file_dup = $ruta_dup.$b;
