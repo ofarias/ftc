@@ -106,10 +106,15 @@ class controller_xml{
             $data = new cargaXML;
             $valid_formats = array("txt", "TXT");
             $max_file_size = 1024 * 10000; 
-            $target_dir="C:/xampp/htdocs/uploads/xml/metaData/";
-            if(!file_exists($target_dir)){
-            	mkdir($target_dir);
+            if($_SESSION['servidor']!='Debian'){
+            	$target_dir="C:/xampp/htdocs/uploads/xml/metaData/";
+            }else{
+            	$target_dir="/home/ofarias/xmls/uploads/metaData/";
             }
+            if(!file_exists($target_dir)){
+            	mkdir($target_dir, 0777, true);
+            }
+            die();
             $count = 0;
             $respuesta = 0;
             foreach ($_FILES['files']['name'] as $f => $name) {	
