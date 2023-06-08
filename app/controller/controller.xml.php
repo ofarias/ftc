@@ -114,7 +114,6 @@ class controller_xml{
             if(!file_exists($target_dir)){
             	mkdir($target_dir, 0777, true);
             }
-            die();
             $count = 0;
             $respuesta = 0;
             foreach ($_FILES['files']['name'] as $f => $name) {	
