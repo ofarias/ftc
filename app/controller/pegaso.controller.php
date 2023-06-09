@@ -20103,7 +20103,7 @@ function ImpSolicitud2($idsol){
             $valid_formats = array("xml", "XML");
             $max_file_size = 1024 * 1000; //1000 kb
 
-            if($_SESSION['servdor']!='Debian'){
+            if($_SESSION['servidor']!='Debian'){
 	            if($tipo == 'F'){
 	            	$target_dir="C:/xampp/htdocs/uploads/xml/emitidos/";
 	            }elseif($tipo == 'C'){
