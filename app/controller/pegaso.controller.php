@@ -20113,11 +20113,11 @@ function ImpSolicitud2($idsol){
 	            }
             }else{
             	if($tipo == 'F'){
-	            	$target_dir="/home/var/xmls/emitidos/";
+	            	$target_dir="/home/ofarias/xmls/emitidos/";
 	            }elseif($tipo == 'C'){
-	            	$target_dir = "/home/var/xmls/cancelados/";	
+	            	$target_dir = "/home/ofarias/xmls/cancelados/";	
 	            }elseif($tipo == 'R'){
-	            	$target_dir = "/home/var/xmls/recibidos/";
+	            	$target_dir = "/home/ofarias/xmls/recibidos/";
 	            }
             }
 
