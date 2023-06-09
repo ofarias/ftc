@@ -1,8 +1,9 @@
 <br /><br />
-
+<!--
 <input type="button" value="Ver CDFIs cancelados " class="btn btn-danger cancelados" opc="todos" title="Muestra la relacion de CDFIs cancelados." /> 
 <input type="button" value="Consolidar Cancelados" class="btn btn-warning cancelados" opc="Consolidar" title="Actualiza los xml Cancelados y emite un reporte de las cancelaciones que se actualizaron."/>
 <input type="button" value="Metadatos por año" class="btn btn-info cancelados" opc="XML" title="Se muestran los XML y su estatus en el sistema, por año" />
+-->
 <br/><br/>
 <div class="row">
     <div class="col-lg-12">

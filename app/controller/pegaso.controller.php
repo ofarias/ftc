@@ -20102,13 +20102,25 @@ function ImpSolicitud2($idsol){
             $data2 = new imi;
             $valid_formats = array("xml", "XML");
             $max_file_size = 1024 * 1000; //1000 kb
-            if($tipo == 'F'){
-            	$target_dir="C:/xampp/htdocs/uploads/xml/emitidos/";
-            }elseif($tipo == 'C'){
-            	$target_dir = "C:/xampp/htdocs/uploads/xml/cancelados/";	
-            }elseif($tipo == 'R'){
-            	$target_dir = "C:/xampp/htdocs/uploads/xml/recibidos/";
+
+            if($_SESSION['servdor']!='Debian'){
+	            if($tipo == 'F'){
+	            	$target_dir="C:/xampp/htdocs/uploads/xml/emitidos/";
+	            }elseif($tipo == 'C'){
+	            	$target_dir = "C:/xampp/htdocs/uploads/xml/cancelados/";	
+	            }elseif($tipo == 'R'){
+	            	$target_dir = "C:/xampp/htdocs/uploads/xml/recibidos/";
+	            }
+            }else{
+            	if($tipo == 'F'){
+	            	$target_dir="/home/var/xmls/emitidos/";
+	            }elseif($tipo == 'C'){
+	            	$target_dir = "/home/var/xmls/cancelados/";	
+	            }elseif($tipo == 'R'){
+	            	$target_dir = "/home/var/xmls/recibidos/";
+	            }
             }
+
             if(!file_exists($target_dir)){
             	mkdir($target_dir, 0777, true);
             }
