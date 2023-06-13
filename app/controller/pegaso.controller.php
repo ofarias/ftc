@@ -20070,7 +20070,7 @@ function ImpSolicitud2($idsol){
   		}
 	}
 	
-	function facturacionSeleccionaCargaXML($tipo, $opcion){
+	function facturacionSeleccionaCargaXML($tipo){
         if (isset($_SESSION['user'])) {            
             $data = new pegaso;
             $rfc = $_SESSION['rfc'];
@@ -20080,7 +20080,7 @@ function ImpSolicitud2($idsol){
             	$ruta = 'C:\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descargas\\'.$rfc.'\\';
             }
             //$ruta = '\\\\192.168.100.33\\C:\\xampp\\htdocs\\ftc_admin\\app\\descargasat\\descarga'; Ruta remota.
-            $archivos = $data->leeDirectorio($ruta, $opcion);
+            $archivos = $data->leeDirectorio($ruta);
             $pagina = $this->load_template('Pagos');        	            
             $html = $this->load_page('app/views/pages/p.factura.upload.xml.php');            
             ob_start();            
@@ -20097,7 +20097,8 @@ function ImpSolicitud2($idsol){
 	}
 
 	function facturacionCargaXML($files2upload, $tipo){
-        if (isset($_SESSION['user'])) {            
+
+		if (isset($_SESSION['user'])) {            
             $data = new pegaso;
             $data2 = new imi;
             $valid_formats = array("xml", "XML");
