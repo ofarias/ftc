@@ -28768,7 +28768,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
         return;
     }
 
-    function leeDirectorio($ruta, $opcion){
+    function leeDirectorio($ruta){
     	$archivos = scandir($ruta);
     	$ln=0;
     	$files=0;
