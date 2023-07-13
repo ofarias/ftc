@@ -30,9 +30,7 @@ if(isset($_POST['UPLOAD_META_DATA'])){
 	echo json_encode($res);
 	exit();
 }elseif(isset($_POST['detNom'])){
-	$res = $controller->detNom($_POST['fi'], $_POST['ff'],$_POST['tipo']);
-	echo json_encode($res);
-	return $res;
+	$res = $controller->detNom($_POST['fi'], $_POST['ff'],$_POST['tipo']); echo json_encode($res); return $res;
 }elseif(isset($_POST['setCU'])){
 	$res=$controller->setCU($_POST['cu'],$_POST['anio'], $_POST['tipo']);
 	echo json_encode($res);
@@ -106,8 +104,13 @@ else{
 		$controller->cs();
 		break;
 	case 'nomXML':
-		$controller->nomXML($_GET['anio'],$_GET['mes']);
-		break;
+		if($_GET['tipo']=='r'){
+			$res=$controller->nomXML($_GET['anio'],$_GET['mes'], $_GET['tipo']);
+			echo json_encode($res); exit(); 
+		}else{
+			$controller->nomXML($_GET['anio'],$_GET['mes'], $_GET['tipo']);
+			break;
+		}
 	case 'detalleNomina':
 		$controller->detalleNomina($_GET['fi'], $_GET['ff']);
 		break;

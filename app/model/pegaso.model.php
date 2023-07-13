@@ -24504,7 +24504,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		$rfc= $Receptor['rfc'];
 			           		 	$nombre_recep = utf8_encode($Receptor['nombre']);
 			            		$usoCFDI = '';
-			            	}elseif($version == '3.3'){
+			            	}elseif($version == '3.3' or $version == '4.0'){
 			            		$rfc= $Receptor['Rfc'];
 			            		$nombre_recep=utf8_encode($Receptor['Nombre']);
 			            		$usoCFDI =$Receptor['UsoCFDI'];
@@ -24514,7 +24514,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			        }
 
 			        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Receptor') as $Nomina12Receptor) {
-			            	if($version == '3.3' or $verNom == '1.2'){
+			            	if($version == '3.3' or $verNom == '1.2' or $version == '4.0'){
 			            		$curp= $Nomina12Receptor['Curp'];
 			            		$numss=$Nomina12Receptor['NumSeguridadSocial'];
 			            		$FechaInicioRelLaboral =$Nomina12Receptor['FechaInicioRelLaboral'];
@@ -24581,7 +24581,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			        }
 
 			    	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Nomina') as $nomVal) {
-			    			if ($version == '3.3' or $verNom == '1.2'){
+			    			if ($version == '3.3' or $verNom == '1.2' or $version == '4.0'){
 			    				$fechaInicialPago = $nomVal['FechaInicialPago'];
 			    				$fechaFinalPago = $nomVal['FechaFinalPago'];
 			    				$fechaPago = $nomVal['FechaPago'];
@@ -24718,7 +24718,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		$rfc= $Receptor['rfc'];
 			           		 	$nombre_recep = utf8_encode($Receptor['nombre']);
 			            		$usoCFDI = '';
-			            	}elseif($version == '3.3'){
+			            	}elseif($version == '3.3' or $version == '4.0'){
 			            		$rfc= $Receptor['Rfc'];
 			            		$nombre_recep=utf8_encode($Receptor['Nombre']);
 			            		$usoCFDI =$Receptor['UsoCFDI'];

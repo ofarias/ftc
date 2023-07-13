@@ -213,9 +213,11 @@ $(".repNom").click(function(){
                 dataType:'json',
                 data:{detNom:1, fi, ff, tipo},
                 success:function(data){
-                    if(data.status == 'ok'){
+                    if(data.status == 'ok' && data.tipo == 'windows'){
                         window.open("/edoCtaXLS/"+data.archivo, 'download' );
                         alert('Revise en su carpeta de descargas el archivo "' + data.archivo +'" ')
+                    }else{
+                        descargarArchivo(data.ruta, data.archivo);
                     }
                 },
                 error:function(){
@@ -225,6 +227,28 @@ $(".repNom").click(function(){
             return false;    
         }
 })
+
+function descargarArchivo(url, archivo) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.responseType = 'blob';
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      var blob = xhr.response;
+      var link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = archivo;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+  xhr.send();
+}
+
+
+
 
 $(".comparar").click(function(){
     $.confirm({
