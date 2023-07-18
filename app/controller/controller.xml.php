@@ -1200,7 +1200,7 @@ class controller_xml{
 	   			$pagina = $this->replace_content('/\#CONTENIDO\#/ms',$table,$pagina);
 	   			$this->view_page($pagina);	
 			}else{
-				return $this->detNom($info, 'per', 'xls');
+				return $this->detNom($info, 'per', 'xls', $m, $a);
 			}
 		}else{
 			$e = "Favor de Revisar sus datos";
@@ -1241,20 +1241,18 @@ class controller_xml{
 		}
 	}
 
-	function detNom($fi, $ff, $tipo){
+	function detNom($fi, $ff, $tipo, $m, $a){
 		if($_SESSION['user']){
+			if($ff == 'per'){
+				$res=$this->repNominaMensual($fi, $ff, $m, $a);	return $res;
+			}
 			$data=new cargaXML;
-			$info=$data->detNom($fi, $ff);
+			$info=$data->detNom($fi, $ff, $m);
 			$columnas = $info['columnas'];
 			$datos = $info['datos'];
 			$lineas = $info['lineas'];
 			if($tipo=='xls'){
-				if($ff == 'per'){
-					$res=$this->repNominaMensual($fi, $ff, $columnas, $datos, $lineas);	return $res;
-
-				}else{
-					$res=$this->repNomina($fi, $ff, $columnas, $datos, $lineas);	return $res;	exit();
-				}
+				$res=$this->repNomina($fi, $ff, $columnas, $datos, $lineas); return $res; exit();
 			}
 			$pagina=$this->load_template();
 			$html=$this->load_page('app/views/pages/Nomina/p.detNom.php');
@@ -1727,354 +1725,446 @@ class controller_xml{
 	        /// salida a ruta :
 	}
 
-	function repNominaMensual($fi, $ff, $columnas, $datos, $lineas){
+	function repNominaMensual($fi, $ff, $m, $a){
 		$data = new pegaso;
 		$dataXML = new cargaXML;
 		$xls = new PHPExcel();
+		$periodos = $fi; 
 		$usuario=$_SESSION['user']->NOMBRE;
-		$ln = 10;
-		$colc = 'A';
+		$ln = 3;
 		$df = $data->traeDF($ide = 1);
-		$perc = 0;
-		$datos_array= array();
+
+		$xls->getActiveSheet()
+		    ->setCellValue('A1','Fecha del Emisión: '.date("d-m-Y H:n:s"))
+			->setCellValue('A2','Emite: '.$usuario)
+		;
 		
-		for ($i=0; $i < 7; $i++){
+		for($l=0; $l < count($periodos); $l++){
+			//echo '<br/>Periodo '.$l . ' fecha inicial '.$fi[$l]->FECHA_FINAL.'<br/>';
+			$fi = $periodos[$l]->FECHA_INICIAL; $ff=$periodos[$l]->FECHA_FINAL;
+			$info = $dataXML->detNom($fi, $ff);
+			$columnas = $info['columnas']; $lineas = $info['lineas']; $datos=$info['datos'];
+				$colc = 'A';
+				$perc = 0;
+				$datos_array= array();
+				
+				$xls->getActiveSheet()
+			            ->setCellValue('A'.$ln++,'Resumen de Recibos de Nomina')
+			            ->setCellValue('A'.$ln++,'Fecha Inicial: '.$fi)
+			            ->setCellValue('A'.$ln++,'Fecha Final: '.$ff)
+		        ;
+
+				for ($i=0; $i<6; $i++){
+					$xls->setActiveSheetIndex()
+			            ->setCellValue($colc.$ln,$columnas[$i])
+			        ;	
+					++$colc;
+				}
+
+				for ($i=6; $i < count($columnas); $i++){
+					$column = explode(":", $columnas[$i]);
+					if($column[0] == 'P'){
+						$xls->setActiveSheetIndex()
+			            ->setCellValue($colc.$ln,$columnas[$i])
+			        	;	
+						++$colc;	
+					}
+				}
+
+					$xls->setActiveSheetIndex()
+			            ->setCellValue($colc.$ln,'Total Percepciones')
+			        ;
+			        ++$colc;
+			    for ($i=6; $i < count($columnas); $i++){
+					$column = explode(":", $columnas[$i]);
+					if($column[0] == 'D'){
+						$xls->setActiveSheetIndex()
+			            ->setCellValue($colc.$ln,$columnas[$i])
+			        	;	
+						++$colc;	
+					}
+				}
+					$xls->setActiveSheetIndex()
+			            ->setCellValue($colc.$ln,'Total Deducciones')
+			        ;
+			        ++$colc;
+			    for ($i=6; $i < count($columnas); $i++){
+					$column = explode(":", $columnas[$i]);
+					if($column[0] == 'O'){
+						$xls->setActiveSheetIndex()
+			            ->setCellValue($colc.$ln,$columnas[$i])
+			        	;	
+						++$colc;	
+					}
+				} 
+
+					$xls->setActiveSheetIndex()
+			            ->setCellValue($colc.$ln,'Total Otras Percepciones')
+			        ;
+			        ++$colc;
+			        $xls->setActiveSheetIndex()
+			            ->setCellValue($colc.$ln,'Total a Pagar')
+			        ;
+			        ++$colc;
+
+			        $xls->setActiveSheetIndex()
+			            ->setCellValue($colc.$ln,'SAE trabajador')
+			        ;
+			        ++$colc;
+
+			        //// revisar hasta aqui las columnas de Totales 
+			    $ln++;
+				$salario = 0;
+				
+				//echo 'Lineas: '.count($lineas). ' columnas '.count($columnas).' datos '.count($datos);
+				//die();
+
+			    foreach ($lineas as $key){
+			    	$tp=0;
+			    	$td=0;
+			    	$to=0;
+			    	$col = 'A';
+			    	
+			    	$xls->setActiveSheetIndex()
+			    		->setCellValue($col.$ln,$key->UUID_NOMINA)
+			    	;
+
+			    	foreach($datos as $d){
+		            	if($d->UUID_NOMINA == $key->UUID_NOMINA){
+		            		$col = 'B';
+		            		$xls->setActiveSheetIndex()
+		            	    	->setCellValue($col.$ln,$d->NUMERO)
+		            	    ;
+		            	    break;
+		            	}
+		        	}
+
+		            foreach($datos as $d){
+		                if($d->UUID_NOMINA == $key->UUID_NOMINA){
+		                	$col = 'C';
+		                	$xls->setActiveSheetIndex()
+		                    	->setCellValue($col.$ln,$d->DEPTO)
+		                    ;
+		                    break;
+		            	}
+		            }
+
+		            foreach($datos as $d){
+		                if($d->UUID_NOMINA == $key->UUID_NOMINA){
+		                	$col = 'D';
+		                	$xls->setActiveSheetIndex()
+		                    	->setCellValue($col.$ln,$d->NOMBRE)
+		                    ;
+		                    break;
+		            	}
+		            }
+		            
+		            foreach($datos as $d){
+		                if($d->UUID_NOMINA == $key->UUID_NOMINA){
+		                	$col = 'E';
+		                	$xls->setActiveSheetIndex()
+		                    	->setCellValue($col.$ln,$d->FECHAINGRESO)
+		                    ;
+		                    break;
+		            	}
+		            }
+					
+		            foreach($datos as $d){
+		                if($d->UUID_NOMINA == $key->UUID_NOMINA){
+		                	$col = 'F';
+		                	if ($d->SALARIO > 0 ){
+		                		$salario = $d->SALARIO;
+		                	}
+		                	$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+		                	$xls->setActiveSheetIndex()
+		                    	->setCellValue($col.$ln,'$ '. number_format($salario,2))
+		                    ;
+		                    if ($d->SALARIO > 0 ){
+		                		break;
+		                	}
+		            	}
+		            }
+
+		            
+					$salario = 0; 
+		            $h=3;
+		            $c=3;
+		           	
+					for($i=6;$i<count($columnas);$i++){
+		                $column = explode(":", $columnas[$i]);
+						if($column[0] == 'P'){
+			                ++$col;
+			                $val = $dataXML->getMovNom($key->UUID_NOMINA, $column[0], $column[1] , $column[2] , $column[3]);
+			                    $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+			                	$h++;
+			                	$xls->setActiveSheetIndex()
+			                    	->setCellValue($col.$ln, '$ '.number_format($val['valor'],2))
+			                    	;
+			                    $tp += $val['valor'];
+						}
+		            }            
+		           
+			        ++$col;
+					$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+		            $xls->setActiveSheetIndex()
+			            ->setCellValue($col.$ln,'$ '.number_format($tp,2))
+			        ;
+
+			        for($i=6;$i<count($columnas);$i++){
+		                $column = explode(":", $columnas[$i]);
+						if($column[0] == 'D'){
+			                ++$col;
+			                $val = $dataXML->getMovNom($d->UUID_NOMINA, $column[0], $column[1] , $column[2] , $column[3]);
+			                    $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+			                	$h++;
+			                	$xls->setActiveSheetIndex()
+			                    	->setCellValue($col.$ln, '$ '.number_format($val['valor'],2))
+			                    	;
+			                    $td += $val['valor'];
+						}
+		            }   
+		            ++$col;
+					$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+		            $xls->setActiveSheetIndex()
+			            ->setCellValue($col.$ln,'$ '.number_format($td,2))
+			        ;
+					
+					for($i=6;$i<count($columnas);$i++){
+		                $column = explode(":", $columnas[$i]);
+						if($column[0] == 'O'){
+			                ++$col;
+			                $val = $dataXML->getMovNom($d->UUID_NOMINA, $column[0], $column[1] , $column[2] , $column[3]);
+			                    $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+			                	$h++;
+			                	$xls->setActiveSheetIndex()
+			                    	->setCellValue($col.$ln, '$ '.number_format($val['valor'],2))
+			                    	;
+			                    $to += $val['valor'];
+						}
+		            }   
+			        
+		            ++$col;
+					$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+		            $xls->setActiveSheetIndex()
+			            ->setCellValue($col.$ln,'$ '.number_format($to,2))
+			        ;
+
+			        ++$col;
+					$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+					$xls->setActiveSheetIndex()
+			            ->setCellValue($col.$ln,'$ '.number_format($tp-$td+$to,2))
+			        ;
+			        
+			        for($i=6;$i<count($columnas);$i++){
+		                $column = explode(":", $columnas[$i]);
+						if($column[0] == 'S'){
+			                ++$col;
+			                $val = $dataXML->getMovNom($d->UUID_NOMINA, $column[0], $column[1] , $column[2] , $column[3]);
+			                    $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
+			                	$h++;
+			                	$xls->setActiveSheetIndex()
+			                    	->setCellValue($col.$ln, '$ '.number_format($val['valor'],2))
+			                    	;
+			                    //$t += $val['valor'];
+						}
+		            }   
+
+			        $ln++;
+			    }
+			    
+			    $xls->setActiveSheetIndex()
+			        ->setCellValue('A'.$ln,'Fin del resumen de documentos.');
+
+			    /// Inicia los totales:
+			         
+			    $xls->getActiveSheet()
+			        ->setCellValue('A1',$df->RAZON_SOCIAL);
+
+			    /// CAMBIANDO EL TAMAÑO DE LA LINEA.
+			        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(40);
+			        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(50);
+			        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('H')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('T')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('U')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('V')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('W')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('X')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('Y')->setWidth(20);
+			        $xls->getActiveSheet()->getColumnDimension('Z')->setWidth(13);
+			        $xls->getActiveSheet()->getColumnDimension('AA')->setWidth(13);
+			   	
+			   		$totales = $dataXML->totalNomina($fi, $ff);
+			   		
+			        
+
+			        $cc=0;
+			        $coltot = 'A';
+			        $lintot = 6;
+			        $cc2 = 0;
+			        $lin2= 6;
+			        
+
+			        /// Unir celdas
+			        $xls->getActiveSheet()->mergeCells('A1:'.$colc.'1');
+			        // Alineando
+			        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
+			        /// Estilando
+			        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
+			            array('font' => array(
+			                    'size'=>20,
+			                )
+			            )
+			        );
+			        $ln++;
+			        $ln++; 
+			unset($columnas); unset($lineas); unset($datos);
+
+		}### Finaliza el periodo de insercion normal.
+
+		### Total columnas y total de valores ya sea mensual o anual ###
+			$infoTotal = $dataXML->infoMes($m, $a);
+			$colc = 'F';
+			$columnas = $infoTotal['columnas'];
+			$datos = $infoTotal['datos'];
+
 			$xls->setActiveSheetIndex()
-	            ->setCellValue($colc.$ln,$columnas[$i])
-	        ;	
-			++$colc;
-		}
+			           ->setCellValue('A'.$ln,'Nombre')
+			           ->setCellValue('B'.$ln,'Numero')
+			           ->setCellValue('C'.$ln,'Depto')
+			           ->setCellValue('D'.$ln,'Fecha Inicio')
+			           ->setCellValue('E'.$ln,'Sueldo')
+			       	;
 
-		for ($i=7; $i < count($columnas); $i++){
-			$column = explode(":", $columnas[$i]);
-			if($column[0] == 'P'){
-				$xls->setActiveSheetIndex()
-	            ->setCellValue($colc.$ln,$columnas[$i])
-	        	;	
-				++$colc;	
-			}
-		}
 
-			$xls->setActiveSheetIndex()
-	            ->setCellValue($colc.$ln,'Total Percepciones')
-	        ;
-	        ++$colc;
-	    for ($i=7; $i < count($columnas); $i++){
-			$column = explode(":", $columnas[$i]);
-			if($column[0] == 'D'){
-				$xls->setActiveSheetIndex()
-	            ->setCellValue($colc.$ln,$columnas[$i])
-	        	;	
-				++$colc;	
-			}
-		}
-			$xls->setActiveSheetIndex()
-	            ->setCellValue($colc.$ln,'Total Deducciones')
-	        ;
-	        ++$colc;
-	    for ($i=7; $i < count($columnas); $i++){
-			$column = explode(":", $columnas[$i]);
-			if($column[0] == 'O'){
-				$xls->setActiveSheetIndex()
-	            ->setCellValue($colc.$ln,$columnas[$i])
-	        	;	
-				++$colc;	
-			}
-		} 
-
-			$xls->setActiveSheetIndex()
-	            ->setCellValue($colc.$ln,'Total Otras Percepciones')
-	        ;
-	        ++$colc;
-	        $xls->setActiveSheetIndex()
-	            ->setCellValue($colc.$ln,'Total a Pagar')
-	        ;
-	        ++$colc;
-
-	        $xls->setActiveSheetIndex()
-	            ->setCellValue($colc.$ln,'SAE trabajador')
-	        ;
-	        ++$colc;
-
-	        //// revisar hasta aqui las columnas de Totales 
-	    $ln++;
-		$salario = 0;
-		
-		//echo 'Lineas: '.count($lineas). ' columnas '.count($columnas).' datos '.count($datos);
-		//die();
-
-	    foreach ($lineas as $key){
-	    	$tp=0;
-	    	$td=0;
-	    	$to=0;
-	    	$col = 'A';
-	    	$xls->setActiveSheetIndex()
-	    		->setCellValue($col.$ln,$key->UUID_NOMINA)
-	    	;
-
-	    	foreach($datos as $d){
-            	if($d->UUID_NOMINA == $key->UUID_NOMINA){
-            		$col = 'B';
-            		$xls->setActiveSheetIndex()
-            	    	->setCellValue($col.$ln,$d->NUMERO)
-            	    ;
-            	    break;
-            	}
-        	}
-
-            foreach($datos as $d){
-                if($d->UUID_NOMINA == $key->UUID_NOMINA){
-                	$col = 'C';
-                	$xls->setActiveSheetIndex()
-                    	->setCellValue($col.$ln,$d->DEPTO)
-                    ;
-                    break;
-            	}
-            }
-
-            foreach($datos as $d){
-                if($d->UUID_NOMINA == $key->UUID_NOMINA){
-                	$col = 'D';
-                	$xls->setActiveSheetIndex()
-                    	->setCellValue($col.$ln,$d->NOMBRE)
-                    ;
-                    break;
-            	}
-            }
-            
-            foreach($datos as $d){
-                if($d->UUID_NOMINA == $key->UUID_NOMINA){
-                	$col = 'E';
-                	$xls->setActiveSheetIndex()
-                    	->setCellValue($col.$ln,$d->FECHAINGRESO)
-                    ;
-                    break;
-            	}
-            }
-			
-            foreach($datos as $d){
-                if($d->UUID_NOMINA == $key->UUID_NOMINA){
-                	$col = 'F';
-                	if ($d->SALARIO > 0 ){
-                		$salario = $d->SALARIO;
-                	}
-                	$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
-                	$xls->setActiveSheetIndex()
-                    	->setCellValue($col.$ln,'$ '. number_format($salario,2))
-                    ;
-                    if ($d->SALARIO > 0 ){
-                		break;
-                	}
-            	}
-            }
-
-            foreach($datos as $d){
-                if($d->UUID_NOMINA == $key->UUID_NOMINA){
-                	$col = 'G';
-                	$xls->setActiveSheetIndex()
-                    	->setCellValue($col.$ln,$key->FF)
-                    ;
-                    break;
-            	}
-            }
-			$salario = 0; 
-            $h=3;
-            $c=3;
-           	
-			for($i=7;$i<count($columnas);$i++){
-                $column = explode(":", $columnas[$i]);
+			for ($i=0; $i < count($columnas); $i++){
+				$column = explode(":", $columnas[$i]);
 				if($column[0] == 'P'){
-	                ++$col;
-	                $val = $dataXML->getMovNom($key->UUID_NOMINA, $column[0], $column[1] , $column[2] , $column[3]);
-	                    $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
-	                	$h++;
-	                	$xls->setActiveSheetIndex()
-	                    	->setCellValue($col.$ln, '$ '.number_format($val['valor'],2))
-	                    	;
-	                    $tp += $val['valor'];
+					$xls->setActiveSheetIndex()
+			           ->setCellValue($colc.$ln,$columnas[$i])
+			       	;	
+					++$colc;	
 				}
-            }            
-           
-	        ++$col;
-			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
-            $xls->setActiveSheetIndex()
-	            ->setCellValue($col.$ln,'$ '.number_format($tp,2))
-	        ;
+			}
 
-	        for($i=7;$i<count($columnas);$i++){
-                $column = explode(":", $columnas[$i]);
+			for ($i=0; $i < count($columnas); $i++){
+				$column = explode(":", $columnas[$i]);
 				if($column[0] == 'D'){
-	                ++$col;
-	                $val = $dataXML->getMovNom($d->UUID_NOMINA, $column[0], $column[1] , $column[2] , $column[3]);
-	                    $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
-	                	$h++;
-	                	$xls->setActiveSheetIndex()
-	                    	->setCellValue($col.$ln, '$ '.number_format($val['valor'],2))
-	                    	;
-	                    $td += $val['valor'];
+					$xls->setActiveSheetIndex()
+			           ->setCellValue($colc.$ln,$columnas[$i])
+			       	;	
+					++$colc;	
 				}
-            }   
-            ++$col;
-			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
-            $xls->setActiveSheetIndex()
-	            ->setCellValue($col.$ln,'$ '.number_format($td,2))
-	        ;
-			
-			for($i=7;$i<count($columnas);$i++){
-                $column = explode(":", $columnas[$i]);
+			}
+
+			for ($i=0; $i < count($columnas); $i++){
+				$column = explode(":", $columnas[$i]);
 				if($column[0] == 'O'){
-	                ++$col;
-	                $val = $dataXML->getMovNom($d->UUID_NOMINA, $column[0], $column[1] , $column[2] , $column[3]);
-	                    $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
-	                	$h++;
-	                	$xls->setActiveSheetIndex()
-	                    	->setCellValue($col.$ln, '$ '.number_format($val['valor'],2))
-	                    	;
-	                    $to += $val['valor'];
+					$xls->setActiveSheetIndex()
+			           ->setCellValue($colc.$ln,$columnas[$i])
+			       	;	
+					++$colc;	
 				}
-            }   
-	        
-            ++$col;
-			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
-            $xls->setActiveSheetIndex()
-	            ->setCellValue($col.$ln,'$ '.number_format($to,2))
-	        ;
+			}
 
-	        ++$col;
-			$xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
-			$xls->setActiveSheetIndex()
-	            ->setCellValue($col.$ln,'$ '.number_format($tp-$td+$to,2))
-	        ;
-	        
-	        for($i=7;$i<count($columnas);$i++){
-                $column = explode(":", $columnas[$i]);
+			for ($i=0; $i < count($columnas); $i++){
+				$column = explode(":", $columnas[$i]);
 				if($column[0] == 'S'){
-	                ++$col;
-	                $val = $dataXML->getMovNom($d->UUID_NOMINA, $column[0], $column[1] , $column[2] , $column[3]);
-	                    $xls->getActiveSheet()->getStyle($col.$ln)->getAlignment()->setHorizontal('right');
-	                	$h++;
-	                	$xls->setActiveSheetIndex()
-	                    	->setCellValue($col.$ln, '$ '.number_format($val['valor'],2))
-	                    	;
-	                    //$t += $val['valor'];
+					$xls->setActiveSheetIndex()
+			           ->setCellValue($colc.$ln,$columnas[$i])
+			       	;	
+					++$colc;	
 				}
-            }   
+			}
+			//print_r($infoTotal['lineas']);
+			//die();
+			#### Creando las lineas ####
+			
+			foreach($infoTotal['lineas'] as $l){
+				$ln++;
+		           	$xls->setActiveSheetIndex()
+			           ->setCellValue('A'.$ln,$l->NOMBRE)
+			           ->setCellValue('B'.$ln,$l->NUMERO)
+			           ->setCellValue('C'.$ln,$l->DEPTO)
+			           ->setCellValue('D'.$ln,$l->INICIO)
+			           ->setCellValue('E'.$ln,'$ '.number_format($l->SUELDOD,2))       
+			       	;
+			       	$colc='F';
+		            ### Insertamos los conceptos de la forma ve y busca ###
+			       	for($i=0;$i<count($columnas);$i++){
+			       		$column = explode(":", $columnas[$i]);
+						if($column[0] == 'P'){
+			                $val = $dataXML->getMovNomMen($l->NOMBRE, $column[0], $column[1] , $column[2] , $column[3], $m, $a);
+			                    $xls->getActiveSheet()->getStyle($colc.$ln)->getAlignment()->setHorizontal('right');
+			                	$h++;
+			                	$xls->setActiveSheetIndex()
+			                    	->setCellValue($colc.$ln, '$ '.number_format($val['valor'],2))
+			                    	;
+			                ++$colc;
+			                    //$t += $val['valor'];
+						}
+		            }
+		            
+		            for($i=0;$i<count($columnas);$i++){
+			       		$column = explode(":", $columnas[$i]);
+						if($column[0] == 'D'){
+			                $val = $dataXML->getMovNomMen($l->NOMBRE, $column[0], $column[1] , $column[2] , $column[3], $m, $a);
+			                    $xls->getActiveSheet()->getStyle($colc.$ln)->getAlignment()->setHorizontal('right');
+			                	$h++;
+			                	$xls->setActiveSheetIndex()
+			                    	->setCellValue($colc.$ln, '$ '.number_format($val['valor'],2))
+			                    	;
+			                ++$colc;
+			                    //$t += $val['valor'];
+						}
+		            }
 
-	        $ln++;
-	    }
-	    
-	    $xls->setActiveSheetIndex()
-	        ->setCellValue('A'.$ln,'Fin del resumen de documentos.');
+		            for($i=0;$i<count($columnas);$i++){
+			       		$column = explode(":", $columnas[$i]);
+						if($column[0] == 'O'){
+			                $val = $dataXML->getMovNomMen($l->NOMBRE, $column[0], $column[1] , $column[2] , $column[3], $m, $a);
+			                    $xls->getActiveSheet()->getStyle($colc.$ln)->getAlignment()->setHorizontal('right');
+			                	$h++;
+			                	$xls->setActiveSheetIndex()
+			                    	->setCellValue($colc.$ln, '$ '.number_format($val['valor'],2))
+			                    	;
+			                ++$colc;
+			                    //$t += $val['valor'];
+						}
+		            }
 
-	    /// Inicia los totales:
-	         
-	    $xls->getActiveSheet()
-	        ->setCellValue('A1',$df->RAZON_SOCIAL);
+		            for($i=0;$i<count($columnas);$i++){
+			       		$column = explode(":", $columnas[$i]);
+						if($column[0] == 'S'){
+			                $val = $dataXML->getMovNomMen($l->NOMBRE, $column[0], $column[1] , $column[2] , $column[3], $m, $a);
+			                    $xls->getActiveSheet()->getStyle($colc.$ln)->getAlignment()->setHorizontal('right');
+			                	$h++;
+			                	$xls->setActiveSheetIndex()
+			                    	->setCellValue($colc.$ln, '$ '.number_format($val['valor'],2))
+			                    	;
+			                ++$colc;
+			                    //$t += $val['valor'];
+						}
+		            }
+		            
+		    }
+		    ### Finaliza la creacion de lineas ###
 
-	    /// CAMBIANDO EL TAMAÑO DE LA LINEA.
-	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(40);
-	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(50);
-	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('G')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('H')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('I')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('J')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('K')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('L')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('M')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('N')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('O')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('P')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('Q')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('R')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('S')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('T')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('U')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('V')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('W')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('X')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('Y')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('Z')->setWidth(13);
-	        $xls->getActiveSheet()->getColumnDimension('AA')->setWidth(13);
-	   	
-	   		$totales = $dataXML->totalNomina($fi, $ff);
-	   		
-	        $xls->getActiveSheet()
-	            ->setCellValue('A3','Resumen de Recibos de Nomina')
-	            ->setCellValue('A4','Fecha Inicial: '.$fi)
-	            ->setCellValue('A5','Fecha Final: '.$ff)
-	            ;
-
-	        $cc=0;
-	        $coltot = 'A';
-	        $lintot = 6;
-	        $cc2 = 0;
-	        $lin2= 6;
-
-	        foreach ($totales as $t) {
-	        	$cc2++;
-	        	if($cc2 == 1){
-	        		$colcab= $coltot;
-	        		++$colcab;
-	        		$lincab = $lin2-1;
-	        		$xls->getActiveSheet()    
-			            ->setCellValue($colcab.$lincab,'Gravado')
-	    	        ;
-			        	$xls->getActiveSheet()->getStyle($colcab.$lincab)->getAlignment()->setHorizontal('center');
-	        		++$colcab;
-
-	    	    	$xls->getActiveSheet()    
-			            ->setCellValue($colcab.$lincab,'Exento')
-	    	    	;	
-			        	$xls->getActiveSheet()->getStyle($colcab.$lincab)->getAlignment()->setHorizontal('center');
-
-	        	}
-
-	        	if($cc == 4){
-	        		++$coltot;
-	        		++$coltot;
-	        		++$coltot;
-	        		$cc = 0;
-	        		$lintot = 6;
-	        		$cc2=0;
-	        		$lin2=6;
-	        	}
-	        	$cc++;
-	        	$coltdg= $coltot;
-	        	++$coltdg;
-	        	$coltde = $coltdg;
-	        	++$coltde;
-		   		$xls->getActiveSheet()    
-		            ->setCellValue($coltot.$lintot,'Total '.$t->CONCEPTO.'('.$t->TIPO.'-'.$t->CLAVE.')')
-		            ->setCellValue($coltdg.$lintot,'$ '.number_format($t->GRAVADO,2))
-		            ->setCellValue($coltde.$lintot,'$ '.number_format($t->EXENTO,2))
-	    	    ;
-	    	    //$xls->getActiveSheet()->getStyle($coltot.$lintot)->getAlignment()->setHorizontal('right');
-	    	    $xls->getActiveSheet()->getStyle($coltdg.$lintot)->getAlignment()->setHorizontal('right');
-	    	    $xls->getActiveSheet()->getStyle($coltde.$lintot)->getAlignment()->setHorizontal('right');
-
-	            $lintot++;
-	   		}
-	       
-	        $xls->getActiveSheet()
-	            ->setCellValue('C3','Fecha del Emisión: '.date("d-m-Y H:n:s"))
-	            ->setCellValue('C4','Emite: '.$usuario)
-	            ;
-	        /// Unir celdas
-	        $xls->getActiveSheet()->mergeCells('A1:'.$colc.'1');
-	        // Alineando
-	        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
-	        /// Estilando
-	        $xls->getActiveSheet()->getStyle('A1')->applyFromArray(
-	            array('font' => array(
-	                    'size'=>20,
-	                )
-	            )
-	        );
-	    
 	        //// Crear una nueva hoja 
 	            //$xls->createSheet();
 	        /// Crear una nueva hoja llamada Mis Datos

@@ -723,6 +723,7 @@ class cargaXML extends database {
    		return $data;
    	}
 
+
    	function detNom($fi, $ff){
    		if($ff == 'per'){ return $this->detNomMen($fi);}
    		$data = array ();
@@ -732,7 +733,7 @@ class cargaXML extends database {
    		$ff = date('d.m.Y', strtotime($ff));
 
    		$this->query="SELECT XNT.UUID_NOMINA, XNT.DIAS FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' order by (SELECT COUNT(*) FROM XML_NOMINA_DETALLE ND WHERE ND.UUID_NOMINA = XNT.UUID_NOMINA) DESC";
-   		//$this->query="SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT left join XML_NOMINA_RECEPTOR XNR ON XNR.UUID_NOMINA = XNT.UUID_NOMINA where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' order by XNR.NUMEMPLEADO ASC ";   		
+   		 		
    		$res=$this->EjecutaQuerySimple();
    		while ($tsArray=ibase_fetch_object($res)){
    			$data[]=$tsArray;
@@ -771,8 +772,39 @@ class cargaXML extends database {
    		return $info=array("columnas"=>$columnas, "datos"=>$dataDet, "lineas"=>$data);
    	}
 
+   	function infoMes($m, $a){
+   		$columnasM = array(); $lineas= array();
+   		if($m == 0){
+   			$param = ' anio = '.$a;
+   		}else{
+   			$param = ' mes = '.$m;
+   		}
+   		$this->query= "SELECT NOMBRE, max(depto) as depto, min(inicio) as inicio, sum(dias) as dias, sum(sueldoD) as sueldoD, max(numero) as numero FROM REP_MENSUAL WHERE $param group by nombre";
+   		$res = $this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)) {
+   			$lineas[] = $tsArray;
+   		}
+
+   		$this->query="SELECT nombre, sum(valor) AS monto, mes, tipo, ded_per, clave, concepto, anio
+    						FROM rep_mensual where $param
+    						group by nombre,  mes, tipo, ded_per, clave, concepto, anio";
+    	$res = $this->EjecutaQuerySimple();
+    	while ($tsArray=ibase_fetch_object($res)) {
+    		$data[]=$tsArray;
+    	}
+
+    	foreach ($data as $col){
+   			$c=$col->DED_PER.':'.$col->TIPO.':'.$col->CLAVE.':'.$col->CONCEPTO;
+   			if(!in_array($c, $columnasM)){
+   				array_push($columnasM, $c);
+   			}
+   			$keys = array_fill_keys($columnasM, '');		
+    	}
+    	return array("columnas"=>$columnasM, "datos"=>$data, "lineas"=>$lineas);
+   	}
+
    	function detNomMen($fi){
-   		//print_r($fi);
+
    		$fechas = $fi;
    		$data = array ();
 	   	$dataDet =array();
@@ -792,7 +824,7 @@ class cargaXML extends database {
 	   			$data[]=$tsArray;
 	   		}
 	   	}
-	   	
+
 	   		array_push($columnas, 'UUID');
 	   		array_push($columnas, 'numero');
 	   		array_push($columnas, 'depto');
@@ -1559,6 +1591,26 @@ class cargaXML extends database {
 			die();
 		}
 
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$info[]=$tsArray;
+		}
+		if(count($info)>0){return array("valor"=>$info[0]->MONTO);}else{return array("valor"=>0);}
+	}
+
+	function getMovNomMen($name, $d, $t, $c, $cn, $m, $a){
+		$info=array();
+		if($m == 0 ){
+			$param = ' and anio = '.$a;
+		}else{
+			$param = ' and mes = '.$m;
+		}
+		//echo 'Nombre '.$name. ' DED_PER '.$d. ' tipo: '.$t.' concepto: '.$c.' cn '.$cn;
+		$this->query = "SELECT SUM(VALOR) AS monto FROM REP_MENSUAL WHERE NOMBRE = '$name' and TIPO = '$t' and DED_PER = '$d' and CLAVE = '$c' and CONCEPTO = '$cn' $param ";
+		/*if($t=='S'){
+			echo $this->query;
+			die();
+		}*/
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)) {
 			$info[]=$tsArray;
