@@ -270,8 +270,8 @@ class cargaXML extends database {
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
 		}
-
 		$zip=new ZipArchive();
+		$zip2= new ZipArchive();
 		if($_SESSION['servidor']!='Debian'){
 			$dir="C:\\xampp\\htdocs\\zipFiles\\";
 		}else{
@@ -282,21 +282,42 @@ class cargaXML extends database {
 		}
 		$zip->open($dir.$rfc."_".$mes."_".$anio."_".$ide."_".$doc."_".$date.".zip", ZipArchive::CREATE);
 		$d="$rfc";
-		//echo 'Revisar la creacion de archivo en la ruta en '. $dir. ' d: '.$rfc ;
+		$i=0;
 			foreach ($data as $k){
+				$i++;
 				$rf=($ide=='Recibidos')? $k->RFCE:$k->CLIENTE;
 				if($_SESSION['servidor']!='Debian'){
 					$r="C:\\xampp\\htdocs\\uploads\\xml\\".$rfc."\\".$ide."\\".$rf."\\";
 				}else{
 					$r="/home/ofarias/xmls/uploads/".$rfc."/".$ide."/".$rf."/";
 				}	
-				
 				$nameFile=$k->RFCE."-".$k->DOCUMENTO."-".$k->UUID.".xml";
+				$uuid= $k->UUID;
 				$archivo=$r.$nameFile;
 				if(file_exists($archivo)){
 					$zip->addFile($archivo, $nameFile);
 				}else{
-					echo 'No existe '.$archivo.'<br/>';
+					$comando = "chmod -R 777 /home/ofarias/xmls/uploads/";
+					$output = shell_exec($comando);
+
+					$this->query="SELECT xml FROM XML_DATA_FILES WHERE uuid = '$uuid'";
+					$res=$this->EjecutaQuerySimple();
+					
+					while ($tsArray=ibase_fetch_object($res)) {
+						$dataInfo[]=$tsArray;
+					}
+					foreach ($dataInfo as $key) {
+						$contenido = $key->XML;
+					}
+					$blobId=$contenido;
+					$blobInfo = ibase_blob_info($blobId);
+					$blobHandle = ibase_blob_open($blobId);
+					$blobContent = ibase_blob_get($blobHandle, $blobInfo[0]);
+					file_put_contents($r.$nameFile, $blobContent);
+
+					if(file_exists($archivo)){
+						$zip->addFile($archivo, $nameFile);
+					}
 				}
 			}
 
