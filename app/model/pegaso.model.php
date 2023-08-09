@@ -24509,30 +24509,35 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			        }
 
 			        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Receptor') as $Nomina12Receptor) {
-			            	if($version == '3.3' or $verNom == '1.2' or $version == '4.0'){
+			          if($version == '3.3' or $verNom == '1.2' or $version == '4.0'){
 			            		$curp= $Nomina12Receptor['Curp'];
 			            		$numss=$Nomina12Receptor['NumSeguridadSocial'];
-			            		$FechaInicioRelLaboral =$Nomina12Receptor['FechaInicioRelLaboral'];
+			            		$FechaInicioRelLaboral = $Nomina12Receptor['FechaInicioRelLaboral'];
 			            		$Antiguedad=$Nomina12Receptor['Antigüedad']; 
-								$TipoContrato=$Nomina12Receptor['TipoContrato'];
-								$Sindicalizado=$Nomina12Receptor['Sindicalizado'];
-								$TipoJornada=$Nomina12Receptor['TipoJornada'];
-								$TipoRegimen=$Nomina12Receptor['TipoRegimen'];
-								$NumEmpleado= $Nomina12Receptor['NumEmpleado'];
-								$Departamento= $Nomina12Receptor['Departamento'];
-								$Puesto= $Nomina12Receptor['Puesto'];
-								$RiesgoPuesto= $Nomina12Receptor['RiesgoPuesto'];
-								$PeriodicidadPago= $Nomina12Receptor['PeriodicidadPago'];
-								$SalarioBaseCotApor= $Nomina12Receptor['SalarioBaseCotApor'];
-								$SalarioDiarioIntegrado= $Nomina12Receptor['SalarioDiarioIntegrado'];
-								$ClaveEntFed=$Nomina12Receptor['ClaveEntFed'];
-								$Banco = isset($Nomina12Receptor['Banco'])? $Nomina12Receptor['Banco']:'';
-								$CuentaBancaria = isset($Nomina12Receptor['CuentaBancaria'])? $Nomina12Receptor['CuentaBancaria']:'';
+											$TipoContrato=$Nomina12Receptor['TipoContrato'];
+											$Sindicalizado=$Nomina12Receptor['Sindicalizado'];
+											$TipoJornada=$Nomina12Receptor['TipoJornada'];
+											$TipoRegimen=$Nomina12Receptor['TipoRegimen'];
+											$NumEmpleado= $Nomina12Receptor['NumEmpleado'];
+											$Departamento= $Nomina12Receptor['Departamento'];
+											$Puesto= $Nomina12Receptor['Puesto'];
+											$RiesgoPuesto= $Nomina12Receptor['RiesgoPuesto'];
+											$PeriodicidadPago= $Nomina12Receptor['PeriodicidadPago'];
+											$SalarioBaseCotApor= isset($Nomina12Receptor['SalarioBaseCotApor'])? $Nomina12Receptor['SalarioBaseCotApor']:0;
+											$SalarioDiarioIntegrado= isset($Nomina12Receptor['SalarioDiarioIntegrado'])? $Nomina12Receptor['SalarioDiarioIntegrado']:0;
+											$ClaveEntFed=$Nomina12Receptor['ClaveEntFed'];
+											$Banco = isset($Nomina12Receptor['Banco'])? $Nomina12Receptor['Banco']:'';
+											$CuentaBancaria = isset($Nomina12Receptor['CuentaBancaria'])? $Nomina12Receptor['CuentaBancaria']:'';
+							  }
+							  			if(empty($FechaInicioRelLaboral)){
+							  				$frl = "null"; 
+							  			}else{
+							  				$frl = "'".$FechaInicioRelLaboral."'";
+							  			}
 
-			            	}
 			    			$this->query="INSERT INTO XML_NOMINA_RECEPTOR (ID, CURP, NumSeguridadSocial, 
-			    										FechaInicioRelLaboral,
-			    										Antiguedad, 
+			    									FechaInicioRelLaboral,
+			    									Antiguedad, 
 														TipoContrato, 
 														Sindicalizado, 
 														TipoJornada, 
@@ -24550,8 +24555,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 														BANCO,
 														CUENTA_BANCARIA
 			    										 ) 
-			    					VALUES (NULL, '$curp', '$numss', '$FechaInicioRelLaboral',
-			    								'$Antiguedad', 
+			    					VALUES (NULL, '$curp', '$numss', $frl,
+			    							'$Antiguedad', 
 												'$TipoContrato', 
 												'$Sindicalizado', 
 												'$TipoJornada', 

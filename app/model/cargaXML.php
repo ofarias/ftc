@@ -753,15 +753,15 @@ class cargaXML extends database {
    		$fi = date('d.m.Y', strtotime($fi));
    		$ff = date('d.m.Y', strtotime($ff));
 
-   		$this->query="SELECT XNT.UUID_NOMINA, XNT.DIAS FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' order by (SELECT COUNT(*) FROM XML_NOMINA_DETALLE ND WHERE ND.UUID_NOMINA = XNT.UUID_NOMINA) DESC";
+   		$this->query="SELECT XNT.UUID_NOMINA, XNT.DIAS FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' and xnt.status is null order by (SELECT COUNT(*) FROM XML_NOMINA_DETALLE ND WHERE ND.UUID_NOMINA = XNT.UUID_NOMINA) DESC";
    		 		
    		$res=$this->EjecutaQuerySimple();
    		while ($tsArray=ibase_fetch_object($res)){
    			$data[]=$tsArray;
    		}
    		array_push($columnas, 'UUID');
-   		array_push($columnas, 'numero');
    		array_push($columnas, 'depto');
+   		array_push($columnas, 'numero');
    		array_push($columnas, 'nombre');
    		array_push($columnas, 'fecha ingreso');
    		array_push($columnas, 'Salario Diario');
@@ -775,7 +775,7 @@ class cargaXML extends database {
    			$this->query="SELECT ND.* , NR.NUMEMPLEADO AS NUMERO, nr.departamento as depto, NR.FECHAINICIORELLABORAL as fechaIngreso, (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS NE WHERE NE.CURP = NR.CURP) AS NOMBRE, iif(CLAVE = 'P001' and IMP_GRAVADO > 0, IMP_GRAVADO / $dias, 0) as SALARIO 
    				FROM XML_NOMINA_DETALLE ND
    				LEFT JOIN XML_NOMINA_RECEPTOR NR ON NR.UUID_NOMINA = ND.UUID_NOMINA
-   				WHERE ND.UUID_NOMINA = '$uuid' order by  ded_per desc";
+   				WHERE ND.UUID_NOMINA = '$uuid' order by  ded_per desc, status asc";
    			$res=$this->EjecutaQuerySimple();
    			while ($tsArray=ibase_fetch_object($res)) {
    				$dataDet[]=$tsArray;

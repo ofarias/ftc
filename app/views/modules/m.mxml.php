@@ -300,18 +300,34 @@
             if(t == 'v'){
                 window.open("index.xml.php?action=nomXML&anio="+a+"&mes="+m+"&tipo="+t,  "_self")
             }else{
-                $.ajax({
-                    url:'index.xml.php', 
-                    type:'get', 
-                    dataType:'json', 
-                    data:{action:'nomXML', anio:a, mes:m, tipo:t},
-                    success:function(data){
-                        descargarArchivo(data.ruta, data.archivo);
-                    },
-                    error:function(){
-                        alert('Error')
-                    }
-                })
+
+                    $.confirm({
+                        content: function () {
+                            var self = this;
+                            return $.ajax({
+                                        url:'index.xml.php', 
+                                        type:'get', 
+                                        dataType:'json', 
+                                        data:{action:'nomXML', anio:a, mes:m, tipo:t}/*,
+                                        success:function(data){
+                                            descargarArchivo(data.ruta, data.archivo);
+                                        },
+                                        error:function(){
+                                            alert('Error')
+                                        }*/
+                                }).done(function (data) {
+                                        self.setContent('Archivo generado' );
+                                        self.setContentAppend('<br>' + data.archivo);
+                                        self.setTitle('Archivo de Nominas');
+                                        descargarArchivo(data.ruta, data.archivo);
+                                }).fail(function(){
+                                        self.setContent('Something went wrong.');
+                                });
+                        }
+                    });
+                
+
+
             }
         })
 

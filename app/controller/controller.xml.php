@@ -1569,7 +1569,7 @@ class controller_xml{
 	    /// CAMBIANDO EL TAMAÑO DE LA LINEA.
 	        $xls->getActiveSheet()->getColumnDimension('A')->setWidth(40);
 	        $xls->getActiveSheet()->getColumnDimension('B')->setWidth(20);
-	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(50);
+	        $xls->getActiveSheet()->getColumnDimension('C')->setWidth(10);
 	        $xls->getActiveSheet()->getColumnDimension('D')->setWidth(20);
 	        $xls->getActiveSheet()->getColumnDimension('E')->setWidth(20);
 	        $xls->getActiveSheet()->getColumnDimension('F')->setWidth(20);
@@ -1828,10 +1828,20 @@ class controller_xml{
 			    	$xls->setActiveSheetIndex()
 			    		->setCellValue($col.$ln,$key->UUID_NOMINA)
 			    	;
+					
+					foreach($datos as $d){
+		                if($d->UUID_NOMINA == $key->UUID_NOMINA){
+		                	$col = 'B';
+		                	$xls->setActiveSheetIndex()
+		                    	->setCellValue($col.$ln,$d->DEPTO)
+		                    ;
+		                    break;
+		            	}
+		            }
 
 			    	foreach($datos as $d){
 		            	if($d->UUID_NOMINA == $key->UUID_NOMINA){
-		            		$col = 'B';
+		            		$col = 'C';
 		            		$xls->setActiveSheetIndex()
 		            	    	->setCellValue($col.$ln,$d->NUMERO)
 		            	    ;
@@ -1839,15 +1849,7 @@ class controller_xml{
 		            	}
 		        	}
 
-		            foreach($datos as $d){
-		                if($d->UUID_NOMINA == $key->UUID_NOMINA){
-		                	$col = 'C';
-		                	$xls->setActiveSheetIndex()
-		                    	->setCellValue($col.$ln,$d->DEPTO)
-		                    ;
-		                    break;
-		            	}
-		            }
+		            
 
 		            foreach($datos as $d){
 		                if($d->UUID_NOMINA == $key->UUID_NOMINA){
@@ -2021,7 +2023,7 @@ class controller_xml{
 			        
 
 			        /// Unir celdas
-			        $xls->getActiveSheet()->mergeCells('A1:'.$colc.'1');
+			        //$xls->getActiveSheet()->mergeCells('A1:'.$colc.'1');
 			        // Alineando
 			        $xls->getActiveSheet()->getStyle('A1')->getAlignment()->setHorizontal('center');
 			        /// Estilando
@@ -2044,9 +2046,9 @@ class controller_xml{
 			$datos = $infoTotal['datos'];
 
 			$xls->setActiveSheetIndex()
-			           ->setCellValue('A'.$ln,'Nombre')
+			           ->setCellValue('A'.$ln,'Depto')
 			           ->setCellValue('B'.$ln,'Numero')
-			           ->setCellValue('C'.$ln,'Depto')
+			           ->setCellValue('C'.$ln,'Nombre')
 			           ->setCellValue('D'.$ln,'Fecha Inicio')
 			           ->setCellValue('E'.$ln,'Sueldo')
 			       	;
@@ -2098,9 +2100,9 @@ class controller_xml{
 			foreach($infoTotal['lineas'] as $l){
 				$ln++;
 		           	$xls->setActiveSheetIndex()
-			           ->setCellValue('A'.$ln,$l->NOMBRE)
+			           ->setCellValue('A'.$ln,$l->DEPTO)
 			           ->setCellValue('B'.$ln,$l->NUMERO)
-			           ->setCellValue('C'.$ln,$l->DEPTO)
+			           ->setCellValue('C'.$ln,$l->NOMBRE)
 			           ->setCellValue('D'.$ln,$l->INICIO)
 			           ->setCellValue('E'.$ln,'$ '.number_format($l->SUELDOD,2))       
 			       	;
