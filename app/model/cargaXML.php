@@ -753,6 +753,13 @@ class cargaXML extends database {
    		$fi = date('d.m.Y', strtotime($fi));
    		$ff = date('d.m.Y', strtotime($ff));
 
+   		$this->query="EXECUTE PROCEDURE SP_UPD_CANCEL_NOM()";
+   		$this->EjecutaQuerySimple();
+
+   		$this->query="EXECUTE PROCEDURE SP_UPD_COL_NOMINA()";
+   		$this->EjecutaQuerySimple();
+
+
    		$this->query="SELECT XNT.UUID_NOMINA, XNT.DIAS FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' and xnt.status is null order by (SELECT COUNT(*) FROM XML_NOMINA_DETALLE ND WHERE ND.UUID_NOMINA = XNT.UUID_NOMINA) DESC";
    		 		
    		$res=$this->EjecutaQuerySimple();

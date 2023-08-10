@@ -308,13 +308,7 @@
                                         url:'index.xml.php', 
                                         type:'get', 
                                         dataType:'json', 
-                                        data:{action:'nomXML', anio:a, mes:m, tipo:t}/*,
-                                        success:function(data){
-                                            descargarArchivo(data.ruta, data.archivo);
-                                        },
-                                        error:function(){
-                                            alert('Error')
-                                        }*/
+                                        data:{action:'nomXML', anio:a, mes:m, tipo:t}
                                 }).done(function (data) {
                                         self.setContent('Archivo generado' );
                                         self.setContentAppend('<br>' + data.archivo);
