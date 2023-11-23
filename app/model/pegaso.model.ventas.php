@@ -2476,8 +2476,8 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
             $param = " where FECHAELAB BETWEEN '".$fi."' and '".$ff."' ";
         }
         
-        $this->query="SELECT f.*, (select fa.uuid from ftc_facturas fa where fa.documento = f.METODO_PAGO) as f_UUID, (SELECT NOMBRE FROM CLIE01 C where C.clave = f.cliente) as nombre, (SELECT COUNT(*) FROM FTC_NV_DETALLE fd WHERE fd.documento = f.documento) as prod, (SELECT sum(CANTIDAD) FROM FTC_NV_DETALLE fd WHERE fd.documento = f.documento) as piezas, CAST((SELECT LIST(FORMA_PAGO) FROM APLICACIONES a WHERE a.DOCUMENTO = f.DOCUMENTO) AS VARCHAR(100)) as fp FROM FTC_NV f $param ORDER BY f.Serie asc, f.folio asc";
-        echo $this->query;
+        $this->query="SELECT f.*, (select fa.uuid from ftc_facturas fa where fa.documento = f.METODO_PAGO) as f_UUID, (SELECT NOMBRE FROM CLIE01 C where C.clave = f.cliente) as nombre, (SELECT COUNT(*) FROM FTC_NV_DETALLE fd WHERE fd.documento = f.documento) as prod, (SELECT sum(CANTIDAD) FROM FTC_NV_DETALLE fd WHERE fd.documento = f.documento) as piezas, CAST((SELECT LIST(FORMA_PAGO) FROM APLICACIONES a WHERE a.DOCUMENTO = f.metodo_pago) AS VARCHAR(100)) as fp FROM FTC_NV f $param ORDER BY f.Serie asc, f.folio asc";
+        //echo $this->query;
         $res=$this->EjecutaQuerySimple();
         while ($tsArray=ibase_fetch_object($res)) {
             $data[]=$tsArray;
@@ -2590,5 +2590,71 @@ WHERE CVE_DOC_COMPPAGO IS NULL AND (NUM_CPTO = 22 OR NUM_CPTO = 11 OR NUM_CPTO =
         return;
     }
 
+    function regPag($val, $cta){
+        $usuario=$_SESSION['user']->NOMBRE;
+        $this->query="SELECT * FROM FTC_NV WHERE IDF=$val";
+        $res=$this->EjecutaQuerySimple();
+        while ($tsArray=ibase_fetch_object($res)){ $data[]=$tsArray; }
+        foreach ($data as $k){}
+        
+        $this->query="INSERT INTO CARGA_PAGOS (ID, CLIENTE, FECHA, MONTO, SALDO, USUARIO, BANCO, FECHA_APLI, FECHA_RECEP, FOLIO_X_BANCO, STATUS,  TIPO_PAGO, APLICACIONES, OBS) 
+                VALUES (null, '$k->CLIENTE', CURRENT_TIMESTAMP, $k->SALDO_FINAL, 0, '$usuario', '$cta', current_timestamp, current_timestamp, '', '', '03', $k->SALDO_FINAL, '$k->METODO_PAGO')";     
+        $this->grabaBD();
+
+        $this->query="INSERT INTO APLICACIONES (ID, FECHA, IDPAGO, DOCUMENTO, MONTO_APLICADO, SALDO_DOC, SALDO_PAGO, USUARIO, FORMA_PAGO,  PROCESADO, OBSERVACIONES, CONTABILIZADO) VALUES (NULL, current_timestamp, (select max(id) from carga_pagos), '$k->METODO_PAGO', $k->SALDO_FINAL, 0, 0, '$usuario', '03 '||' $cta', 1, (select uuid from ftc_facturas where documento= '$k->METODO_PAGO'), 0) ";
+        $this->grabaBD();
+        $this->query="UPDATE FTC_FACTURAS SET SALDO_FINAL = 0, ID_PAGOS =(select max(id) from carga_pagos), ID_APLICACIONES = (select max(id) from aplicaciones), monto_aplicaciones = $k->SALDO_FINAL WHERE DOCUMENTO = '$k->METODO_PAGO'";
+        $this->grabaBD();
+
+        $this->query="UPDATE FTC_NV SET SALDO_FINAL = 0, ID_PAGOS =(select max(id) from carga_pagos), ID_APLICACIONES = (select max(id) from aplicaciones), monto_aplicaciones = $k->SALDO_FINAL WHERE DOCUMENTO = '$k->DOCUMENTO'";
+        $this->grabaBD();        
+        return array("status"=>'ok');
+    }
+
+
+    
+
+/*
+    [IDF] => 528
+    [DOCUMENTO] => N528
+    [SERIE] => N
+    [FOLIO] => 528
+    [FORMADEPAGOSAT] => 
+    [VERSION] => 1.1
+    [TIPO_CAMBIO] => 1
+    [METODO_PAGO] => F663
+    [REGIMEN_FISCAL] => 
+    [LUGAR_EXPEDICION] => 
+    [MONEDA] => 1
+    [TIPO_COMPROBANTE] => NV
+    [CONDICIONES_PAGO] => Contado
+    [SUBTOTAL] => 850
+    [IVA] => 136
+    [IEPS] => 0
+    [DESC1] => 0
+    [DESC2] => 0
+    [TOTAL] => 986
+    [SALDO_FINAL] => 986
+    [ID_PAGOS] => 
+    [ID_APLICACIONES] => 
+    [NOTAS_CREDITO] => 
+    [MONTO_NC] => 0
+    [MONTO_PAGOS] => 0
+    [MONTO_APLICACIONES] => 0
+    [CLIENTE] =>          5 
+    [USO_CFDI] => 
+    [STATUS] => F
+    [USUARIO] => Doris  Hernandez Arenas
+    [FECHA_DOC] => 2023-11-22 00:00:00
+    [FECHAELAB] => 2023-11-22 18:08:55
+    [IDIMP] => 0
+    [UUID] => 
+    [DESCF] => 0
+    [IDCAJA] => 
+    [CONTABILIZADO] => 0
+    [POLIZA] => 
+    [FECHA_CANCELACION] => 
+    [USUARIO_CANCELACION] =>
+*/
 
 }?>

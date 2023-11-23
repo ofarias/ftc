@@ -2039,5 +2039,11 @@ class pegaso_controller_ventas{
         $res=$fact->leeLog($doc=null);
         return $res;
     }
+
+    function regPag($val, $cta){
+        $data = new pegaso_ventas;
+        $res = $data->regPag($val, $cta);
+        return $res;
+    }
 }
 ?>

@@ -24533,8 +24533,8 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 								$ClaveEntFed=$Nomina12Receptor['ClaveEntFed'];
 								$Banco = isset($Nomina12Receptor['Banco'])? $Nomina12Receptor['Banco']:'';
 								$CuentaBancaria = isset($Nomina12Receptor['CuentaBancaria'])? $Nomina12Receptor['CuentaBancaria']:'';
-
 			            	}
+
 			    			$this->query="INSERT INTO XML_NOMINA_RECEPTOR (ID, CURP, NumSeguridadSocial, 
 			    										FechaInicioRelLaboral,
 			    										Antiguedad, 
@@ -24556,7 +24556,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 														CUENTA_BANCARIA
 			    										 ) 
 			    					VALUES (NULL, '$curp', '$numss', '$FechaInicioRelLaboral',
-			    								'$Antiguedad', 
+			    							'$Antiguedad', 
 												'$TipoContrato', 
 												'$Sindicalizado', 
 												'$TipoJornada', 
@@ -27993,27 +27993,30 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				$folio=$folio[0]->FOLIO;
 				$this->query="INSERT INTO PAGO_GASTO (ID, IDGASTO, CUENTA_BANCARIA, MONTO, FECHA_REGISTRO, USUARIO_REGISTRA, FECHA_PAGO, CONCILIADO, FOLIO_PAGO) VALUES ((select coalesce(max(ID),0)+1 FROM PAGO_GASTO), '$row->ID','$banco'||' - '||'$cuenta', $monto, current_timestamp, '$usuario', '$fecha', 0, '$folio')";
 				$this->grabaBD();
+				
 				$this->revisaGasto($row->ID);
-				$this->verCargas($banco, $cuenta, $t=9);
-				if(!empty($uuid)){
-					$uuidg = explode(",",$uuid);
-					for($i=0;$i<count($uuidg); $i++){
-						if(!empty($uuidg[$i])){
-							$cargos[$uuidg[$i]] = $row->ID ;
-							//echo '<br/>se agrego '.$uuid[$i].' al arreglo '.print_r($cargos);
-						}
+			}
+			
+			if(!empty($uuid)){
+				$uuidg = explode(",",$uuid);
+				for($i=0;$i<count($uuidg); $i++){
+					if(!empty($uuidg[$i])){
+						$cargos[$uuidg[$i]] = $row->ID ;
+						//echo '<br/>se agrego '.$uuid[$i].' al arreglo '.print_r($cargos);
 					}
 				}
 			}
 		}
+		$this->verCargas($banco, $cuenta, $t=9);
 		$dup=$this->revisaDuplicado(); 
 		if(count($abonos) > 0 or count($cargos) > 0){
-			$aplica = $this->datosAplicacion($abonos, $cargos);
-			print_r($aplica);
-			if(isset($aplica['abonos']) or isset($aplica['cargos'])){
-				echo 'Intenta crear las polizas';
-				$this->creaPolizas($abonos, $cargos);
-			}
+			#### solo carga del archivo ### 
+			//$aplica = $this->datosAplicacion($abonos, $cargos);
+			//print_r($aplica);
+			//if(isset($aplica['abonos']) or isset($aplica['cargos'])){
+			//	echo 'Intenta crear las polizas';
+			//	$this->creaPolizas($abonos, $cargos);
+			//}
 		}
 	}
 

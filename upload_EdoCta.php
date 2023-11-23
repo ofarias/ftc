@@ -12,7 +12,7 @@ $datos = @explode(":",$_POST['datos']);
 $o = $_POST['o'];
 
 if(!file_exists($target_dir)){
-    mkdir($target_dir);
+    mkdir($target_dir, 0777, true);
 }
 
 if ($_FILES["fileToUpload"]["size"] > 5000000 ){

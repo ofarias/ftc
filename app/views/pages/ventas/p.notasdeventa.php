@@ -21,16 +21,18 @@
                            Año <input type="radio" name="p1" class="temp" value="a" <?php echo $p == 'a'? 'checked':''?> > &nbsp;&nbsp;
                            Todas <input type="radio" name="p1" class="temp" value="t"  <?php echo $p == 't'? 'checked':''?>> &nbsp;&nbsp;
                            Del &nbsp;&nbsp;<font color ="black"><input type="date" name="fi" id="fi" value="01.01.1990"></font> &nbsp;&nbsp; al &nbsp;&nbsp;<font color ="black"><input type="date" name="ff" value="01.01.1990" id="ff"></font>&nbsp;&nbsp;<label class="ir">Ir</label>
-                           <label class="leeLog">Lee Log</label>
+                           <label class="leeLog">Lee Log</label> 
+                           <br/><br/>
+                           <label>Total:</label><label id="total"></label> 
+                           &nbsp;&nbsp;&nbsp;
+                           <label>Suma Saldo Selección: </label><label id="suma"></label>
                         </div>
                            <div class="panel-body">
                             <div class="table-responsive">                            
                                 <table class="table table-striped table-bordered table-hover" id="dataTables-nv">
                                     <thead>
                                         <tr>
-                                            <th> S </th>
-                                            <th> F </th>
-                                            <th> Nota  </th>
+                                            <th> Nota <br/><input type="checkbox" class="selAll"> </th>
                                             <th> Cliente </th>
                                             <th> Fecha Doc<br/><font color="blue">Fecha Elab</font> <br/> Nota Manual</th>
                                             <th> Status </th>
@@ -46,13 +48,15 @@
                                             <th> Factura </th>
                                             <th> Vendedor </th><
                                             <th> Impresion </th>
-
                                         </tr>
                                     </thead>
                                   <tbody>
-                                        <?php
+                                        <?php $total=0; $saldo =0; $ln=0;
                                         foreach ($info as $i):
                                             $status='';
+                                            $total += $i->TOTAL;
+                                            $saldo = $i->SALDO_FINAL;
+                                            $ln++;
                                             switch($i->STATUS){
                                                 case 'P':
                                                     $status = 'Pendiente';
@@ -72,9 +76,8 @@
                                             }
                                         ?>
                                        <tr>
-                                            <td WIDTH="1"><?php echo $i->SERIE?></td>
-                                            <td WIDTH="1"><?php echo $i->FOLIO?></td>
-                                            <td WIDTH="3" class="details-control" ><a class="detalles" nv="<?php echo $i->DOCUMENTO?>"><?php echo $i->DOCUMENTO?></a> <br/> <a class="copiar" doc="<?php echo $i->DOCUMENTO?>"><font color="blue">copiar</font></a></td>
+                                            <td WIDTH="3" class="details-control" ><a class="detalles" nv="<?php echo $i->DOCUMENTO?>"><?php echo $i->DOCUMENTO?></a> <br/> <a class="copiar" doc="<?php echo $i->DOCUMENTO?>"><font color="blue">copiar</font></a>
+                                                <input type="checkbox" class="suma" value="<?php echo $i->SALDO_FINAL?>"></td>
 
                                             <td ><?php echo '('.$i->CLIENTE.') '?>
 
@@ -92,12 +95,14 @@
                                             <td align="right"><?php echo '$ '.number_format($i->DESC1,2)?></td>
                                             <td align="right"><?php echo '$ '.number_format($i->TOTAL,2)?></td>
                                             <td align="right"><?php echo '$ '.number_format($i->SALDO_FINAL,2)?></td>
-                                            <td align="center"><?php echo $i->FP?></td>
+                                            <td align="center">
+                                                <?php echo $i->FP==''? '<label class="rp" valor="'.$i->IDF.'" id="rp_'.$ln.'">Reg. Pago</label>':$i->FP ?> 
+                                            </td>
                                             <td align="center"><?php if(empty($i->METODO_PAGO)){?>
-                                                <?php }else{?>
-                                                    <a href="index.cobranza.php?action=envFac&docf=<?php echo $i->METODO_PAGO?>" onclick="window.open(this.href, this.target, 'width=1000, height=800'); return false;"> <font color="green"><b><?php echo $i->METODO_PAGO?></b></font></a>
+                                                    <?php }else{?>
+                                                        <a href="index.cobranza.php?action=envFac&docf=<?php echo $i->METODO_PAGO?>" onclick="window.open(this.href, this.target, 'width=1000, height=800'); return false;"> <font color="green"><b><?php echo $i->METODO_PAGO?></b></font></a>
 
-                                                    <br/>
+                                                        <br/>
                                                     <?php if(isset($i->F_UUID)){?>
                                                         <a href="/Facturas/facturaPegaso/<?php echo $i->METODO_PAGO.'.xml'?>" download>  <img border='0' src='app/views/images/xml.jpg' width='25' height='30'></a>
                                                         <a href="index.php?action=imprimeFact&factura=<?php echo $i->METODO_PAGO?>" onclick="alert('Se ha descargado tu factura.')"><img border='0' src='app/views/images/pdf.jpg' width='25' height='30'></a>
@@ -130,8 +135,79 @@
 <script type="text/javascript">  
 
     var p = '';
-    
+    var total = <?php echo $total?>
+
+    $(".selAll").click(function(){
+        if($(this).is(':checked')){
+            $(".suma").prop('checked', true)
+        }else{
+            $(".suma").prop('checked', false)
+        }
+            suma()
+    })
+
+    $(".rp").click(function(){
+        let val = $(this).attr('valor')
+        let id = $(this).attr('id')
+        $.confirm({
+            title: 'Registra Pago Factura o Nota de Venta',
+            content: 'Selecciona la cuenta de deposito: &nbsp;&nbsp;&nbsp;' + 
+            '<select id="ctaDep">'+
+                '<option> BBVA (CFA) </option>' + 
+                '<option> Azteca (CFA) </option>'+
+                '<option> Scotiabank (OFA) </option>'+
+            '</select>'
+            ,
+            buttons: {
+                Registrar: function(){
+                    let cta = $("#ctaDep").val()
+                        $.ajax({
+                            url:'index.v.php',
+                            type:'post',
+                            dataType:'json',
+                            data:{regPag:1, val, cta},
+                            success:function(data){
+                                if(data.status=='ok'){
+                                    document.getElementById(id).classList.remove('rp')
+                                    document.getElementById(id).innerHTML = '03 ' + cta 
+                                }
+
+                            },
+                            error:function(){
+
+                            }
+                        })    
+                },
+                Cancelar :{
+
+                }
+            }
+        })
+    })
+
+    $("document").ready(function(){
+        let formatoMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+        let precioFormateado = formatoMoneda.format(total);
+        document.getElementById("total").innerHTML = '&nbsp;&nbsp;&nbsp;' + precioFormateado
+    })
+
+
+    $(".suma").change(function(){
+        suma()
+    })
+
+    function suma(){
+        let suma = 0
+        $(".suma:checked").each(function(){
+                suma += parseInt($(this).val(), 10);
+        })
+        let formatoMoneda = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+        let val = formatoMoneda.format(suma);
+        document.getElementById("suma").innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;' + val
+    }
+
     $(".genCep").click(function(){
+    
         let doc = $(this).attr('factura')
 
         $.ajax({
@@ -248,9 +324,7 @@
 
     $(".detalles").click(function(){
         var nv = $(this).attr('nv')
-        //alert('Detalles de la Nota ' + nv)
         window.open("index.v.php?action=nv2&doc="+nv+"&idf=0", '_blank')
-        //window.open("index.v.php?action=nv2&doc="+nv+"&idf=0", "_self")
     })
 
     $(".copiar").click(function(){

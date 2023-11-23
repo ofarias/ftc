@@ -572,6 +572,8 @@ elseif (isset($_POST['proveedorXproducto'])) {
 	$res = $controller_v->editCte($_POST['editCte'], $_POST['campo'], $_POST['val']);echo json_encode($res); exit();
 }elseif (isset($_POST['leeLog'])) {
 	$res=$controller_v->leeLog();echo json_encode($res);exit();
+}elseif (isset($_POST['regPag'])) {
+	$res=$controller_v->regPag($_POST['val'], $_POST['cta']);echo json_encode($res);exit();
 }else{switch ($_GET['action']){
 		case 'login':
 		$controller->Login();
