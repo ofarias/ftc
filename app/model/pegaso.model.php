@@ -10698,24 +10698,15 @@ function Pagos() {
     }
  
 	function estado_de_cuenta_mes($mes, $banco, $cuenta, $anio, $f, $idfl){
-	   	$pr=array();
+	  $pr=array();
 		$fe = $this->periodoEC($banco, $cuenta, $mes, $anio);
-		//var_dump($fe);
-		//die;
 		$fechaIni=$fe['fi'];$fechafin=$fe['ff'];
 		$param2 = "and (fecha_recep between '".$fechaIni."' and '".$fechafin."')";
 	   	$param3 = " and ( fecha_edo_cta between '".$fechaIni."' and '".$fechafin."' or g.fecha_doc between '".$fechaIni."' and '".$fechafin."') ";	   
 	   	if($f == 'si'){
-	   		/// Se cambia por la obtencion de fechas desdes la funcion periodosEC
-    		///if($mes <12){
-    		///	$mi=$mes; $mf=$mes+1;
-    		///}else{
-    		///	$mi=$mes; $mf=1;
-    		///}
-    		$file = ''; $mi= ''; $mf=''; 
+	   		$file = ''; $mi= ''; $mf=''; 
     		if($idfl > 0 ){$file=' and id = '.$idfl;}else{$mi = $fe['mi'];$mf=$fe['mf']; $file = 'and MI='.$mi.' and MF = '.$mf;}
     		$this->query="SELECT * FROM FTC_MEDIA_FILES M WHERE M.TIPO = 'EDOCTA' AND (SELECT BANCO FROM PG_BANCOS WHERE ID = M.ID_REF) = '$banco' and (SELECT NUM_CUENTA FROM PG_BANCOS WHERE ID = M.ID_REF) = '$cuenta' and status = 'A' $file";
-    		//echo $this->query;
     		$res=$this->EjecutaQuerySimple();
     		while ($tsArray=ibase_fetch_object($res)) {
     			$pr[]=$tsArray;
@@ -10733,13 +10724,12 @@ function Pagos() {
     		}
     	}
     	$data = array();
-		$this->query="SELECT 1 as s, FECHA_RECEP AS sort, 'Venta' AS TIPO,  iif(FOLIO_X_BANCO = 'TR', (FOLIO_X_BANCO||id), FOLIO_X_BANCO) AS CONSECUTIVO, FECHA_RECEP AS FECHAMOV, MONTO AS ABONO, 0 AS CARGO, SALDO AS SALDO, BANCO AS BANCO, USUARIO AS USUARIO, tipo_pago as TP, id as identificador, registro as registro, folio_acreedor as FA , fecha_recep as fe, '' as comprobado, contabilizado, seleccionado, contabilizado as tp_tes, obs, MONTO_ACREEDOR as duplicados
+			$this->query="SELECT 1 as s, FECHA_RECEP AS sort, 'Venta' AS TIPO,  iif(FOLIO_X_BANCO = 'TR', (FOLIO_X_BANCO||id), FOLIO_X_BANCO) AS CONSECUTIVO, FECHA_RECEP AS FECHAMOV, MONTO AS ABONO, 0 AS CARGO, SALDO AS SALDO, BANCO AS BANCO, USUARIO AS USUARIO, tipo_pago as TP, id as identificador, registro as registro, folio_acreedor as FA , fecha_recep as fe, '' as comprobado, contabilizado, seleccionado, contabilizado as tp_tes, obs, MONTO_ACREEDOR as duplicados
     		   from carga_pagos 
     		   where BANCO = ('$banco'||' - '||'$cuenta') 
     		   		$param2
     		   		AND STATUS <> 'C' and (seleccionado = 1 or seleccionado = 0 or seleccionado is null)  and (guardado = 0 or guardado is null)
     		   		order by fecha_recep asc";
-    	//echo $this->query;
     	$rs=$this->QueryObtieneDatosN();
     	while($tsArray=ibase_fetch_object($rs)){
     		$data[]=$tsArray;
@@ -13393,6 +13383,7 @@ function Pagos() {
     			$ff = $ld.'.'.$mes.'.'.$anio;
     		}
     	}	
+
     	return array("fi"=>$fi, "ff"=>$ff, "mi"=>date("n", strtotime($fi)), "mf"=>date("n", strtotime($fi)));
     }
 
@@ -23766,6 +23757,9 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
         		$a+=65535; $i+=65535; 
         		if($a > $size){$a=$size;}
         	}
+        }else{
+        		$this->query="UPDATE XML_DATA_FILES SET XML = '$xml' where id = $row->ID";
+        	 	$this->queryActualiza();
         } 
         $this->insertaXMLData($archivo, $tipo, $uuid);
         /// Esto solo si tienen conexion a COI 
@@ -24240,25 +24234,26 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
                             		$carpeta2= $rfce;
                             	}
                             if($_SESSION['servidor']!='Debian'){
-	                            	$path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\'.$carpeta.'\\'.$carpeta2;
+	                            	$path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\'.$carpeta.'\\'.$carpeta2.'\\';
 	                            	if(is_dir($path)){
 	                           		}else{
 	                            		mkdir($path,0777, true);
 	                            	}
                             }else{
-                            	$path = '/home/ofarias/xmls/uploads/'.$rfcEmpresa.'/'.$carpeta.'/'.$carpeta2;
+
+                            	$path = '/home/ofarias/xmls/uploads/'.$rfcEmpresa.'/'.$carpeta.'/'.$carpeta2.'/';
                             	if(!file_exists($path)){
 	                            	mkdir($path,0777, true);
                             	}
                             }
 
+
 	                          if($tipo=='P'){
-	                              copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serieComp).utf8_encode($folioComp).'-'.$uuid.".xml");
+	                              copy($archivo, $path.$rfce.'-'.utf8_encode($serieComp).utf8_encode($folioComp).'-'.$uuid.".xml");
 	                          }else{	
-	                              copy($archivo, $path.'\\'.$rfce.'-'.utf8_encode($serie).utf8_encode($folio).'-'.$uuid.".xml");
+	                              copy($archivo, $path.$rfce.'-'.utf8_encode($serie).utf8_encode($folio).'-'.$uuid.".xml");
 	                          }
 
-                            
                             /// Insertamos en la tabla de CFIDsss
 
                             $this->query="UPDATE FTC_FACTURAS SET UUID = '$uuid' WHERE SERIE='$serie' AND FOLIO='$folio'";
@@ -24504,7 +24499,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		$rfc= $Receptor['rfc'];
 			           		 	$nombre_recep = utf8_encode($Receptor['nombre']);
 			            		$usoCFDI = '';
-			            	}elseif($version == '3.3'){
+			            	}elseif($version == '3.3' or $version == '4.0'){
 			            		$rfc= $Receptor['Rfc'];
 			            		$nombre_recep=utf8_encode($Receptor['Nombre']);
 			            		$usoCFDI =$Receptor['UsoCFDI'];
@@ -24514,30 +24509,35 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			        }
 
 			        foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Receptor') as $Nomina12Receptor) {
-			            	if($version == '3.3' or $verNom == '1.2'){
+			          if($version == '3.3' or $verNom == '1.2' or $version == '4.0'){
 			            		$curp= $Nomina12Receptor['Curp'];
 			            		$numss=$Nomina12Receptor['NumSeguridadSocial'];
-			            		$FechaInicioRelLaboral =$Nomina12Receptor['FechaInicioRelLaboral'];
+			            		$FechaInicioRelLaboral = $Nomina12Receptor['FechaInicioRelLaboral'];
 			            		$Antiguedad=$Nomina12Receptor['Antigüedad']; 
-								$TipoContrato=$Nomina12Receptor['TipoContrato'];
-								$Sindicalizado=$Nomina12Receptor['Sindicalizado'];
-								$TipoJornada=$Nomina12Receptor['TipoJornada'];
-								$TipoRegimen=$Nomina12Receptor['TipoRegimen'];
-								$NumEmpleado= $Nomina12Receptor['NumEmpleado'];
-								$Departamento= $Nomina12Receptor['Departamento'];
-								$Puesto= $Nomina12Receptor['Puesto'];
-								$RiesgoPuesto= $Nomina12Receptor['RiesgoPuesto'];
-								$PeriodicidadPago= $Nomina12Receptor['PeriodicidadPago'];
-								$SalarioBaseCotApor= $Nomina12Receptor['SalarioBaseCotApor'];
-								$SalarioDiarioIntegrado= $Nomina12Receptor['SalarioDiarioIntegrado'];
-								$ClaveEntFed=$Nomina12Receptor['ClaveEntFed'];
-								$Banco = isset($Nomina12Receptor['Banco'])? $Nomina12Receptor['Banco']:'';
-								$CuentaBancaria = isset($Nomina12Receptor['CuentaBancaria'])? $Nomina12Receptor['CuentaBancaria']:'';
-			            	}
-
+											$TipoContrato=$Nomina12Receptor['TipoContrato'];
+											$Sindicalizado=$Nomina12Receptor['Sindicalizado'];
+											$TipoJornada=$Nomina12Receptor['TipoJornada'];
+											$TipoRegimen=$Nomina12Receptor['TipoRegimen'];
+											$NumEmpleado= $Nomina12Receptor['NumEmpleado'];
+											$Departamento= $Nomina12Receptor['Departamento'];
+											$Puesto= $Nomina12Receptor['Puesto'];
+											$RiesgoPuesto= $Nomina12Receptor['RiesgoPuesto'];
+											$PeriodicidadPago= $Nomina12Receptor['PeriodicidadPago'];
+											$SalarioBaseCotApor= isset($Nomina12Receptor['SalarioBaseCotApor'])? $Nomina12Receptor['SalarioBaseCotApor']:0;
+											$SalarioDiarioIntegrado= isset($Nomina12Receptor['SalarioDiarioIntegrado'])? $Nomina12Receptor['SalarioDiarioIntegrado']:0;
+											$ClaveEntFed=$Nomina12Receptor['ClaveEntFed'];
+											$Banco = isset($Nomina12Receptor['Banco'])? $Nomina12Receptor['Banco']:'';
+											$CuentaBancaria = isset($Nomina12Receptor['CuentaBancaria'])? $Nomina12Receptor['CuentaBancaria']:'';
+							  }
+							  			if(empty($FechaInicioRelLaboral)){
+							  				$frl = "null"; 
+							  			}else{
+							  				$frl = "'".$FechaInicioRelLaboral."'";
+							  			}
+							  			
 			    			$this->query="INSERT INTO XML_NOMINA_RECEPTOR (ID, CURP, NumSeguridadSocial, 
-			    										FechaInicioRelLaboral,
-			    										Antiguedad, 
+			    									FechaInicioRelLaboral,
+			    									Antiguedad, 
 														TipoContrato, 
 														Sindicalizado, 
 														TipoJornada, 
@@ -24581,7 +24581,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			        }
 
 			    	foreach ($xml->xpath('//cfdi:Comprobante//cfdi:Complemento//nomina12:Nomina') as $nomVal) {
-			    			if ($version == '3.3' or $verNom == '1.2'){
+			    			if ($version == '3.3' or $verNom == '1.2' or $version == '4.0'){
 			    				$fechaInicialPago = $nomVal['FechaInicialPago'];
 			    				$fechaFinalPago = $nomVal['FechaFinalPago'];
 			    				$fechaPago = $nomVal['FechaPago'];
@@ -24718,7 +24718,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 			            		$rfc= $Receptor['rfc'];
 			           		 	$nombre_recep = utf8_encode($Receptor['nombre']);
 			            		$usoCFDI = '';
-			            	}elseif($version == '3.3'){
+			            	}elseif($version == '3.3' or $version == '4.0'){
 			            		$rfc= $Receptor['Rfc'];
 			            		$nombre_recep=utf8_encode($Receptor['Nombre']);
 			            		$usoCFDI =$Receptor['UsoCFDI'];
@@ -24838,7 +24838,7 @@ function ejecutaOC($oc, $tipo, $motivo, $partida, $final){
 				    	}
 				}		
 
-				$rfcEmpresa = $_SESSION['rfc'];
+								$rfcEmpresa = $_SESSION['rfc'];
                 $path='C:\\xampp\\htdocs\\uploads\\xml\\'.$rfcEmpresa.'\\Nomina\\';
                 if(is_dir($path)){
                 }else{

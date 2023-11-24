@@ -773,7 +773,6 @@ class pegaso_controller_cobranza{
             $fact = new factura;
             //$response=$fact->generaCEPPago($folios, $idCliente, $ctaO, $bancoO,$tipoO, $numope);
             $response=$fact->generaCEPPago_v4($folios, $idCliente, $ctaO, $bancoO,$tipoO, $numope);
-
             return $response;
        }
     }

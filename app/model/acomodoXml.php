@@ -126,6 +126,80 @@ class acomodoXML extends database{
 		}
 		echo 'No existen '.$n. ' imagenes. ';
 	}
+
+	function xmlDebian(){
+		//var_dump($_SESSION);
+		$rfc = $_SESSION['empresa']['rfc']; 
+		//echo '<br/>El RFC es: '.$rfc;
+		$tipo = 'Recibidos';
+		$path = '/home/ofarias/xmls/uploads/'.$rfc.'/'.$tipo;
+		$archivos = scandir($path);
+		$archivos = array_filter($archivos, function($archivo) use ($path){
+    			return is_file($path . '/' . $archivo);
+		});
+		if (count($archivos)>0){
+			foreach ($archivos as $archivo) {
+				$dir = explode("\\", $archivo);
+				//echo '<br/>'.$dir[0]. ' archivo: '. $dir[1];
+				$destino = $path.'/'.$dir[0].'/';
+				if(rename($path.'/'.$archivo, $destino.'/'.$archivo)){
+					echo 'Se movio el archivo '.$archivo.'<br/>'; 
+				}else{
+					echo 'No se pudo mover el archivo '.$archivo.'<br/>'; 
+				}
+			}
+		}
+		$elementos = scandir($path);
+		$directorios = array_filter($elementos, function($elemento) use ($path) {
+    		return is_dir($path . '/' . $elemento) && $elemento != '.' && $elemento != '..';
+		});
+		foreach ($directorios as $directorio) {
+    		//echo '<br/>'.$directorio . '<br>';
+    		$newDirectorio = $path.'/'.$directorio;
+    		$archivos = scandir($newDirectorio);
+
+			$archivos = array_filter($archivos, function($archivo) use ($newDirectorio){
+    			return is_file($newDirectorio . '/' . $archivo);
+			});
+			if (count($archivos)>0){
+				foreach ($archivos as $archivo) {
+					if(strpos($archivo, "//") ){
+						$dir = explode("\\", $archivo);
+						//echo '<br/>'.$dir[0]. ' archivo: '. $dir[1];
+						//$destino = $newDirectorio.'/'.$dir[1];
+						if(rename($newDirectorio.'/'.$archivo, $newDirectorio.'/'.$dir[1])){
+							echo 'Se cambio el nombre '.$archivo.' a '.$dir[1].'<br/>'; 
+						}else{
+							echo 'No se Cambio el nombre '.$archivo.'<br/>'; 
+						}
+					}
+				}
+			}    		
+		}
+
+	}
+
+	function xmlDebianNom(){
+		$rfc = $_SESSION['empresa']['rfc']; 
+		$path = '/home/ofarias/xmls/uploads/';
+		$archivos = scandir($path);
+		$archivos = array_filter($archivos, function($archivo) use ($path){
+    			return is_file($path . '/' . $archivo);
+		});
+		if (count($archivos)>0){
+			foreach ($archivos as $archivo) {
+				$elemento = substr($archivo, 7);
+				echo '<br/>'.$elemento;
+				$destino = $path.'/'.$rfc.'/Nomina/';
+				if(rename($path.'/'.$archivo, $destino.'/'.$elemento)){
+					echo 'Se movio el archivo '.$archivo.'<br/>'; 
+				}else{
+					echo 'No se pudo mover el archivo '.$archivo.'<br/>'; 
+				}
+			}
+		}
+
+	}
 } 
 
 

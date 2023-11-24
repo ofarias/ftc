@@ -75,7 +75,10 @@
                             <?php endforeach ?>
                         </select></p>
                     <center>
-                        <a class="btn btn-primary" id="verNomina" <?php echo (count($nomina)>0)? '':'disabled'?>> Ver Nominas</a></center>
+                        <a class="btn btn-primary verNomina" <?php echo (count($nomina)>0)? '':'disabled'?> tipo="v"> Ver Nominas</a>
+                        <br/>
+                        <a class="btn btn-primary verNomina" <?php echo (count($nomina)>0)? '':'disabled'?> tipo="r"> Reporte de Nominas</a>
+                    </center>
                 </div>
             </div>
         </div>
@@ -290,11 +293,56 @@
             alert('Ver Declaraciones')
         })        
 
-        $("#verNomina").click(function(){
+        $(".verNomina").click(function(){
             var a = document.getElementById("anio").value
             var m = document.getElementById("mes").value
-            window.open("index.xml.php?action=nomXML&anio="+a+"&mes="+m,  "_self")
+            var t = $(this).attr("tipo")
+            if(t == 'v'){
+                window.open("index.xml.php?action=nomXML&anio="+a+"&mes="+m+"&tipo="+t,  "_self")
+            }else{
+
+                    $.confirm({
+                        content: function () {
+                            var self = this;
+                            return $.ajax({
+                                        url:'index.xml.php', 
+                                        type:'get', 
+                                        dataType:'json', 
+                                        data:{action:'nomXML', anio:a, mes:m, tipo:t}
+                                }).done(function (data) {
+                                        self.setContent('Archivo generado' );
+                                        self.setContentAppend('<br>' + data.archivo);
+                                        self.setTitle('Archivo de Nominas');
+                                        descargarArchivo(data.ruta, data.archivo);
+                                }).fail(function(){
+                                        self.setContent('Something went wrong.');
+                                });
+                        }
+                    });
+                
+
+
+            }
         })
+
+        function descargarArchivo(url, archivo) {
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', url, true);
+          xhr.responseType = 'blob';
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              var blob = xhr.response;
+              var link = document.createElement('a');
+              link.href = window.URL.createObjectURL(blob);
+              link.download = archivo;
+              link.style.display = 'none';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }
+          };
+          xhr.send();
+        }
 
         function ejecuta(tipo, anio){
             var anio = document.getElementById(anio).value

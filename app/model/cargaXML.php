@@ -266,35 +266,69 @@ class cargaXML extends database {
 		$campof = ($mes ==0)? '':" and extract(month from fecha)=".$mes;
 		$date=date("d-m-Y H_i_s");
 		$this->query="SELECT * FROM XML_DATA WHERE $campo ='$rfc' and tipo = '$doc' and extract(year from fecha)=$anio $campof order by fecha";
-		//echo $this->query;
 		$res=$this->EjecutaQuerySimple();
 		while ($tsArray=ibase_fetch_object($res)){
 			$data[]=$tsArray;
 		}
 		$zip=new ZipArchive();
-		$dir="C:\\xampp\\htdocs\\zipFiles\\";
+		$zip2= new ZipArchive();
+		if($_SESSION['servidor']!='Debian'){
+			$dir="C:\\xampp\\htdocs\\zipFiles\\";
+		}else{
+			$dir="/home/ofarias/xmls/zipFiles/";
+		}
 		if(!file_exists($dir)){
 			mkdir($dir,0777, true);
 		}
 		$zip->open($dir.$rfc."_".$mes."_".$anio."_".$ide."_".$doc."_".$date.".zip", ZipArchive::CREATE);
 		$d="$rfc";
+		$i=0;
 			foreach ($data as $k){
+				$i++;
 				$rf=($ide=='Recibidos')? $k->RFCE:$k->CLIENTE;
-				$r="C:\\xampp\\htdocs\\uploads\\xml\\".$rfc."\\".$ide."\\".$rf."\\";
+				if($_SESSION['servidor']!='Debian'){
+					$r="C:\\xampp\\htdocs\\uploads\\xml\\".$rfc."\\".$ide."\\".$rf."\\";
+				}else{
+					$r="/home/ofarias/xmls/uploads/".$rfc."/".$ide."/".$rf."/";
+				}	
 				$nameFile=$k->RFCE."-".$k->DOCUMENTO."-".$k->UUID.".xml";
+				$uuid= $k->UUID;
 				$archivo=$r.$nameFile;
 				if(file_exists($archivo)){
 					$zip->addFile($archivo, $nameFile);
 				}else{
-					echo 'No existe '.$archivo.'<br/>';
+					$comando = "chmod -R 777 /home/ofarias/xmls/uploads/";
+					$output = shell_exec($comando);
+
+					$this->query="SELECT xml FROM XML_DATA_FILES WHERE uuid = '$uuid'";
+					$res=$this->EjecutaQuerySimple();
+					
+					while ($tsArray=ibase_fetch_object($res)) {
+						$dataInfo[]=$tsArray;
+					}
+					foreach ($dataInfo as $key) {
+						$contenido = $key->XML;
+					}
+					$blobId=$contenido;
+					$blobInfo = ibase_blob_info($blobId);
+					$blobHandle = ibase_blob_open($blobId);
+					$blobContent = ibase_blob_get($blobHandle, $blobInfo[0]);
+					file_put_contents($r.$nameFile, $blobContent);
+
+					if(file_exists($archivo)){
+						$zip->addFile($archivo, $nameFile);
+					}
 				}
 			}
+
 		$zip->close();
 		$x=$rfc."_".$mes."_".$anio."_".$ide."_".$doc."_".$date.".zip";
 		$x1=$rfc."_".$mes."_".$anio."_".$ide."_".$doc.".zip";
-		header("Content-disposition: attachment; filename=".$x1);
+		//header("Content-disposition: attachment; filename=".$x1);
+		header("Content-disposition: attachment; filename=".$x);
 		header("Content-type: application/octet-stream");
 		readfile($dir.$x);
+		//die($r);
 		//unlink('miarchivo.zip');//Destruye el archivo temporal
 	}
 
@@ -587,9 +621,12 @@ class cargaXML extends database {
     	$data= array();
     	$mes = '';
     	if($m > 0 ){
-    		$mes = ' and extract(month from fecha_inicial) = '.$m.' '; 
+    		//$mes = ' and extract(month from fecha_inicial) = '.$m.' '; 
+    		$mes = ' and extract(month from fecha_final) = '.$m.' '; 
     	}
-    	$this->query="SELECT COUNT(*) AS RECIBOS,fecha_inicial, fecha_final, extract(month from fecha_final) FROM XML_NOMINA_TRABAJADOR where extract(year from fecha_inicial) = $a $mes GROUP BY fecha_inicial, fecha_final ORDER BY FECHA_INICIAL";
+    	//$this->query="SELECT COUNT(*) AS RECIBOS,fecha_inicial, fecha_final, extract(month from fecha_final) FROM XML_NOMINA_TRABAJADOR where extract(year from fecha_inicial) = $a $mes GROUP BY fecha_inicial, fecha_final ORDER BY FECHA_INICIAL";
+    	$this->query="SELECT COUNT(*) AS RECIBOS,fecha_inicial, fecha_final, extract(month from fecha_final) FROM XML_NOMINA_TRABAJADOR where extract(year from fecha_final) = $a $mes GROUP BY fecha_inicial, fecha_final ORDER BY FECHA_INICIAL";
+    	
     	$rs=$this->EjecutaQuerySimple();
     	while (@$tsArray=ibase_fetch_object($rs)) {
     		$data[]=$tsArray;
@@ -707,33 +744,45 @@ class cargaXML extends database {
    		return $data;
    	}
 
+
    	function detNom($fi, $ff){
+   		if($ff == 'per'){ return $this->detNomMen($fi);}
    		$data = array ();
    		$dataDet =array();
    		$columnas = array();
    		$fi = date('d.m.Y', strtotime($fi));
    		$ff = date('d.m.Y', strtotime($ff));
-   		$this->query="SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' order by (SELECT COUNT(*) FROM XML_NOMINA_DETALLE ND WHERE ND.UUID_NOMINA = XNT.UUID_NOMINA) DESC";
-   		//$this->query="SELECT XNT.UUID_NOMINA FROM XML_NOMINA_TRABAJADOR XNT left join XML_NOMINA_RECEPTOR XNR ON XNR.UUID_NOMINA = XNT.UUID_NOMINA where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' order by XNR.NUMEMPLEADO ASC ";
-   		
+
+   		$this->query="EXECUTE PROCEDURE SP_UPD_CANCEL_NOM()";
+   		$this->EjecutaQuerySimple();
+
+   		$this->query="EXECUTE PROCEDURE SP_UPD_COL_NOMINA()";
+   		$this->EjecutaQuerySimple();
+
+
+   		$this->query="SELECT XNT.UUID_NOMINA, XNT.DIAS FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' and xnt.status is null order by (SELECT COUNT(*) FROM XML_NOMINA_DETALLE ND WHERE ND.UUID_NOMINA = XNT.UUID_NOMINA) DESC";
+   		 		
    		$res=$this->EjecutaQuerySimple();
    		while ($tsArray=ibase_fetch_object($res)){
    			$data[]=$tsArray;
    		}
    		array_push($columnas, 'UUID');
+   		array_push($columnas, 'depto');
    		array_push($columnas, 'numero');
    		array_push($columnas, 'nombre');
+   		array_push($columnas, 'fecha ingreso');
+   		array_push($columnas, 'Salario Diario');
+
    		$a=0;
    		$emp=0;
    		foreach ($data as $k){
    			$emp++;
    			$uuid = $k->UUID_NOMINA;
-   			$this->query="SELECT ND.* , NR.NUMEMPLEADO AS NUMERO, (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS NE WHERE NE.CURP = NR.CURP) AS NOMBRE 
+   			$dias = $k->DIAS;
+   			$this->query="SELECT ND.* , NR.NUMEMPLEADO AS NUMERO, nr.departamento as depto, NR.FECHAINICIORELLABORAL as fechaIngreso, (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS NE WHERE NE.CURP = NR.CURP) AS NOMBRE, iif(CLAVE = 'P001' and IMP_GRAVADO > 0, IMP_GRAVADO / $dias, 0) as SALARIO 
    				FROM XML_NOMINA_DETALLE ND
    				LEFT JOIN XML_NOMINA_RECEPTOR NR ON NR.UUID_NOMINA = ND.UUID_NOMINA
-   				WHERE ND.UUID_NOMINA = '$uuid' order by  ded_per desc";
-   				//echo $this->query;
-   				//die;
+   				WHERE ND.UUID_NOMINA = '$uuid' order by  ded_per desc, status asc";
    			$res=$this->EjecutaQuerySimple();
    			while ($tsArray=ibase_fetch_object($res)) {
    				$dataDet[]=$tsArray;
@@ -750,6 +799,98 @@ class cargaXML extends database {
    		}
    		return $info=array("columnas"=>$columnas, "datos"=>$dataDet, "lineas"=>$data);
    	}
+
+   	function infoMes($m, $a){
+   		$columnasM = array(); $lineas= array();
+   		if($m == 0){
+   			$param = ' anio = '.$a;
+   		}else{
+   			$param = ' mes = '.$m;
+   		}
+   		$this->query= "SELECT NOMBRE, max(depto) as depto, min(inicio) as inicio, sum(dias) as dias, sum(sueldoD) as sueldoD, max(numero) as numero FROM REP_MENSUAL WHERE $param group by nombre";
+   		$res = $this->EjecutaQuerySimple();
+   		while ($tsArray=ibase_fetch_object($res)) {
+   			$lineas[] = $tsArray;
+   		}
+
+   		$this->query="SELECT nombre, sum(valor) AS monto, mes, tipo, ded_per, clave, concepto, anio
+    						FROM rep_mensual where $param
+    						group by nombre,  mes, tipo, ded_per, clave, concepto, anio";
+    	$res = $this->EjecutaQuerySimple();
+    	while ($tsArray=ibase_fetch_object($res)) {
+    		$data[]=$tsArray;
+    	}
+
+    	foreach ($data as $col){
+   			$c=$col->DED_PER.':'.$col->TIPO.':'.$col->CLAVE.':'.$col->CONCEPTO;
+   			if(!in_array($c, $columnasM)){
+   				array_push($columnasM, $c);
+   			}
+   			$keys = array_fill_keys($columnasM, '');		
+    	}
+    	return array("columnas"=>$columnasM, "datos"=>$data, "lineas"=>$lineas);
+   	}
+
+   	function detNomMen($fi){
+
+   		$fechas = $fi;
+   		$data = array ();
+	   	$dataDet =array();
+   		for ($i=0; $i < count($fechas) ; $i++) { 
+   			//echo 'Periodo '.$i. ' inicia '.$fechas[$i]->FECHA_INICIAL. ' final '.$fechas[$i]->FECHA_FINAL.'<br/>';
+   			$fi = $fechas[$i]->FECHA_INICIAL;
+   			$ff = $fechas[$i]->FECHA_FINAL;
+	   		
+	   		$columnas = array();
+	   		$fi = date('d.m.Y', strtotime($fi));
+	   		$ff = date('d.m.Y', strtotime($ff));
+
+	   		$this->query="SELECT XNT.UUID_NOMINA, XNT.DIAS, XNT.fecha_final AS FF FROM XML_NOMINA_TRABAJADOR XNT where XNT.fecha_inicial = '$fi' and XNT.fecha_final = '$ff' order by (SELECT COUNT(*) FROM XML_NOMINA_DETALLE ND WHERE ND.UUID_NOMINA = XNT.UUID_NOMINA) DESC";
+	   		
+	   		$res=$this->EjecutaQuerySimple();
+	   		while ($tsArray=ibase_fetch_object($res)){
+	   			$data[]=$tsArray;
+	   		}
+	   	}
+
+	   		array_push($columnas, 'UUID');
+	   		array_push($columnas, 'numero');
+	   		array_push($columnas, 'depto');
+	   		array_push($columnas, 'nombre');
+	   		array_push($columnas, 'fecha ingreso');
+	   		array_push($columnas, 'Salario Diario');
+	   		array_push($columnas, 'Nomina');
+
+	   		$a=0;
+	   		$emp=0;
+	   		
+	   		foreach ($data as $k){
+	   			$emp++;
+	   			$uuid = $k->UUID_NOMINA;
+	   			$dias = $k->DIAS;
+	   			$this->query="SELECT ND.* , NR.NUMEMPLEADO AS NUMERO, nr.departamento as depto, NR.FECHAINICIORELLABORAL as fechaIngreso, (SELECT MAX(NOMBRE) FROM XML_NOMINA_EMPLEADOS NE WHERE NE.CURP = NR.CURP) AS NOMBRE, iif(CLAVE = 'P001' and IMP_GRAVADO > 0, IMP_GRAVADO / $dias, 0) as SALARIO 
+	   				FROM XML_NOMINA_DETALLE ND
+	   				LEFT JOIN XML_NOMINA_RECEPTOR NR ON NR.UUID_NOMINA = ND.UUID_NOMINA
+	   				WHERE ND.UUID_NOMINA = '$uuid' order by  ded_per desc";
+	   			$res=$this->EjecutaQuerySimple();
+	   			while ($tsArray=ibase_fetch_object($res)) {
+	   				$dataDet[]=$tsArray;
+	   			}
+	   			
+	   			foreach ($dataDet as $col){
+	   				$c=$col->DED_PER.':'.$col->TIPO.':'.$col->CLAVE.':'.$col->CONCEPTO;
+	   				if(!in_array($c, $columnas)){
+	   					array_push($columnas, $c);
+	   				}
+	   			}
+	   			$keys = array_fill_keys($columnas, '');	
+	   		}
+	   		
+   		return $info=array("columnas"=>$columnas, "datos"=>$dataDet, "lineas"=>$data);
+   	}
+
+
+
 
    	function verRecibo($uuid){
    		$datos=array();
@@ -1469,4 +1610,40 @@ class cargaXML extends database {
 			return array("status"=>'no');
 		}
 	}
+
+	function getMovNom($uuid, $d, $t, $c, $cn){
+		$info=array();
+		$this->query = "SELECT (IMP_GRAVADO + IMP_EXENTO) AS monto FROM XML_NOMINA_DETALLE WHERE UUID_NOMINA = '$uuid' and TIPO = '$t' and DED_PER = '$d' and CLAVE = '$c' and CONCEPTO = '$cn' ";
+		if($t=='S'){
+			echo $this->query;
+			die();
+		}
+
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$info[]=$tsArray;
+		}
+		if(count($info)>0){return array("valor"=>$info[0]->MONTO);}else{return array("valor"=>0);}
+	}
+
+	function getMovNomMen($name, $d, $t, $c, $cn, $m, $a){
+		$info=array();
+		if($m == 0 ){
+			$param = ' and anio = '.$a;
+		}else{
+			$param = ' and mes = '.$m;
+		}
+		//echo 'Nombre '.$name. ' DED_PER '.$d. ' tipo: '.$t.' concepto: '.$c.' cn '.$cn;
+		$this->query = "SELECT SUM(VALOR) AS monto FROM REP_MENSUAL WHERE NOMBRE = '$name' and TIPO = '$t' and DED_PER = '$d' and CLAVE = '$c' and CONCEPTO = '$cn' $param ";
+		/*if($t=='S'){
+			echo $this->query;
+			die();
+		}*/
+		$res=$this->EjecutaQuerySimple();
+		while ($tsArray=ibase_fetch_object($res)) {
+			$info[]=$tsArray;
+		}
+		if(count($info)>0){return array("valor"=>$info[0]->MONTO);}else{return array("valor"=>0);}
+	}
+
 }
